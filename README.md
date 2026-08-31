@@ -1,48 +1,131 @@
-# TechShadow 360 — Prompt Layer
+# TechShadow 360
 
-TypeScript implementation of the two-phase prompt architecture in
-[`gemini-code-1787546966301.md`](./gemini-code-1787546966301.md): the live
-**Interviewer** (Phase 1) and the async **Evaluator** (Phase 2).
+An AI interview simulator for Latin American tech professionals practising job
+interviews in English. A simulated hiring manager from a real company asks one
+question at a time; afterwards you get a structured evaluation of your English
+— vocabulary, structure, and the grammar errors that Spanish speakers actually
+make.
 
-Scope: prompts, model calls, and the output contract. No UI, no Supabase, no
-STT/TTS — those wrap around this layer.
+Built from the prompt architecture in
+[`gemini-code-1787546966301.md`](./gemini-code-1787546966301.md): a live
+**Interviewer** (Phase 1) and an async **Evaluator** (Phase 2).
 
-## Running it
+- **Backend** — prompts, model routing across four vendors, an HTTP API with
+  accounts, sessions in Redis, and SSE streaming.
+- **Web** — landing page, design system, and the product screens, with browser
+  speech in and out.
+- **Benchmarks** — the harnesses that chose the models, so the choice is
+  reproducible rather than asserted.
 
-Two processes. The API holds the provider key; the web app holds none.
+---
+
+## Setup
+
+### 1. Prerequisites
+
+| | Why |
+| --- | --- |
+| **Node 22+** | Uses `process.loadEnvFile`, built-in scrypt `maxmem`, and native fetch |
+| **Docker** *(optional locally)* | Runs Redis. Without it the API keeps sessions in memory and says so at startup |
+| **One model API key** | [OpenRouter](https://openrouter.ai) covers every default model with a single key |
+
+### 2. Install
 
 ```bash
-docker run -d -p 6379:6379 redis:7-alpine   # sessions (optional locally)
-npm install && npm run serve                # API on :8787
-cd web && npm install && npm run dev        # UI on :5173, proxying /api
-```
-
-Without `REDIS_URL` the API keeps sessions in memory and says so at startup.
-
-Open `http://localhost:5173` for the landing page, `/app` for the product.
-
-## Install
-
-```bash
+git clone https://github.com/jeangueva/realsessions.git
+cd realsessions
 npm install
-cp .env.example .env    # add a key for each vendor you want to exercise
-npm test                # 38 unit tests, all stubbed — no network, no key
-npm run demo            # interactive terminal interview + evaluation
-npm run benchmark       # both phases + a single recommendation
-npm run persona-compare # Phase 1 only
-npm run evaluator-probe # Phase 2 only
+cd web && npm install && cd ..
 ```
 
-**Nothing here has run against a live API yet.** The unit tests use stubs, so a
-green suite says the wiring typechecks and the logic holds — not that any model
-does the job. The two benchmarks below are what answers that, and they need a
-key.
+### 3. Configure
 
-The demo loads `.env` with Node's built-in `process.loadEnvFile` — no dotenv
-dependency. A missing `.env` is not an error if the key is already exported or
-an `ant auth login` profile exists.
+```bash
+cp .env.example .env
+```
 
-## Usage
+Open `.env` and set, at minimum:
+
+```
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+Everything else is optional locally and documented inline in `.env.example`.
+Two are worth knowing about:
+
+- `TECHSHADOW_SESSION_SECRET` — signs identity cookies. Unset in development it
+  is regenerated on every boot, so restarting signs everyone out. **Required in
+  production**, where the server refuses to start without it:
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+- `RESEND_API_KEY` + `EMAIL_FROM` — real email. Without them, password-reset and
+  confirmation links are printed to the server log instead of sent, which is
+  fine locally and refused in production.
+
+### 4. Run
+
+Three processes. **The provider key lives only in the API** — the browser never
+receives it.
+
+```bash
+docker run -d -p 6379:6379 redis:7-alpine   # terminal 1 — Redis (optional)
+npm run serve                               # terminal 2 — API on :8787
+cd web && npm run dev                       # terminal 3 — UI on :5173
+```
+
+Open **http://localhost:5173** for the landing page and **/app** for the
+product. Sign-up is optional: you can practise as a guest, and that history
+transfers to an account if you create one from the same browser.
+
+The API prints what it is actually using at startup, which is the fastest way
+to catch a missing variable:
+
+```
+TechShadow API on http://localhost:8787 (sessions: redis, rate limits: redis, email: console)
+```
+
+### 5. Verify
+
+```bash
+npm test              # 119 tests, fully stubbed — no network, no key needed
+npm run typecheck
+cd web && npm run build
+```
+
+A green suite means the wiring holds, **not** that any model does the job well.
+That is what the benchmarks below are for, and they need a key.
+
+---
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `npm run serve` | The API |
+| `npm test` | Unit tests, backend and web |
+| `npm run demo` | An interview in your terminal, no browser |
+| `npm run benchmark` | Both phases across candidate models, ending in one recommendation |
+| `npm run persona-compare` | Phase 1 only, with full transcripts |
+| `npm run evaluator-probe` | Phase 2 only |
+| `cd web && npm run dev` | The web app |
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause |
+| --- | --- |
+| `Not authenticated` on every request | The web app calls `/api/auth` itself; if it persists, the API is not running or the Vite proxy is not reaching `:8787` |
+| Interview turns arrive empty | A reasoning model spent the whole `max_tokens` budget thinking. `OpenAICompatibleProvider` disables reasoning per vendor — check the model id routes to the right one |
+| `Session not found or expired` right after starting | Redis was restarted; sessions do not survive it being wiped |
+| Reset links never arrive | No `RESEND_API_KEY` — look in the server log, the link is printed there |
+| Voice toggle missing | Firefox has no `SpeechRecognition`. Chrome or Safari only, and typing always works |
+| Everything invisible on a page | Fixed, but the cause is worth knowing: an entrance animation must never be the only thing making content visible |
+
+---
+
+## Usage as a library
 
 ```ts
 import { InterviewSession, evaluateInterview } from "./src/index.js";
@@ -67,8 +150,12 @@ while (!turn.isComplete) {
 
 // Phase 2 — after `[INTERVIEW_COMPLETE]`, typically on a queue.
 const evaluation = await evaluateInterview(context, session.transcript);
-await supabase.from("evaluations").insert(evaluation);
 ```
+
+---
+
+The rest of this file is engineering notes: what was measured, what was chosen,
+and what is deliberately not done yet.
 
 ## The two benchmarks
 

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TechShadow 360 — prompt layer: interviewer (Phase 1) and evaluator (Phase 2) built on the Anthropic SDK.",
+  "description": "TechShadow 360 \u2014 prompt layer: interviewer (Phase 1) and evaluator (Phase 2) built on the Anthropic SDK.",
   "main": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -28,5 +28,8 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
