@@ -1,0 +1,9 @@
+node_modules
+dist
+
+# Secrets. Never commit: this holds live provider keys and the cookie-signing
+# secret. .env.example documents the shape instead.
+.env
+
+# Build artifacts
+*.tsbuildinfo
