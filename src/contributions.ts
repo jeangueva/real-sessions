@@ -42,6 +42,19 @@ export interface ContributionStore {
   verified(companyId: string): Promise<StoredQuestion[]>;
   /** How many reports a company has, by status. Drives the public counter. */
   countsFor(companyId: string): Promise<{ pending: number; verified: number }>;
+  /** The review queue, oldest first so nothing waits indefinitely. */
+  pending(limit: number): Promise<StoredQuestion[]>;
+  /**
+   * Records a decision. Returns false when the report is gone or already
+   * decided, so two reviewers working the queue at once cannot both claim it.
+   */
+  decide(input: {
+    id: number;
+    status: "verified" | "rejected";
+    reviewer: string;
+  }): Promise<boolean>;
+  /** Queue depth, for the reviewer's own screen. */
+  queueDepth(): Promise<number>;
 }
 
 class PostgresContributionStore implements ContributionStore {
@@ -99,6 +112,50 @@ class PostgresContributionStore implements ContributionStore {
       verified: (rows[0]?.verified as number | undefined) ?? 0,
     };
   }
+
+  async pending(limit: number): Promise<StoredQuestion[]> {
+    const { rows } = await this.pool.query(
+      `SELECT id, company_id, stage, role, question, status, created_at
+         FROM question_reports
+        WHERE status = 'pending'
+        ORDER BY created_at
+        LIMIT $1`,
+      [limit],
+    );
+    return rows.map(toStored);
+  }
+
+  async decide(input: { id: number; status: "verified" | "rejected"; reviewer: string }) {
+    // The status guard in the WHERE clause is the concurrency control: two
+    // reviewers working the same queue cannot both decide one report, and the
+    // second sees `false` rather than silently overwriting the first.
+    const { rowCount } = await this.pool.query(
+      `UPDATE question_reports
+          SET status = $2, verified_by = $3, verified_at = now()
+        WHERE id = $1 AND status = 'pending'`,
+      [input.id, input.status, input.reviewer],
+    );
+    return (rowCount ?? 0) > 0;
+  }
+
+  async queueDepth(): Promise<number> {
+    const { rows } = await this.pool.query(
+      `SELECT count(*)::int AS n FROM question_reports WHERE status = 'pending'`,
+    );
+    return (rows[0]?.n as number | undefined) ?? 0;
+  }
+}
+
+function toStored(row: Record<string, unknown>): StoredQuestion {
+  return {
+    id: row.id as number,
+    companyId: row.company_id as string,
+    stage: (row.stage as string | null) ?? null,
+    role: (row.role as string | null) ?? null,
+    question: row.question as string,
+    status: row.status as StoredQuestion["status"],
+    createdAt: new Date(row.created_at as string).toISOString(),
+  };
 }
 
 class MemoryContributionStore implements ContributionStore {
@@ -134,6 +191,25 @@ class MemoryContributionStore implements ContributionStore {
       pending: mine.filter((row) => row.status === "pending").length,
       verified: mine.filter((row) => row.status === "verified").length,
     };
+  }
+
+  async pending(limit: number): Promise<StoredQuestion[]> {
+    return this.reports
+      .filter((row) => row.status === "pending")
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .slice(0, limit)
+      .map(({ hash: _hash, ...row }) => row);
+  }
+
+  async decide(input: { id: number; status: "verified" | "rejected"; reviewer: string }) {
+    const row = this.reports.find((entry) => entry.id === input.id);
+    if (!row || row.status !== "pending") return false;
+    row.status = input.status;
+    return true;
+  }
+
+  async queueDepth(): Promise<number> {
+    return this.reports.filter((row) => row.status === "pending").length;
   }
 }
 

@@ -16,9 +16,15 @@ import { configure, server } from "../../src/server.js";
 import { createSessionStore } from "../../src/session-store.js";
 import { createUserStore } from "../../src/user-store.js";
 import { createProgressStore } from "../../src/progress-store.js";
-import { createEntitlementStore } from "../../src/entitlements.js";
+import {
+  createEntitlementStore,
+  type EntitlementStore,
+} from "../../src/entitlements.js";
 import { createProfileStore } from "../../src/profile.js";
-import { createContributionStore } from "../../src/contributions.js";
+import {
+  createContributionStore,
+  type ContributionStore,
+} from "../../src/contributions.js";
 import { createSubscriptionStore } from "../../src/billing/store.js";
 import { createAccountStore } from "../../src/accounts.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
@@ -97,6 +103,15 @@ export function createStubMailer(): EmailSender & { sent: { to: string }[] } {
 export interface Harness {
   url: string;
   provider: StubProvider;
+  /**
+   * The contribution store, for arranging state the API gates behind a
+   * reviewer account — a different concern from the route under test.
+   */
+  contributions: ContributionStore;
+  /** The entitlement store, for putting a test identity on the paid plan. */
+  plans: EntitlementStore;
+  /** Puts the current identity on premium. Requires an identity already. */
+  makePremium(): Promise<void>;
   mailer: ReturnType<typeof createStubMailer>;
   /** fetch with the cookie jar attached, so an identity persists across calls. */
   call(path: string, init?: RequestInit): Promise<Response>;
@@ -116,14 +131,16 @@ export interface Harness {
 export async function startHarness(): Promise<Harness> {
   const provider = createStubProvider();
   const mailer = createStubMailer();
+  const contributions = createContributionStore(null);
+  const plans = createEntitlementStore(null);
 
   configure({
     sessions: createSessionStore(null),
     users: createUserStore(null),
     progress: createProgressStore(null),
-    plans: createEntitlementStore(null),
+    plans,
     profiles: createProfileStore(null),
-    contributions: createContributionStore(null),
+    contributions,
     subscriptions: createSubscriptionStore(null),
     accounts: createAccountStore(null),
     mailer,
@@ -167,6 +184,8 @@ export async function startHarness(): Promise<Harness> {
     url,
     provider,
     mailer,
+    contributions,
+    plans,
     call,
     async json(path, init) {
       const response = await call(path, init);
@@ -174,6 +193,13 @@ export async function startHarness(): Promise<Harness> {
     },
     async authenticate() {
       await call("/api/auth", post({}));
+    },
+    async makePremium() {
+      // The identity id is not exposed to the client, so this reads it back
+      // out of the cookie the server just set.
+      const cookie = jar.get("rs_id") ?? "";
+      const id = cookie.split(".")[1];
+      if (id) await plans.grant(id, "premium", "test", null);
     },
     forget() {
       jar.clear();

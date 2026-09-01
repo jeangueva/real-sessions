@@ -23,17 +23,22 @@ const navLink =
 /**
  * The showreel the reference decks all opened on.
  *
- * `VITE_HERO_VIDEO` is the source. It is configuration rather than a constant
- * because the footage is the one asset in this build that is not generated from
- * tokens: it can be replaced, it can 404, and it is exactly the thing someone
- * on a metered connection or `prefers-reduced-motion` should not be served.
- * `HeroVideo` falls back to the CSS light field in all three cases, so the
- * layout below never changes.
+ * Served from this app rather than hotlinked: `public/hero.mp4`, transcoded
+ * from the original 16 Mbit/s master down to a tenth of its size. A background
+ * loop sits behind a scrim and is never the thing being read, so the bitrate
+ * that master was graded at buys nothing and costs 19 MB before anyone reaches
+ * the headline.
+ *
+ * `VITE_HERO_VIDEO` overrides it — for a CDN in production, or an empty string
+ * to ship the CSS light field instead. `HeroVideo` also falls back to that
+ * field for `prefers-reduced-motion` and for a file that fails to load, so the
+ * layout below never depends on the video being there.
  */
+const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero.mp4";
 export function Hero() {
   return (
     <InsetFrame className="bg-surface-base">
-      <HeroVideo src={import.meta.env.VITE_HERO_VIDEO} />
+      <HeroVideo src={HERO_VIDEO} />
 
       <nav className="absolute left-1/2 top-0 z-20 -translate-x-1/2">
         <ul className="flex items-center gap-1 rounded-b-2xl bg-black px-3 py-1.5 sm:gap-4 md:gap-10 md:rounded-b-3xl md:px-8">

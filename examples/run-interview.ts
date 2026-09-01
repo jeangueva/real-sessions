@@ -2,6 +2,7 @@
  * End-to-end demo: live interview in the terminal, then the async evaluation.
  * Run with `npm run demo` (needs ANTHROPIC_API_KEY or an `ant auth login` profile).
  */
+import "../src/env.js";
 import * as readline from "node:readline/promises";
 import process, { stdin, stdout } from "node:process";
 import { InterviewSession, evaluateInterview } from "../src/index.js";
@@ -10,12 +11,6 @@ import type { InterviewContext } from "../src/index.js";
 // Load .env into process.env. Node's built-in loader — no dotenv dependency.
 // A missing .env is fine: the key may already be exported, or come from a
 // stored `ant auth login` profile.
-try {
-  process.loadEnvFile(".env");
-} catch (error) {
-  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-}
-
 const context: InterviewContext = {
   candidateName: "Mariana",
   targetRole: "Senior Product Designer",

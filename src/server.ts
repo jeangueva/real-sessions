@@ -32,6 +32,8 @@
  *   PUT  /api/context/links             → { profile }
  *   DELETE /api/context                 → clears it
  *   POST /api/contributions             → reports a real interview question
+ *   GET  /api/review                    → the queue (reviewers only)
+ *   POST /api/review/:id                → verify or reject one (reviewers only)
  *   GET  /api/preferences               → { preferences }
  *   PUT  /api/preferences               → { preferences }
  *   POST /api/accounts                  → sign up
@@ -48,6 +50,8 @@
  *
  * Run with `npm run serve`.
  */
+// Must come first: see the note in env.ts.
+import "./env.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 import process from "node:process";
@@ -138,6 +142,7 @@ import {
 } from "./contributions.js";
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
+import { isReviewer, reviewEnabled } from "./reviewers.js";
 import {
   cancelPreapproval,
   createPreapproval,
@@ -159,12 +164,6 @@ import {
   type UserStore,
 } from "./user-store.js";
 import type { InterviewContext } from "./types.js";
-
-try {
-  process.loadEnvFile(".env");
-} catch (error) {
-  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-}
 
 const PORT = Number(process.env.PORT ?? 8787);
 
@@ -951,6 +950,26 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const plan = await PLANS.planFor(identity.id);
   const can = capabilitiesFor(plan);
 
+  /**
+   * The review queue.
+   *
+   * Gated on an allowlist of verified account emails, checked here rather than
+   * anywhere near the client. The queue is the only thing standing between a
+   * stranger's text and an interview prompt, so "is this person a reviewer" is
+   * not a question the browser gets to answer.
+   */
+  const reviewer = await (async () => {
+    if (!reviewEnabled() || identity.kind !== "user") return null;
+    const account = await ACCOUNTS.findById(identity.id);
+    if (!account) return null;
+    return isReviewer({
+      email: account.email,
+      emailVerified: Boolean(account.emailVerifiedAt),
+    })
+      ? account.email
+      : null;
+  })();
+
   /** 402 with the feature named, so the client can show the right upsell. */
   const requiresPremium = (feature: string): void => {
     json(res, 402, {
@@ -1027,7 +1046,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   if (req.method === "GET" && path === "/api/plan") {
-    json(res, 200, { plan, capabilities: can });
+    json(res, 200, { plan, capabilities: can, reviewer: reviewer !== null });
     return;
   }
 
@@ -1128,6 +1147,44 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "GET" && path === "/api/review") {
+    // 404 rather than 403 for a non-reviewer: whether this deployment has a
+    // review queue at all is not something to confirm to everyone who asks.
+    if (!reviewer) return json(res, 404, { error: `No route for GET ${path}` });
+    json(res, 200, {
+      queue: await CONTRIBUTIONS.pending(50),
+      depth: await CONTRIBUTIONS.queueDepth(),
+      companies: COMPANIES.map(({ id, name }) => ({ id, name })),
+    });
+    return;
+  }
+
+  const reviewMatch = path.match(/^\/api\/review\/(\d+)$/);
+  if (req.method === "POST" && reviewMatch) {
+    if (!reviewer) return json(res, 404, { error: `No route for POST ${path}` });
+
+    const body = await readJson(req);
+    const decision = body["status"];
+    if (decision !== "verified" && decision !== "rejected") {
+      return json(res, 400, { error: "Decide either verified or rejected." });
+    }
+
+    const decided = await CONTRIBUTIONS.decide({
+      id: Number(reviewMatch[1]),
+      status: decision,
+      reviewer,
+    });
+
+    // False means someone else already decided it. Reported rather than
+    // swallowed, so a reviewer working the queue alongside another does not
+    // think their click did something it did not.
+    json(res, decided ? 200 : 409, {
+      decided,
+      ...(decided ? {} : { error: "Already decided by someone else." }),
+    });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/sessions") {
     if (await limited(res, `start:${identity.id}`, RULES.startSession)) return;
     const body = await readJson(req);
@@ -1153,9 +1210,20 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       : null;
     const candidateBrief = profile ? renderProfileBrief(profile) : "";
 
+    // Only what a reviewer has verified, and only for a named company — a free
+    // session runs against the generic one and has no crowd questions to draw
+    // on. A read failure costs the interview nothing.
+    const known = findCompany(context.companyName);
+    const knownQuestions = known
+      ? await CONTRIBUTIONS.verified(known.id)
+          .then((rows) => rows.map((row) => row.question))
+          .catch(() => [])
+      : [];
+
     const session = new InterviewSession(context, {
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
+      knownQuestions,
       ...(PROVIDER ? { provider: PROVIDER } : {}),
     });
     const sessionId = randomUUID();

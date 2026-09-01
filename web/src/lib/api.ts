@@ -528,8 +528,38 @@ export function cancelSubscription() {
 
 export function fetchPlan() {
   return withIdentity(() =>
-    request<{ plan: Plan; capabilities: Capabilities }>("/api/plan", {
-      method: "GET",
+    request<{ plan: Plan; capabilities: Capabilities; reviewer: boolean }>(
+      "/api/plan",
+      { method: "GET" },
+    ),
+  );
+}
+
+export interface PendingQuestion {
+  id: number;
+  companyId: string;
+  stage: string | null;
+  role: string | null;
+  question: string;
+  createdAt: string;
+}
+
+export function fetchReviewQueue() {
+  return withIdentity(() =>
+    request<{
+      queue: PendingQuestion[];
+      depth: number;
+      companies: { id: string; name: string }[];
+    }>("/api/review", { method: "GET" }),
+  );
+}
+
+export function decideQuestion(id: number, status: "verified" | "rejected") {
+  return withIdentity(() =>
+    request<{ decided: boolean }>(`/api/review/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
     }),
   );
 }

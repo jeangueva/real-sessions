@@ -8,6 +8,7 @@
  *
  * Models whose vendor key is unset fail on their own row; the rest still run.
  */
+import "../src/env.js";
 import process, { argv } from "node:process";
 import { EVALUATOR_MODEL } from "../src/index.js";
 import { loadEnv, runPersonaCheck } from "./persona-harness.js";

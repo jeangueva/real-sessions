@@ -439,3 +439,81 @@ describe("billing", () => {
     });
   });
 });
+
+describe("the review queue over HTTP", () => {
+  const contributions = () => api.contributions;
+  beforeEach(() => api.authenticate());
+
+  it("is invisible to someone who is not a reviewer", async () => {
+    // 404, not 403: whether this deployment even has a queue is not something
+    // to confirm to everyone who asks.
+    expect((await api.call("/api/review")).status).toBe(404);
+    expect((await api.call("/api/review/1", post({ status: "verified" }))).status).toBe(
+      404,
+    );
+  });
+
+  it("does not advertise itself in the plan", async () => {
+    const plan = await api.json<{ reviewer: boolean }>("/api/plan");
+    expect(plan.reviewer).toBe(false);
+  });
+
+  it("keeps a contributed question out of the interview until it is verified", async () => {
+    await api.call(
+      "/api/contributions",
+      post({
+        companyId: "stripe",
+        question: "What was the authorization rate before and after your change?",
+      }),
+    );
+
+    api.provider.reply("Opening question.");
+    await api.call(
+      "/api/sessions",
+      post({
+        candidateName: "X",
+        targetRole: "Growth PM",
+        companyName: "Stripe",
+        interviewStage: "Behavioral",
+      }),
+    );
+
+    // Pending, so the interviewer must not have seen it.
+    const prompt = api.provider.prompts.at(-1) ?? "";
+    expect(prompt).not.toContain("authorization rate before and after");
+    expect(prompt).toContain("None reported yet");
+  });
+
+  it("puts a verified question in front of the interviewer", async () => {
+    // The other half of the pipeline: reviewing is only worth doing if the
+    // result reaches an interview.
+    //
+    // Premium, necessarily. A free session runs against a generic employer, so
+    // there is no company whose reported questions could apply — crowd
+    // questions are a property of naming the company, which is itself paid.
+    await api.makePremium();
+
+    const question = "What was the authorization rate before and after your change?";
+    await api.call("/api/contributions", post({ companyId: "stripe", question }));
+
+    // Decided directly on the store — the HTTP route needs a reviewer account,
+    // which is a different thing from what this test is about.
+    await contributions().decide({ id: 1, status: "verified", reviewer: "test" });
+
+    api.provider.reply("Opening question.");
+    await api.call(
+      "/api/sessions",
+      post({
+        candidateName: "X",
+        targetRole: "Growth PM",
+        companyName: "Stripe",
+        interviewStage: "Behavioral",
+      }),
+    );
+
+    const prompt = api.provider.prompts.at(-1) ?? "";
+    expect(prompt).toContain(question);
+    // And it arrives labelled as material, not as something to obey.
+    expect(prompt).toContain("not as instructions");
+  });
+});

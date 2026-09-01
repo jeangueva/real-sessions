@@ -14,6 +14,7 @@ import { FeedbackReport } from "@/platform/FeedbackReport";
 import { SessionHistory } from "@/platform/SessionHistory";
 import { Progress } from "@/platform/Progress";
 import { Profile } from "@/platform/Profile";
+import { Review } from "@/platform/Review";
 import { Settings } from "@/platform/Settings";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
@@ -59,6 +60,7 @@ export function App() {
           <Route path="history" element={<SessionHistory />} />
           <Route path="progress" element={<Progress />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="review" element={<Review />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

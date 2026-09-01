@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { FileUser, History, LineChart, LogIn, Mic, Play, Settings } from "lucide-react";
+import {
+  FileUser,
+  History,
+  LineChart,
+  LogIn,
+  Mic,
+  Play,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import type { ReactNode } from "react";
-import { fetchSession, signOut } from "@/lib/api";
+import { fetchPlan, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 
 /**
@@ -25,6 +34,17 @@ const NAV = [
 
 export function AppShell() {
   const [session, setSession] = useState<Session | null>(null);
+  /**
+   * Whether to show the review entry point. The server decides — this only
+   * hides a link, and the route itself is 404 for anyone not on the allowlist.
+   */
+  const [reviewer, setReviewer] = useState(false);
+
+  useEffect(() => {
+    fetchPlan()
+      .then((result) => setReviewer(result.reviewer))
+      .catch(() => setReviewer(false));
+  }, []);
 
   useEffect(() => {
     // A failure here is not worth blocking the app: the shell just shows the
@@ -45,7 +65,19 @@ export function AppShell() {
         </div>
 
         <nav className="flex flex-col gap-1">
-          {NAV.map(({ to, label, icon: Icon, end }) => (
+          {[
+            ...NAV,
+            ...(reviewer
+              ? [
+                  {
+                    to: "/app/review",
+                    label: "Review",
+                    icon: ShieldCheck,
+                    end: false,
+                  },
+                ]
+              : []),
+          ].map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

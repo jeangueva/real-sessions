@@ -4,6 +4,7 @@
  *   npm run evaluator-probe
  *   npx tsx examples/evaluator-probe.ts qwen3.5-flash gemini-3.1-flash-lite
  */
+import "../src/env.js";
 import process, { argv } from "node:process";
 import { EVALUATOR_MODEL } from "../src/index.js";
 import { loadEnv } from "./persona-harness.js";

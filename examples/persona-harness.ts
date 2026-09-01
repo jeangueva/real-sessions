@@ -2,6 +2,7 @@
  * Shared rig for the persona tests: the scripted adversarial candidate, the
  * mechanical rule checks from the Phase 1 prompt, and per-session cost.
  */
+import "../src/env.js";
 import process from "node:process";
 import { InterviewSession, ZERO_USAGE } from "../src/index.js";
 import type {

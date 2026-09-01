@@ -3,6 +3,7 @@
  * and the checks that say whether a model can actually judge a candidate's
  * English. Shared by `evaluator-probe` and the combined `benchmark`.
  */
+import "../src/env.js";
 import { evaluateInterview } from "../src/index.js";
 import type { Evaluation, TranscriptTurn } from "../src/index.js";
 import { CONTEXT, estimateCost } from "./persona-harness.js";

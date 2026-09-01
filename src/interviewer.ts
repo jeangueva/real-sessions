@@ -52,6 +52,8 @@ export interface SessionSnapshot {
   personaId?: string;
   /** The candidate briefing in force for this session, if any. */
   candidateBrief?: string | null;
+  /** Verified questions this session was built with. */
+  knownQuestions?: string[];
   messages: ChatTurn[];
   interviewerTurns: number;
   complete: boolean;
@@ -77,6 +79,8 @@ export interface InterviewSessionOptions {
   personaId?: string;
   /** Candidate briefing, from an uploaded CV or portfolio. */
   candidateBrief?: string | null;
+  /** Verified crowd-reported questions for this company. */
+  knownQuestions?: readonly string[];
 }
 
 /**
@@ -105,6 +109,7 @@ export class InterviewSession {
   private readonly fallbackModels: string[];
   private readonly personaId: string;
   private readonly candidateBrief: string | null;
+  private readonly knownQuestions: string[];
   private readonly systemPrompt: string;
   private readonly messages: ChatTurn[] = [];
   private interviewerTurns = 0;
@@ -133,11 +138,13 @@ export class InterviewSession {
     this.fallbackModels = options.fallbackModels ?? INTERVIEWER_FALLBACKS;
     this.personaId = options.personaId ?? defaultPersonaFor(context.companyName).id;
     this.candidateBrief = options.candidateBrief ?? null;
+    this.knownQuestions = [...(options.knownQuestions ?? [])];
     this.systemPrompt = buildInterviewerPrompt(context, {
       minTurns,
       maxTurns,
       personaId: this.personaId,
       candidateBrief: this.candidateBrief,
+      knownQuestions: this.knownQuestions,
     });
   }
 
@@ -186,6 +193,7 @@ export class InterviewSession {
       fallbackModels: [...this.fallbackModels],
       personaId: this.personaId,
       candidateBrief: this.candidateBrief,
+      knownQuestions: [...this.knownQuestions],
       messages: this.messages.map((message) => ({ ...message })),
       interviewerTurns: this.interviewerTurns,
       complete: this.complete,
@@ -216,6 +224,7 @@ export class InterviewSession {
       // Restored rather than re-read: the brief the interview started with is
       // the one it must finish with, even if the candidate re-uploads midway.
       candidateBrief: snapshot.candidateBrief ?? null,
+      knownQuestions: snapshot.knownQuestions ?? [],
     });
     session.messages.push(...snapshot.messages);
     session.interviewerTurns = snapshot.interviewerTurns;

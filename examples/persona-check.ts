@@ -7,6 +7,7 @@
  *
  * Exits non-zero if any mechanical rule check fails.
  */
+import "../src/env.js";
 import process, { argv } from "node:process";
 import { INTERVIEWER_MODEL } from "../src/index.js";
 import { loadEnv, runPersonaCheck } from "./persona-harness.js";

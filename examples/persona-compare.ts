@@ -5,6 +5,7 @@
  *   npm run persona-compare
  *   npx tsx examples/persona-compare.ts claude-haiku-4-5 gemini-3.1-flash-lite claude-sonnet-5
  */
+import "../src/env.js";
 import process, { argv } from "node:process";
 import { loadEnv, runPersonaCheck, SCRIPT } from "./persona-harness.js";
 import type { RunResult } from "./persona-harness.js";

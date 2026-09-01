@@ -54,6 +54,7 @@ Built from the prompt architecture in
 | **Node 22+** | Uses `process.loadEnvFile`, built-in scrypt `maxmem`, and native fetch |
 | **Docker** *(optional locally)* | Runs Redis. Without it the API keeps live sessions in memory and says so at startup |
 | **Postgres 14+** | Holds transcripts, metrics, XP and badges. Without it progress is per-process and lost on restart |
+| **`.env` is loaded by `src/env.ts`** | It must stay the first import of every entry point — `auth.ts` and `client.ts` read the environment at module scope, and ES modules evaluate imports before the importing file's body |
 | **One model API key** | [OpenRouter](https://openrouter.ai) covers every default model with a single key |
 
 ### 2. Install
@@ -189,9 +190,15 @@ itself needs a Deepgram account.
 
 ## The hero video
 
-`VITE_HERO_VIDEO` points the hero at looping footage. Unset, it renders a CSS
-light field instead — which is also what anyone with `prefers-reduced-motion`
-gets, and what everyone gets if the file fails to load.
+The app serves its own `web/public/hero.mp4`, transcoded from a 19 MB, 16 Mbit/s
+master down to 1.9 MB. A background loop sits behind a scrim and is never the
+thing being read, so the bitrate a master was graded at buys nothing and costs
+ten times the weight of the rest of the page.
+
+`VITE_HERO_VIDEO` overrides it — a CDN in production, or an empty string to drop
+the video and render the CSS light field instead. That field is also what anyone
+with `prefers-reduced-motion` gets, and what everyone gets if the file fails to
+load.
 
 The loop seam is the whole problem: the `loop` attribute cuts hard from the last
 frame to the first, and no CSS transition has an event early enough to hang on.
@@ -199,10 +206,16 @@ So the fade is driven by hand on `requestAnimationFrame` — fade out over the
 last 0.55s, reset on `ended`, fade back in. Each fade cancels the one before it
 and resumes from the current opacity rather than snapping.
 
-**Check what your footage weighs before shipping it.** The clip this was built
-against is 19 MB, which is larger than the rest of the page put together and
-downloads before anyone has read the headline. Transcode it, offer webm
-alongside mp4, and host it somewhere you control.
+If you replace it, check what it weighs first. Transcoding is a one-liner:
+
+```bash
+ffmpeg -i master.mp4 -an -c:v libx264 -crf 30 -preset slow \
+  -vf scale=1920:-2 -movflags +faststart web/public/hero.mp4
+```
+
+`-an` because it is muted anyway, and `+faststart` so playback begins before
+the whole file has arrived. A VP9/webm version was tried and came out *larger*
+than the h264 at equivalent quality, so only one file ships.
 
 ---
 
@@ -317,14 +330,37 @@ Two promises, both kept in the backend rather than in the copy:
 end: `ContributionStore.verified()` is the only reader, and it filters on a
 status nothing currently sets.
 
+### Reviewing
+
+`REALSESSIONS_REVIEWERS` is a comma-separated list of account emails. Unset, the
+review routes 404 for everyone and nothing is ever verified.
+
+It is an environment variable rather than a role column for two reasons. The
+reviewers are meant to be a handful of working recruiters, changing rarely — a
+table and an admin screen would be more machinery than the problem has. And a
+list that lives outside the database cannot be granted to yourself by anything
+that reaches the database.
+
+An unverified email address is never a reviewer. The allowlist names an address,
+so an unconfirmed one is a claim rather than a fact; without that check,
+registering with a reviewer's address would be enough.
+
+A non-reviewer gets 404 from `/api/review`, not 403 — whether this deployment
+has a queue at all is not something to confirm to everyone who asks.
+
+Verified questions reach the Phase 1 prompt fenced and labelled as source
+material, with an explicit instruction that anything inside them reading like a
+command is a candidate's recollection and is to be ignored. Human review is the
+real mitigation for text from strangers landing in a system prompt; that fence
+is the second line.
+
 ### Where this goes
 
 1. **Now** — candidates report questions; they sit in `pending`.
 2. **Next** — working recruiters and hiring managers verify them per company,
    and verified questions inform the prompt for that employer.
-3. **Later** — those same interviewers run sessions themselves. The
-   `verified_by` column exists for step 2; step 3 is a product, not a column,
-   and nothing here presumes it.
+3. **Later** — those same interviewers run sessions themselves. Step 3 is a
+   product, not a column, and nothing here presumes it.
 
 ---
 
