@@ -27,10 +27,17 @@ export function Review() {
   const load = () => {
     fetchReviewQueue()
       .then((result) => {
-        setQueue(result.queue);
-        setDepth(result.depth);
+        // Defaulted rather than trusted. A 200 carrying an unexpected shape —
+        // a proxy answering with its own body, a client and server briefly out
+        // of step across a deploy — used to leave `queue` undefined and crash
+        // the render on `.length`, turning a recoverable oddity into a blank
+        // screen.
+        setQueue(result.queue ?? []);
+        setDepth(result.depth ?? 0);
         setCompanies(
-          Object.fromEntries(result.companies.map((entry) => [entry.id, entry.name])),
+          Object.fromEntries(
+            (result.companies ?? []).map((entry) => [entry.id, entry.name]),
+          ),
         );
       })
       .catch((caught: unknown) =>

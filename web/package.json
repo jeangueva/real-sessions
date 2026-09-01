@@ -18,10 +18,13 @@
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "happy-dom": "^20.12.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
@@ -29,5 +32,5 @@
     "vitest": "^4.1.11"
   },
   "license": "MIT",
-  "description": "Real Sessions \u2014 web client: landing page, design system, and product screens."
+  "description": "Real Sessions — web client: landing page, design system, and product screens."
 }

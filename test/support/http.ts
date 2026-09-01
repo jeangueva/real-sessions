@@ -15,7 +15,10 @@ import type { AddressInfo } from "node:net";
 import { configure, server } from "../../src/server.js";
 import { createSessionStore } from "../../src/session-store.js";
 import { createUserStore } from "../../src/user-store.js";
-import { createProgressStore } from "../../src/progress-store.js";
+import {
+  createProgressStore,
+  type ProgressStore,
+} from "../../src/progress-store.js";
 import {
   createEntitlementStore,
   type EntitlementStore,
@@ -28,7 +31,7 @@ import {
 import { createSubscriptionStore } from "../../src/billing/store.js";
 import { createAccountStore } from "../../src/accounts.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
-import type { EmailSender } from "../../src/email.js";
+import type { EmailMessage, EmailSender } from "../../src/email.js";
 import type { ModelProvider } from "../../src/providers/index.js";
 import { SAMPLE_EVALUATION } from "../fixtures.js";
 
@@ -88,14 +91,30 @@ export function createStubProvider(): StubProvider {
   };
 }
 
+export interface StubMailer extends EmailSender {
+  readonly sent: EmailMessage[];
+  /**
+   * The token from the most recent link sent to an address.
+   *
+   * Reset and confirmation both work by mailing a single-use token, so a test
+   * that cannot read the mail cannot exercise either flow — and those are the
+   * account-recovery paths, which is where the security actually lives.
+   */
+  tokenFor(email: string): string | null;
+}
+
 /** Records what would have been sent, so the email routes are assertable. */
-export function createStubMailer(): EmailSender & { sent: { to: string }[] } {
-  const sent: { to: string }[] = [];
+export function createStubMailer(): StubMailer {
+  const sent: EmailMessage[] = [];
   return {
     kind: "stub",
     sent,
     async send(message) {
-      sent.push({ to: message.to });
+      sent.push(message);
+    },
+    tokenFor(email) {
+      const message = [...sent].reverse().find((entry) => entry.to === email);
+      return message?.text.match(/token=([A-Za-z0-9._-]+)/)?.[1] ?? null;
     },
   };
 }
@@ -103,6 +122,11 @@ export function createStubMailer(): EmailSender & { sent: { to: string }[] } {
 export interface Harness {
   url: string;
   provider: StubProvider;
+  /**
+   * Makes every progress read and write throw, standing in for a database
+   * that has gone away mid-request.
+   */
+  breakProgress(): void;
   /**
    * The contribution store, for arranging state the API gates behind a
    * reviewer account — a different concern from the route under test.
@@ -112,7 +136,7 @@ export interface Harness {
   plans: EntitlementStore;
   /** Puts the current identity on premium. Requires an identity already. */
   makePremium(): Promise<void>;
-  mailer: ReturnType<typeof createStubMailer>;
+  mailer: StubMailer;
   /** fetch with the cookie jar attached, so an identity persists across calls. */
   call(path: string, init?: RequestInit): Promise<Response>;
   json<T = Record<string, unknown>>(path: string, init?: RequestInit): Promise<T>;
@@ -125,6 +149,13 @@ export interface Harness {
    * is how a test checks that one identity cannot read another's records.
    */
   forget(): void;
+  /**
+   * The current cookie header, to replay later.
+   *
+   * Used to prove that a password reset actually invalidates a session held by
+   * someone else — the thing a reset exists to do.
+   */
+  stealCookie(): string;
   stop(): Promise<void>;
 }
 
@@ -134,10 +165,24 @@ export async function startHarness(): Promise<Harness> {
   const contributions = createContributionStore(null);
   const plans = createEntitlementStore(null);
 
+  // Wrapped so a test can pull the database out from under a request.
+  const realProgress = createProgressStore(null);
+  let progressBroken = false;
+  const progress = new Proxy(realProgress, {
+    get(target, key) {
+      const value = Reflect.get(target, key);
+      if (typeof value !== "function" || key === "kind") return value;
+      return (...args: unknown[]) =>
+        progressBroken
+          ? Promise.reject(new Error("database is gone"))
+          : (value as (...a: unknown[]) => unknown).apply(target, args);
+    },
+  }) as ProgressStore;
+
   configure({
     sessions: createSessionStore(null),
     users: createUserStore(null),
-    progress: createProgressStore(null),
+    progress,
     plans,
     profiles: createProfileStore(null),
     contributions,
@@ -165,7 +210,11 @@ export async function startHarness(): Promise<Harness> {
 
   const call = async (path: string, init: RequestInit = {}) => {
     const headers = new Headers(init.headers);
-    if (jar.size > 0) {
+    // A caller who supplied their own Cookie wins — that is how a test replays
+    // an old session to prove it was invalidated. Overwriting it here made the
+    // request carry the current identity instead, and the assertion passed for
+    // the wrong reason.
+    if (jar.size > 0 && !headers.has("Cookie")) {
       headers.set(
         "Cookie",
         [...jar.entries()].map(([name, value]) => `${name}=${value}`).join("; "),
@@ -203,6 +252,12 @@ export async function startHarness(): Promise<Harness> {
     },
     forget() {
       jar.clear();
+    },
+    breakProgress() {
+      progressBroken = true;
+    },
+    stealCookie() {
+      return [...jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
     },
     async stop() {
       await new Promise<void>((resolve) => server.close(() => resolve()));

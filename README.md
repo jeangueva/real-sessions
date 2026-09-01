@@ -102,6 +102,13 @@ Two are worth knowing about:
 
 ### 4. Run
 
+Redis and Postgres come up with compose:
+
+```bash
+docker compose up -d          # redis + postgres, healthchecked
+```
+
+
 Three processes. **The provider key lives only in the API** — the browser never
 receives it.
 
@@ -150,6 +157,12 @@ TEST_DATABASE_URL=postgresql://localhost:5432/realsessions_test npm test
 
 `TEST_DATABASE_URL`, never `DATABASE_URL` — these tests write real rows, and
 aiming them at the development database puts test XP on your own leaderboard.
+
+The web suite renders components in happy-dom. `Element.prototype.animate` is
+deleted in the setup file, which pushes Framer Motion onto its JavaScript
+animation path: happy-dom's Web Animations implementation throws when a
+component unmounts mid-animation, and the noise landed exactly where a real
+failure would need to be visible.
 
 A green suite means the wiring holds, **not** that any model does the job well.
 That is what the benchmarks below are for, and they need a key.
@@ -361,6 +374,36 @@ is the second line.
    and verified questions inform the prompt for that employer.
 3. **Later** — those same interviewers run sessions themselves. Step 3 is a
    product, not a column, and nothing here presumes it.
+
+---
+
+## Deploying
+
+One image serves the API and the built web app:
+
+```bash
+docker build -t realsessions .
+docker run -p 8787:8787 --env-file .env.production realsessions
+```
+
+Two stages, so the web toolchain does not ship. The server runs TypeScript
+through tsx rather than being compiled — a deliberate trade, since adding a
+backend build here would mean the thing running in production is not the thing
+the tests run against.
+
+`--include=dev` on the install is load-bearing: `NODE_ENV=production` is already
+set by then, which makes npm omit devDependencies, and tsx is one. Without it
+the image has no tsx, `npx` fetches it on every boot, and the container needs
+network access at startup to run at all.
+
+Static serving sits **in front of** the authentication gate. The page a visitor
+loads is what obtains the identity cookie, so serving it only to callers who
+already have one is a door locked from the inside. API paths are excluded, so a
+mistyped `/api/…` still answers as an API rather than returning HTML.
+
+Production refuses to start without `REDIS_URL`, `DATABASE_URL`,
+`REALSESSIONS_SESSION_SECRET`, and `RESEND_API_KEY` + `EMAIL_FROM`. Each of
+those failures is silent data loss or a security hole if it degrades instead.
 
 ---
 

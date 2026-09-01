@@ -1,0 +1,22 @@
+# Everything the image does not need. Keeping this tight is what makes the
+# build context small enough that a rebuild is fast.
+node_modules
+web/node_modules
+web/dist
+dist
+
+# Secrets must never enter an image layer — they survive in the history even if
+# a later layer deletes them.
+.env
+.env.local
+.env*.local
+
+.git
+.github
+assets
+test
+examples
+*.md
+*.tsbuildinfo
+Dockerfile
+.dockerignore

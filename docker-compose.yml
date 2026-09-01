@@ -1,0 +1,36 @@
+# Local dependencies, so `npm run serve` has something to talk to.
+#
+# The app itself is deliberately not in here: running it in a container while
+# developing costs the file watching and the fast restart that make the loop
+# bearable. This is Redis and Postgres only.
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    # Redis is a cache here for rate limits and a store for interviews in
+    # flight, both of which have a TTL — persistence would only preserve state
+    # that is meant to expire.
+    command: redis-server --save ""
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_USER: realsessions
+      POSTGRES_PASSWORD: realsessions
+      POSTGRES_DB: realsessions
+    volumes:
+      - realsessions-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U realsessions"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  realsessions-pgdata:

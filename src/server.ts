@@ -112,6 +112,7 @@ import {
   xpForSession,
   BADGES,
   AXES,
+  DAILY_XP_CAP,
   type Axis,
 } from "./gamification.js";
 import { coachTurn } from "./coach.js";
@@ -143,6 +144,7 @@ import {
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled } from "./reviewers.js";
+import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
   createPreapproval,
@@ -179,6 +181,12 @@ let PLANS: EntitlementStore;
 let PROFILES: ProfileStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
+/**
+ * The built web app, when one is present beside the server.
+ *
+ * Null in development, where Vite serves the app and proxies /api here.
+ */
+let SITE: StaticSite | null = null;
 let ACCOUNTS: AccountStore;
 let MAILER: EmailSender;
 let LIMITER: RateLimiter;
@@ -600,6 +608,25 @@ async function recordQuietly(work: Promise<unknown>): Promise<void> {
   }
 }
 
+/**
+ * Reads, falling back rather than throwing.
+ *
+ * The evaluation route is where this matters. By the time it touches the
+ * database the model has already run and already been paid for, and an
+ * unguarded read between there and the response threw that away — the
+ * candidate saw an error for a report that existed. Everything the route needs
+ * from storage is either recomputable or has a sane empty value, so a database
+ * blip costs the progress record and not the evaluation.
+ */
+async function readQuietly<T>(work: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await work;
+  } catch (error) {
+    console.error("[realsessions] progress read failed:", error);
+    return fallback;
+  }
+}
+
 async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
   const path = url.pathname;
@@ -924,6 +951,20 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // it authenticated cost a 401 on the first call of every session.
     json(res, 200, { live: deepgramConfigured() });
     return;
+  }
+
+  /**
+   * Anything that is not an API call belongs to the web app, when one is
+   * deployed alongside.
+   *
+   * In front of the authentication gate, necessarily: the page a visitor loads
+   * is what obtains the identity cookie in the first place, so serving it only
+   * to callers who already have one is a door locked from the inside. API
+   * paths are excluded outright, so this cannot shadow a route below it — a
+   * mistyped /api/… still answers as an API rather than returning HTML.
+   */
+  if (SITE && req.method === "GET" && !path.startsWith("/api/")) {
+    if (await SITE.serve(path, res)) return;
   }
 
   // Everything past this point is authenticated.
@@ -1384,12 +1425,29 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // the numbers are derived from the same turns that will be read back on
     // the history screen rather than from a copy that could have drifted.
     await recordQuietly(recordTranscript(sessionId, session.transcript));
-    const detail = await PROGRESS.getSession(identity.id, sessionId);
-    const metrics = computeMetrics(detail?.turns ?? []);
+
+    // Everything from here to the response is guarded. The model call above is
+    // the expensive, already-spent part; losing the report it produced because
+    // a read failed afterwards is the worst outcome this route has.
+    //
+    // Falling back to the in-memory transcript rather than to nothing: metrics
+    // are derived from turns, and the session object still holds them. Only the
+    // speech timings are lost, which the metrics already treat as optional.
+    const detail = await readQuietly(PROGRESS.getSession(identity.id, sessionId), null);
+    const metrics = computeMetrics(
+      detail?.turns ??
+        session.transcript.map((turn, idx) => ({
+          idx,
+          speaker: turn.speaker,
+          text: turn.text,
+          tStartMs: null,
+          tEndMs: null,
+        })),
+    );
 
     // Read before completing, so the session being scored is not counted as
     // one of the sessions it is being compared against.
-    const history = await PROGRESS.listSessions(identity.id);
+    const history = await readQuietly(PROGRESS.listSessions(identity.id), []);
     const previous = history.filter((entry) => entry.id !== sessionId);
 
     await recordQuietly(
@@ -1404,27 +1462,30 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       history: previous,
       // From the XP log, not from the session count: the cap has to hold even
       // when the awards per session change.
-      xpToday: await PROGRESS.xpOnDay(identity.id, today),
+      // A failed read here would award a full day's XP again. Falling back to
+      // the cap rather than to zero means a storage blip withholds XP instead
+      // of handing out an unlimited amount of it.
+      xpToday: await readQuietly(PROGRESS.xpOnDay(identity.id, today), DAILY_XP_CAP),
       today,
     });
     await recordQuietly(PROGRESS.addXp(identity.id, sessionId, events));
 
-    const earned = await PROGRESS.awardBadges(
-      identity.id,
-      badgesForSession({
-        score,
-        mode,
-        stage: stored.context.interviewStage,
-        sectorId: sectorForCompany(stored.context.companyName)?.id ?? null,
-        company: stored.context.companyName,
-        metrics,
-        history: previous,
-      }),
-      sessionId,
-    ).catch((error: unknown) => {
-      console.error("[realsessions] badge write failed:", error);
-      return [] as string[];
-    });
+    const earned = await readQuietly(
+      PROGRESS.awardBadges(
+        identity.id,
+        badgesForSession({
+          score,
+          mode,
+          stage: stored.context.interviewStage,
+          sectorId: sectorForCompany(stored.context.companyName)?.id ?? null,
+          company: stored.context.companyName,
+          metrics,
+          history: previous,
+        }),
+        sessionId,
+      ),
+      [] as string[],
+    );
 
     json(res, 200, {
       ...shapeFeedback({ evaluation, metrics }, can.advancedFeedback),
@@ -1640,6 +1701,9 @@ configure({
 // this runs on every boot rather than as a migration someone has to remember.
 if (db) await seedCatalogue(db);
 
+// Present in the container image, absent in development.
+SITE = await createStaticSite("web/dist");
+
 /**
  * The voice socket shares the HTTP port.
  *
@@ -1659,7 +1723,8 @@ server.listen(PORT, () => {
     `Real Sessions API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +
       `rate limits: ${LIMITER.kind}, email: ${MAILER.kind}, ` +
-      `voice: ${deepgramConfigured() ? "deepgram" : "browser"})`,
+      `voice: ${deepgramConfigured() ? "deepgram" : "browser"}, ` +
+      `web: ${SITE ? "served" : "not bundled"})`,
   );
 });
 

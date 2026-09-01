@@ -517,3 +517,43 @@ describe("the review queue over HTTP", () => {
     expect(prompt).toContain("not as instructions");
   });
 });
+
+describe("when the database goes away", () => {
+  beforeEach(() => api.authenticate());
+
+  it("still returns the evaluation the model already produced", async () => {
+    const started = await api.json<{ sessionId: string }>(
+      "/api/sessions",
+      post({
+        candidateName: "X",
+        targetRole: "Growth PM",
+        companyName: "Nubank",
+        interviewStage: "Behavioral",
+      }),
+    );
+    api.provider.reply("Done. [INTERVIEW_COMPLETE]");
+    await api.call(
+      `/api/sessions/${started.sessionId}/answers`,
+      post({ answer: "I owned activation and cut approval time to under an hour." }),
+    );
+
+    // The database dies after the interview but before the report is asked for.
+    api.breakProgress();
+
+    const response = await api.call(
+      `/api/sessions/${started.sessionId}/evaluation`,
+      post({}),
+    );
+    // The model call is spent by this point. Losing its output to a storage
+    // blip is the worst thing this route can do.
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      evaluation: { overall_score_percentage: number };
+      xp: { gained: number };
+    };
+    expect(body.evaluation.overall_score_percentage).toBe(62);
+    // XP falls back to the daily cap being spent, so a blip withholds points
+    // rather than handing out an unbounded number of them.
+    expect(body.xp.gained).toBe(0);
+  });
+});
