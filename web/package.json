@@ -1,5 +1,5 @@
 {
-  "name": "techshadow360-web",
+  "name": "realsessions-web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -28,5 +28,6 @@
     "vite": "^6.0.5",
     "vitest": "^4.1.11"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "description": "Real Sessions \u2014 web client: landing page, design system, and product screens."
 }

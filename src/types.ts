@@ -1,6 +1,6 @@
 /**
  * Variables injected from Supabase before a prompt is sent.
- * Mirrors the `{{...}}` placeholders in the TechShadow 360 spec.
+ * Mirrors the `{{...}}` placeholders in the Real Sessions spec.
  */
 export interface InterviewContext {
   /** User's name. */

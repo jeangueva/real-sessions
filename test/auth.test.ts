@@ -31,7 +31,7 @@ describe("identity tokens", () => {
 
 describe("access code", () => {
   it("allows everything when no code is configured", () => {
-    // TECHSHADOW_ACCESS_CODE is unset in the test env.
+    // REALSESSIONS_ACCESS_CODE is unset in the test env.
     expect(accessCodeAccepted(undefined)).toBe(true);
     expect(accessCodeAccepted("anything")).toBe(true);
   });

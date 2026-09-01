@@ -45,10 +45,10 @@ export function Hero() {
 
       <div className="absolute bottom-0 left-0 right-0 z-10 grid grid-cols-1 gap-6 p-6 md:grid-cols-12 md:items-end md:gap-4 md:p-10">
         <h1 className="relative col-span-1 text-display font-medium text-cream-bright md:col-span-8">
-          <WordsPullUp>TechShadow</WordsPullUp>
-          <span className="absolute -right-[0.15em] top-[0.1em] text-[0.18em] text-cream-dim">
-            360
-          </span>
+          {/* `w-full`, not a max-width in `em`: an em-based cap scales with the
+              font size, so at display size it can never constrain the text.
+              Full width makes the flex-wrap break inside the h1's columns. */}
+          <WordsPullUp className="w-full">Real Sessions</WordsPullUp>
         </h1>
 
         <div className="col-span-1 flex flex-col gap-5 pb-2 md:col-span-4">

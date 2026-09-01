@@ -51,7 +51,7 @@ afterEach(async () => {
 
 describe("ResendEmailSender", () => {
   it("sends the request shape the provider expects", async () => {
-    const sender = new ResendEmailSender("secret-key", "TechShadow <no-reply@x.com>", url);
+    const sender = new ResendEmailSender("secret-key", "Real Sessions <no-reply@x.com>", url);
     await sender.send(resetEmail("mariana@example.com", "https://x.com/reset?token=abc"));
 
     expect(captured).toHaveLength(1);
@@ -61,7 +61,7 @@ describe("ResendEmailSender", () => {
     expect(request.contentType).toContain("application/json");
     // `to` is an array in Resend's API — a bare string is silently rejected.
     expect(request.body["to"]).toEqual(["mariana@example.com"]);
-    expect(request.body["from"]).toBe("TechShadow <no-reply@x.com>");
+    expect(request.body["from"]).toBe("Real Sessions <no-reply@x.com>");
     expect(String(request.body["subject"])).toMatch(/Reset your/);
     expect(String(request.body["text"])).toContain("https://x.com/reset?token=abc");
   });

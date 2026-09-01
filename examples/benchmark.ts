@@ -51,7 +51,7 @@ const money = (value: number | null, errored = false): string =>
   errored || value === null ? "unknown" : `$${value.toFixed(5)}`;
 
 console.log(`\n${"=".repeat(76)}`);
-console.log("TechShadow 360 — full benchmark");
+console.log("Real Sessions — full benchmark");
 console.log(`${"=".repeat(76)}`);
 console.log(`Phase 1 candidates: ${interviewers.join(", ")}`);
 console.log(`Phase 2 candidates: ${evaluators.join(", ")}`);
@@ -157,8 +157,8 @@ if (bestInterviewer?.costUsd != null && bestEvaluator?.costUsd != null) {
   );
   console.log(
     `Set it with:\n` +
-      `  TECHSHADOW_INTERVIEWER_MODEL=${bestInterviewer.model}\n` +
-      `  TECHSHADOW_EVALUATOR_MODEL=${bestEvaluator.model}`,
+      `  REALSESSIONS_INTERVIEWER_MODEL=${bestInterviewer.model}\n` +
+      `  REALSESSIONS_EVALUATOR_MODEL=${bestEvaluator.model}`,
   );
 }
 

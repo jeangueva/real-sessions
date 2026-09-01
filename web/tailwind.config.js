@@ -1,5 +1,5 @@
 /**
- * TechShadow 360 design tokens.
+ * Real Sessions design tokens.
  *
  * Distilled from five reference directions. What survived and why:
  *   Prisma      → warm cream on black. The only palette of the five that reads
@@ -41,9 +41,10 @@ export default {
         serif: ['"Instrument Serif"', "Georgia", "serif"],
       },
       fontSize: {
-        // Display sizes are viewport-relative: the hero word must fill the
-        // screen edge to edge at any width.
-        display: ["clamp(3rem, 20vw, 18rem)", { lineHeight: "0.85", letterSpacing: "-0.07em" }],
+        // Viewport-relative so the wordmark fills its column at any width.
+        // Sized for the two-line "Real Sessions" stack: 20vw was tuned for a
+        // single word and overflowed the column once the name wrapped.
+        display: ["clamp(2.5rem, 11vw, 10rem)", { lineHeight: "0.88", letterSpacing: "-0.05em" }],
         headline: ["clamp(1.75rem, 5vw, 4.5rem)", { lineHeight: "0.95", letterSpacing: "-0.03em" }],
         title: ["clamp(1.25rem, 2.5vw, 2.25rem)", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
       },

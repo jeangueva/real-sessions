@@ -13,7 +13,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import process from "node:process";
 
-const COOKIE_NAME = "ts360_id";
+const COOKIE_NAME = "rs_id";
 /**
  * A guest identity is a browser convenience and expires quickly. A signed-in
  * account is the thing someone's history hangs off, so it lasts long enough
@@ -30,23 +30,23 @@ export const USER_TOKEN_TTL_MS = USER_TTL_MS;
  * and must not block local development either.
  */
 const SECRET = (() => {
-  const configured = process.env.TECHSHADOW_SESSION_SECRET;
+  const configured = process.env.REALSESSIONS_SESSION_SECRET;
   if (configured && configured.length >= 32) return configured;
 
   if (process.env.NODE_ENV === "production") {
     throw new Error(
-      "TECHSHADOW_SESSION_SECRET must be set to at least 32 characters in production.",
+      "REALSESSIONS_SESSION_SECRET must be set to at least 32 characters in production.",
     );
   }
   console.warn(
-    "[techshadow] TECHSHADOW_SESSION_SECRET unset — using an ephemeral dev secret. " +
+    "[realsessions] REALSESSIONS_SESSION_SECRET unset — using an ephemeral dev secret. " +
       "Tokens will not survive a restart.",
   );
   return randomBytes(32).toString("hex");
 })();
 
 /** Optional shared code gating who may obtain an identity at all. */
-const ACCESS_CODE = process.env.TECHSHADOW_ACCESS_CODE;
+const ACCESS_CODE = process.env.REALSESSIONS_ACCESS_CODE;
 
 export interface Identity {
   id: string;

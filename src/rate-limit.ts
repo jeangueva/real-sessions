@@ -64,7 +64,7 @@ export interface RateLimiter {
   consume(key: string, rule: RateLimitRule): Promise<RateLimitResult>;
 }
 
-const KEY_PREFIX = "ts360:rl:";
+const KEY_PREFIX = "rs:rl:";
 
 /**
  * Increment and expiry must be one atomic step. As two commands, a process
@@ -97,7 +97,7 @@ class RedisRateLimiter implements RateLimiter {
       // Redis being down must not take the API down with it. Failing open
       // risks cost; failing closed locks every user out of a working product.
       // Open is the lesser harm, and it is logged rather than silent.
-      console.error("[techshadow] rate limiter unavailable, allowing:", error);
+      console.error("[realsessions] rate limiter unavailable, allowing:", error);
       return {
         allowed: true,
         remaining: 0,

@@ -19,16 +19,16 @@
  * DeepSeek cleared every Phase 1 rule (at 6026ms, slow but serviceable as a
  * degraded path), and qwen3.7-plus caught 4/5 planted errors in Phase 2.
  */
-const BLANKET_OVERRIDE = process.env.TECHSHADOW_MODEL;
+const BLANKET_OVERRIDE = process.env.REALSESSIONS_MODEL;
 
 export const INTERVIEWER_MODEL =
   BLANKET_OVERRIDE ??
-  process.env.TECHSHADOW_INTERVIEWER_MODEL ??
+  process.env.REALSESSIONS_INTERVIEWER_MODEL ??
   "qwen/qwen3.7-flash";
 
 export const EVALUATOR_MODEL =
   BLANKET_OVERRIDE ??
-  process.env.TECHSHADOW_EVALUATOR_MODEL ??
+  process.env.REALSESSIONS_EVALUATOR_MODEL ??
   "qwen/qwen3.7-flash";
 
 /** Comma-separated env override, e.g. "a/b,c/d". Empty string disables. */
@@ -39,11 +39,11 @@ function fallbackList(envName: string, defaults: string[]): string[] {
 }
 
 export const INTERVIEWER_FALLBACKS = fallbackList(
-  "TECHSHADOW_INTERVIEWER_FALLBACKS",
+  "REALSESSIONS_INTERVIEWER_FALLBACKS",
   ["deepseek/deepseek-v4-flash", "google/gemini-3.5-flash-lite"],
 );
 
 export const EVALUATOR_FALLBACKS = fallbackList(
-  "TECHSHADOW_EVALUATOR_FALLBACKS",
+  "REALSESSIONS_EVALUATOR_FALLBACKS",
   ["qwen/qwen3.7-plus", "anthropic/claude-sonnet-5"],
 );

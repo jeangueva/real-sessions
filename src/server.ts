@@ -103,7 +103,7 @@ setInterval(() => {
 function clientIp(req: IncomingMessage): string {
   // Only trust a forwarded header when a proxy is declared, or any caller can
   // mint unlimited identities by rotating the header themselves.
-  if (process.env.TECHSHADOW_TRUST_PROXY === "1") {
+  if (process.env.REALSESSIONS_TRUST_PROXY === "1") {
     const forwarded = req.headers["x-forwarded-for"];
     const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
     if (first) return first.split(",")[0]!.trim();
@@ -233,7 +233,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return issuedAt < Date.parse(account.passwordChangedAt);
   };
 
-  const siteUrl = () => process.env.TECHSHADOW_SITE_URL ?? "http://localhost:5173";
+  const siteUrl = () => process.env.REALSESSIONS_SITE_URL ?? "http://localhost:5173";
 
   /**
    * Sends without letting the outcome reach the response.
@@ -249,7 +249,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       await MAILER.send(message);
     } catch (error) {
-      console.error("[techshadow] email delivery failed:", error);
+      console.error("[realsessions] email delivery failed:", error);
     }
   };
 
@@ -589,7 +589,7 @@ const server = createServer((req, res) => {
         });
         res.end();
       }
-      console.error("[techshadow] mid-stream:", error);
+      console.error("[realsessions] mid-stream:", error);
       return;
     }
     // Typed failures carry a useful message; anything else could contain
@@ -604,7 +604,7 @@ const server = createServer((req, res) => {
     if (/Missing or empty field|too large|empty|already/i.test(message)) {
       return json(res, 400, { error: message });
     }
-    console.error("[techshadow]", error);
+    console.error("[realsessions]", error);
     json(res, 500, { error: "Internal error." });
   });
 });
@@ -619,7 +619,7 @@ LIMITER = createRateLimiter(redis);
 
 server.listen(PORT, () => {
   console.log(
-    `TechShadow API on http://localhost:${PORT} ` +
+    `Real Sessions API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, rate limits: ${LIMITER.kind}, email: ${MAILER.kind})`,
   );
 });

@@ -90,7 +90,7 @@ class ConsoleEmailSender implements EmailSender {
   readonly kind = "console";
   async send(message: EmailMessage): Promise<void> {
     console.log(
-      `\n[techshadow] email not sent — no provider configured.\n` +
+      `\n[realsessions] email not sent — no provider configured.\n` +
         `  to:      ${message.to}\n` +
         `  subject: ${message.subject}\n` +
         `  ${message.text.split("\n").join("\n  ")}\n`,
@@ -116,7 +116,7 @@ export function createEmailSender(): EmailSender {
     // Half-configured is a likelier deployment mistake than deliberately
     // running without email, so it gets its own warning.
     console.warn(
-      "[techshadow] Email provider half-configured — both RESEND_API_KEY and " +
+      "[realsessions] Email provider half-configured — both RESEND_API_KEY and " +
         "EMAIL_FROM are required. Falling back to console output.",
     );
   }
@@ -126,7 +126,7 @@ export function createEmailSender(): EmailSender {
 export function verifyEmail(email: string, url: string): EmailMessage {
   return {
     to: email,
-    subject: "Confirm your email for TechShadow 360",
+    subject: "Confirm your email for Real Sessions",
     text:
       `Confirm this address so we can reach you about your account.\n\n` +
       `${url}\n\n` +
@@ -138,7 +138,7 @@ export function verifyEmail(email: string, url: string): EmailMessage {
 export function resetEmail(email: string, url: string): EmailMessage {
   return {
     to: email,
-    subject: "Reset your TechShadow 360 password",
+    subject: "Reset your Real Sessions password",
     text:
       `Someone asked to reset the password for this account.\n\n` +
       `${url}\n\n` +

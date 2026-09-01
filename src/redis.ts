@@ -31,7 +31,7 @@ export async function getRedis(): Promise<RedisClientType | null> {
       );
     }
     console.warn(
-      "[techshadow] REDIS_URL unset — sessions and rate limits are per-process " +
+      "[realsessions] REDIS_URL unset — sessions and rate limits are per-process " +
         "and will not survive a restart.",
     );
     return null;
@@ -39,14 +39,14 @@ export async function getRedis(): Promise<RedisClientType | null> {
 
   const candidate: RedisClientType = createClient({ url });
   // Without a listener, a later connection drop crashes the process.
-  candidate.on("error", (error) => console.error("[techshadow] redis:", error));
+  candidate.on("error", (error) => console.error("[realsessions] redis:", error));
 
   try {
     await candidate.connect();
   } catch (error) {
     if (production) throw error;
     console.warn(
-      `[techshadow] Redis unreachable at ${url} — using per-process state for local dev. ` +
+      `[realsessions] Redis unreachable at ${url} — using per-process state for local dev. ` +
         `Cause: ${error instanceof Error ? error.message : String(error)}`,
     );
     return null;

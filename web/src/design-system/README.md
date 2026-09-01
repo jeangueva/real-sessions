@@ -1,4 +1,4 @@
-# TechShadow 360 — Design System
+# Real Sessions — Design System
 
 One vocabulary for every screen. New features compose these pieces; they do
 not restyle from scratch. If something here does not fit a new screen, change
@@ -43,7 +43,7 @@ Never introduce a raw hex in a component. If a shade is missing, add a token.
 
 **Type.** `font-sans` (Almarai) everywhere; `font-serif` (Instrument Serif
 italic) for one accent phrase per headline at most — it stops working when it
-is everywhere. Three fluid sizes: `text-display` (hero word), `text-headline`
+is everywhere. Three fluid sizes: `text-display` (the wordmark), `text-headline`
 (section), `text-title` (card and subsection).
 
 **Motion.** One easing curve, `ease-cinematic`. `ease-settle` only for card

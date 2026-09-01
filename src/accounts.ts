@@ -163,10 +163,10 @@ export function checkPassword(value: unknown): { ok: true } | PasswordProblem {
   return { ok: true };
 }
 
-const accountKey = (id: string) => `ts360:account:${id}`;
-const emailKey = (email: string) => `ts360:account-email:${email}`;
+const accountKey = (id: string) => `rs:account:${id}`;
+const emailKey = (email: string) => `rs:account-email:${email}`;
 const tokenKey = (purpose: TokenPurpose, tokenHash: string) =>
-  `ts360:${purpose}:${tokenHash}`;
+  `rs:${purpose}:${tokenHash}`;
 
 /** Reset links live 30 minutes: long enough to find the mail, short enough. */
 export const RESET_TTL_SECONDS = 30 * 60;

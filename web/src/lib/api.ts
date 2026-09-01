@@ -1,5 +1,5 @@
 /**
- * Client for the TechShadow API. No credentials live here — the provider key
+ * Client for the Real Sessions API. No credentials live here — the provider key
  * stays on the server, which is the whole reason this boundary exists.
  */
 import type { Evaluation } from "./evaluation";

@@ -92,8 +92,8 @@ function createProvider(vendor: Vendor): ModelProvider {
       ? {
           defaultHeaders: {
             "HTTP-Referer":
-              process.env.TECHSHADOW_SITE_URL ?? "https://techshadow360.app",
-            "X-Title": process.env.TECHSHADOW_APP_NAME ?? "TechShadow 360",
+              process.env.REALSESSIONS_SITE_URL ?? "https://realsessions.app",
+            "X-Title": process.env.REALSESSIONS_APP_NAME ?? "Real Sessions",
           },
           supportsModelFallback: true,
         }

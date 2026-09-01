@@ -79,7 +79,7 @@ export interface JsonResponse<T> {
 }
 
 /**
- * What TechShadow needs from a model vendor: a chat turn and a schema-valid
+ * What Real Sessions needs from a model vendor: a chat turn and a schema-valid
  * JSON document. Everything else in this codebase is provider-neutral.
  */
 export interface ModelProvider {

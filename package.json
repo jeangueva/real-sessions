@@ -1,9 +1,9 @@
 {
-  "name": "techshadow360-prompts",
+  "name": "realsessions",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TechShadow 360 \u2014 prompt layer: interviewer (Phase 1) and evaluator (Phase 2) built on the Anthropic SDK.",
+  "description": "Real Sessions \u2014 AI interview simulator: live interviewer, async evaluator, and the API behind them.",
   "main": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",

@@ -1,4 +1,4 @@
-# TechShadow 360
+# Real Sessions
 
 An AI interview simulator for Latin American tech professionals practising job
 interviews in English. A simulated hiring manager from a real company asks one
@@ -18,6 +18,12 @@ Built from the prompt architecture in
   reproducible rather than asserted.
 
 ---
+
+> **Renamed from TechShadow 360.** Cookie name, Redis key prefixes (`rs:`), and
+> every environment variable (`REALSESSIONS_*`) changed with it. Existing Redis
+> data written under the old prefixes is unreachable, and everyone signed in
+> under the old cookie is signed out. Both are intentional and only matter if
+> you had data from before the rename.
 
 ## Setup
 
@@ -53,7 +59,7 @@ OPENROUTER_API_KEY=sk-or-v1-...
 Everything else is optional locally and documented inline in `.env.example`.
 Two are worth knowing about:
 
-- `TECHSHADOW_SESSION_SECRET` — signs identity cookies. Unset in development it
+- `REALSESSIONS_SESSION_SECRET` — signs identity cookies. Unset in development it
   is regenerated on every boot, so restarting signs everyone out. **Required in
   production**, where the server refuses to start without it:
   ```bash
@@ -82,7 +88,7 @@ The API prints what it is actually using at startup, which is the fastest way
 to catch a missing variable:
 
 ```
-TechShadow API on http://localhost:8787 (sessions: redis, rate limits: redis, email: console)
+Real Sessions API on http://localhost:8787 (sessions: redis, rate limits: redis, email: console)
 ```
 
 ### 5. Verify
@@ -318,8 +324,8 @@ times before trusting it with the half of the product users pay for.
 
   ~$0.00033 per interview end to end (~$0.33 per 1000), against ~$25 per 1000
   for the Claude Haiku + Sonnet 5 pair this started on. Reproduce with
-  `npm run benchmark`. Override with `TECHSHADOW_INTERVIEWER_MODEL` /
-  `TECHSHADOW_EVALUATOR_MODEL`, `TECHSHADOW_MODEL` for both, or per call site.
+  `npm run benchmark`. Override with `REALSESSIONS_INTERVIEWER_MODEL` /
+  `REALSESSIONS_EVALUATOR_MODEL`, `REALSESSIONS_MODEL` for both, or per call site.
 
   Caveat worth keeping in view: `deepseek/deepseek-v4-flash` also passed every
   Phase 1 rule but at a 6026ms median turn, which is disqualifying for voice.
@@ -597,8 +603,8 @@ returns 404, not 403, so the response does not confirm the id exists.
 
 This is not a user-account system: there is no user store, so what it provides
 is an attributable caller, which is what rate limiting and ownership need. Set
-`TECHSHADOW_ACCESS_CODE` to gate who can obtain an identity at all (compared in
-constant time), and `TECHSHADOW_SESSION_SECRET` to sign tokens — the server
+`REALSESSIONS_ACCESS_CODE` to gate who can obtain an identity at all (compared in
+constant time), and `REALSESSIONS_SESSION_SECRET` to sign tokens — the server
 refuses to start in production without one, and warns loudly in development.
 
 Limits are tuned by cost, per identity, per hour:
@@ -611,7 +617,7 @@ Limits are tuned by cost, per identity, per hour:
 | `POST .../evaluation` | 20 | The single most expensive call in the product |
 
 A tripped limit returns 429 with `Retry-After`. Counters live in Redis under
-`ts360:rl:*`, so N instances enforce one shared limit rather than N times it.
+`rs:rl:*`, so N instances enforce one shared limit rather than N times it.
 Increment and expiry run as a single Lua script: as two commands, a process
 dying between them leaves a key with no TTL, and that caller is rate-limited
 forever with nothing to explain why.
@@ -627,7 +633,7 @@ serves it.
 
 ### Session durability
 
-Interviews live in Redis, keyed `ts360:session:<uuid>` with a rolling one-hour
+Interviews live in Redis, keyed `rs:session:<uuid>` with a rolling one-hour
 TTL that refreshes on every answer — an active interview is never expired out
 from under someone still typing.
 
@@ -649,8 +655,8 @@ second one sharing the same Redis.
 
 Completed interviews are recorded when their **evaluation** succeeds, not when
 the last turn is spoken — an interview with no evaluation has nothing to show.
-Records live under `ts360:history:<identity>` as a capped list (50 per identity,
-90-day TTL); preferences under `ts360:prefs:<identity>`.
+Records live under `rs:history:<identity>` as a capped list (50 per identity,
+90-day TTL); preferences under `rs:prefs:<identity>`.
 
 The list endpoint strips the evaluation body, so the history page does not get
 heavier the longer someone practises; the detail endpoint returns it. Both are

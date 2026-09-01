@@ -30,7 +30,7 @@ export interface SessionStore {
 /** Abandoned interviews vastly outnumber finished ones. */
 export const SESSION_TTL_SECONDS = 60 * 60;
 
-const KEY_PREFIX = "ts360:session:";
+const KEY_PREFIX = "rs:session:";
 
 class RedisSessionStore implements SessionStore {
   readonly kind = "redis" as const;

@@ -55,8 +55,8 @@ const RETENTION_SECONDS = 90 * 24 * 60 * 60;
 /** Cap per identity, so one caller cannot grow a list without bound. */
 const MAX_SESSIONS = 50;
 
-const historyKey = (owner: string) => `ts360:history:${owner}`;
-const prefsKey = (owner: string) => `ts360:prefs:${owner}`;
+const historyKey = (owner: string) => `rs:history:${owner}`;
+const prefsKey = (owner: string) => `rs:prefs:${owner}`;
 
 /** Trims an evaluation off a record for the list view. */
 function toSummary(session: CompletedSession): SessionSummary {
