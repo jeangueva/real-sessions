@@ -515,7 +515,7 @@ export function joinEarlyAccess(email: string, role: string, company: string) {
 
 export function fetchCandidateProfile() {
   return withIdentity(() =>
-    request<{ profile: CandidateProfile }>("/api/profile", { method: "GET" }),
+    request<{ profile: CandidateProfile }>("/api/context", { method: "GET" }),
   );
 }
 
@@ -530,7 +530,7 @@ export function uploadProfileDocument(file: File) {
   const form = new FormData();
   form.append("file", file);
   return withIdentity(() =>
-    request<{ profile: CandidateProfile }>("/api/profile/document", {
+    request<{ profile: CandidateProfile }>("/api/context/document", {
       method: "POST",
       body: form,
     }),
@@ -539,7 +539,7 @@ export function uploadProfileDocument(file: File) {
 
 export function saveProfileLinks(links: string[]) {
   return withIdentity(() =>
-    request<{ profile: CandidateProfile; rejected: string[] }>("/api/profile/links", {
+    request<{ profile: CandidateProfile; rejected: string[] }>("/api/context/links", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ links }),
@@ -549,7 +549,7 @@ export function saveProfileLinks(links: string[]) {
 
 export function clearProfile() {
   return withIdentity(() =>
-    request<{ profile: CandidateProfile }>("/api/profile", { method: "DELETE" }),
+    request<{ profile: CandidateProfile }>("/api/context", { method: "DELETE" }),
   );
 }
 

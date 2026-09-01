@@ -17,16 +17,16 @@
  *   GET  /api/history                   → { sessions }
  *   GET  /api/history/:id               → { session }
  *   GET  /api/progress                  → { sessions, axes }
- *   GET  /api/profile                   → { xp, level, badges }
+ *   GET  /api/profile                   → { xp, level, badges }  (gamification)
  *   GET  /api/leaderboard               → { rows }
  *   GET  /api/catalogue                 → { sectors, companies, personas }
  *   WS   /api/voice                     → live transcription, audio up, text down
  *   GET  /api/plan                      → { plan, capabilities }
  *   POST /api/early-access              → registers a landing-page sign-up
- *   GET  /api/profile                   → { profile }
- *   POST /api/profile/document          → multipart CV or portfolio upload
- *   PUT  /api/profile/links             → { profile }
- *   DELETE /api/profile                 → clears it
+ *   GET  /api/context                   → { profile }  (CV, portfolio, links)
+ *   POST /api/context/document          → multipart CV or portfolio upload
+ *   PUT  /api/context/links             → { profile }
+ *   DELETE /api/context                 → clears it
  *   POST /api/contributions             → reports a real interview question
  *   GET  /api/preferences               → { preferences }
  *   PUT  /api/preferences               → { preferences }
@@ -47,6 +47,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 import {
   accessCodeAccepted,
   clearCookieHeader,
@@ -78,6 +79,7 @@ import {
 import { createRateLimiter, MemoryRateLimiter, RULES, type RateLimiter } from "./rate-limit.js";
 import { closeRedis, getRedis } from "./redis.js";
 import { InterviewSession } from "./interviewer.js";
+import type { ModelProvider } from "./providers/index.js";
 import { evaluateInterview, EvaluationParseError } from "./evaluator.js";
 import type { Evaluation } from "./schema.js";
 import { InterviewRefusalError } from "./interviewer.js";
@@ -162,6 +164,48 @@ let CONTRIBUTIONS: ContributionStore;
 let ACCOUNTS: AccountStore;
 let MAILER: EmailSender;
 let LIMITER: RateLimiter;
+/**
+ * Model provider override.
+ *
+ * Undefined in every real deployment, where each phase resolves its vendor
+ * from the model id. Set only by tests, which cannot call a live model: without
+ * a seam here the session, coaching and evaluation routes are untestable, and
+ * they are most of the API.
+ */
+let PROVIDER: ModelProvider | undefined;
+
+export interface ServerDependencies {
+  sessions: SessionStore;
+  users: UserStore;
+  progress: ProgressStore;
+  plans: EntitlementStore;
+  profiles: ProfileStore;
+  contributions: ContributionStore;
+  accounts: AccountStore;
+  mailer: EmailSender;
+  limiter: RateLimiter;
+  provider?: ModelProvider;
+}
+
+/**
+ * Wires the module's collaborators.
+ *
+ * Called once at boot with the real stores, and per test with in-memory ones.
+ * This exists so importing this module does not connect to anything — the
+ * bootstrap at the bottom of the file is guarded on being the entry point.
+ */
+export function configure(deps: ServerDependencies): void {
+  STORE = deps.sessions;
+  USERS = deps.users;
+  PROGRESS = deps.progress;
+  PLANS = deps.plans;
+  PROFILES = deps.profiles;
+  CONTRIBUTIONS = deps.contributions;
+  ACCOUNTS = deps.accounts;
+  MAILER = deps.mailer;
+  LIMITER = deps.limiter;
+  PROVIDER = deps.provider;
+}
 
 setInterval(() => {
   // Redis expires its own counters; the memory limiter needs sweeping.
@@ -817,12 +861,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
-  if (req.method === "GET" && path === "/api/profile") {
+  if (req.method === "GET" && path === "/api/context") {
     json(res, 200, { profile: await PROFILES.get(identity.id) });
     return;
   }
 
-  if (req.method === "POST" && path === "/api/profile/document") {
+  if (req.method === "POST" && path === "/api/context/document") {
     if (!can.candidateProfile) return requiresPremium("candidateProfile");
     if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
 
@@ -847,7 +891,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
-  if (req.method === "PUT" && path === "/api/profile/links") {
+  if (req.method === "PUT" && path === "/api/context/links") {
     if (!can.candidateProfile) return requiresPremium("candidateProfile");
     const body = await readJson(req);
     const raw = Array.isArray(body["links"]) ? body["links"] : [];
@@ -867,7 +911,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
-  if (req.method === "DELETE" && path === "/api/profile") {
+  if (req.method === "DELETE" && path === "/api/context") {
     await PROFILES.clear(identity.id);
     json(res, 200, { profile: await PROFILES.get(identity.id) });
     return;
@@ -942,6 +986,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const session = new InterviewSession(context, {
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
+      ...(PROVIDER ? { provider: PROVIDER } : {}),
     });
     const sessionId = randomUUID();
 
@@ -1004,7 +1049,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readJson(req);
     const answer = typeof body["answer"] === "string" ? body["answer"] : "";
     const timings = readTimings(body);
-    const session = InterviewSession.restore(stored.snapshot);
+    const session = InterviewSession.restore(
+      stored.snapshot,
+      PROVIDER ? { provider: PROVIDER } : {},
+    );
 
     const persist = async (): Promise<void> => {
       await STORE.set(sessionId, { ...stored, snapshot: session.snapshot() });
@@ -1042,7 +1090,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (stored.mode === "real") return json(res, 200, { tips: [] });
     if (!can.liveCoaching) return requiresPremium("liveCoaching");
 
-    const session = InterviewSession.restore(stored.snapshot);
+    const session = InterviewSession.restore(
+      stored.snapshot,
+      PROVIDER ? { provider: PROVIDER } : {},
+    );
     const transcript = session.transcript;
 
     // Scanning back for the candidate rather than reading the last two turns.
@@ -1062,7 +1113,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 200, { tips: [] });
     }
 
-    const tips = await coachTurn(stored.context, questionTurn.text, answerTurn.text);
+    const tips = await coachTurn(
+      stored.context,
+      questionTurn.text,
+      answerTurn.text,
+      PROVIDER ? { provider: PROVIDER } : {},
+    );
     json(res, 200, { tips });
     return;
   }
@@ -1075,8 +1131,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 404, { error: "Session not found or expired." });
     }
     const sessionId = evalMatch[1]!;
-    const session = InterviewSession.restore(stored.snapshot);
-    const evaluation = await evaluateInterview(stored.context, session.transcript);
+    const session = InterviewSession.restore(
+      stored.snapshot,
+      PROVIDER ? { provider: PROVIDER } : {},
+    );
+    const evaluation = await evaluateInterview(
+      stored.context,
+      session.transcript,
+      PROVIDER ? { provider: PROVIDER } : {},
+    );
     const score = evaluation.overall_score_percentage;
 
     // The transcript is rewritten once more before metrics are computed, so
@@ -1207,6 +1270,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  /**
+   * The gamification profile: XP, level, badges.
+   *
+   * Not to be confused with /api/context, which is the candidate's CV. Both
+   * lived at /api/profile for a while and the first match won, so this route
+   * was unreachable and the Progress screen's level and badges silently
+   * rendered from the wrong shape.
+   */
   if (req.method === "GET" && path === "/api/profile") {
     const profile = await PROGRESS.profile(identity.id);
     json(res, 200, {
@@ -1261,7 +1332,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   json(res, 404, { error: `No route for ${req.method} ${path}` });
 }
 
-const server = createServer((req, res) => {
+export const server = createServer((req, res) => {
   void route(req, res).catch((error: unknown) => {
     // Once a stream is open the status line is already sent; the only way to
     // report a failure is as an event on the open stream.
@@ -1299,18 +1370,32 @@ const server = createServer((req, res) => {
   });
 });
 
+/**
+ * Boot only when this file is what was run.
+ *
+ * Without the guard, importing this module to test its routes would connect to
+ * Redis and Postgres and bind the port. The routes are the largest untested
+ * surface in the project, and this is what makes them reachable.
+ */
+const isEntryPoint =
+  process.argv[1] !== undefined &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isEntryPoint) {
 const redis = await getRedis();
 const db = await getDb();
 const store = createSessionStore(redis);
-STORE = store;
-USERS = createUserStore(redis);
-ACCOUNTS = createAccountStore(redis);
-MAILER = createEmailSender();
-LIMITER = createRateLimiter(redis);
-PROGRESS = createProgressStore(db);
-PLANS = createEntitlementStore(db);
-PROFILES = createProfileStore(db);
-CONTRIBUTIONS = createContributionStore(db);
+configure({
+  sessions: store,
+  users: createUserStore(redis),
+  accounts: createAccountStore(redis),
+  mailer: createEmailSender(),
+  limiter: createRateLimiter(redis),
+  progress: createProgressStore(db),
+  plans: createEntitlementStore(db),
+  profiles: createProfileStore(db),
+  contributions: createContributionStore(db),
+});
 
 // The catalogue is code (see sectors.ts) and the table is a copy of it, so
 // this runs on every boot rather than as a migration someone has to remember.
@@ -1351,4 +1436,5 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
         .then(() => process.exit(0));
     });
   });
+}
 }

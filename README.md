@@ -129,6 +129,15 @@ npm run typecheck
 cd web && npm run build
 ```
 
+`test/routes.test.ts` boots the API on an ephemeral port and speaks HTTP to it,
+with in-memory stores and a stubbed model provider. Calling the handlers with
+request doubles would have skipped exactly what breaks: cookie round-trips,
+status codes, SSE frame ordering, the multipart reader, and which side of the
+authentication gate a route sits on. It found a live bug the first time it ran —
+`GET /api/profile` was registered twice, and the CV route shadowed the
+gamification one, so the Progress screen's level and badges had been reading the
+wrong shape.
+
 The progress store is the one place where an in-memory implementation and a real
 database have to agree, so its suite runs against **both**. The Postgres pass is
 skipped unless you point it at a database of its own:
