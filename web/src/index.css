@@ -12,6 +12,12 @@
     @apply bg-surface-base text-cream-bright antialiased;
   }
 
+  /* The landing nav scrolls the page rather than routing, so smooth it —
+     the reduced-motion block below puts it back to an instant jump. */
+  html {
+    scroll-behavior: smooth;
+  }
+
   /* Every reference direction leaned on motion. None of them are worth
      inducing nausea over — honor the OS setting globally. */
   @media (prefers-reduced-motion: reduce) {
@@ -21,6 +27,10 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+
+    html {
+      scroll-behavior: auto !important;
     }
   }
 }

@@ -4,11 +4,16 @@ import { Hero } from "@/components/Hero";
 import { InterviewPreview } from "@/components/InterviewPreview";
 import { CompanyPicker } from "@/components/CompanyPicker";
 import { Features } from "@/components/Features";
+import { Pricing } from "@/components/Pricing";
+import { EarlyAccess } from "@/components/EarlyAccess";
+import { Contribute } from "@/components/Contribute";
 import { AppShell } from "@/platform/AppShell";
 import { SessionSetup } from "@/platform/SessionSetup";
 import { LiveInterview } from "@/platform/LiveInterview";
 import { FeedbackReport } from "@/platform/FeedbackReport";
 import { SessionHistory } from "@/platform/SessionHistory";
+import { Progress } from "@/platform/Progress";
+import { Profile } from "@/platform/Profile";
 import { Settings } from "@/platform/Settings";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
@@ -21,6 +26,9 @@ function Landing() {
       <InterviewPreview />
       <CompanyPicker />
       <Features />
+      <Pricing />
+      <EarlyAccess />
+      <Contribute />
     </main>
   );
 }
@@ -49,6 +57,8 @@ export function App() {
           <Route path="session" element={<LiveInterview />} />
           <Route path="feedback" element={<FeedbackReport />} />
           <Route path="history" element={<SessionHistory />} />
+          <Route path="progress" element={<Progress />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

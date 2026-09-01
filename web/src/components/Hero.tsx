@@ -1,45 +1,55 @@
-import { WordsPullUp, FadeRise, Action, InsetFrame } from "@/design-system";
-
-const NAV = ["How it works", "Companies", "Pricing", "For teams", "Sign in"];
+import { Link } from "react-router-dom";
+import { WordsPullUp, FadeRise, Action, Backdrop, InsetFrame } from "@/design-system";
 
 /**
- * The reference decks all opened on a full-bleed showreel. There is no
- * showreel here yet, so the frame is built from tokens: a warm radial lift off
- * a black field, plus grain. It reads as intentional rather than as a video
- * that failed to load, and it swaps for real footage without touching layout.
+ * The landing page is one scroll, so the nav is anchors into it — a plain
+ * `<a href="#id">` and not a `<Link>`, because React Router does not scroll to
+ * a hash on its own. "Sign in" is the one item that leaves the page.
+ *
+ * Pricing and For teams used to sit here as dead `href="#"`. Pricing now has a
+ * section to point at, so it is back; For teams still does not exist and stays
+ * out until it does.
+ */
+const NAV = [
+  { label: "How it works", href: "#how-it-works" },
+  { label: "Companies", href: "#companies" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Contribute", href: "#contribute" },
+];
+
+const navLink =
+  "focus-ring whitespace-nowrap rounded-lg px-2 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm";
+
+/**
+ * The reference decks all opened on a full-bleed showreel. There is still no
+ * showreel, so the frame is a slow drifting light field built from the same
+ * tokens as everything else — see `Backdrop`. It reads as intentional rather
+ * than as a video that failed to load, and it swaps for real footage without
+ * touching this layout.
  */
 export function Hero() {
   return (
     <InsetFrame className="bg-surface-base">
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(120% 80% at 50% 110%, rgba(222,219,200,0.16) 0%, rgba(222,219,200,0.04) 35%, transparent 70%), radial-gradient(60% 50% at 15% 10%, rgba(4,33,46,0.9) 0%, transparent 60%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="noise-overlay pointer-events-none absolute inset-0 opacity-[0.5] mix-blend-overlay"
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70"
-      />
+      <Backdrop variant="hero" />
 
       <nav className="absolute left-1/2 top-0 z-20 -translate-x-1/2">
-        <ul className="flex items-center gap-3 rounded-b-2xl bg-black px-4 py-2 sm:gap-6 md:gap-12 md:rounded-b-3xl md:px-8">
-          {NAV.map((item) => (
-            <li key={item}>
-              <a
-                href="#"
-                className="focus-ring rounded text-[10px] text-cream-dim transition-colors hover:text-cream-bright sm:text-xs md:text-sm"
-              >
-                {item}
+        <ul className="flex items-center gap-1 rounded-b-2xl bg-black px-3 py-1.5 sm:gap-4 md:gap-10 md:rounded-b-3xl md:px-8">
+          {/* The section anchors are hidden on a phone, where the labels at a
+              readable size cannot fit across the frame and every one of them
+              is reachable by scrolling anyway. Sign in stays: it is the only
+              destination scrolling does not reach. */}
+          {NAV.map(({ label, href }) => (
+            <li key={label} className="hidden sm:block">
+              <a href={href} className={navLink}>
+                {label}
               </a>
             </li>
           ))}
+          <li>
+            <Link to="/signin" className={navLink}>
+              Sign in
+            </Link>
+          </li>
         </ul>
       </nav>
 
@@ -60,7 +70,9 @@ export function Hero() {
             </p>
           </FadeRise>
           <FadeRise delay={0.7}>
-            <Action withArrow>Start an interview</Action>
+            <Link to="/app" className="self-start">
+              <Action withArrow>Start an interview</Action>
+            </Link>
           </FadeRise>
         </div>
       </div>

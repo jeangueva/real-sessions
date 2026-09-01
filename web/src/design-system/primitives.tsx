@@ -46,7 +46,7 @@ export function Action({
 /** Small uppercase-ish section marker. Sets context above a headline. */
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <p className="text-[10px] tracking-[0.18em] text-cream sm:text-xs">
+    <p className="text-xs tracking-[0.14em] text-cream">
       {children}
     </p>
   );

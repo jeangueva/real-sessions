@@ -1,73 +1,39 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   createUserStore,
   readPreferences,
   DEFAULT_PREFERENCES,
-  type UserStore,
-  type CompletedSession,
 } from "../src/user-store.js";
-import { SAMPLE_EVALUATION } from "./fixtures.js";
 
-function record(id: string, score = 60): CompletedSession {
-  return {
-    id,
-    company: "Stripe",
-    role: "Senior Product Designer",
-    stage: "Behavioral",
-    completedAt: new Date().toISOString(),
-    score,
-    evaluation: SAMPLE_EVALUATION,
-  };
-}
-
-describe("user store", () => {
-  let store: UserStore;
-  beforeEach(() => {
-    store = createUserStore(null);
+describe("preferences", () => {
+  it("returns defaults for an identity that has never set any", async () => {
+    const users = createUserStore(null);
+    expect(await users.getPreferences("nobody")).toEqual(DEFAULT_PREFERENCES);
   });
 
-  it("lists newest first", async () => {
-    await store.recordSession("me", record("a"));
-    await store.recordSession("me", record("b"));
-    const list = await store.listSessions("me");
-    expect(list.map((s) => s.id)).toEqual(["b", "a"]);
-  });
-
-  it("keeps the evaluation out of the list payload", async () => {
-    await store.recordSession("me", record("a"));
-    const [summary] = await store.listSessions("me");
-    // The list view only needs the headline; shipping every evaluation body
-    // makes the page heavier the longer someone practises.
-    expect(summary).not.toHaveProperty("evaluation");
-    expect(summary?.score).toBe(60);
-  });
-
-  it("returns the full evaluation for one session", async () => {
-    await store.recordSession("me", record("a"));
-    const full = await store.getSession("me", "a");
-    expect(full?.evaluation.overall_score_percentage).toBe(
-      SAMPLE_EVALUATION.overall_score_percentage,
-    );
-  });
-
-  it("scopes history to its owner", async () => {
-    await store.recordSession("me", record("a"));
-    expect(await store.listSessions("someone-else")).toEqual([]);
-    // Another identity's id must read as missing, not forbidden.
-    expect(await store.getSession("someone-else", "a")).toBeNull();
-  });
-
-  it("returns defaults for an identity with no preferences", async () => {
-    expect(await store.getPreferences("new")).toEqual(DEFAULT_PREFERENCES);
-  });
-
-  it("round-trips preferences", async () => {
-    await store.setPreferences("me", {
+  it("round-trips what was stored", async () => {
+    const users = createUserStore(null);
+    const next = {
+      ...DEFAULT_PREFERENCES,
       defaultRole: "Backend Engineer",
-      defaultCompany: "Amazon",
-      interviewLength: 5,
-    });
-    expect((await store.getPreferences("me")).defaultRole).toBe("Backend Engineer");
+      defaultSector: "devtools",
+      defaultMode: "real" as const,
+    };
+    await users.setPreferences("owner", next);
+    expect(await users.getPreferences("owner")).toEqual(next);
+  });
+
+  it("fills in a field added after the record was written", async () => {
+    const users = createUserStore(null);
+    // Simulates a record from before defaultSector and defaultMode existed.
+    await users.setPreferences("owner", {
+      defaultRole: "Growth PM",
+      defaultCompany: "Stripe",
+      interviewLength: 7,
+    } as never);
+    const read = await users.getPreferences("owner");
+    expect(read.defaultSector).toBe(DEFAULT_PREFERENCES.defaultSector);
+    expect(read.defaultMode).toBe(DEFAULT_PREFERENCES.defaultMode);
   });
 });
 
@@ -78,8 +44,7 @@ describe("readPreferences", () => {
   });
 
   it("falls back to defaults for junk input", () => {
-    expect(readPreferences({})).toEqual(DEFAULT_PREFERENCES);
-    expect(readPreferences({ defaultRole: "   ", interviewLength: "abc" })).toEqual(
+    expect(readPreferences({ interviewLength: "soon", defaultRole: 42 })).toEqual(
       DEFAULT_PREFERENCES,
     );
   });
@@ -87,5 +52,16 @@ describe("readPreferences", () => {
   it("caps free text so a client cannot store an essay", () => {
     const long = "x".repeat(500);
     expect(readPreferences({ defaultRole: long }).defaultRole).toHaveLength(120);
+    expect(readPreferences({ defaultCompany: long }).defaultCompany).toHaveLength(80);
+  });
+
+  it("keeps an empty sector, which means no filter rather than no value", () => {
+    // Unlike a blank role, this one is not replaced by a default.
+    expect(readPreferences({ defaultSector: "" }).defaultSector).toBe("");
+  });
+
+  it("only accepts a mode it knows", () => {
+    expect(readPreferences({ defaultMode: "real" }).defaultMode).toBe("real");
+    expect(readPreferences({ defaultMode: "hardcore" }).defaultMode).toBe("practice");
   });
 });

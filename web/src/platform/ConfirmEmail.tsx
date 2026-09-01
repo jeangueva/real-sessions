@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Action, Eyebrow, Panel } from "@/design-system";
+import { AuthLayout } from "./AuthLayout";
+import { Action, Eyebrow } from "@/design-system";
 import { ApiError, confirmEmail } from "@/lib/api";
 
 /**
@@ -35,35 +36,33 @@ export function ConfirmEmail() {
   }, [token]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-deep px-6">
-      <Panel variant="raised" className="w-full max-w-md p-8">
-        <Eyebrow>Email</Eyebrow>
-        <h1 className="mt-3 text-title font-normal text-cream-bright">
-          {state === "working"
-            ? "Confirming…"
-            : state === "done"
-              ? "Your email is confirmed."
-              : "That link did not work."}
-        </h1>
+    <AuthLayout>
+    <Eyebrow>Email</Eyebrow>
+    <h1 className="mt-3 text-title font-normal text-cream-bright">
+      {state === "working"
+        ? "Confirming…"
+        : state === "done"
+          ? "Your email is confirmed."
+          : "That link did not work."}
+    </h1>
 
-        {state === "failed" && (
-          <p role="alert" className="mt-4 text-sm text-cream-dim">
-            {error} You can request a new one from Settings.
-          </p>
-        )}
+    {state === "failed" && (
+      <p role="alert" className="mt-4 text-sm text-cream-dim">
+        {error} You can request a new one from Settings.
+      </p>
+    )}
 
-        {state === "done" && (
-          <p className="mt-4 text-sm text-cream-dim">
-            We can reach you about your account now.
-          </p>
-        )}
+    {state === "done" && (
+      <p className="mt-4 text-sm text-cream-dim">
+        We can reach you about your account now.
+      </p>
+    )}
 
-        {state !== "working" && (
-          <Link to="/app" className="mt-8 inline-block">
-            <Action tone="glass">Go to your sessions</Action>
-          </Link>
-        )}
-      </Panel>
-    </main>
+    {state !== "working" && (
+      <Link to="/app" className="mt-8 inline-block">
+        <Action tone="glass">Go to your sessions</Action>
+      </Link>
+    )}
+    </AuthLayout>
   );
 }

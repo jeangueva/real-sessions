@@ -17,3 +17,7 @@ export {
   Badge,
   Field,
 } from "./primitives";
+
+export { TrendChart } from "./chart";
+export type { TrendPoint } from "./chart";
+export { Backdrop } from "./backdrop";

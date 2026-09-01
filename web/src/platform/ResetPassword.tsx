@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Action, Eyebrow, Field, Panel } from "@/design-system";
+import { AuthLayout } from "./AuthLayout";
+import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, requestPasswordReset, resetPassword } from "@/lib/api";
 
 /**
@@ -15,19 +16,17 @@ export function ResetPassword() {
 
 function Shell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-deep px-6">
-      <Panel variant="raised" className="w-full max-w-md p-8">
-        <Eyebrow>Password</Eyebrow>
-        <h1 className="mt-3 text-title font-normal text-cream-bright">{title}</h1>
-        {children}
-        <Link
-          to="/signin"
-          className="focus-ring mt-8 block rounded text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
-        >
-          Back to sign in
-        </Link>
-      </Panel>
-    </main>
+    <AuthLayout>
+    <Eyebrow>Password</Eyebrow>
+    <h1 className="mt-3 text-title font-normal text-cream-bright">{title}</h1>
+    {children}
+    <Link
+      to="/signin"
+      className="focus-ring mt-8 block rounded text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
+    >
+      Back to sign in
+    </Link>
+    </AuthLayout>
   );
 }
 

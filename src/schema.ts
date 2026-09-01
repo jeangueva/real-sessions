@@ -29,3 +29,30 @@ export const EvaluationSchema = z.object({
 export type Evaluation = z.infer<typeof EvaluationSchema>;
 export type VocabularyFeedback = z.infer<typeof VocabularyFeedbackSchema>;
 export type StructureFeedback = z.infer<typeof StructureFeedbackSchema>;
+
+/**
+ * Live coaching output — the sidebar shown beside the transcript during a
+ * practice session.
+ *
+ * Deliberately tiny. This runs on every candidate turn, so it has to be cheap,
+ * and a reader mid-interview can act on one or two notes, not a report. The
+ * cap of three is enforced here rather than asked for in the prompt, because a
+ * model that ignores the instruction would otherwise fill the sidebar.
+ */
+export const CoachTipSchema = z.object({
+  /**
+   * No "filler" category: disfluency is counted deterministically in
+   * metrics.ts, for free and without variance. Asking a model to do it too
+   * would produce a second, disagreeing number on the same screen.
+   */
+  kind: z.enum(["structure", "specificity", "vocabulary", "grammar"]),
+  /** One sentence, second person, actionable in the next answer. */
+  note: z.string().min(1).max(200),
+});
+
+export const CoachFeedbackSchema = z.object({
+  tips: z.array(CoachTipSchema).max(3),
+});
+
+export type CoachTip = z.infer<typeof CoachTipSchema>;
+export type CoachFeedback = z.infer<typeof CoachFeedbackSchema>;

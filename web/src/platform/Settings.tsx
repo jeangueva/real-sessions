@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { Eyebrow, Field, Panel, Action } from "@/design-system";
-import { PageHeader } from "./AppShell";
+import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
 import {
   ApiError,
+  fetchCatalogue,
   fetchPreferences,
   fetchSession,
   resendVerification,
   savePreferences,
 } from "@/lib/api";
-import type { Preferences, Session } from "@/lib/api";
+import type { CatalogueCompany, Preferences, Sector, Session } from "@/lib/api";
 
 const ROLES = [
   "Senior Product Designer",
@@ -17,7 +18,8 @@ const ROLES = [
   "Growth PM",
   "Data Analyst",
 ];
-const COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
+/** Shown until the catalogue arrives, so the select is never empty. */
+const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Preferences, stored per identity and used to pre-fill a new session. */
 export function Settings() {
@@ -26,6 +28,17 @@ export function Settings() {
   const [error, setError] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [resent, setResent] = useState(false);
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
+
+  useEffect(() => {
+    fetchCatalogue()
+      .then((result) => {
+        setSectors(result.sectors);
+        setCompanies(result.companies);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     fetchSession()
@@ -69,7 +82,7 @@ export function Settings() {
   return (
     <>
       <PageHeader title="Settings" meta="Account and practice preferences" />
-      <div className="px-6 py-10 lg:px-10">
+      <PageBody>
         <Panel className="flex max-w-2xl flex-col gap-6 p-6">
           <Eyebrow>Practice</Eyebrow>
 
@@ -104,6 +117,26 @@ export function Settings() {
                 </select>
               </Field>
 
+              <Field
+                label="Default sector"
+                hint="Sets which companies the setup screen offers, and the numbers the interviewer asks for."
+                htmlFor="sector"
+              >
+                <select
+                  id="sector"
+                  value={preferences.defaultSector}
+                  onChange={(event) => update({ defaultSector: event.target.value })}
+                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                >
+                  <option value="">All sectors</option>
+                  {sectors.map((sector) => (
+                    <option key={sector.id} value={sector.id}>
+                      {sector.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
               <Field label="Default company" htmlFor="company">
                 <select
                   id="company"
@@ -113,11 +146,41 @@ export function Settings() {
                   }
                   className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
-                  {COMPANIES.map((company) => (
+                  {(companies.length === 0
+                    ? FALLBACK_COMPANIES
+                    : companies
+                        .filter(
+                          (entry) =>
+                            !preferences.defaultSector ||
+                            entry.sectorId === preferences.defaultSector,
+                        )
+                        .map((entry) => entry.name)
+                  ).map((company) => (
                     <option key={company} value={company}>
                       {company}
                     </option>
                   ))}
+                </select>
+              </Field>
+
+              <Field
+                label="Default mode"
+                hint="Real mode withholds coaching until the report, the way an actual interview does. It is worth more XP."
+                htmlFor="mode"
+              >
+                <select
+                  id="mode"
+                  value={preferences.defaultMode}
+                  onChange={(event) =>
+                    update({
+                      defaultMode:
+                        event.target.value === "real" ? "real" : "practice",
+                    })
+                  }
+                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                >
+                  <option value="practice">Practice — coaching as you go</option>
+                  <option value="real">Real — no coaching until the end</option>
                 </select>
               </Field>
 
@@ -189,8 +252,9 @@ export function Settings() {
           ) : (
             <div className="mt-3 flex flex-col gap-4">
               <p className="text-sm text-cream-dim">
-                You are practising as a guest. History and settings live in this
-                browser only — clearing cookies loses them.
+                You are practising as a guest. Your progress, badges and
+                settings live in this browser only — clearing cookies loses
+                them. Signing up carries everything across.
               </p>
               <Link to="/signin">
                 <Action tone="glass" className="self-start">
@@ -200,7 +264,7 @@ export function Settings() {
             </div>
           )}
         </Panel>
-      </div>
+      </PageBody>
     </>
   );
 }

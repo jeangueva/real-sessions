@@ -1,4 +1,6 @@
 import type { InterviewContext } from "../types.js";
+import { sectorForCompany } from "../sectors.js";
+import { defaultPersonaFor, findPersona } from "../personas.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
 /**
@@ -11,8 +13,15 @@ The candidate's name is {{candidate_name}}. The industry focus is {{industry}}.
 
 Your core company values and cultural focus are: {{company_culture}}. You must embed these values into your questions and expectations.
 
+### DOMAIN GROUNDING:
+{{domain_grounding}}
+
+### WHAT YOU KNOW ABOUT THIS CANDIDATE:
+{{candidate_brief}}
+
 ### YOUR PERSONA:
-- **Tone:** Professional, challenging, yet encouraging. You are not a robot; act like a real tech lead in a Silicon Valley company. Use natural filler words occasionally ("Got it", "Interesting", "I see").
+- **Temperament:** {{persona_behaviour}}
+- **Tone:** Professional, challenging, yet encouraging. You are not a robot; act like a real tech lead in a Silicon Valley company. Use natural filler words occasionally ("Got it", "Interesting", "I see"). Vary how you open a turn — a candidate who hears the same acknowledgement four times stops believing there is a person there.
 - **Pacing:** This is a voice-to-voice conversation. Every response you give must be under 40 words — including your opening turn. The candidate is here to talk; you are here to ask. If you cannot fit context and a question in 40 words, drop the context and keep the question.
 - **Focus:** You are evaluating two things: 1) Their technical and domain knowledge. 2) Their ability to communicate complex ideas clearly in English.
 
@@ -36,11 +45,60 @@ Your response is read aloud by a text-to-speech engine. Speak in plain prose onl
 ### INITIALIZATION:
 Start the interview now. Acknowledge the candidate by name and ask your first question.`;
 
+/**
+ * What the interviewer has read before the call.
+ *
+ * When there is no CV this is the honest version of that fact — the model is
+ * told it knows nothing, so it opens with a broad question instead of
+ * hallucinating a background to ask about. The alternative, omitting the
+ * section, leaves a model that has seen the header wondering what belongs there.
+ */
+export function buildCandidateBrief(brief: string | null): string {
+  const trimmed = brief?.trim() ?? "";
+  if (trimmed === "") {
+    return "Nothing. You have not seen their CV, so do not reference specific employers, projects or numbers as if you had — open broad and let them tell you.";
+  }
+  return `${trimmed}\n\nUse this the way a hiring manager uses a CV they skimmed five minutes ago: ask about one specific thing on it early, and press on whatever it leaves vague. Never read it back to them, and never claim they told you something they have not said out loud in this conversation.`;
+}
+
 export interface InterviewerPromptOptions {
   /** Lower bound advertised in the structure section. Default 5. */
   minTurns?: number;
   /** Upper bound advertised in the structure section. Default 7. */
   maxTurns?: number;
+  /**
+   * Interviewer archetype. Defaults to the one the company implies, so an
+   * unspecified session still gets a temperament rather than a neutral one.
+   */
+  personaId?: string;
+  /** The candidate briefing, when they have uploaded a CV or portfolio. */
+  candidateBrief?: string | null;
+}
+
+/**
+ * The sector's vocabulary, written as an instruction.
+ *
+ * This is what makes a sector more than a filter on a company list. A fintech
+ * hiring manager asks you to defend a take rate and an ecommerce one asks
+ * about contribution margin; a candidate who cannot reach for the right number
+ * sounds junior no matter how good their English is. Practising against a
+ * generic interviewer never surfaces that.
+ *
+ * Falls back to the industry string the caller supplied when the company is
+ * not one we have a sector for, so the section is never empty — an unresolved
+ * placeholder throws by design, and a blank section would silently flatten
+ * every interview back to generic.
+ */
+export function buildDomainGrounding(context: InterviewContext): string {
+  const sector = sectorForCompany(context.companyName);
+  if (!sector) {
+    return `This interview sits in the ${context.industry} industry. Ground your questions in the specifics of that domain rather than in generic product talk.`;
+  }
+  return [
+    `This is a ${sector.label} interview. The conversation lives in ${sector.focus}.`,
+    `A strong candidate reaches for the numbers that matter here — ${sector.metrics} — without being prompted.`,
+    `When an answer stays abstract, push them onto one of those numbers rather than accepting the generality.`,
+  ].join(" ");
 }
 
 /** Renders the Phase 1 system prompt for a given candidate/session. */
@@ -54,8 +112,15 @@ export function buildInterviewerPrompt(
       `Invalid turn bounds: minTurns=${minTurns}, maxTurns=${maxTurns}`,
     );
   }
+  const persona = options.personaId
+    ? findPersona(options.personaId)
+    : defaultPersonaFor(context.companyName);
+
   return renderTemplate(INTERVIEWER_TEMPLATE, {
     ...toTemplateVariables(context),
+    domain_grounding: buildDomainGrounding(context),
+    candidate_brief: buildCandidateBrief(options.candidateBrief ?? null),
+    persona_behaviour: persona.behaviour,
     min_turns: String(minTurns),
     max_turns: String(maxTurns),
   });

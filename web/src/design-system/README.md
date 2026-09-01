@@ -129,16 +129,55 @@ single place that changes.
 Both: tokens only. No raw hex, no ad-hoc padding scale. If a shade or spacing
 step is missing, add it to `tailwind.config.js` rather than inlining it once.
 
+## Layout
+
+Width and gutters belong to two components and nowhere else:
+
+- `PageBody` — every app screen's container. One max width, one gutter scale.
+  Screens used to hand-tune `max-w-2xl` / `max-w-4xl` individually, which pinned
+  all of them to the left edge and left half of a desktop window empty.
+- `PageHeader` — the same container, so a title lines up with the content under
+  it at every width.
+
+Three navigation layouts, not one squeezed three ways: a bottom bar below `md`,
+an icon rail at `md`, labels at `lg`. A 64px side rail on a 390px screen spends
+a sixth of the width on chrome and puts every target at the top of the reach.
+
+## The moving field
+
+`Backdrop` is the animated background on marketing pages — slow drifting light
+built from the same two surface tokens, plus grain. It is CSS only: no video, no
+canvas, no external asset. Blurred radial gradients composite on the GPU and
+animate `transform` and `opacity` only, so it never touches layout or paint.
+
+The bottom scrim is deliberately light. An earlier 75% black gradient erased the
+warm lift the wordmark sits in, which is the whole point of the composition.
+
+## Charts
+
+One chart component, `TrendChart`, and it plots a single series. Four axes on
+one plot would need four categorical hues, and every muted palette that fits
+this cream-on-dark design fails colour-blind separation — the closest pair
+measured ΔE 5.0 for deuteranopia against a floor of 8. So identity comes from
+the panel title and small multiples, not from hue.
+
+The y domain is fixed at 0–100 rather than fitted. A fitted axis turns three
+points of noise into a dramatic climb, which is the most flattering lie a
+progress chart can tell.
+
 ## Routes
 
-| Route | Screen | State |
-| --- | --- | --- |
-| `/` | Landing | — |
-| `/app` | Session setup | Local |
-| `/app/session` | Live interview | Router state from setup |
-| `/app/feedback` | Evaluation report | Sample data |
-| `/app/history` | Past sessions | Sample data |
-| `/app/settings` | Preferences | Stub |
+| Route | Screen |
+| --- | --- |
+| `/` | Landing — hero, how it works, companies, features, pricing, early access, contribute |
+| `/signin`, `/reset`, `/verify` | Auth, all three inside `AuthLayout` |
+| `/app` | Session setup |
+| `/app/session` | Live interview + coaching sidebar |
+| `/app/feedback` | Evaluation, measured metrics, XP and badges earned |
+| `/app/profile` | CV, portfolio links, and the brief the interviewer reads |
+| `/app/progress` | Level, score trend, four axis trends, badges |
+| `/app/history` | Past sessions |
+| `/app/settings` | Preferences and account |
 
 ## Not built yet
 

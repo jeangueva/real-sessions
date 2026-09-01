@@ -12,9 +12,21 @@
  * Both accept `Accept: text/event-stream` and then stream the interviewer's
  * turn as it is generated. EventSource cannot be used on the client because it
  * only issues GET requests, so this is SSE framing over POST, read with fetch.
- *   POST /api/sessions/:id/evaluation   → { evaluation }
+ *   POST /api/sessions/:id/evaluation   → { evaluation, metrics, xp, badges }
+ *   POST /api/sessions/:id/coach        → { tips }
  *   GET  /api/history                   → { sessions }
  *   GET  /api/history/:id               → { session }
+ *   GET  /api/progress                  → { sessions, axes }
+ *   GET  /api/profile                   → { xp, level, badges }
+ *   GET  /api/leaderboard               → { rows }
+ *   GET  /api/catalogue                 → { sectors, companies, personas }
+ *   GET  /api/plan                      → { plan, capabilities }
+ *   POST /api/early-access              → registers a landing-page sign-up
+ *   GET  /api/profile                   → { profile }
+ *   POST /api/profile/document          → multipart CV or portfolio upload
+ *   PUT  /api/profile/links             → { profile }
+ *   DELETE /api/profile                 → clears it
+ *   POST /api/contributions             → reports a real interview question
  *   GET  /api/preferences               → { preferences }
  *   PUT  /api/preferences               → { preferences }
  *   POST /api/accounts                  → sign up
@@ -67,7 +79,54 @@ import { closeRedis, getRedis } from "./redis.js";
 import { InterviewSession } from "./interviewer.js";
 import { evaluateInterview, EvaluationParseError } from "./evaluator.js";
 import { InterviewRefusalError } from "./interviewer.js";
-import { createSessionStore, type SessionStore } from "./session-store.js";
+import {
+  createSessionStore,
+  SESSION_TTL_SECONDS,
+  type SessionStore,
+} from "./session-store.js";
+import { closeDb, getDb } from "./db/index.js";
+import {
+  createProgressStore,
+  seedCatalogue,
+  type ProgressStore,
+  type RecordedTurn,
+  type SessionMode,
+} from "./progress-store.js";
+import { computeMetrics } from "./metrics.js";
+import {
+  axisScores,
+  badgesForSession,
+  levelForXp,
+  xpForSession,
+  BADGES,
+  AXES,
+  type Axis,
+} from "./gamification.js";
+import { coachTurn } from "./coach.js";
+import { COMPANIES, SECTORS, findCompany, sectorForCompany } from "./sectors.js";
+import { PERSONAS, defaultPersonaFor, findPersona } from "./personas.js";
+import {
+  capabilitiesFor,
+  createEntitlementStore,
+  earlyAccessUntil,
+  GENERIC_COMPANY,
+  type EntitlementStore,
+} from "./entitlements.js";
+import {
+  classifyLink,
+  createProfileStore,
+  renderProfileBrief,
+  MAX_LINKS,
+  type ProfileLink,
+  type ProfileStore,
+} from "./profile.js";
+import {
+  createContributionStore,
+  readQuestion,
+  type ContributionStore,
+} from "./contributions.js";
+import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
+import { writeBrief, BriefError } from "./brief.js";
 import {
   createUserStore,
   readPreferences,
@@ -90,6 +149,10 @@ const PORT = Number(process.env.PORT ?? 8787);
  */
 let STORE: SessionStore;
 let USERS: UserStore;
+let PROGRESS: ProgressStore;
+let PLANS: EntitlementStore;
+let PROFILES: ProfileStore;
+let CONTRIBUTIONS: ContributionStore;
 let ACCOUNTS: AccountStore;
 let MAILER: EmailSender;
 let LIMITER: RateLimiter;
@@ -158,6 +221,54 @@ function json(res: ServerResponse, status: number, body: unknown): void {
   res.end(payload);
 }
 
+/**
+ * Reads a single-file multipart upload.
+ *
+ * Built on the platform's own `Request.formData()` rather than a multipart
+ * library: boundary parsing is exactly the kind of thing that is easy to write
+ * and hard to write correctly, and Node ships a tested implementation. The
+ * node stream is adapted into a web stream to hand it over.
+ *
+ * Returns null when the body is not multipart or carries no file, which the
+ * caller reports as a bad request rather than guessing at intent.
+ */
+async function readUpload(
+  req: IncomingMessage,
+): Promise<{ filename: string; contentType: string; data: Buffer } | null> {
+  const type = req.headers["content-type"] ?? "";
+  if (!type.includes("multipart/form-data")) return null;
+
+  const declared = Number(req.headers["content-length"] ?? 0);
+  if (declared > MAX_UPLOAD_BYTES) {
+    throw new Error("That file is too large. The limit is 8 MB.");
+  }
+
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += (chunk as Buffer).length;
+    // Checked while reading as well as up front: content-length is a claim by
+    // the client, not a guarantee.
+    if (size > MAX_UPLOAD_BYTES) {
+      throw new Error("That file is too large. The limit is 8 MB.");
+    }
+    chunks.push(chunk as Buffer);
+  }
+
+  const form = await new Response(Buffer.concat(chunks), {
+    headers: { "content-type": type },
+  }).formData();
+
+  const file = form.get("file");
+  if (!(file instanceof File)) return null;
+
+  return {
+    filename: file.name || "upload",
+    contentType: file.type || "",
+    data: Buffer.from(await file.arrayBuffer()),
+  };
+}
+
 async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   let size = 0;
@@ -172,15 +283,21 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> 
   return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>;
 }
 
-function readContext(body: Record<string, unknown>): InterviewContext {
-  const required = [
-    "candidateName",
-    "targetRole",
-    "companyName",
-    "companyCulture",
-    "industry",
-    "interviewStage",
-  ] as const;
+/**
+ * Builds the prompt context from the request.
+ *
+ * Culture and industry are filled from the server's own catalogue whenever the
+ * company is one we know, and only fall back to what the client sent for one
+ * we do not. The client used to be the source for both, which meant a company
+ * added to the catalogue arrived at the interviewer with generic values until
+ * the frontend was taught about it separately — two lists to keep in step, and
+ * a silent downgrade when they drifted.
+ */
+function readContext(
+  body: Record<string, unknown>,
+  targetCompany = true,
+): InterviewContext {
+  const required = ["candidateName", "targetRole", "companyName", "interviewStage"] as const;
 
   const missing = required.filter(
     (key) => typeof body[key] !== "string" || (body[key] as string).trim() === "",
@@ -188,9 +305,131 @@ function readContext(body: Record<string, unknown>): InterviewContext {
   if (missing.length > 0) {
     throw new Error(`Missing or empty field(s): ${missing.join(", ")}`);
   }
-  return Object.fromEntries(
-    required.map((key) => [key, (body[key] as string).trim()]),
-  ) as unknown as InterviewContext;
+
+  const text = (key: string): string =>
+    typeof body[key] === "string" ? (body[key] as string).trim() : "";
+
+  // On the free plan the requested employer is replaced, not rejected: the
+  // interview still runs, it just does not know who it is for.
+  const companyName = targetCompany ? text("companyName") : GENERIC_COMPANY;
+  const known = findCompany(companyName);
+  const sector = sectorForCompany(companyName);
+
+  const companyCulture =
+    known?.culture || text("companyCulture") || "Craft and high standards";
+  const industry = sector?.label || text("industry") || "Technology";
+
+  return {
+    candidateName: text("candidateName"),
+    targetRole: text("targetRole"),
+    companyName,
+    companyCulture,
+    industry,
+    interviewStage: text("interviewStage"),
+  };
+}
+
+/** Defaults to practice: live coaching on, which is the gentler surprise. */
+function readMode(value: unknown): SessionMode {
+  return value === "real" ? "real" : "practice";
+}
+
+/**
+ * Timings for the exchange being submitted, in milliseconds from the start of
+ * the session.
+ *
+ * The clock belongs to the client because only the client knows the facts that
+ * matter: when the interviewer's synthesised voice actually stopped, and when
+ * the candidate started and stopped talking. The server's own generation
+ * timings would measure something else entirely.
+ *
+ * Anything malformed becomes null rather than a number. A wrong timing is far
+ * worse than a missing one — a missing one drops out of the metric, a wrong
+ * one silently skews every trend built on it.
+ */
+interface Timings {
+  interviewerEndedMs: number | null;
+  answerStartedMs: number | null;
+  answerEndedMs: number | null;
+}
+
+function readTimings(body: Record<string, unknown>): Timings {
+  const raw = body["timings"];
+  const source = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  const ms = (value: unknown): number | null => {
+    const parsed = Number(value);
+    // A negative offset, a NaN, or something past the session TTL is a client
+    // bug rather than a measurement.
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > SESSION_TTL_SECONDS * 1000) {
+      return null;
+    }
+    return Math.round(parsed);
+  };
+  return {
+    interviewerEndedMs: ms(source["interviewerEndedMs"]),
+    answerStartedMs: ms(source["answerStartedMs"]),
+    answerEndedMs: ms(source["answerEndedMs"]),
+  };
+}
+
+/**
+ * Mirrors the live conversation into the durable store.
+ *
+ * The whole transcript is rewritten every time rather than appending the new
+ * turns. `InterviewSession.transcript` is authoritative for both text and
+ * ordering, the write is an upsert keyed on position, and doing it this way
+ * means a turn dropped by a failed write earlier is repaired by the next one
+ * instead of leaving a permanent hole in the timeline.
+ *
+ * Timings are attached to the two turns the caller just closed: the final
+ * interviewer turn the candidate heard, and the answer they gave.
+ */
+async function recordTranscript(
+  sessionId: string,
+  transcript: readonly { speaker: "interviewer" | "candidate"; text: string }[],
+  timings?: Timings,
+): Promise<void> {
+  const turns: RecordedTurn[] = transcript.map((turn, idx) => ({
+    idx,
+    speaker: turn.speaker,
+    text: turn.text,
+    tStartMs: null,
+    tEndMs: null,
+  }));
+
+  if (timings) {
+    let lastCandidate: RecordedTurn | undefined;
+    for (let i = turns.length - 1; i >= 0; i -= 1) {
+      if (turns[i]!.speaker === "candidate") {
+        lastCandidate = turns[i]!;
+        break;
+      }
+    }
+    if (lastCandidate) {
+      lastCandidate.tStartMs = timings.answerStartedMs;
+      lastCandidate.tEndMs = timings.answerEndedMs;
+      const preceding = turns[lastCandidate.idx - 1];
+      if (preceding?.speaker === "interviewer") {
+        preceding.tEndMs = timings.interviewerEndedMs;
+      }
+    }
+  }
+
+  await PROGRESS.recordTurns(sessionId, turns);
+}
+
+/**
+ * Records without letting a storage failure reach the candidate.
+ *
+ * Progress is valuable but it is not the interview. A Postgres hiccup must not
+ * fail a turn the candidate already spoke and cannot easily repeat.
+ */
+async function recordQuietly(work: Promise<unknown>): Promise<void> {
+  try {
+    await work;
+  } catch (error) {
+    console.error("[realsessions] progress write failed:", error);
+  }
 }
 
 async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -261,7 +500,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   const signIn = async (accountId: string): Promise<void> => {
     if (priorIdentity?.kind === "guest") {
+      // Preferences and progress are separate stores, so both have to move.
+      // Missing either one makes creating an account destroy the very history
+      // that motivated creating it.
       await USERS.transfer(priorIdentity.id, accountId);
+      await recordQuietly(PROGRESS.transfer(priorIdentity.id, accountId));
+      await recordQuietly(PROFILES.transfer(priorIdentity.id, accountId));
+      await recordQuietly(PLANS.transfer(priorIdentity.id, accountId));
     }
     const { token } = issueToken({ kind: "user", id: accountId });
     res.setHeader("Set-Cookie", cookieHeader(token, secureCookies, "user"));
@@ -291,7 +536,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     await sendVerification(account.id, account.email);
     await signIn(account.id);
-    json(res, 201, { email: account.email });
+    // The landing-page list is keyed by email because it is collected before
+    // anyone has an account. This is the first moment the two are known
+    // together, so it is where the grant is claimed.
+    const granted = await PLANS.redeemEarlyAccess(account.email, account.id).catch(
+      (error: unknown) => {
+        console.error("[realsessions] early-access redemption failed:", error);
+        return false;
+      },
+    );
+    json(res, 201, { email: account.email, earlyAccess: granted });
     return;
   }
 
@@ -412,6 +666,34 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "POST" && path === "/api/early-access") {
+    if (await limited(res, `early:${clientIp(req)}`, RULES.signup)) return;
+    const body = await readJson(req);
+    const email = normalizeEmail(body["email"]);
+    if (!email) return json(res, 400, { error: "Enter a valid email address." });
+
+    const text = (key: string) =>
+      typeof body[key] === "string" ? (body[key] as string).trim() : "";
+    const role = text("role");
+    const company = text("company");
+    if (role === "") return json(res, 400, { error: "Tell us the role you are targeting." });
+
+    const until = earlyAccessUntil();
+    const fresh = await PLANS.recordEarlyAccess(email, role, company, until);
+
+    // Same answer whether or not the address was already on the list. A
+    // distinct "already registered" would turn this open endpoint into a way
+    // to test whether someone signed up.
+    json(res, 202, {
+      ok: true,
+      months: 6,
+      message: fresh
+        ? "You are on the list. Create an account with this address and the first six months are on us."
+        : "You are on the list. Create an account with this address and the first six months are on us.",
+    });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/auth/logout") {
     res.setHeader("Set-Cookie", clearCookieHeader(secureCookies));
     json(res, 200, { ok: true });
@@ -450,12 +732,173 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return json(res, 401, { error: "Please sign in again." });
   }
 
+  /**
+   * What this identity is allowed to do.
+   *
+   * Resolved per request rather than cached on the token: a grant can start or
+   * lapse between requests, and a stale capability set is the difference
+   * between a paywall and a giveaway.
+   */
+  const plan = await PLANS.planFor(identity.id);
+  const can = capabilitiesFor(plan);
+
+  /** 402 with the feature named, so the client can show the right upsell. */
+  const requiresPremium = (feature: string): void => {
+    json(res, 402, {
+      error: "That is part of the paid plan.",
+      feature,
+      plan,
+    });
+  };
+
+  if (req.method === "GET" && path === "/api/plan") {
+    json(res, 200, { plan, capabilities: can });
+    return;
+  }
+
+  if (req.method === "GET" && path === "/api/profile") {
+    json(res, 200, { profile: await PROFILES.get(identity.id) });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/profile/document") {
+    if (!can.candidateProfile) return requiresPremium("candidateProfile");
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+
+    const upload = await readUpload(req);
+    if (!upload) {
+      return json(res, 400, {
+        error: "Attach a PDF, a .docx, or a plain text file.",
+      });
+    }
+
+    const kind = kindFor(upload.filename, upload.contentType);
+    if (!kind) {
+      return json(res, 415, {
+        error: "We can read PDF, .docx and plain text. Other formats we would only guess at.",
+      });
+    }
+
+    const text = await extractText(upload.data, kind);
+    const brief = await writeBrief(text);
+    await PROFILES.putSource(identity.id, upload.filename, text, brief);
+    json(res, 201, { profile: await PROFILES.get(identity.id) });
+    return;
+  }
+
+  if (req.method === "PUT" && path === "/api/profile/links") {
+    if (!can.candidateProfile) return requiresPremium("candidateProfile");
+    const body = await readJson(req);
+    const raw = Array.isArray(body["links"]) ? body["links"] : [];
+
+    const links: ProfileLink[] = [];
+    const rejected: string[] = [];
+    for (const entry of raw.slice(0, MAX_LINKS * 2)) {
+      const classified = typeof entry === "string" ? classifyLink(entry) : null;
+      if (classified) links.push(classified);
+      else if (typeof entry === "string" && entry.trim() !== "") rejected.push(entry);
+    }
+
+    await PROFILES.putLinks(identity.id, links);
+    // Rejected links are reported rather than dropped in silence — someone who
+    // typed a bare "linkedin" needs to know it did not save.
+    json(res, 200, { profile: await PROFILES.get(identity.id), rejected });
+    return;
+  }
+
+  if (req.method === "DELETE" && path === "/api/profile") {
+    await PROFILES.clear(identity.id);
+    json(res, 200, { profile: await PROFILES.get(identity.id) });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/contributions") {
+    if (await limited(res, `contribute:${identity.id}`, RULES.contribute)) return;
+    const body = await readJson(req);
+
+    const companyId = typeof body["companyId"] === "string" ? body["companyId"] : "";
+    const company = COMPANIES.find((entry) => entry.id === companyId);
+    if (!company) return json(res, 400, { error: "Pick a company from the list." });
+
+    const question = readQuestion(body["question"]);
+    if (!question) {
+      return json(res, 400, {
+        error: "Write the question as you remember it — between 12 and 400 characters.",
+      });
+    }
+
+    const optional = (key: string): string | null => {
+      const value = body[key];
+      return typeof value === "string" && value.trim() !== ""
+        ? value.trim().slice(0, 120)
+        : null;
+    };
+
+    const stored = await CONTRIBUTIONS.submit(identity.id, {
+      companyId,
+      question,
+      stage: optional("stage"),
+      role: optional("role"),
+    });
+
+    json(res, stored ? 201 : 200, {
+      ok: true,
+      stored,
+      // Said plainly because it is the honest state of the pipeline: nothing
+      // contributed reaches an interview until a person confirms it.
+      message: stored
+        ? "Thank you. It goes to review before it can shape any interview."
+        : "You have already reported that one.",
+    });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/sessions") {
     if (await limited(res, `start:${identity.id}`, RULES.startSession)) return;
     const body = await readJson(req);
-    const context = readContext(body);
-    const session = new InterviewSession(context);
+    // Free runs against a role, not an employer. The downgrade happens here
+    // rather than by hiding the picker, because hiding a control is a courtesy
+    // and this is the paywall.
+    const context = readContext(body, can.targetCompany);
+    const mode = readMode(body["mode"]);
+    // An unknown or absent id resolves to the company's own default rather
+    // than to a neutral interviewer — every session has a temperament.
+    const persona =
+      can.choosePersona &&
+      typeof body["personaId"] === "string" &&
+      body["personaId"] !== ""
+        ? findPersona(body["personaId"])
+        : defaultPersonaFor(context.companyName);
+
+    // The brief is read once, here, and travels in the session snapshot — so
+    // an interview keeps the CV it started with even if one is uploaded
+    // halfway through.
+    const profile = can.candidateProfile
+      ? await PROFILES.get(identity.id).catch(() => null)
+      : null;
+    const candidateBrief = profile ? renderProfileBrief(profile) : "";
+
+    const session = new InterviewSession(context, {
+      personaId: persona.id,
+      candidateBrief: candidateBrief === "" ? null : candidateBrief,
+    });
     const sessionId = randomUUID();
+
+    // The durable row is written before the first turn is generated, because
+    // every later turn write references it. An abandoned interview leaves a
+    // row with no completion, which is exactly what it was.
+    await recordQuietly(
+      PROGRESS.createSession({
+        id: sessionId,
+        ownerId: identity.id,
+        company: context.companyName,
+        sectorId: sectorForCompany(context.companyName)?.id ?? null,
+        role: context.targetRole,
+        stage: context.interviewStage,
+        mode,
+        personaId: persona.id,
+      }),
+    );
 
     const persist = async (): Promise<void> => {
       await STORE.set(sessionId, {
@@ -463,12 +906,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         context,
         ownerId: identity.id,
         createdAt: Date.now(),
+        mode,
       });
+      await recordQuietly(recordTranscript(sessionId, session.transcript));
     };
 
     if (wantsStream(req)) {
       openStream(res);
-      sendEvent(res, "session", { sessionId });
+      sendEvent(res, "session", { sessionId, persona });
       const turn = await session.startStream((chunk) =>
         sendEvent(res, "delta", { text: chunk }),
       );
@@ -480,7 +925,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const turn = await session.start();
     await persist();
-    json(res, 201, { sessionId, turn });
+    json(res, 201, { sessionId, turn, persona });
     return;
   }
 
@@ -497,7 +942,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const body = await readJson(req);
     const answer = typeof body["answer"] === "string" ? body["answer"] : "";
+    const timings = readTimings(body);
     const session = InterviewSession.restore(stored.snapshot);
+
+    const persist = async (): Promise<void> => {
+      await STORE.set(sessionId, { ...stored, snapshot: session.snapshot() });
+      await recordQuietly(recordTranscript(sessionId, session.transcript, timings));
+    };
 
     if (wantsStream(req)) {
       openStream(res);
@@ -506,15 +957,52 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       );
       // Written back only after the turn completes, so a failed call leaves
       // the stored conversation where the candidate can retry from.
-      await STORE.set(sessionId, { ...stored, snapshot: session.snapshot() });
+      await persist();
       sendEvent(res, "turn", { turn });
       res.end();
       return;
     }
 
     const turn = await session.submitAnswer(answer);
-    await STORE.set(sessionId, { ...stored, snapshot: session.snapshot() });
+    await persist();
     json(res, 200, { turn });
+    return;
+  }
+
+  const coachMatch = path.match(/^\/api\/sessions\/([\w-]+)\/coach$/);
+  if (req.method === "POST" && coachMatch) {
+    if (await limited(res, `coach:${identity.id}`, RULES.coach)) return;
+    const stored = await STORE.get(coachMatch[1]!);
+    if (!stored || stored.ownerId !== identity.id) {
+      return json(res, 404, { error: "Session not found or expired." });
+    }
+    // Coaching is withheld in real mode by the server, not by the client
+    // hiding a panel. The point of real mode is that the help is not there.
+    if (stored.mode === "real") return json(res, 200, { tips: [] });
+    if (!can.liveCoaching) return requiresPremium("liveCoaching");
+
+    const session = InterviewSession.restore(stored.snapshot);
+    const transcript = session.transcript;
+
+    // Scanning back for the candidate rather than reading the last two turns.
+    // By the time this endpoint is called the interviewer has already replied,
+    // so the transcript ends on a question — reading from the end found the
+    // wrong pair every time and the coach silently returned nothing.
+    let answerAt = -1;
+    for (let i = transcript.length - 1; i >= 0; i -= 1) {
+      if (transcript[i]!.speaker === "candidate") {
+        answerAt = i;
+        break;
+      }
+    }
+    const answerTurn = answerAt === -1 ? undefined : transcript[answerAt];
+    const questionTurn = answerAt <= 0 ? undefined : transcript[answerAt - 1];
+    if (!answerTurn || questionTurn?.speaker !== "interviewer") {
+      return json(res, 200, { tips: [] });
+    }
+
+    const tips = await coachTurn(stored.context, questionTurn.text, answerTurn.text);
+    json(res, 200, { tips });
     return;
   }
 
@@ -525,36 +1013,166 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!stored || stored.ownerId !== identity.id) {
       return json(res, 404, { error: "Session not found or expired." });
     }
+    const sessionId = evalMatch[1]!;
     const session = InterviewSession.restore(stored.snapshot);
     const evaluation = await evaluateInterview(stored.context, session.transcript);
+    const score = evaluation.overall_score_percentage;
 
-    // Recorded here rather than on the last turn: an interview with no
-    // evaluation has nothing to show in history.
-    await USERS.recordSession(identity.id, {
-      id: evalMatch[1]!,
-      company: stored.context.companyName,
-      role: stored.context.targetRole,
-      stage: stored.context.interviewStage,
-      completedAt: new Date().toISOString(),
-      score: evaluation.overall_score_percentage,
-      evaluation,
+    // The transcript is rewritten once more before metrics are computed, so
+    // the numbers are derived from the same turns that will be read back on
+    // the history screen rather than from a copy that could have drifted.
+    await recordQuietly(recordTranscript(sessionId, session.transcript));
+    const detail = await PROGRESS.getSession(identity.id, sessionId);
+    const metrics = computeMetrics(detail?.turns ?? []);
+
+    // Read before completing, so the session being scored is not counted as
+    // one of the sessions it is being compared against.
+    const history = await PROGRESS.listSessions(identity.id);
+    const previous = history.filter((entry) => entry.id !== sessionId);
+
+    await recordQuietly(
+      PROGRESS.completeSession({ sessionId, score, evaluation, metrics }),
+    );
+
+    const today = new Date().toISOString().slice(0, 10);
+    const mode = stored.mode ?? "practice";
+    const events = xpForSession({
+      score,
+      mode,
+      history: previous,
+      // From the XP log, not from the session count: the cap has to hold even
+      // when the awards per session change.
+      xpToday: await PROGRESS.xpOnDay(identity.id, today),
+      today,
+    });
+    await recordQuietly(PROGRESS.addXp(identity.id, sessionId, events));
+
+    const earned = await PROGRESS.awardBadges(
+      identity.id,
+      badgesForSession({
+        score,
+        mode,
+        stage: stored.context.interviewStage,
+        sectorId: sectorForCompany(stored.context.companyName)?.id ?? null,
+        company: stored.context.companyName,
+        metrics,
+        history: previous,
+      }),
+      sessionId,
+    ).catch((error: unknown) => {
+      console.error("[realsessions] badge write failed:", error);
+      return [] as string[];
     });
 
-    json(res, 200, { evaluation, usage: session.usage });
+    json(res, 200, {
+      evaluation,
+      metrics,
+      usage: session.usage,
+      xp: {
+        events,
+        gained: events.reduce((total, event) => total + event.amount, 0),
+      },
+      // Only the newly earned ones, so the client can celebrate exactly what
+      // just happened rather than re-announcing a badge from last week.
+      badges: earned.map((id) => BADGES.find((badge) => badge.id === id) ?? { id }),
+    });
     return;
   }
 
   if (req.method === "GET" && path === "/api/history") {
-    json(res, 200, { sessions: await USERS.listSessions(identity.id) });
+    const all = await PROGRESS.listSessions(identity.id);
+    json(res, 200, {
+      sessions: all.slice(0, can.historyLimit),
+      // The client shows what is behind the wall rather than pretending the
+      // sessions do not exist. They are the reason to upgrade.
+      withheld: Math.max(0, all.length - can.historyLimit),
+    });
     return;
   }
 
   const historyMatch = path.match(/^\/api\/history\/([\w-]+)$/);
   if (req.method === "GET" && historyMatch) {
-    const record = await USERS.getSession(identity.id, historyMatch[1]!);
+    const record = await PROGRESS.getSession(identity.id, historyMatch[1]!);
     // Scoped to the identity, so another caller's id reads as missing.
     if (!record) return json(res, 404, { error: "Session not found." });
     json(res, 200, { session: record });
+    return;
+  }
+
+  /**
+   * The progress series. Oldest first, because it is read as a timeline —
+   * the list view wants newest first and they are deliberately not the same
+   * endpoint.
+   */
+  if (req.method === "GET" && path === "/api/progress") {
+    const sessions = (await PROGRESS.listSessions(identity.id))
+      .filter((entry) => entry.completedAt !== null)
+      .slice(0, can.historyLimit)
+      .reverse();
+
+    const axes = sessions.map((entry) => ({
+      sessionId: entry.id,
+      completedAt: entry.completedAt,
+      scores: axisScores({
+        metrics: entry.metrics,
+        // Passing null here made the vocabulary axis fall back to a proxy and
+        // left the structure axis permanently empty, even though both scores
+        // were sitting in the stored evaluation.
+        evaluation:
+          entry.vocabularyScore === null || entry.structureScore === null
+            ? null
+            : {
+                vocabulary_feedback: {
+                  score_out_of_10: entry.vocabularyScore,
+                  good_usage: [],
+                  missed_opportunities_or_errors: [],
+                },
+                structure_feedback: {
+                  score_out_of_10: entry.structureScore,
+                  feedback_text: "",
+                },
+              },
+      }),
+    }));
+
+    json(res, 200, { sessions, axes, axisNames: AXES });
+    return;
+  }
+
+  if (req.method === "GET" && path === "/api/profile") {
+    const profile = await PROGRESS.profile(identity.id);
+    json(res, 200, {
+      xp: profile.xp,
+      ...levelForXp(profile.xp),
+      badges: profile.badges.map((held) => ({
+        ...held,
+        ...(BADGES.find((badge) => badge.id === held.badgeId) ?? {}),
+      })),
+      catalogue: BADGES,
+    });
+    return;
+  }
+
+  if (req.method === "GET" && path === "/api/leaderboard") {
+    const rows = await PROGRESS.leaderboard(30);
+    // Owner ids are opaque identity strings and must not leave the server —
+    // publishing them would let anyone holding one read another person's rank.
+    // The caller gets their own position and the shape of the league, nothing
+    // that identifies the people in it.
+    const rank = rows.findIndex((row) => row.ownerId === identity.id);
+    json(res, 200, {
+      rows: rows.map((row, index) => ({
+        position: index + 1,
+        xp: row.xp,
+        you: row.ownerId === identity.id,
+      })),
+      you: rank === -1 ? null : rank + 1,
+    });
+    return;
+  }
+
+  if (req.method === "GET" && path === "/api/catalogue") {
+    json(res, 200, { sectors: SECTORS, companies: COMPANIES, personas: PERSONAS });
     return;
   }
 
@@ -600,6 +1218,10 @@ const server = createServer((req, res) => {
     if (error instanceof EvaluationParseError) {
       return json(res, 502, { error: "The evaluator returned an unusable result." });
     }
+    // Both carry a message written for the person who uploaded the file.
+    if (error instanceof ExtractionError || error instanceof BriefError) {
+      return json(res, 422, { error: error.message });
+    }
     const message = error instanceof Error ? error.message : String(error);
     if (/Missing or empty field|too large|empty|already/i.test(message)) {
       return json(res, 400, { error: message });
@@ -610,17 +1232,27 @@ const server = createServer((req, res) => {
 });
 
 const redis = await getRedis();
+const db = await getDb();
 const store = createSessionStore(redis);
 STORE = store;
 USERS = createUserStore(redis);
 ACCOUNTS = createAccountStore(redis);
 MAILER = createEmailSender();
 LIMITER = createRateLimiter(redis);
+PROGRESS = createProgressStore(db);
+PLANS = createEntitlementStore(db);
+PROFILES = createProfileStore(db);
+CONTRIBUTIONS = createContributionStore(db);
+
+// The catalogue is code (see sectors.ts) and the table is a copy of it, so
+// this runs on every boot rather than as a migration someone has to remember.
+if (db) await seedCatalogue(db);
 
 server.listen(PORT, () => {
   console.log(
     `Real Sessions API on http://localhost:${PORT} ` +
-      `(sessions: ${store.kind}, rate limits: ${LIMITER.kind}, email: ${MAILER.kind})`,
+      `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +
+      `rate limits: ${LIMITER.kind}, email: ${MAILER.kind})`,
   );
 });
 
@@ -630,7 +1262,9 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     server.close(() => {
       void store
         .close()
+        .then(() => PROGRESS.close())
         .then(closeRedis)
+        .then(closeDb)
         .then(() => process.exit(0));
     });
   });

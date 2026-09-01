@@ -56,7 +56,7 @@ export function InterviewPreview() {
 
           <button
             onClick={() => setTurn((current) => (current + 1) % TURNS.length)}
-            className="focus-ring rounded-full text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
+            className="focus-ring -ml-3 rounded-full px-3 py-2 text-sm text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
           >
             Next turn
           </button>

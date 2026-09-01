@@ -50,6 +50,20 @@ export const RULES = {
    */
   verifyResend: { limit: 5, windowMs: 60 * 60 * 1000 },
   verifyByIp: { limit: 20, windowMs: 60 * 60 * 1000 },
+  /**
+   * Live coaching. One model call per candidate turn, so the ceiling tracks
+   * `answer` rather than `evaluation` — but it is a second call on the same
+   * conversation, and a client that retried it in a loop would double the
+   * cost of every interview.
+   */
+  coach: { limit: 150, windowMs: 60 * 60 * 1000 },
+  /**
+   * CV uploads. Each one costs a document parse and a model call, and nobody
+   * legitimately replaces their CV ten times an hour.
+   */
+  upload: { limit: 8, windowMs: 60 * 60 * 1000 },
+  /** Reporting a real interview question. Generous, but not a firehose. */
+  contribute: { limit: 30, windowMs: 60 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export interface RateLimitResult {

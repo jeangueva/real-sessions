@@ -10,8 +10,7 @@ import {
   type AccountStore,
 } from "../src/accounts.js";
 import { issueToken, verifyToken } from "../src/auth.js";
-import { createUserStore } from "../src/user-store.js";
-import { SAMPLE_EVALUATION } from "./fixtures.js";
+import { createUserStore, DEFAULT_PREFERENCES } from "../src/user-store.js";
 
 describe("password hashing", () => {
   it("verifies a correct password and rejects a wrong one", async () => {
@@ -109,47 +108,38 @@ describe("identity tokens carry account kind", () => {
   });
 });
 
-describe("guest history transfer", () => {
-  it("carries anonymous practice onto a new account", async () => {
+describe("guest preferences transfer", () => {
+  it("carries a guest's setup onto a new account", async () => {
     const users = createUserStore(null);
-    await users.recordSession("guest-1", {
-      id: "s1",
-      company: "Stripe",
-      role: "Designer",
-      stage: "Behavioral",
-      completedAt: "2026-08-30T10:00:00.000Z",
-      score: 62,
-      evaluation: SAMPLE_EVALUATION,
+    await users.setPreferences("guest-1", {
+      ...DEFAULT_PREFERENCES,
+      defaultCompany: "Nubank",
+      defaultSector: "fintech",
     });
 
-    const moved = await users.transfer("guest-1", "account-1");
-
-    expect(moved).toBe(1);
-    expect((await users.listSessions("account-1")).map((s) => s.id)).toEqual(["s1"]);
-    // The guest list is emptied, not duplicated.
-    expect(await users.listSessions("guest-1")).toEqual([]);
+    expect(await users.transfer("guest-1", "account-1")).toBe(1);
+    expect((await users.getPreferences("account-1")).defaultCompany).toBe("Nubank");
+    // The guest record is moved, not copied.
+    expect((await users.getPreferences("guest-1")).defaultCompany).toBe(
+      DEFAULT_PREFERENCES.defaultCompany,
+    );
   });
 
-  it("merges newest-first when the account already has history", async () => {
+  it("does not overwrite settings the account already chose", async () => {
     const users = createUserStore(null);
-    const make = (id: string, completedAt: string) => ({
-      id,
-      company: "Stripe",
-      role: "Designer",
-      stage: "Behavioral",
-      completedAt,
-      score: 50,
-      evaluation: SAMPLE_EVALUATION,
+    await users.setPreferences("account-1", {
+      ...DEFAULT_PREFERENCES,
+      defaultCompany: "Airbnb",
     });
-    await users.recordSession("account-1", make("old", "2026-08-01T10:00:00.000Z"));
-    await users.recordSession("guest-1", make("new", "2026-08-30T10:00:00.000Z"));
+    await users.setPreferences("guest-1", {
+      ...DEFAULT_PREFERENCES,
+      defaultCompany: "Nubank",
+    });
 
     await users.transfer("guest-1", "account-1");
 
-    expect((await users.listSessions("account-1")).map((s) => s.id)).toEqual([
-      "new",
-      "old",
-    ]);
+    // Signed-in choices are the more deliberate ones.
+    expect((await users.getPreferences("account-1")).defaultCompany).toBe("Airbnb");
   });
 
   it("is a no-op when transferring onto itself", async () => {

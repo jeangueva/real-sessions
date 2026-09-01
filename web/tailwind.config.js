@@ -41,6 +41,16 @@ export default {
         serif: ['"Instrument Serif"', "Georgia", "serif"],
       },
       fontSize: {
+        // The small end of the scale, lifted one step off Tailwind's defaults
+        // (12/14/16). Those are fine for dense dashboards and wrong for this:
+        // most of the small text here is either a control you have to hit or
+        // copy someone reads while nervous, and 12px was failing both. Set as
+        // tokens rather than edited at each call site, so the whole product
+        // moves together and nothing drifts back down.
+        xs: ["0.875rem", { lineHeight: "1.5" }],
+        sm: ["1rem", { lineHeight: "1.55" }],
+        base: ["1.0625rem", { lineHeight: "1.6" }],
+
         // Viewport-relative so the wordmark fills its column at any width.
         // Sized for the two-line "Real Sessions" stack: 20vw was tuned for a
         // single word and overflowed the column once the name wrapped.
@@ -64,11 +74,32 @@ export default {
           to: { opacity: "1", transform: "translateY(0)" },
         },
         blink: { "0%,100%": { opacity: "1" }, "50%": { opacity: "0" } },
+        /**
+         * The backdrop drift. Deliberately enormous periods — a minute is fast
+         * enough to notice and slow enough that nothing on top of it appears
+         * to move. Only `transform` and `opacity` change, so these composite
+         * on the GPU and never trigger layout.
+         */
+        driftSlow: {
+          "0%,100%": { transform: "translate(-50%, 0) scale(1)", opacity: "1" },
+          "50%": { transform: "translate(-46%, -4vmax) scale(1.08)", opacity: "0.85" },
+        },
+        driftWide: {
+          "0%,100%": { transform: "translate(0, 0) scale(1)" },
+          "50%": { transform: "translate(8vmax, 5vmax) scale(1.12)" },
+        },
+        driftCounter: {
+          "0%,100%": { transform: "translate(0, 0) scale(1.05)", opacity: "0.9" },
+          "50%": { transform: "translate(-6vmax, 4vmax) scale(1)", opacity: "0.6" },
+        },
       },
       animation: {
         "fade-rise": "fadeRise 0.8s cubic-bezier(0.16,1,0.3,1) both",
         "fade-in": "fadeIn 0.5s ease both",
         blink: "blink 1s step-end infinite",
+        "drift-slow": "driftSlow 34s cubic-bezier(0.45,0,0.55,1) infinite",
+        "drift-wide": "driftWide 46s cubic-bezier(0.45,0,0.55,1) infinite",
+        "drift-counter": "driftCounter 58s cubic-bezier(0.45,0,0.55,1) infinite",
       },
     },
   },

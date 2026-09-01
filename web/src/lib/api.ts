@@ -8,9 +8,14 @@ export interface InterviewContext {
   candidateName: string;
   targetRole: string;
   companyName: string;
-  companyCulture: string;
-  industry: string;
   interviewStage: string;
+  /**
+   * Only for a company outside the server's catalogue. For a known one the
+   * server fills both from its own records and ignores anything sent here —
+   * two lists of company culture would drift, and the client's would lose.
+   */
+  companyCulture?: string;
+  industry?: string;
 }
 
 export interface InterviewerTurn {
@@ -18,6 +23,111 @@ export interface InterviewerTurn {
   isComplete: boolean;
   turnNumber: number;
   stopReason: string | null;
+}
+
+/** Practice shows live coaching; real withholds it, the way an interview does. */
+export type SessionMode = "practice" | "real";
+
+/** Milliseconds from the start of the session. Null when the answer was typed. */
+export interface SpeechTimings {
+  interviewerEndedMs: number | null;
+  answerStartedMs: number | null;
+  answerEndedMs: number | null;
+}
+
+/**
+ * Derived arithmetic over the transcript — no model, so no run-to-run drift.
+ * The timing half is null for a typed session and must not be plotted then.
+ */
+export interface SessionMetrics {
+  words: number;
+  fillerPer100: number | null;
+  vocabularyRange: number | null;
+  wordShare: number | null;
+  speakingMs: number | null;
+  wpm: number | null;
+  avgResponseMs: number | null;
+  longPauses: number | null;
+  timeToFirstMs: number | null;
+  fromSpeech: boolean;
+}
+
+export interface CoachTip {
+  kind: "structure" | "specificity" | "vocabulary" | "grammar";
+  note: string;
+}
+
+export type Plan = "free" | "premium";
+
+export interface Capabilities {
+  plan: Plan;
+  targetCompany: boolean;
+  choosePersona: boolean;
+  candidateProfile: boolean;
+  liveCoaching: boolean;
+  advancedFeedback: boolean;
+  historyLimit: number;
+}
+
+export interface ProfileLink {
+  url: string;
+  kind: "github" | "linkedin" | "figma" | "portfolio" | "behance" | "dribbble" | "other";
+  label: string | null;
+}
+
+export interface CandidateProfile {
+  sourceName: string | null;
+  brief: string | null;
+  links: ProfileLink[];
+  updatedAt: string | null;
+}
+
+export interface Persona {
+  id: string;
+  label: string;
+  summary: string;
+  behaviour: string;
+  voice: { rate: number; pitch: number; prefer: string[] };
+}
+
+export interface Sector {
+  id: string;
+  label: string;
+  focus: string;
+  metrics: string;
+}
+
+export interface CatalogueCompany {
+  id: string;
+  name: string;
+  sectorId: string;
+  culture: string;
+  description: string;
+  tint: string;
+}
+
+export interface Badge {
+  id: string;
+  label: string;
+  description: string;
+}
+
+export interface EarnedBadge extends Badge {
+  badgeId: string;
+  earnedAt: string;
+}
+
+export type Axis = "fluency" | "vocabulary" | "structure" | "confidence";
+
+export interface AxisPoint {
+  sessionId: string;
+  completedAt: string | null;
+  scores: Record<Axis, number | null>;
+}
+
+export interface XpAward {
+  events: { kind: string; amount: number }[];
+  gained: number;
 }
 
 /** Carries the server's message so the UI can show something specific. */
@@ -90,7 +200,7 @@ async function postStream(
   body: unknown,
   handlers: {
     onDelta: (text: string) => void;
-    onSession?: (sessionId: string) => void;
+    onSession?: (sessionId: string, persona: Persona) => void;
   },
 ): Promise<InterviewerTurn> {
   let response: Response;
@@ -138,7 +248,8 @@ async function postStream(
         if (event?.name === "delta") {
           handlers.onDelta((event.data as { text: string }).text);
         } else if (event?.name === "session") {
-          handlers.onSession?.((event.data as { sessionId: string }).sessionId);
+          const payload = event.data as { sessionId: string; persona: Persona };
+          handlers.onSession?.(payload.sessionId, payload.persona);
         } else if (event?.name === "turn") {
           turn = (event.data as { turn: InterviewerTurn }).turn;
         } else if (event?.name === "error") {
@@ -177,22 +288,30 @@ function readFrame(frame: string): { name: string; data: unknown } | null {
 /** Streaming start. Resolves with the finished turn once the stream closes. */
 export function startSessionStream(
   context: InterviewContext,
+  options: { mode: SessionMode; personaId: string },
   handlers: {
     onDelta: (text: string) => void;
-    onSession: (sessionId: string) => void;
+    onSession: (sessionId: string, persona: Persona) => void;
   },
 ) {
-  return withIdentity(() => postStream("/api/sessions", context, handlers));
+  return withIdentity(() =>
+    postStream("/api/sessions", { ...context, ...options }, handlers),
+  );
 }
 
 /** Streaming answer. */
 export function sendAnswerStream(
   sessionId: string,
   answer: string,
+  timings: SpeechTimings,
   onDelta: (text: string) => void,
 ) {
   return withIdentity(() =>
-    postStream(`/api/sessions/${sessionId}/answers`, { answer }, { onDelta }),
+    postStream(
+      `/api/sessions/${sessionId}/answers`,
+      { answer, timings },
+      { onDelta },
+    ),
   );
 }
 
@@ -212,23 +331,50 @@ export function sendAnswer(sessionId: string, answer: string) {
 
 export function requestEvaluation(sessionId: string) {
   return withIdentity(() =>
-    post<{ evaluation: Evaluation }>(`/api/sessions/${sessionId}/evaluation`, {}),
+    post<{
+      evaluation: Evaluation;
+      metrics: SessionMetrics;
+      xp: XpAward;
+      badges: Badge[];
+    }>(`/api/sessions/${sessionId}/evaluation`, {}),
+  );
+}
+
+/**
+ * Coaching notes for the exchange just finished.
+ *
+ * Never awaited by the send path. This is the second loop: it runs behind the
+ * conversation and a failure here must not touch it, which is why the caller
+ * fires it and ignores rejection.
+ */
+export function requestCoaching(sessionId: string) {
+  return withIdentity(() =>
+    post<{ tips: CoachTip[] }>(`/api/sessions/${sessionId}/coach`, {}),
   );
 }
 
 export interface SessionSummary {
   id: string;
   company: string;
+  sectorId: string | null;
   role: string;
   stage: string;
-  completedAt: string;
-  score: number;
+  mode: SessionMode;
+  startedAt: string;
+  completedAt: string | null;
+  score: number | null;
+  /** The evaluator's two sub-scores, 0–10. Null until the session is scored. */
+  vocabularyScore: number | null;
+  structureScore: number | null;
+  metrics: SessionMetrics | null;
 }
 
 export interface Preferences {
   defaultRole: string;
   defaultCompany: string;
   interviewLength: number;
+  defaultSector: string;
+  defaultMode: SessionMode;
 }
 
 async function request<T>(
@@ -311,16 +457,142 @@ export function signOut() {
 
 export function fetchHistory() {
   return withIdentity(() =>
-    request<{ sessions: SessionSummary[] }>("/api/history", { method: "GET" }),
+    request<{ sessions: SessionSummary[]; withheld: number }>("/api/history", {
+      method: "GET",
+    }),
   );
 }
 
 export function fetchHistoryEntry(id: string) {
   return withIdentity(() =>
-    request<{ session: SessionSummary & { evaluation: Evaluation } }>(
-      `/api/history/${id}`,
+    request<{
+      session: SessionSummary & {
+        evaluation: Evaluation | null;
+        turns: {
+          idx: number;
+          speaker: "interviewer" | "candidate";
+          text: string;
+          tStartMs: number | null;
+          tEndMs: number | null;
+        }[];
+      };
+    }>(`/api/history/${id}`, { method: "GET" }),
+  );
+}
+
+export function fetchPlan() {
+  return withIdentity(() =>
+    request<{ plan: Plan; capabilities: Capabilities }>("/api/plan", {
+      method: "GET",
+    }),
+  );
+}
+
+/** Public: no identity needed, this runs from the landing page. */
+export function joinEarlyAccess(email: string, role: string, company: string) {
+  return request<{ ok: true; months: number; message: string }>(
+    "/api/early-access",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, role, company }),
+    },
+  );
+}
+
+export function fetchCandidateProfile() {
+  return withIdentity(() =>
+    request<{ profile: CandidateProfile }>("/api/profile", { method: "GET" }),
+  );
+}
+
+/**
+ * Uploads a CV or portfolio.
+ *
+ * `FormData` sets its own multipart content-type with the boundary, so this
+ * deliberately sends no Content-Type header — adding one strips the boundary
+ * and the server sees an unparsable body.
+ */
+export function uploadProfileDocument(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return withIdentity(() =>
+    request<{ profile: CandidateProfile }>("/api/profile/document", {
+      method: "POST",
+      body: form,
+    }),
+  );
+}
+
+export function saveProfileLinks(links: string[]) {
+  return withIdentity(() =>
+    request<{ profile: CandidateProfile; rejected: string[] }>("/api/profile/links", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ links }),
+    }),
+  );
+}
+
+export function clearProfile() {
+  return withIdentity(() =>
+    request<{ profile: CandidateProfile }>("/api/profile", { method: "DELETE" }),
+  );
+}
+
+export function contributeQuestion(input: {
+  companyId: string;
+  question: string;
+  stage?: string;
+  role?: string;
+}) {
+  return withIdentity(() =>
+    request<{ ok: true; stored: boolean; message: string }>("/api/contributions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export function fetchProgress() {
+  return withIdentity(() =>
+    request<{ sessions: SessionSummary[]; axes: AxisPoint[]; axisNames: Axis[] }>(
+      "/api/progress",
       { method: "GET" },
     ),
+  );
+}
+
+export function fetchProfile() {
+  return withIdentity(() =>
+    request<{
+      xp: number;
+      level: number;
+      xpIntoLevel: number;
+      xpForNextLevel: number;
+      badges: EarnedBadge[];
+      catalogue: Badge[];
+    }>("/api/profile", { method: "GET" }),
+  );
+}
+
+export function fetchLeaderboard() {
+  return withIdentity(() =>
+    request<{
+      rows: { position: number; xp: number; you: boolean }[];
+      you: number | null;
+    }>("/api/leaderboard", { method: "GET" }),
+  );
+}
+
+export function fetchCatalogue() {
+  return withIdentity(() =>
+    request<{
+      sectors: Sector[];
+      companies: CatalogueCompany[];
+      personas: Persona[];
+    }>("/api/catalogue", { method: "GET" }),
   );
 }
 
@@ -339,18 +611,3 @@ export function savePreferences(preferences: Preferences) {
     }),
   );
 }
-
-/** Culture blurbs the Phase 1 prompt needs but the picker does not collect. */
-export const COMPANY_CULTURE: Record<string, string> = {
-  Stripe: "Craft, user obsession, high trust, written communication",
-  Amazon: "Customer obsession, data-driven, ownership, bias for action",
-  Airbnb: "Belonging, design-led craft, host and guest empathy",
-  "Mercado Libre": "Scale, pragmatism, regional depth, entrepreneurship",
-};
-
-export const COMPANY_INDUSTRY: Record<string, string> = {
-  Stripe: "Fintech",
-  Amazon: "E-commerce",
-  Airbnb: "Travel and hospitality",
-  "Mercado Libre": "E-commerce and fintech",
-};

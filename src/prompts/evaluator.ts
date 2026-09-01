@@ -25,7 +25,10 @@ Your task is to analyze the candidate's performance in the transcript and provid
 - If the transcript is too short or too sparse to judge a criterion, say so explicitly in the relevant feedback field and score conservatively.
 
 ### FEEDBACK STYLE:
-Address the candidate in the second person ("you"), be specific, and make every item in \`actionable_next_steps\` something they can practice this week.`;
+Address the candidate in the second person ("you"), be specific, and make every item in \`actionable_next_steps\` something they can practice this week.
+
+### OUTPUT FORMAT:
+Every string you return is rendered as plain text. Write plain prose only — no markdown, no asterisks for emphasis, no bold, no headings, no numbered or bulleted lists inside a field. A sentence like "skipped the **S**ituation" reaches the candidate with the asterisks still in it.`;
 
 /** Renders the Phase 2 system prompt. */
 export function buildEvaluatorPrompt(context: InterviewContext): string {

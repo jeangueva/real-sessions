@@ -11,7 +11,24 @@ Built from the prompt architecture in
 **Interviewer** (Phase 1) and an async **Evaluator** (Phase 2).
 
 - **Backend** — prompts, model routing across four vendors, an HTTP API with
-  accounts, sessions in Redis, and SSE streaming.
+  accounts, live sessions in Redis, durable progress in Postgres, and SSE
+  streaming.
+- **Coaching** — a second, non-blocking loop that reads each finished exchange
+  and writes notes beside the transcript, so the interviewer never has to break
+  character to help.
+- **Measurement** — words per minute, filler rate, thinking time and vocabulary
+  range, counted from the transcript rather than judged by a model, so they mean
+  the same thing in every session.
+- **Progress and gamification** — four per-axis trends, XP on an append-only
+  log, levels, badges and a weekly league.
+- **Sectors** — fintech, e-commerce, travel, social, developer tools and
+  delivery. The sector sets the vocabulary and the metrics the interviewer
+  demands, not just which companies are listed.
+- **Interviewer archetypes** — five temperaments, each with its own prompt
+  behaviour *and* its own speaking rate and pitch. A company defaults to the one
+  its culture implies.
+- **Your context** — upload a CV or portfolio and the interviewer opens on
+  something you actually did, then presses where your CV is vague.
 - **Web** — landing page, design system, and the product screens, with browser
   speech in and out.
 - **Benchmarks** — the harnesses that chose the models, so the choice is
@@ -32,7 +49,8 @@ Built from the prompt architecture in
 | | Why |
 | --- | --- |
 | **Node 22+** | Uses `process.loadEnvFile`, built-in scrypt `maxmem`, and native fetch |
-| **Docker** *(optional locally)* | Runs Redis. Without it the API keeps sessions in memory and says so at startup |
+| **Docker** *(optional locally)* | Runs Redis. Without it the API keeps live sessions in memory and says so at startup |
+| **Postgres 14+** | Holds transcripts, metrics, XP and badges. Without it progress is per-process and lost on restart |
 | **One model API key** | [OpenRouter](https://openrouter.ai) covers every default model with a single key |
 
 ### 2. Install
@@ -55,6 +73,15 @@ Open `.env` and set, at minimum:
 ```
 OPENROUTER_API_KEY=sk-or-v1-...
 ```
+
+Create the database and point `DATABASE_URL` at it:
+
+```bash
+createdb realsessions
+```
+
+The schema is applied on every boot — every statement is `IF NOT EXISTS`, so
+there is no migration step to run or forget.
 
 Everything else is optional locally and documented inline in `.env.example`.
 Two are worth knowing about:
@@ -88,19 +115,97 @@ The API prints what it is actually using at startup, which is the fastest way
 to catch a missing variable:
 
 ```
-Real Sessions API on http://localhost:8787 (sessions: redis, rate limits: redis, email: console)
+Real Sessions API on http://localhost:8787 (sessions: redis, progress: postgres, rate limits: redis, email: console)
 ```
 
 ### 5. Verify
 
 ```bash
-npm test              # 119 tests, fully stubbed — no network, no key needed
+npm test              # fully stubbed — no network, no model key needed
 npm run typecheck
 cd web && npm run build
 ```
 
+The progress store is the one place where an in-memory implementation and a real
+database have to agree, so its suite runs against **both**. The Postgres pass is
+skipped unless you point it at a database of its own:
+
+```bash
+createdb realsessions_test
+TEST_DATABASE_URL=postgresql://localhost:5432/realsessions_test npm test
+```
+
+`TEST_DATABASE_URL`, never `DATABASE_URL` — these tests write real rows, and
+aiming them at the development database puts test XP on your own leaderboard.
+
 A green suite means the wiring holds, **not** that any model does the job well.
 That is what the benchmarks below are for, and they need a key.
+
+---
+
+## The business model
+
+Two plans, split along one line: **does this need to know who you are?**
+
+| | Free | Premium — $9/month |
+| --- | --- | --- |
+| Interview | A general round for your role | The company and sector you are targeting |
+| Feedback | Honest score, headline strengths and fixes | Measured metrics, actionable steps, live coaching |
+| Your CV | — | Uploaded, and the interviewer has read it |
+| Interviewer | The company's default temperament | Choose the archetype |
+| History | Last three sessions | Full history, four trends, badges, league |
+
+Free is a real product, not a trial with the ending cut off — the score is
+honest and the interview runs to the end. What you pay for is the version that
+knows *you*, which is why the CV, the company picker and the progress chart all
+sit on the same side of the line.
+
+**Every gate is enforced in `src/entitlements.ts` and checked server-side.** The
+UI hides what you cannot use, but hiding a button is a courtesy, not a control.
+
+Grants live in the `entitlements` table as rows, not as a column on an account:
+a person can be granted premium more than once and for different reasons, and
+the effective plan is the best unexpired grant. A single mutable `plan` column
+loses why someone has access and makes an expiry impossible to audit.
+
+### Early adopters
+
+The landing page collects an email, a target role, and optionally a company, and
+promises six months of premium. The grant is keyed by email because it is
+captured before anyone has an account; it is redeemed at sign-up, which is the
+first moment an address and an identity are known together. A shared address
+cannot mint premium twice.
+
+---
+
+## Contributed questions
+
+The interviewer's questions are generated, which makes them plausible rather
+than real. `/#contribute` closes that gap from the only source that has the
+answer: people who sat the interview.
+
+Two promises, both kept in the backend rather than in the copy:
+
+- **Anonymous.** The stored row carries a salted one-way hash of the identity,
+  kept so one contributor cannot flood a company and so duplicates collapse. It
+  cannot answer "who wrote this".
+- **Reviewed.** Everything lands as `pending`. Nothing contributed reaches an
+  interview prompt until a human confirms it — otherwise anyone could shape what
+  the product asks by volume, and a rumour would be laundered into an
+  authoritative question.
+
+**The review side is not built.** The pipeline is, and it is closed at the right
+end: `ContributionStore.verified()` is the only reader, and it filters on a
+status nothing currently sets.
+
+### Where this goes
+
+1. **Now** — candidates report questions; they sit in `pending`.
+2. **Next** — working recruiters and hiring managers verify them per company,
+   and verified questions inform the prompt for that employer.
+3. **Later** — those same interviewers run sessions themselves. The
+   `verified_by` column exists for step 2; step 3 is a product, not a column,
+   and nothing here presumes it.
 
 ---
 
@@ -124,7 +229,14 @@ That is what the benchmarks below are for, and they need a key.
 | --- | --- |
 | `Not authenticated` on every request | The web app calls `/api/auth` itself; if it persists, the API is not running or the Vite proxy is not reaching `:8787` |
 | Interview turns arrive empty | A reasoning model spent the whole `max_tokens` budget thinking. `OpenAICompatibleProvider` disables reasoning per vendor — check the model id routes to the right one |
-| `Session not found or expired` right after starting | Redis was restarted; sessions do not survive it being wiped |
+| `Session not found or expired` right after starting | Redis was restarted; live sessions do not survive it being wiped |
+| Progress and badges empty after a restart | `DATABASE_URL` is unset — the API says so at startup and falls back to per-process memory |
+| Pace and thinking time show `—` | Those need spoken answers. A typed session has no speech timings, and they are never estimated from an assumed rate |
+| Coaching panel stays empty | It is hidden entirely in real mode, and the server refuses to coach there. In practice mode, an empty result means the coach had nothing to flag |
+| Company picker is greyed out | You are on the free plan — it runs a general interview for your role. `src/entitlements.ts` has the full split |
+| A CV upload is refused | We read PDF, `.docx` and plain text. A scanned PDF has no text layer to extract, and is refused rather than summarised from nothing |
+| Links are saved but never opened | Deliberate. Fetching user-supplied URLs server-side is a request-forgery primitive; the interviewer is told the link exists and what kind it is |
+| Every interviewer sounds the same | Installed speech voices differ by OS and browser. The archetypes always differ in rate and pitch; the specific voice is a preference that may not match |
 | Reset links never arrive | No `RESEND_API_KEY` — look in the server log, the link is printed there |
 | Voice toggle missing | Firefox has no `SpeechRecognition`. Chrome or Safari only, and typing always works |
 | Everything invisible on a page | Fixed, but the cause is worth knowing: an entrance animation must never be the only thing making content visible |

@@ -1,112 +1,68 @@
 /**
- * Per-identity records that outlive a single interview: completed sessions and
- * preferences.
+ * Per-identity preferences.
  *
- * Separate from the session store on purpose. A session is a conversation in
- * flight with a one-hour TTL; these are the things a candidate expects to find
- * when they come back tomorrow.
+ * This used to hold finished interviews as well. It no longer does: sessions,
+ * their transcripts, metrics and scores live in the progress store, which is
+ * the only place they are written. Two stores answering "what interviews have
+ * I done" would diverge, and the one with a ninety-day TTL would be the one
+ * quietly losing rows.
+ *
+ * What is left is genuinely a cache-shaped thing — the defaults a returning
+ * candidate expects their setup screen to remember. Losing it costs two clicks,
+ * which is why Redis with a TTL is still the right home for it.
  */
 import type { RedisClientType } from "redis";
-import type { Evaluation } from "./schema.js";
-
-export interface CompletedSession {
-  id: string;
-  company: string;
-  role: string;
-  stage: string;
-  /** ISO timestamp of when the evaluation finished. */
-  completedAt: string;
-  score: number;
-  evaluation: Evaluation;
-}
-
-/** What the list view needs, without shipping every evaluation body. */
-export type SessionSummary = Omit<CompletedSession, "evaluation">;
 
 export interface Preferences {
   defaultRole: string;
   defaultCompany: string;
   interviewLength: number;
+  /** Preselected sector on the setup screen. Empty means "show everything". */
+  defaultSector: string;
+  /** Whether new sessions start with live coaching on. */
+  defaultMode: "practice" | "real";
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
   defaultRole: "Senior Product Designer",
   defaultCompany: "Stripe",
   interviewLength: 7,
+  defaultSector: "",
+  defaultMode: "practice",
 };
 
 export interface UserStore {
   readonly kind: "redis" | "memory";
-  recordSession(ownerId: string, session: CompletedSession): Promise<void>;
-  listSessions(ownerId: string): Promise<SessionSummary[]>;
-  getSession(ownerId: string, id: string): Promise<CompletedSession | null>;
   getPreferences(ownerId: string): Promise<Preferences>;
   setPreferences(ownerId: string, next: Preferences): Promise<void>;
   /**
-   * Moves a guest's records onto an account. Called on sign-up and on sign-in
-   * from a browser that has practised anonymously — otherwise creating an
-   * account discards the very history that motivated it.
+   * Carries a guest's settings onto an account on sign-up, so creating one
+   * does not reset the setup screen they just configured.
    */
   transfer(fromOwnerId: string, toOwnerId: string): Promise<number>;
 }
 
-/** Ninety days: long enough to show progress, short enough to not hoard. */
+/** Ninety days: long enough to be useful, short enough to not hoard. */
 const RETENTION_SECONDS = 90 * 24 * 60 * 60;
-/** Cap per identity, so one caller cannot grow a list without bound. */
-const MAX_SESSIONS = 50;
 
-const historyKey = (owner: string) => `rs:history:${owner}`;
 const prefsKey = (owner: string) => `rs:prefs:${owner}`;
 
-/** Trims an evaluation off a record for the list view. */
-function toSummary(session: CompletedSession): SessionSummary {
-  const { evaluation: _evaluation, ...summary } = session;
-  return summary;
+/** Merges over defaults so a record written before a new field exists is safe. */
+function withDefaults(raw: string | null): Preferences {
+  if (!raw) return { ...DEFAULT_PREFERENCES };
+  try {
+    return { ...DEFAULT_PREFERENCES, ...(JSON.parse(raw) as Partial<Preferences>) };
+  } catch {
+    return { ...DEFAULT_PREFERENCES };
+  }
 }
 
 class RedisUserStore implements UserStore {
   readonly kind = "redis" as const;
   constructor(private readonly client: RedisClientType) {}
 
-  async recordSession(ownerId: string, session: CompletedSession): Promise<void> {
-    const key = historyKey(ownerId);
-    // Newest first, then trim — LPUSH + LTRIM is the standard capped list.
-    await this.client.lPush(key, JSON.stringify(session));
-    await this.client.lTrim(key, 0, MAX_SESSIONS - 1);
-    await this.client.expire(key, RETENTION_SECONDS);
-  }
-
-  private async readAll(ownerId: string): Promise<CompletedSession[]> {
-    const raw = await this.client.lRange(historyKey(ownerId), 0, MAX_SESSIONS - 1);
-    const sessions: CompletedSession[] = [];
-    for (const entry of raw) {
-      try {
-        sessions.push(JSON.parse(entry) as CompletedSession);
-      } catch {
-        // One corrupt record must not blank the whole history page.
-      }
-    }
-    return sessions;
-  }
-
-  async listSessions(ownerId: string): Promise<SessionSummary[]> {
-    return (await this.readAll(ownerId)).map(toSummary);
-  }
-
-  async getSession(ownerId: string, id: string): Promise<CompletedSession | null> {
-    return (await this.readAll(ownerId)).find((s) => s.id === id) ?? null;
-  }
-
   async getPreferences(ownerId: string): Promise<Preferences> {
-    const raw = await this.client.get(prefsKey(ownerId));
-    if (!raw) return { ...DEFAULT_PREFERENCES };
-    try {
-      // Merge over defaults so a record written before a new field exists
-      // does not surface as undefined in the UI.
-      return { ...DEFAULT_PREFERENCES, ...(JSON.parse(raw) as Partial<Preferences>) };
-    } catch {
-      return { ...DEFAULT_PREFERENCES };
-    }
+    return withDefaults(await this.client.get(prefsKey(ownerId)));
   }
 
   async setPreferences(ownerId: string, next: Preferences): Promise<void> {
@@ -117,45 +73,20 @@ class RedisUserStore implements UserStore {
 
   async transfer(fromOwnerId: string, toOwnerId: string): Promise<number> {
     if (fromOwnerId === toOwnerId) return 0;
-    const incoming = await this.readAll(fromOwnerId);
-    if (incoming.length === 0) return 0;
-
-    const existing = await this.readAll(toOwnerId);
-    // Merge newest-first across both, then rewrite the account's list.
-    const merged = [...incoming, ...existing]
-      .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
-      .slice(0, MAX_SESSIONS);
-
-    const key = historyKey(toOwnerId);
-    await this.client.del(key);
-    if (merged.length > 0) {
-      // rPush preserves the newest-first order of `merged`.
-      await this.client.rPush(key, merged.map((s) => JSON.stringify(s)));
-      await this.client.expire(key, RETENTION_SECONDS);
-    }
-    await this.client.del(historyKey(fromOwnerId));
-    return incoming.length;
+    const incoming = await this.client.get(prefsKey(fromOwnerId));
+    if (!incoming) return 0;
+    // Settings the account already has win: they are the more deliberate
+    // choice, made while signed in.
+    const existing = await this.client.get(prefsKey(toOwnerId));
+    if (!existing) await this.setPreferences(toOwnerId, withDefaults(incoming));
+    await this.client.del(prefsKey(fromOwnerId));
+    return 1;
   }
 }
 
 class MemoryUserStore implements UserStore {
   readonly kind = "memory" as const;
-  private readonly history = new Map<string, CompletedSession[]>();
   private readonly prefs = new Map<string, Preferences>();
-
-  async recordSession(ownerId: string, session: CompletedSession): Promise<void> {
-    const list = this.history.get(ownerId) ?? [];
-    list.unshift(session);
-    this.history.set(ownerId, list.slice(0, MAX_SESSIONS));
-  }
-
-  async listSessions(ownerId: string): Promise<SessionSummary[]> {
-    return (this.history.get(ownerId) ?? []).map(toSummary);
-  }
-
-  async getSession(ownerId: string, id: string): Promise<CompletedSession | null> {
-    return (this.history.get(ownerId) ?? []).find((s) => s.id === id) ?? null;
-  }
 
   async getPreferences(ownerId: string): Promise<Preferences> {
     return { ...DEFAULT_PREFERENCES, ...(this.prefs.get(ownerId) ?? {}) };
@@ -167,14 +98,11 @@ class MemoryUserStore implements UserStore {
 
   async transfer(fromOwnerId: string, toOwnerId: string): Promise<number> {
     if (fromOwnerId === toOwnerId) return 0;
-    const incoming = this.history.get(fromOwnerId) ?? [];
-    if (incoming.length === 0) return 0;
-    const merged = [...incoming, ...(this.history.get(toOwnerId) ?? [])]
-      .sort((a, b) => b.completedAt.localeCompare(a.completedAt))
-      .slice(0, MAX_SESSIONS);
-    this.history.set(toOwnerId, merged);
-    this.history.delete(fromOwnerId);
-    return incoming.length;
+    const incoming = this.prefs.get(fromOwnerId);
+    if (!incoming) return 0;
+    if (!this.prefs.has(toOwnerId)) this.prefs.set(toOwnerId, incoming);
+    this.prefs.delete(fromOwnerId);
+    return 1;
   }
 }
 
@@ -184,9 +112,9 @@ export function createUserStore(client: RedisClientType | null): UserStore {
 
 /** Validates and clamps a preferences payload from the client. */
 export function readPreferences(body: Record<string, unknown>): Preferences {
-  const role = typeof body["defaultRole"] === "string" ? body["defaultRole"].trim() : "";
-  const company =
-    typeof body["defaultCompany"] === "string" ? body["defaultCompany"].trim() : "";
+  const text = (key: string, max: number): string =>
+    typeof body[key] === "string" ? (body[key] as string).trim().slice(0, max) : "";
+
   const rawLength = Number(body["interviewLength"]);
 
   return {
@@ -195,7 +123,11 @@ export function readPreferences(body: Record<string, unknown>): Preferences {
     interviewLength: Number.isFinite(rawLength)
       ? Math.min(7, Math.max(5, Math.round(rawLength)))
       : DEFAULT_PREFERENCES.interviewLength,
-    defaultRole: role.slice(0, 120) || DEFAULT_PREFERENCES.defaultRole,
-    defaultCompany: company.slice(0, 80) || DEFAULT_PREFERENCES.defaultCompany,
+    defaultRole: text("defaultRole", 120) || DEFAULT_PREFERENCES.defaultRole,
+    defaultCompany: text("defaultCompany", 80) || DEFAULT_PREFERENCES.defaultCompany,
+    // Empty is meaningful here — it is "no sector filter" — so it is not
+    // replaced by the default the way a blank role would be.
+    defaultSector: text("defaultSector", 40),
+    defaultMode: body["defaultMode"] === "real" ? "real" : "practice",
   };
 }

@@ -174,7 +174,25 @@ export function createSpeechInput(lang = "en-US"): SpeechInput {
   };
 }
 
-export function createSpeechOutput(lang = "en-US"): SpeechOutput {
+/**
+ * How an interviewer sounds. Mirrors `PersonaVoice` on the server, which is the
+ * source of truth — these values arrive with the session rather than being
+ * duplicated here.
+ */
+export interface VoiceProfile {
+  rate: number;
+  pitch: number;
+  /** Voice-name substrings to try, in order, before falling back. */
+  prefer: string[];
+}
+
+/** Used until a session reports its interviewer's profile. */
+export const NEUTRAL_VOICE: VoiceProfile = { rate: 0.96, pitch: 1, prefer: [] };
+
+export function createSpeechOutput(
+  lang = "en-US",
+  profile: VoiceProfile = NEUTRAL_VOICE,
+): SpeechOutput {
   const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
 
   if (!synth) {
@@ -193,10 +211,26 @@ export function createSpeechOutput(lang = "en-US"): SpeechOutput {
   const pickVoice = (): SpeechSynthesisVoice | null => {
     const voices = synth.getVoices();
     if (voices.length === 0) return null;
+    const english = voices.filter((voice) =>
+      voice.lang.startsWith(lang.split("-")[0]!),
+    );
+    const pool = english.length > 0 ? english : voices;
+
+    // The persona's preferred names first. Installed voices differ by OS,
+    // browser and language pack, so this is a preference and never a
+    // requirement — an unmatched persona still sounds distinct, because rate
+    // and pitch apply to whatever voice is found.
+    for (const wanted of profile.prefer) {
+      const match = pool.find((voice) =>
+        voice.name.toLowerCase().includes(wanted.toLowerCase()),
+      );
+      if (match) return match;
+    }
+
     return (
-      voices.find((voice) => voice.lang === lang && voice.localService) ??
-      voices.find((voice) => voice.lang === lang) ??
-      voices.find((voice) => voice.lang.startsWith(lang.split("-")[0]!)) ??
+      pool.find((voice) => voice.lang === lang && voice.localService) ??
+      pool.find((voice) => voice.lang === lang) ??
+      pool[0] ??
       null
     );
   };
@@ -216,9 +250,11 @@ export function createSpeechOutput(lang = "en-US"): SpeechOutput {
         utterance.lang = lang;
         const voice = pickVoice();
         if (voice) utterance.voice = voice;
-        // Interviewers speak deliberately; the default rate reads as rushed.
-        utterance.rate = 0.98;
-        utterance.pitch = 1;
+        // The archetype's own delivery. Clamped because the browser silently
+        // ignores an out-of-range rate rather than clipping it, which would
+        // drop the persona back to default without saying so.
+        utterance.rate = Math.min(1.4, Math.max(0.6, profile.rate));
+        utterance.pitch = Math.min(1.4, Math.max(0.6, profile.pitch));
 
         // Resolve on every outcome — a rejection here would break the queue
         // for every later phrase. But "not-allowed" must be reported, not

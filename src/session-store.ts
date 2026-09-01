@@ -9,6 +9,7 @@
  */
 import type { RedisClientType } from "redis";
 import type { SessionSnapshot } from "./interviewer.js";
+import type { SessionMode } from "./progress-store.js";
 import type { InterviewContext } from "./types.js";
 
 export interface StoredSession {
@@ -17,6 +18,16 @@ export interface StoredSession {
   /** Owner. A session id alone must not grant access to someone else's interview. */
   ownerId: string;
   createdAt: number;
+  /**
+   * Practice or real. Held here rather than looked up per request because the
+   * coach endpoint checks it on every turn, and because a session must run to
+   * the end under the mode it started in — moving it mid-interview would make
+   * the resulting progress record a lie.
+   *
+   * Optional: sessions written before this field existed are still in flight
+   * when a deploy lands, and they read as practice.
+   */
+  mode?: SessionMode;
 }
 
 export interface SessionStore {

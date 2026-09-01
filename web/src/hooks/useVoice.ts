@@ -3,7 +3,9 @@ import {
   createSpeechInput,
   createSpeechOutput,
   takeSpeakablePhrases,
+  NEUTRAL_VOICE,
 } from "@/lib/voice";
+import type { VoiceProfile } from "@/lib/voice";
 
 /**
  * Wires microphone and speaker into the interview loop.
@@ -12,15 +14,40 @@ import {
  * interviewer is speaking. Otherwise the browser transcribes the synthesised
  * voice and feeds the interview its own words back.
  */
+/**
+ * Timings for one exchange, in milliseconds from the start of the session.
+ *
+ * The clock lives here because this hook holds the only facts that matter:
+ * when the synthesised voice actually stopped, and when the microphone opened
+ * and closed. The server's generation timings measure something else, and the
+ * difference is the candidate's thinking time — the thing being measured.
+ */
+export interface SpeechTimings {
+  interviewerEndedMs: number | null;
+  answerStartedMs: number | null;
+  answerEndedMs: number | null;
+}
+
 export function useVoice({
   enabled,
   onFinalAnswer,
+  sessionStartedAt,
+  voiceProfile = NEUTRAL_VOICE,
 }: {
   enabled: boolean;
   onFinalAnswer: (text: string) => void;
+  /** Epoch ms the session began. All timings are offsets from this. */
+  sessionStartedAt: number;
+  /** The interviewer archetype's delivery. Arrives with the session. */
+  voiceProfile?: VoiceProfile;
 }) {
   const input = useMemo(() => createSpeechInput(), []);
-  const output = useMemo(() => createSpeechOutput(), []);
+  // Rebuilt when the profile changes, which happens once — when the session
+  // reports which interviewer it gave you.
+  const output = useMemo(
+    () => createSpeechOutput("en-US", voiceProfile),
+    [voiceProfile.rate, voiceProfile.pitch, voiceProfile.prefer.join(",")],
+  );
 
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -40,6 +67,20 @@ export function useVoice({
    * exists to prevent.
    */
   const outstanding = useRef(0);
+  /**
+   * Marks for the exchange in progress. A ref rather than state: nothing
+   * renders from these, and making them state would re-render the screen on
+   * every microphone event for no visible reason.
+   */
+  const marks = useRef<SpeechTimings>({
+    interviewerEndedMs: null,
+    answerStartedMs: null,
+    answerEndedMs: null,
+  });
+  const since = useCallback(
+    () => Math.max(0, Date.now() - sessionStartedAt),
+    [sessionStartedAt],
+  );
 
   useEffect(() => {
     return () => {
@@ -58,7 +99,12 @@ export function useVoice({
           if (result === "blocked") setBlocked(true);
           outstanding.current -= 1;
           // Only the last phrase in the queue clears the flag.
-          if (outstanding.current === 0) setSpeaking(false);
+          if (outstanding.current === 0) {
+            setSpeaking(false);
+            // The interviewer has stopped talking. Everything after this is
+            // the candidate's own time.
+            marks.current.interviewerEndedMs = since();
+          }
         });
     },
     [output],
@@ -69,10 +115,13 @@ export function useVoice({
     setError(null);
     setTranscript("");
     setListening(true);
+    marks.current.answerStartedMs = since();
+    marks.current.answerEndedMs = null;
     input.start({
       onInterim: setTranscript,
       onFinal: (text) => {
         setListening(false);
+        marks.current.answerEndedMs = since();
         if (text.trim() !== "") onFinalAnswer(text.trim());
       },
       onError: (message) => {
@@ -85,7 +134,28 @@ export function useVoice({
   const stopListening = useCallback(() => {
     input.stop();
     setListening(false);
-  }, [input]);
+    // Recognition may deliver its final result after this, but the candidate
+    // stopped speaking now. Only set it if the callback has not already.
+    if (marks.current.answerEndedMs === null) marks.current.answerEndedMs = since();
+  }, [input, since]);
+
+  /**
+   * Hands over the marks for the exchange just finished and clears them.
+   *
+   * Consuming rather than reading is deliberate: a stale mark reused on the
+   * next turn would record a duration that never happened, and a wrong timing
+   * is worse than a missing one — the missing one drops out of the metric, the
+   * wrong one skews every trend built on it.
+   */
+  const takeTimings = useCallback((): SpeechTimings => {
+    const taken = { ...marks.current };
+    marks.current = {
+      interviewerEndedMs: null,
+      answerStartedMs: null,
+      answerEndedMs: null,
+    };
+    return taken;
+  }, []);
 
   /** Feeds streamed text in; complete sentences are spoken as they form. */
   const speakStreamed = useCallback(
@@ -146,5 +216,6 @@ export function useVoice({
     speakNow,
     flushSpeech,
     cancelSpeech,
+    takeTimings,
   };
 }

@@ -9,6 +9,7 @@ import {
   buildInterviewerPrompt,
   WRAP_UP_INSTRUCTION,
 } from "./prompts/interviewer.js";
+import { defaultPersonaFor } from "./personas.js";
 import {
   INTERVIEW_COMPLETE_FLAG,
   type InterviewContext,
@@ -47,6 +48,10 @@ export interface SessionSnapshot {
   minTurns: number;
   maxTurns: number;
   fallbackModels: string[];
+  /** Optional: a snapshot written before personas existed has none. */
+  personaId?: string;
+  /** The candidate briefing in force for this session, if any. */
+  candidateBrief?: string | null;
   messages: ChatTurn[];
   interviewerTurns: number;
   complete: boolean;
@@ -68,6 +73,10 @@ export interface InterviewSessionOptions {
    * on OpenRouter; ignored by providers without it.
    */
   fallbackModels?: string[];
+  /** Interviewer archetype. Defaults to the one the company implies. */
+  personaId?: string;
+  /** Candidate briefing, from an uploaded CV or portfolio. */
+  candidateBrief?: string | null;
 }
 
 /**
@@ -94,6 +103,8 @@ export class InterviewSession {
   private readonly minTurns: number;
   private readonly maxTurns: number;
   private readonly fallbackModels: string[];
+  private readonly personaId: string;
+  private readonly candidateBrief: string | null;
   private readonly systemPrompt: string;
   private readonly messages: ChatTurn[] = [];
   private interviewerTurns = 0;
@@ -120,7 +131,14 @@ export class InterviewSession {
     this.minTurns = minTurns;
     this.maxTurns = maxTurns;
     this.fallbackModels = options.fallbackModels ?? INTERVIEWER_FALLBACKS;
-    this.systemPrompt = buildInterviewerPrompt(context, { minTurns, maxTurns });
+    this.personaId = options.personaId ?? defaultPersonaFor(context.companyName).id;
+    this.candidateBrief = options.candidateBrief ?? null;
+    this.systemPrompt = buildInterviewerPrompt(context, {
+      minTurns,
+      maxTurns,
+      personaId: this.personaId,
+      candidateBrief: this.candidateBrief,
+    });
   }
 
   /** True once the model has emitted `[INTERVIEW_COMPLETE]`. */
@@ -166,6 +184,8 @@ export class InterviewSession {
       minTurns: this.minTurns,
       maxTurns: this.maxTurns,
       fallbackModels: [...this.fallbackModels],
+      personaId: this.personaId,
+      candidateBrief: this.candidateBrief,
       messages: this.messages.map((message) => ({ ...message })),
       interviewerTurns: this.interviewerTurns,
       complete: this.complete,
@@ -190,6 +210,12 @@ export class InterviewSession {
       minTurns: snapshot.minTurns,
       maxTurns: snapshot.maxTurns,
       fallbackModels: snapshot.fallbackModels,
+      // A session must keep the temperament it started with; swapping it
+      // mid-interview would read as the interviewer becoming another person.
+      ...(snapshot.personaId ? { personaId: snapshot.personaId } : {}),
+      // Restored rather than re-read: the brief the interview started with is
+      // the one it must finish with, even if the candidate re-uploads midway.
+      candidateBrief: snapshot.candidateBrief ?? null,
     });
     session.messages.push(...snapshot.messages);
     session.interviewerTurns = snapshot.interviewerTurns;

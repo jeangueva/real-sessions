@@ -47,3 +47,19 @@ export const EVALUATOR_FALLBACKS = fallbackList(
   "REALSESSIONS_EVALUATOR_FALLBACKS",
   ["qwen/qwen3.7-plus", "anthropic/claude-sonnet-5"],
 );
+
+/**
+ * The coach runs on every candidate turn — several times per interview against
+ * the evaluator's once — so it defaults to the same flash model the other two
+ * phases use rather than anything larger. Its job is narrow enough that depth
+ * buys little, and a slow coach is a useless one: the note has to arrive while
+ * the candidate is still on that answer.
+ */
+export const COACH_MODEL =
+  BLANKET_OVERRIDE ??
+  process.env.REALSESSIONS_COACH_MODEL ??
+  "qwen/qwen3.7-flash";
+
+export const COACH_FALLBACKS = fallbackList("REALSESSIONS_COACH_FALLBACKS", [
+  "google/gemini-3.5-flash-lite",
+]);
