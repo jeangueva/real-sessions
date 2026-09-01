@@ -205,6 +205,7 @@ Two plans, split along one line: **does this need to know who you are?**
 | --- | --- | --- |
 | Interview | A general round for your role | The company and sector you are targeting |
 | Feedback | Honest score, headline strengths and fixes | Measured metrics, actionable steps, live coaching |
+| Gamification | XP, levels, badges | Same, plus the progress trends |
 | Your CV | — | Uploaded, and the interviewer has read it |
 | Interviewer | The company's default temperament | Choose the archetype |
 | History | Last three sessions | Full history, four trends, badges, league |
@@ -214,8 +215,25 @@ honest and the interview runs to the end. What you pay for is the version that
 knows *you*, which is why the CV, the company picker and the progress chart all
 sit on the same side of the line.
 
+**XP, levels and badges are free on purpose.** A progress system that only
+rewards subscribers rewards nobody at the moment it would have earned one.
+
 **Every gate is enforced in `src/entitlements.ts` and checked server-side.** The
 UI hides what you cannot use, but hiding a button is a courtesy, not a control.
+
+Two ways that went wrong the first time, both worth knowing because the shape
+recurs:
+
+- Gating the company *name* was not enough. `industry` and `companyCulture` are
+  legitimately read from the request for a company outside the catalogue, so a
+  free caller could send `industry: "Fintech"` and get the sector-grounded
+  interview the picker is meant to sell. The free plan now takes a fixed
+  context and reads neither field.
+- A capability that is defined but never referenced is not a gate.
+  `advancedFeedback` existed in the type for a while with zero call sites, and
+  the measured metrics and actionable steps the pricing page sells went to
+  everyone. Both are now stripped on the way out — on `/evaluation` *and* on
+  `/history/:id`, which reads the same record straight back.
 
 Grants live in the `entitlements` table as rows, not as a column on an account:
 a person can be granted premium more than once and for different reasons, and

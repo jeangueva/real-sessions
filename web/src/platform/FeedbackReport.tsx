@@ -43,6 +43,8 @@ export function FeedbackReport() {
   );
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
+  /** What the plan held back, so the report can offer it rather than hide it. */
+  const [withheld, setWithheld] = useState({ metrics: false, nextSteps: false });
   const [xp, setXp] = useState<XpAward | null>(null);
   const [earned, setEarned] = useState<BadgeInfo[]>([]);
   const requested = useRef(false);
@@ -62,6 +64,7 @@ export function FeedbackReport() {
         .then((result) => {
           setEvaluation(result.session.evaluation);
           setMetrics(result.session.metrics);
+          setWithheld(result.session.withheld);
           setMeta(
             `${result.session.company} · ${result.session.role} · ` +
               `${result.session.stage} · ${formatSessionDate(result.session.completedAt)}`,
@@ -77,6 +80,7 @@ export function FeedbackReport() {
         .then((result) => {
           setEvaluation(result.evaluation);
           setMetrics(result.metrics);
+          setWithheld(result.withheld);
           setXp(result.xp);
           // Only what was just earned. Re-announcing a badge from last week
           // would make the whole system read as noise.
@@ -128,6 +132,7 @@ export function FeedbackReport() {
       evaluation={evaluation}
       meta={meta}
       metrics={metrics}
+      withheld={withheld}
       xp={xp}
       earned={earned}
     />
@@ -145,12 +150,14 @@ function FeedbackBody({
   evaluation,
   meta,
   metrics,
+  withheld,
   xp,
   earned,
 }: {
   evaluation: Evaluation;
   meta: string;
   metrics: SessionMetrics | null;
+  withheld: { metrics: boolean; nextSteps: boolean };
   xp: XpAward | null;
   earned: BadgeInfo[];
 }) {
@@ -254,6 +261,25 @@ function FeedbackBody({
           </Panel>
         </FadeRise>
 
+        {withheld.metrics && (
+          <FadeRise delay={0.25} className="lg:col-span-3">
+            <Panel variant="glass" className="flex flex-wrap items-center justify-between gap-4 p-6">
+              <div className="max-w-xl">
+                <Eyebrow>Measured</Eyebrow>
+                <p className="mt-2 text-sm text-cream-dim">
+                  Your pace, filler rate and thinking time were counted from
+                  this transcript — they are recorded against the session and
+                  waiting. The paid plan shows them, and plots them across every
+                  interview you run.
+                </p>
+              </div>
+              <Link to="/#early-access" className="shrink-0">
+                <Action withArrow>Six months free</Action>
+              </Link>
+            </Panel>
+          </FadeRise>
+        )}
+
         {metrics && (
           <FadeRise delay={0.25} className="lg:col-span-3">
             <Panel className="flex flex-col gap-5 p-6">
@@ -322,6 +348,19 @@ function FeedbackBody({
         <FadeRise delay={0.3} className="lg:col-span-3">
           <Panel variant="raised" className="flex h-full flex-col gap-4 p-6">
             <Eyebrow>Before your next one</Eyebrow>
+            {withheld.nextSteps && (
+              <p className="text-sm text-cream-dim">
+                The evaluator wrote you a set of specific things to practise
+                this week. They are part of the paid plan —{" "}
+                <Link
+                  to="/#early-access"
+                  className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
+                >
+                  six months are free for early adopters
+                </Link>
+                .
+              </p>
+            )}
             <ol className="flex flex-col gap-4">
               {evaluation.actionable_next_steps.map((step, index) => (
                 <li key={step} className="flex gap-3 text-sm text-cream-bright">

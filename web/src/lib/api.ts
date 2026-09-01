@@ -333,9 +333,11 @@ export function requestEvaluation(sessionId: string) {
   return withIdentity(() =>
     post<{
       evaluation: Evaluation;
-      metrics: SessionMetrics;
+      metrics: SessionMetrics | null;
       xp: XpAward;
       badges: Badge[];
+      /** Names what the plan withheld, so the UI can offer it rather than hide it. */
+      withheld: { metrics: boolean; nextSteps: boolean };
     }>(`/api/sessions/${sessionId}/evaluation`, {}),
   );
 }
@@ -468,6 +470,7 @@ export function fetchHistoryEntry(id: string) {
     request<{
       session: SessionSummary & {
         evaluation: Evaluation | null;
+        withheld: { metrics: boolean; nextSteps: boolean };
         turns: {
           idx: number;
           speaker: "interviewer" | "candidate";

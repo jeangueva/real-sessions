@@ -18,6 +18,9 @@ const FREE = [
   "Honest score and the headline feedback",
   "Your last three sessions",
   "Speak or type, with the interviewer's voice",
+  // XP and badges are free on purpose: a progress system that only rewards
+  // subscribers rewards nobody at the moment it would have earned one.
+  "XP, levels and badges",
 ];
 
 const PREMIUM = [
@@ -25,7 +28,7 @@ const PREMIUM = [
   "Upload your CV or portfolio — questions get specific to you",
   "Coaching notes beside the transcript, live",
   "Pace, filler rate and thinking time, measured",
-  "Full history, four progress trends, badges and league",
+  "Full history and four progress trends",
   "Choose your interviewer's temperament",
 ];
 

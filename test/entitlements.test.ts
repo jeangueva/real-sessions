@@ -5,7 +5,10 @@ import {
   createEntitlementStore,
   earlyAccessUntil,
   EARLY_ACCESS_MONTHS,
+  GENERIC_COMPANY,
+  GENERIC_INDUSTRY,
 } from "../src/entitlements.js";
+import { COMPANIES, SECTORS } from "../src/sectors.js";
 import { classifyLink, renderProfileBrief } from "../src/profile.js";
 import { readQuestion, MAX_QUESTION_CHARS } from "../src/contributions.js";
 
@@ -157,5 +160,19 @@ describe("readQuestion", () => {
     expect(readQuestion("why?")).toBeNull();
     expect(readQuestion("x".repeat(MAX_QUESTION_CHARS + 1))).toBeNull();
     expect(readQuestion(42)).toBeNull();
+  });
+});
+
+describe("the free plan's fixed context", () => {
+  it("does not leave a sector reachable through another field", () => {
+    // The company name was gated but `industry` was still read from the
+    // request, so a free caller could send industry: "Fintech" and get the
+    // sector-grounded interview the company picker is meant to sell.
+    expect(GENERIC_INDUSTRY).toBe("Technology");
+    expect(SECTORS.map((sector) => sector.label)).not.toContain(GENERIC_INDUSTRY);
+  });
+
+  it("names no real employer", () => {
+    expect(COMPANIES.map((company) => company.name)).not.toContain(GENERIC_COMPANY);
   });
 });

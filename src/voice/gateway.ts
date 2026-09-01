@@ -14,6 +14,7 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import type { IncomingMessage } from "node:http";
 import type { Server } from "node:http";
+import process from "node:process";
 import { openDeepgram, deepgramConfigured, type DeepgramSocket } from "./deepgram.js";
 
 /** Close codes the client reads to decide whether to fall back or retry. */
@@ -41,6 +42,47 @@ const MAX_SOCKETS_PER_IDENTITY = 2;
  */
 const IDLE_MS = 60_000;
 
+/**
+ * Whether a browser on `origin` may open this socket.
+ *
+ * The upgrade authenticates with the same cookie as every other request, and
+ * the same-origin policy does not apply to WebSockets — a page on any domain
+ * can open one. `SameSite=Lax` does stop the cookie riding along in current
+ * browsers, so this is not an open door, but it is the entire defence and it
+ * lives in one cookie attribute. Checking the origin is three lines and does
+ * not depend on that.
+ *
+ * A missing Origin header is allowed: browsers always send one on a WebSocket
+ * handshake, so its absence means a non-browser client, which cannot be the
+ * confused deputy this is guarding against.
+ */
+export function originAllowed(origin: string | undefined, host: string | undefined): boolean {
+  if (!origin) return true;
+
+  const allowed = new Set<string>();
+  const site = process.env.REALSESSIONS_SITE_URL;
+  if (site) {
+    try {
+      allowed.add(new URL(site).origin);
+    } catch {
+      /* a malformed value simply contributes nothing */
+    }
+  }
+  // The host the request arrived on, so a deployment behind its own domain
+  // works without also being named in the environment.
+  if (host) {
+    allowed.add(`https://${host}`);
+    allowed.add(`http://${host}`);
+  }
+  // The dev server, which proxies /api to this port from a different one.
+  if (process.env.NODE_ENV !== "production") {
+    allowed.add("http://localhost:5173");
+    allowed.add("http://127.0.0.1:5173");
+  }
+
+  return allowed.has(origin);
+}
+
 export interface GatewayDeps {
   /** Resolves the identity from the upgrade request, or null to reject. */
   identify(req: IncomingMessage): string | null;
@@ -57,6 +99,12 @@ export function attachVoiceGateway(server: Server, deps: GatewayDeps): WebSocket
     if (url.pathname !== "/api/voice") {
       // Not ours. Destroy rather than ignore: leaving it hanging keeps a
       // half-open connection until the client gives up.
+      socket.destroy();
+      return;
+    }
+
+    if (!originAllowed(req.headers.origin, req.headers.host)) {
+      socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
       socket.destroy();
       return;
     }

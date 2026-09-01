@@ -66,8 +66,18 @@ export function capabilitiesFor(plan: Plan): Capabilities {
   return plan === "premium" ? PREMIUM : FREE;
 }
 
-/** The company a free session runs against: a role, not an employer. */
+/**
+ * What a free session runs against: a role, not an employer.
+ *
+ * All three are fixed constants rather than defaults the client can override.
+ * Gating the company name alone left `industry` and `companyCulture` readable
+ * from the request — for a company outside the catalogue they legitimately are
+ * — so a free caller could send `industry: "Fintech"` and get exactly the
+ * sector-grounded interview the picker is meant to sell.
+ */
 export const GENERIC_COMPANY = "a well-regarded technology company";
+export const GENERIC_CULTURE = "High standards, clear communication, ownership";
+export const GENERIC_INDUSTRY = "Technology";
 
 export interface EntitlementStore {
   planFor(ownerId: string): Promise<Plan>;

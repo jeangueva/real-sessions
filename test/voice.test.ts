@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { liveQuery, readTranscript } from "../src/voice/deepgram.js";
-import { CLOSE } from "../src/voice/gateway.js";
+import { CLOSE, originAllowed } from "../src/voice/gateway.js";
 
 describe("liveQuery", () => {
   const params = new URLSearchParams(liveQuery());
@@ -77,5 +77,31 @@ describe("close codes", () => {
   it("distinguishes 'not configured' from 'it broke'", () => {
     // The client falls back silently on one and shows an error on the other.
     expect(CLOSE.UNAVAILABLE).not.toBe(CLOSE.UPSTREAM);
+  });
+});
+
+describe("originAllowed", () => {
+  const host = "realsessions.app";
+
+  it("allows the site's own origin", () => {
+    expect(originAllowed(`https://${host}`, host)).toBe(true);
+    expect(originAllowed(`http://${host}`, host)).toBe(true);
+  });
+
+  it("refuses another site opening a socket with the user's cookie", () => {
+    // The same-origin policy does not apply to WebSockets: any page can open
+    // one. SameSite=Lax also stops this, but that is one cookie attribute.
+    expect(originAllowed("https://evil.example", host)).toBe(false);
+    expect(originAllowed("https://realsessions.app.evil.example", host)).toBe(false);
+  });
+
+  it("allows a request with no Origin at all", () => {
+    // Browsers always send one on a handshake, so its absence means a
+    // non-browser client — which cannot be the confused deputy this guards.
+    expect(originAllowed(undefined, host)).toBe(true);
+  });
+
+  it("allows the dev server outside production", () => {
+    expect(originAllowed("http://localhost:5173", "localhost:8787")).toBe(true);
   });
 });

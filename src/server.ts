@@ -79,6 +79,7 @@ import { createRateLimiter, MemoryRateLimiter, RULES, type RateLimiter } from ".
 import { closeRedis, getRedis } from "./redis.js";
 import { InterviewSession } from "./interviewer.js";
 import { evaluateInterview, EvaluationParseError } from "./evaluator.js";
+import type { Evaluation } from "./schema.js";
 import { InterviewRefusalError } from "./interviewer.js";
 import {
   createSessionStore,
@@ -111,6 +112,8 @@ import {
   createEntitlementStore,
   earlyAccessUntil,
   GENERIC_COMPANY,
+  GENERIC_CULTURE,
+  GENERIC_INDUSTRY,
   type EntitlementStore,
 } from "./entitlements.js";
 import {
@@ -314,7 +317,25 @@ function readContext(
 
   // On the free plan the requested employer is replaced, not rejected: the
   // interview still runs, it just does not know who it is for.
+  //
+  // Replacing the name alone was not enough. `companyCulture` and `industry`
+  // are also accepted from the client — for a company outside the catalogue —
+  // and a free caller could send `industry: "Fintech"` directly and get the
+  // sector-grounded interview that the company picker is supposed to gate. So
+  // on the free plan neither field is read from the request at all.
   const companyName = targetCompany ? text("companyName") : GENERIC_COMPANY;
+
+  if (!targetCompany) {
+    return {
+      candidateName: text("candidateName"),
+      targetRole: text("targetRole"),
+      companyName,
+      companyCulture: GENERIC_CULTURE,
+      industry: GENERIC_INDUSTRY,
+      interviewStage: text("interviewStage"),
+    };
+  }
+
   const known = findCompany(companyName);
   const sector = sectorForCompany(companyName);
 
@@ -329,6 +350,35 @@ function readContext(
     companyCulture,
     industry,
     interviewStage: text("interviewStage"),
+  };
+}
+
+/**
+ * Removes the paid half of a finished evaluation.
+ *
+ * The measured metrics and the actionable next steps are what the pricing page
+ * sells as premium, so they cannot travel to a free caller — not on
+ * /evaluation and not on /history/:id, which reads the same record back.
+ *
+ * The fields are emptied rather than deleted, and `withheld` names what was
+ * taken. A missing key is indistinguishable from a session that had none, and
+ * the client needs the difference to show an upsell where the panel would be
+ * instead of silently rendering a shorter report.
+ */
+function shapeFeedback<T extends { evaluation: Evaluation | null; metrics: unknown }>(
+  record: T,
+  advanced: boolean,
+): T & { withheld: { metrics: boolean; nextSteps: boolean } } {
+  if (advanced) {
+    return { ...record, withheld: { metrics: false, nextSteps: false } };
+  }
+  return {
+    ...record,
+    metrics: null,
+    evaluation: record.evaluation
+      ? { ...record.evaluation, actionable_next_steps: [] }
+      : null,
+    withheld: { metrics: true, nextSteps: true },
   };
 }
 
@@ -1076,9 +1126,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     });
 
     json(res, 200, {
-      evaluation,
-      metrics,
+      ...shapeFeedback({ evaluation, metrics }, can.advancedFeedback),
       usage: session.usage,
+      // XP and badges stay on the free plan on purpose. They are the loop that
+      // brings someone back for a second session, and a progress system that
+      // only rewards subscribers rewards nobody at the moment it matters.
       xp: {
         events,
         gained: events.reduce((total, event) => total + event.amount, 0),
@@ -1093,7 +1145,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "GET" && path === "/api/history") {
     const all = await PROGRESS.listSessions(identity.id);
     json(res, 200, {
-      sessions: all.slice(0, can.historyLimit),
+      sessions: all
+        .slice(0, can.historyLimit)
+        // Each summary carries its metrics for the history rows to plot.
+        .map((entry) => (can.advancedFeedback ? entry : { ...entry, metrics: null })),
       // The client shows what is behind the wall rather than pretending the
       // sessions do not exist. They are the reason to upgrade.
       withheld: Math.max(0, all.length - can.historyLimit),
@@ -1106,7 +1161,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const record = await PROGRESS.getSession(identity.id, historyMatch[1]!);
     // Scoped to the identity, so another caller's id reads as missing.
     if (!record) return json(res, 404, { error: "Session not found." });
-    json(res, 200, { session: record });
+    // Gated identically to /evaluation. Without this a free caller reads the
+    // paid half straight back out of their own history a moment later.
+    json(res, 200, { session: shapeFeedback(record, can.advancedFeedback) });
     return;
   }
 
