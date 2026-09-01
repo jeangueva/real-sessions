@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { WordsPullUp, FadeRise, Action, Backdrop, InsetFrame } from "@/design-system";
+import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame } from "@/design-system";
 
 /**
  * The landing page is one scroll, so the nav is anchors into it — a plain
@@ -21,16 +21,19 @@ const navLink =
   "focus-ring whitespace-nowrap rounded-lg px-2 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm";
 
 /**
- * The reference decks all opened on a full-bleed showreel. There is still no
- * showreel, so the frame is a slow drifting light field built from the same
- * tokens as everything else — see `Backdrop`. It reads as intentional rather
- * than as a video that failed to load, and it swaps for real footage without
- * touching this layout.
+ * The showreel the reference decks all opened on.
+ *
+ * `VITE_HERO_VIDEO` is the source. It is configuration rather than a constant
+ * because the footage is the one asset in this build that is not generated from
+ * tokens: it can be replaced, it can 404, and it is exactly the thing someone
+ * on a metered connection or `prefers-reduced-motion` should not be served.
+ * `HeroVideo` falls back to the CSS light field in all three cases, so the
+ * layout below never changes.
  */
 export function Hero() {
   return (
     <InsetFrame className="bg-surface-base">
-      <Backdrop variant="hero" />
+      <HeroVideo src={import.meta.env.VITE_HERO_VIDEO} />
 
       <nav className="absolute left-1/2 top-0 z-20 -translate-x-1/2">
         <ul className="flex items-center gap-1 rounded-b-2xl bg-black px-3 py-1.5 sm:gap-4 md:gap-10 md:rounded-b-3xl md:px-8">

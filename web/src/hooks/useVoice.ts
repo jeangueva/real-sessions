@@ -6,6 +6,8 @@ import {
   NEUTRAL_VOICE,
 } from "@/lib/voice";
 import type { VoiceProfile } from "@/lib/voice";
+import { createDeepgramInput, deepgramInputSupported } from "@/lib/deepgram-input";
+import { fetchVoiceConfig } from "@/lib/api";
 
 /**
  * Wires microphone and speaker into the interview loop.
@@ -41,7 +43,32 @@ export function useVoice({
   /** The interviewer archetype's delivery. Arrives with the session. */
   voiceProfile?: VoiceProfile;
 }) {
-  const input = useMemo(() => createSpeechInput(), []);
+  /**
+   * Null until the server has said whether live transcription is configured.
+   * Deciding before that would either open a socket that gets refused, or fall
+   * back to the browser when a better option was available.
+   */
+  const [live, setLive] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchVoiceConfig()
+      .then((config) => {
+        if (!cancelled) setLive(config.live && deepgramInputSupported());
+      })
+      // A failure here means browser speech, which is the safe default.
+      .catch(() => {
+        if (!cancelled) setLive(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const input = useMemo(
+    () => (live ? createDeepgramInput() : createSpeechInput()),
+    [live],
+  );
   // Rebuilt when the profile changes, which happens once — when the session
   // reports which interviewer it gave you.
   const output = useMemo(

@@ -21,3 +21,4 @@ export {
 export { TrendChart } from "./chart";
 export type { TrendPoint } from "./chart";
 export { Backdrop } from "./backdrop";
+export { HeroVideo } from "./hero-video";

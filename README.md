@@ -29,6 +29,9 @@ Built from the prompt architecture in
   its culture implies.
 - **Your context** — upload a CV or portfolio and the interviewer opens on
   something you actually did, then presses where your CV is vague.
+- **Live transcription** — streaming speech-to-text through Deepgram over a
+  WebSocket, with the provider key kept server-side. Falls back to the browser's
+  own recognition when no key is configured.
 - **Web** — landing page, design system, and the product screens, with browser
   speech in and out.
 - **Benchmarks** — the harnesses that chose the models, so the choice is
@@ -143,6 +146,57 @@ That is what the benchmarks below are for, and they need a key.
 
 ---
 
+## Voice
+
+Two implementations behind one interface (`SpeechInput` in `web/src/lib/voice.ts`),
+chosen at runtime from what the server reports at `/api/voice/config`:
+
+| | Browser | Deepgram |
+| --- | --- | --- |
+| Needs a key | No | `DEEPGRAM_API_KEY` |
+| Firefox | Not implemented at all | Works |
+| Where the audio goes | Chrome uploads it to Google | The vendor you chose |
+
+The browser sends audio over `WS /api/voice`; the server relays it to Deepgram
+and relays transcripts back. **It is a proxy on purpose.** Deepgram can be
+dialled straight from a browser, but only by shipping the key or a short-lived
+token to the client, and the premise of this server is that the provider key
+never leaves it. The hop costs a few milliseconds against the ~300ms the
+transcription itself takes.
+
+`endpointing` is set to 700ms rather than Deepgram's 10ms default. It is the one
+number a candidate actually feels: it decides how long silence lasts before the
+utterance is declared over, and interviews are full of pauses for thinking.
+
+The gateway closes with a code the client reads — `4001` means "not configured,
+use browser speech", `4011` means "it broke, tell them". A transcription outage
+degrades to typing, never to a stuck microphone.
+
+**Not verified against a live key.** The gateway's auth, refusal and fallback
+paths are tested and were exercised against the running server; the transcription
+itself needs a Deepgram account.
+
+---
+
+## The hero video
+
+`VITE_HERO_VIDEO` points the hero at looping footage. Unset, it renders a CSS
+light field instead — which is also what anyone with `prefers-reduced-motion`
+gets, and what everyone gets if the file fails to load.
+
+The loop seam is the whole problem: the `loop` attribute cuts hard from the last
+frame to the first, and no CSS transition has an event early enough to hang on.
+So the fade is driven by hand on `requestAnimationFrame` — fade out over the
+last 0.55s, reset on `ended`, fade back in. Each fade cancels the one before it
+and resumes from the current opacity rather than snapping.
+
+**Check what your footage weighs before shipping it.** The clip this was built
+against is 19 MB, which is larger than the rest of the page put together and
+downloads before anyone has read the headline. Transcode it, offer webm
+alongside mp4, and host it somewhere you control.
+
+---
+
 ## The business model
 
 Two plans, split along one line: **does this need to know who you are?**
@@ -237,6 +291,8 @@ status nothing currently sets.
 | A CV upload is refused | We read PDF, `.docx` and plain text. A scanned PDF has no text layer to extract, and is refused rather than summarised from nothing |
 | Links are saved but never opened | Deliberate. Fetching user-supplied URLs server-side is a request-forgery primitive; the interviewer is told the link exists and what kind it is |
 | Every interviewer sounds the same | Installed speech voices differ by OS and browser. The archetypes always differ in rate and pitch; the specific voice is a preference that may not match |
+| Live transcription never engages | `/api/voice/config` reports `live: false` when `DEEPGRAM_API_KEY` is unset, and the client uses browser speech. The startup line says which is active |
+| The hero shows no video | `VITE_HERO_VIDEO` is unset, the file failed, or the browser asks for reduced motion. All three are supported states, not failures |
 | Reset links never arrive | No `RESEND_API_KEY` — look in the server log, the link is printed there |
 | Voice toggle missing | Firefox has no `SpeechRecognition`. Chrome or Safari only, and typing always works |
 | Everything invisible on a page | Fixed, but the cause is worth knowing: an entrance animation must never be the only thing making content visible |

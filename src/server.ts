@@ -20,6 +20,7 @@
  *   GET  /api/profile                   → { xp, level, badges }
  *   GET  /api/leaderboard               → { rows }
  *   GET  /api/catalogue                 → { sectors, companies, personas }
+ *   WS   /api/voice                     → live transcription, audio up, text down
  *   GET  /api/plan                      → { plan, capabilities }
  *   POST /api/early-access              → registers a landing-page sign-up
  *   GET  /api/profile                   → { profile }
@@ -126,6 +127,8 @@ import {
   type ContributionStore,
 } from "./contributions.js";
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
+import { attachVoiceGateway } from "./voice/gateway.js";
+import { deepgramConfigured } from "./voice/deepgram.js";
 import { writeBrief, BriefError } from "./brief.js";
 import {
   createUserStore,
@@ -718,6 +721,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "GET" && path === "/api/voice/config") {
+    // Deliberately in front of the authentication gate: it is asked before the
+    // microphone is opened, the answer is identical for everyone, and making
+    // it authenticated cost a 401 on the first call of every session.
+    json(res, 200, { live: deepgramConfigured() });
+    return;
+  }
+
   // Everything past this point is authenticated.
   const identity = priorIdentity;
   if (!identity) {
@@ -1248,11 +1259,26 @@ CONTRIBUTIONS = createContributionStore(db);
 // this runs on every boot rather than as a migration someone has to remember.
 if (db) await seedCatalogue(db);
 
+/**
+ * The voice socket shares the HTTP port.
+ *
+ * Identity comes from the same cookie as every other request — an upgrade
+ * carries headers, so there is no second auth scheme to get wrong. A rejected
+ * upgrade never allocates a WebSocket.
+ */
+attachVoiceGateway(server, {
+  identify: (req) => {
+    const identity = verifyToken(readCookie(req.headers.cookie));
+    return identity ? identity.id : null;
+  },
+});
+
 server.listen(PORT, () => {
   console.log(
     `Real Sessions API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +
-      `rate limits: ${LIMITER.kind}, email: ${MAILER.kind})`,
+      `rate limits: ${LIMITER.kind}, email: ${MAILER.kind}, ` +
+      `voice: ${deepgramConfigured() ? "deepgram" : "browser"})`,
   );
 });
 

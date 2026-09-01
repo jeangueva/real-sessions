@@ -4,6 +4,10 @@ dist
 # Secrets. Never commit: this holds live provider keys and the cookie-signing
 # secret. .env.example documents the shape instead.
 .env
+# Vite's local overrides. web/.env.local holds the hero video URL among other
+# machine-specific settings.
+.env.local
+.env*.local
 
 # Build artifacts
 *.tsbuildinfo

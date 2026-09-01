@@ -480,6 +480,16 @@ export function fetchHistoryEntry(id: string) {
   );
 }
 
+/**
+ * Whether the server can do live transcription.
+ *
+ * Public rather than identity-scoped: it is asked before the microphone opens,
+ * and the answer is the same for everyone.
+ */
+export function fetchVoiceConfig() {
+  return request<{ live: boolean }>("/api/voice/config", { method: "GET" });
+}
+
 export function fetchPlan() {
   return withIdentity(() =>
     request<{ plan: Plan; capabilities: Capabilities }>("/api/plan", {
