@@ -19,6 +19,7 @@ import { createProgressStore } from "../../src/progress-store.js";
 import { createEntitlementStore } from "../../src/entitlements.js";
 import { createProfileStore } from "../../src/profile.js";
 import { createContributionStore } from "../../src/contributions.js";
+import { createSubscriptionStore } from "../../src/billing/store.js";
 import { createAccountStore } from "../../src/accounts.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
 import type { EmailSender } from "../../src/email.js";
@@ -123,6 +124,7 @@ export async function startHarness(): Promise<Harness> {
     plans: createEntitlementStore(null),
     profiles: createProfileStore(null),
     contributions: createContributionStore(null),
+    subscriptions: createSubscriptionStore(null),
     accounts: createAccountStore(null),
     mailer,
     limiter: new MemoryRateLimiter(),

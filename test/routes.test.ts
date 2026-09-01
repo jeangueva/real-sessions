@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createHmac } from "node:crypto";
 import { completeInterview, post, startHarness, type Harness } from "./support/http.js";
 
 /**
@@ -378,5 +379,63 @@ describe("the two profiles", () => {
     const context = await api.json<{ profile: { brief: string | null } }>("/api/context");
     expect(context.profile).toHaveProperty("brief");
     expect(context.profile).not.toHaveProperty("xp");
+  });
+});
+
+describe("billing", () => {
+  beforeEach(() => api.authenticate());
+
+  it("reports itself unconfigured rather than half-working", async () => {
+    // No access token and no price on this deployment. The client uses this to
+    // hide the upgrade button instead of offering a checkout that 500s.
+    const body = await api.json<{ configured: boolean; subscription: unknown }>(
+      "/api/billing",
+    );
+    expect(body.configured).toBe(false);
+    expect(body.subscription).toBeNull();
+  });
+
+  it("refuses a checkout when payments are not set up", async () => {
+    const response = await api.call("/api/billing/checkout", post({}));
+    expect(response.status).toBe(503);
+  });
+
+  it("has nothing to cancel before anyone subscribes", async () => {
+    expect((await api.call("/api/billing/cancel", post({}))).status).toBe(404);
+  });
+
+  describe("the webhook", () => {
+    const url = "/api/billing/webhook?data.id=mp-123&type=preapproval";
+
+    it("rejects a notification with no signature", async () => {
+      // It is public by necessity — Mercado Pago has no cookie — so the
+      // signature is the whole authentication.
+      const response = await api.call(url, post({}));
+      expect(response.status).toBe(401);
+    });
+
+    it("rejects one signed with the wrong secret", async () => {
+      const ts = Math.floor(Date.now() / 1000);
+      const manifest = `id:mp-123;request-id:req-1;ts:${ts};`;
+      const v1 = createHmac("sha256", "wrong-secret").update(manifest).digest("hex");
+
+      const response = await api.call(url, {
+        ...post({ data: { id: "mp-123" } }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-signature": `ts=${ts},v1=${v1}`,
+          "x-request-id": "req-1",
+        },
+      });
+      expect(response.status).toBe(401);
+    });
+
+    it("never reaches the plan without a valid signature", async () => {
+      await api.call(url, post({ data: { id: "mp-123", status: "authorized" } }));
+      // The body claimed an authorized subscription. Believing it would be a
+      // free upgrade for anyone who can POST.
+      const plan = await api.json<{ plan: string }>("/api/plan");
+      expect(plan.plan).toBe("free");
+    });
   });
 });

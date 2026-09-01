@@ -20,6 +20,10 @@
  *   GET  /api/profile                   → { xp, level, badges }  (gamification)
  *   GET  /api/leaderboard               → { rows }
  *   GET  /api/catalogue                 → { sectors, companies, personas }
+ *   GET  /api/billing                   → { configured, plan, subscription }
+ *   POST /api/billing/checkout          → { initPoint } to send the payer to
+ *   POST /api/billing/cancel            → ends the subscription
+ *   POST /api/billing/webhook           → Mercado Pago notifications (public)
  *   WS   /api/voice                     → live transcription, audio up, text down
  *   GET  /api/plan                      → { plan, capabilities }
  *   POST /api/early-access              → registers a landing-page sign-up
@@ -117,6 +121,7 @@ import {
   GENERIC_CULTURE,
   GENERIC_INDUSTRY,
   type EntitlementStore,
+  type Plan,
 } from "./entitlements.js";
 import {
   classifyLink,
@@ -133,6 +138,19 @@ import {
 } from "./contributions.js";
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
+import {
+  cancelPreapproval,
+  createPreapproval,
+  fetchPreapproval,
+  grantsAccess,
+  mercadoPagoConfigured,
+  planConfig,
+  verifySignature,
+} from "./billing/mercadopago.js";
+import {
+  createSubscriptionStore,
+  type SubscriptionStore,
+} from "./billing/store.js";
 import { deepgramConfigured } from "./voice/deepgram.js";
 import { writeBrief, BriefError } from "./brief.js";
 import {
@@ -161,6 +179,7 @@ let PROGRESS: ProgressStore;
 let PLANS: EntitlementStore;
 let PROFILES: ProfileStore;
 let CONTRIBUTIONS: ContributionStore;
+let SUBSCRIPTIONS: SubscriptionStore;
 let ACCOUNTS: AccountStore;
 let MAILER: EmailSender;
 let LIMITER: RateLimiter;
@@ -181,6 +200,7 @@ export interface ServerDependencies {
   plans: EntitlementStore;
   profiles: ProfileStore;
   contributions: ContributionStore;
+  subscriptions: SubscriptionStore;
   accounts: AccountStore;
   mailer: EmailSender;
   limiter: RateLimiter;
@@ -201,6 +221,7 @@ export function configure(deps: ServerDependencies): void {
   PLANS = deps.plans;
   PROFILES = deps.profiles;
   CONTRIBUTIONS = deps.contributions;
+  SUBSCRIPTIONS = deps.subscriptions;
   ACCOUNTS = deps.accounts;
   MAILER = deps.mailer;
   LIMITER = deps.limiter;
@@ -319,6 +340,12 @@ async function readUpload(
   };
 }
 
+/** A single header value. Node types these as `string | string[]`. */
+function header(req: IncomingMessage, name: string): string | undefined {
+  const value = req.headers[name];
+  return Array.isArray(value) ? value[0] : value;
+}
+
 async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   let size = 0;
@@ -424,6 +451,51 @@ function shapeFeedback<T extends { evaluation: Evaluation | null; metrics: unkno
       : null,
     withheld: { metrics: true, nextSteps: true },
   };
+}
+
+/**
+ * Brings the plan into line with what Mercado Pago says about a subscription.
+ *
+ * The only path from a payment to an entitlement, deliberately: the webhook and
+ * the "did it work?" poll after checkout both land here, so there is no second
+ * route that could disagree with the first. It reads the provider's API rather
+ * than believing a notification body, because a notification is an unsigned
+ * claim about our own billing state.
+ *
+ * Returns the resolved plan so a caller can answer immediately.
+ */
+async function reconcileSubscription(externalId: string): Promise<Plan | null> {
+  const remote = await fetchPreapproval(externalId);
+  // external_reference is our identity, round-tripped through the provider.
+  // Falling back to the stored row covers a preapproval created before this
+  // field was set.
+  const known = await SUBSCRIPTIONS.byExternalId(externalId);
+  const ownerId = remote.externalReference ?? known?.ownerId ?? null;
+  if (!ownerId) return null;
+
+  const periodEnd = remote.nextPaymentDate ? new Date(remote.nextPaymentDate) : null;
+  await SUBSCRIPTIONS.put({
+    ownerId,
+    externalId,
+    status: remote.status,
+    periodEnd: periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : null,
+  });
+
+  if (grantsAccess(remote.status)) {
+    // Granted to the end of the paid period, or open-ended when the provider
+    // did not say. A grant that outlives the subscription is the failure mode
+    // to avoid, so an unknown end date is refreshed on every notification.
+    await PLANS.grant(ownerId, "premium", "subscription", periodEnd);
+    return "premium";
+  }
+
+  // Cancelled or paused. The existing grant keeps running to its expiry, which
+  // is the period they already paid for; only an open-ended one is closed.
+  if (remote.status === "cancelled") {
+    const current = await SUBSCRIPTIONS.forOwner(ownerId);
+    if (!current?.periodEnd) await PLANS.revoke(ownerId, "subscription");
+  }
+  return PLANS.planFor(ownerId);
 }
 
 /** Defaults to practice: live coaching on, which is the gentler surprise. */
@@ -604,6 +676,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       await recordQuietly(PROGRESS.transfer(priorIdentity.id, accountId));
       await recordQuietly(PROFILES.transfer(priorIdentity.id, accountId));
       await recordQuietly(PLANS.transfer(priorIdentity.id, accountId));
+      await recordQuietly(SUBSCRIPTIONS.transfer(priorIdentity.id, accountId));
     }
     const { token } = issueToken({ kind: "user", id: accountId });
     res.setHeader("Set-Cookie", cookieHeader(token, secureCookies, "user"));
@@ -815,6 +888,37 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "POST" && path === "/api/billing/webhook") {
+    // Public by necessity — Mercado Pago has no cookie. The signature is the
+    // authentication, and it is checked before the body is looked at.
+    const check = verifySignature({
+      signature: header(req, "x-signature"),
+      requestId: header(req, "x-request-id"),
+      // Mercado Pago puts the id on the query string; the body carries it too
+      // but the signed manifest is built from the query one.
+      dataId: url.searchParams.get("data.id") ?? undefined,
+      secret: process.env.MERCADOPAGO_WEBHOOK_SECRET,
+    });
+
+    if (!check.ok) {
+      console.warn(`[realsessions] rejected billing webhook: ${check.reason}`);
+      // 401 rather than 400: this is an authentication failure, and Mercado
+      // Pago retries on 5xx but not on this, which is what we want for a forgery.
+      return json(res, 401, { error: "Invalid signature." });
+    }
+
+    const externalId = url.searchParams.get("data.id")!;
+    try {
+      await reconcileSubscription(externalId);
+    } catch (error) {
+      console.error("[realsessions] billing reconcile failed:", error);
+      // 500 so Mercado Pago retries. Swallowing it would silently strand a
+      // paying customer on the free plan.
+      return json(res, 500, { error: "Could not reconcile." });
+    }
+    return json(res, 200, { ok: true });
+  }
+
   if (req.method === "GET" && path === "/api/voice/config") {
     // Deliberately in front of the authentication gate: it is asked before the
     // microphone is opened, the answer is identical for everyone, and making
@@ -855,6 +959,72 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       plan,
     });
   };
+
+  if (req.method === "GET" && path === "/api/billing") {
+    const configured = mercadoPagoConfigured() && planConfig() !== null;
+    json(res, 200, {
+      configured,
+      plan: planConfig(),
+      subscription: await SUBSCRIPTIONS.forOwner(identity.id),
+    });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/billing/checkout") {
+    if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
+
+    const config = planConfig();
+    if (!mercadoPagoConfigured() || !config) {
+      return json(res, 503, {
+        error: "Payments are not configured on this deployment yet.",
+      });
+    }
+    if (plan === "premium") {
+      return json(res, 409, { error: "You are already on the paid plan." });
+    }
+
+    // Mercado Pago requires a payer email, and a guest has none. This is also
+    // the honest product answer: a subscription has to outlive a browser.
+    const account =
+      identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
+    if (!account) {
+      return json(res, 403, {
+        error: "Create an account first — a subscription has to outlive this browser.",
+      });
+    }
+
+    const created = await createPreapproval({
+      externalReference: identity.id,
+      payerEmail: account.email,
+      backUrl: `${siteUrl()}/app/settings`,
+      reason: "Real Sessions — monthly",
+      plan: config,
+    });
+
+    await SUBSCRIPTIONS.put({
+      ownerId: identity.id,
+      externalId: created.id,
+      // Recorded before they pay so the webhook can find the owner even if
+      // external_reference does not come back.
+      status: "pending",
+      periodEnd: null,
+    });
+
+    json(res, 201, { initPoint: created.initPoint });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/billing/cancel") {
+    const held = await SUBSCRIPTIONS.forOwner(identity.id);
+    if (!held) return json(res, 404, { error: "No subscription to cancel." });
+
+    await cancelPreapproval(held.externalId);
+    // Reconciled rather than assumed: the provider is the authority on what
+    // just happened, including how long the paid period still runs.
+    const resolved = await reconcileSubscription(held.externalId);
+    json(res, 200, { plan: resolved ?? "free" });
+    return;
+  }
 
   if (req.method === "GET" && path === "/api/plan") {
     json(res, 200, { plan, capabilities: can });
@@ -1395,6 +1565,7 @@ configure({
   plans: createEntitlementStore(db),
   profiles: createProfileStore(db),
   contributions: createContributionStore(db),
+  subscriptions: createSubscriptionStore(db),
 });
 
 // The catalogue is code (see sectors.ts) and the table is a copy of it, so

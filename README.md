@@ -249,6 +249,44 @@ a person can be granted premium more than once and for different reasons, and
 the effective plan is the best unexpired grant. A single mutable `plan` column
 loses why someone has access and makes an expiry impossible to audit.
 
+### Payments
+
+Mercado Pago, not one of the international processors. This product is for Latin
+American candidates and Mercado Pago is what they already have; a checkout that
+demands an international credit card excludes exactly the people it is for.
+
+Recurring billing there is a *preapproval*. The server creates one, sends the
+payer to Mercado Pago's own hosted checkout, and reconciles when the status
+changes. **Card details never reach this application** — the moment a form here
+collects a card number, this becomes a system that has to be PCI-audited.
+
+Two rules run through `src/billing/mercadopago.ts`, both about not trusting the
+wire:
+
+- **The webhook body is never believed.** A notification says "something
+  happened to id X"; the status is then read back from the provider's API. The
+  body is an unsigned claim about our own billing state, and treating it as
+  truth turns a forged POST into a free subscription. There is exactly one path
+  from a payment to an entitlement — `reconcileSubscription` — so the webhook
+  and the post-checkout poll cannot disagree.
+- **The signature is checked first, in constant time, with a freshness window.**
+  A missing secret fails closed rather than skipping the check. Without the
+  timestamp window a single captured notification would be replayable forever.
+
+Subscriptions and entitlements are separate tables on purpose. They diverge in
+the case that matters: someone cancels on the 3rd having paid through the 30th.
+The subscription is cancelled, the grant runs to the end of the period, and
+collapsing them would either cut them off early or leave them premium forever.
+
+`MERCADOPAGO_AMOUNT` and `MERCADOPAGO_CURRENCY` are required rather than
+defaulted. Mercado Pago charges in the seller's currency, so "$9" is a different
+product decision in Buenos Aires than in São Paulo, and the server refuses to
+build a checkout rather than invent a price.
+
+**Not verified against live credentials.** The signature verification, the
+status mapping, the store and the route's refusal paths are tested; creating a
+real preapproval needs a merchant account.
+
 ### Early adopters
 
 The landing page collects an email, a target role, and optionally a company, and

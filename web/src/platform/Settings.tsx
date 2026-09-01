@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Eyebrow, Field, Panel, Action } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
+import { Billing } from "./Billing";
 import { Link } from "react-router-dom";
 import {
   ApiError,
@@ -219,6 +220,8 @@ export function Settings() {
             </>
           )}
         </Panel>
+
+        <Billing />
 
         <Panel variant="glass" className="mt-4 max-w-2xl p-6">
           <Eyebrow>Account</Eyebrow>

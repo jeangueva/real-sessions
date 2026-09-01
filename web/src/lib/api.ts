@@ -493,6 +493,39 @@ export function fetchVoiceConfig() {
   return request<{ live: boolean }>("/api/voice/config", { method: "GET" });
 }
 
+export interface Subscription {
+  externalId: string;
+  status: "pending" | "authorized" | "paused" | "cancelled";
+  periodEnd: string | null;
+  updatedAt: string;
+}
+
+export interface BillingState {
+  /** False when this deployment has no payment provider wired up. */
+  configured: boolean;
+  plan: { amount: number; currency: string } | null;
+  subscription: Subscription | null;
+}
+
+export function fetchBilling() {
+  return withIdentity(() =>
+    request<BillingState>("/api/billing", { method: "GET" }),
+  );
+}
+
+/** Returns where to send the payer. Mercado Pago hosts the checkout itself. */
+export function startCheckout() {
+  return withIdentity(() =>
+    request<{ initPoint: string }>("/api/billing/checkout", { method: "POST" }),
+  );
+}
+
+export function cancelSubscription() {
+  return withIdentity(() =>
+    request<{ plan: Plan }>("/api/billing/cancel", { method: "POST" }),
+  );
+}
+
 export function fetchPlan() {
   return withIdentity(() =>
     request<{ plan: Plan; capabilities: Capabilities }>("/api/plan", {

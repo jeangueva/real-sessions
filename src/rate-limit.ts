@@ -64,6 +64,12 @@ export const RULES = {
   upload: { limit: 8, windowMs: 60 * 60 * 1000 },
   /** Reporting a real interview question. Generous, but not a firehose. */
   contribute: { limit: 30, windowMs: 60 * 60 * 1000 },
+  /**
+   * Opening a checkout. Each one creates a real subscription record at the
+   * provider, so a loop here leaves a trail of abandoned preapprovals on the
+   * merchant account.
+   */
+  checkout: { limit: 6, windowMs: 60 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export interface RateLimitResult {

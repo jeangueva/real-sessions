@@ -225,3 +225,28 @@ CREATE INDEX IF NOT EXISTS question_reports_company_idx
 -- One contributor, one report of the same question for the same company.
 CREATE UNIQUE INDEX IF NOT EXISTS question_reports_dedupe_idx
   ON question_reports (company_id, contributor_hash, md5(question));
+
+-- Subscriptions, one row per payer.
+--
+-- Separate from `entitlements` on purpose: an entitlement is "this identity has
+-- premium until then", a subscription is "this identity has a billing
+-- relationship in this state". A cancelled subscription still has a grant
+-- running to the end of the period it paid for, and collapsing the two would
+-- either cut someone off early or leave them premium forever.
+--
+-- `external_id` is the provider's own id. It is unique because a webhook
+-- arrives carrying only that, and two rows sharing one would make the owner
+-- ambiguous.
+CREATE TABLE IF NOT EXISTS subscriptions (
+  owner_id    TEXT PRIMARY KEY,
+  provider    TEXT NOT NULL DEFAULT 'mercadopago',
+  external_id TEXT NOT NULL UNIQUE,
+  status      TEXT NOT NULL,
+  -- End of the period already paid for. Null while the first payment is still
+  -- pending; access is granted from the status, never from this.
+  period_end  TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS subscriptions_external_idx ON subscriptions (external_id);

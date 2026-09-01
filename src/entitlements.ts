@@ -99,6 +99,14 @@ export interface EntitlementStore {
    * which is the first moment an email and an identity are known together.
    */
   redeemEarlyAccess(email: string, ownerId: string): Promise<boolean>;
+  /**
+   * Ends every unexpired grant from one source.
+   *
+   * Used when a subscription lapses. It expires the grants rather than
+   * deleting them, so the log still shows that access was held and when it
+   * stopped — deleting the row would make a refund dispute unanswerable.
+   */
+  revoke(ownerId: string, source: string): Promise<void>;
   transfer(fromOwnerId: string, toOwnerId: string): Promise<void>;
 }
 
@@ -147,6 +155,15 @@ class PostgresEntitlementStore implements EntitlementStore {
     return true;
   }
 
+  async revoke(ownerId: string, source: string) {
+    await this.pool.query(
+      `UPDATE entitlements SET expires_at = now()
+        WHERE owner_id = $1 AND source = $2
+          AND (expires_at IS NULL OR expires_at > now())`,
+      [ownerId, source],
+    );
+  }
+
   async transfer(fromOwnerId: string, toOwnerId: string) {
     if (fromOwnerId === toOwnerId) return;
     await this.pool.query(
@@ -157,7 +174,10 @@ class PostgresEntitlementStore implements EntitlementStore {
 }
 
 class MemoryEntitlementStore implements EntitlementStore {
-  private readonly grants = new Map<string, { plan: Plan; expiresAt: Date | null }[]>();
+  private readonly grants = new Map<
+    string,
+    { plan: Plan; source: string; expiresAt: Date | null }[]
+  >();
   private readonly early = new Map<
     string,
     { grantedUntil: Date; redeemed: boolean }
@@ -173,10 +193,20 @@ class MemoryEntitlementStore implements EntitlementStore {
     return live ? "premium" : "free";
   }
 
-  async grant(ownerId: string, plan: Plan, _source: string, expiresAt: Date | null) {
+  async grant(ownerId: string, plan: Plan, source: string, expiresAt: Date | null) {
     const held = this.grants.get(ownerId) ?? [];
-    held.push({ plan, expiresAt });
+    held.push({ plan, source, expiresAt });
     this.grants.set(ownerId, held);
+  }
+
+  async revoke(ownerId: string, source: string) {
+    const now = new Date();
+    for (const grant of this.grants.get(ownerId) ?? []) {
+      if (grant.source !== source) continue;
+      if (grant.expiresAt === null || grant.expiresAt.getTime() > now.getTime()) {
+        grant.expiresAt = now;
+      }
+    }
   }
 
   async recordEarlyAccess(email: string, _role: string, _company: string, grantedUntil: Date) {
