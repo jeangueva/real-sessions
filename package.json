@@ -33,7 +33,7 @@
     "node": ">=22"
   },
   "license": "MIT",
-  "author": "Jean Pierre Guevara",
+  "author": "Real Sessions",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jeangueva/realsessions.git"
