@@ -8,6 +8,10 @@ dist
 # machine-specific settings.
 .env.local
 .env*.local
+# Backups of .env carry exactly the same secrets as .env itself, and are one
+# `git add -A` away from being committed.
+.env.backup-*
+.env.bak
 
 # Build artifacts
 *.tsbuildinfo
