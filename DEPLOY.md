@@ -1,0 +1,83 @@
+# Deploying
+
+One container serves the API and the built web app. It needs Postgres and Redis
+beside it, and it **refuses to start** without every variable in the required
+table below — each of those failures is silent data loss or a security hole if
+it degrades instead of stopping.
+
+## Required
+
+| Variable | Why it is required rather than optional |
+| --- | --- |
+| `DATABASE_URL` | Progress, metrics, XP and badges. Degrading to memory would lose them on every restart, silently |
+| `REDIS_URL` | Interviews in flight, and rate limits. Per-process limits multiply by the number of instances |
+| `REALSESSIONS_SESSION_SECRET` | Signs identity cookies. At least 32 characters. An ephemeral one signs everyone out on each restart |
+| `RESEND_API_KEY` + `EMAIL_FROM` | Without them password-reset links are printed to the log instead of sent, which is a log full of account-takeover tokens |
+
+Generate the secret with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+`EMAIL_FROM` must be on a domain verified with Resend, or every send is
+rejected with a 422.
+
+## Optional
+
+Each of these degrades on its own and says so in the startup line.
+
+| Variable | Missing means |
+| --- | --- |
+| `DEEPGRAM_API_KEY` | Browser speech recognition instead of streaming transcription |
+| `MERCADOPAGO_*` | The paid plan is reachable only by an early-access grant; the app says payments are off rather than offering a broken button |
+| `REALSESSIONS_REVIEWERS` | Nobody can verify contributed questions, so none reach an interview |
+| `REALSESSIONS_SITE_URL` | Links in emails point at `http://localhost:5173` |
+| `REALSESSIONS_TRUST_PROXY=1` | Set **only** behind a proxy you control. Otherwise any caller can rotate `X-Forwarded-For` and mint unlimited rate-limit identities |
+
+## Railway
+
+```bash
+railway login
+railway init                       # or: railway link, for an existing project
+railway add --database postgres
+railway add --database redis
+
+# Railway injects DATABASE_URL and REDIS_URL from the plugins above.
+railway variables set \
+  REALSESSIONS_SESSION_SECRET="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")" \
+  RESEND_API_KEY="re_..." \
+  EMAIL_FROM="Real Sessions <no-reply@yourdomain>" \
+  REALSESSIONS_SITE_URL="https://yourdomain" \
+  NODE_ENV=production
+
+railway up
+```
+
+`railway.json` pins the Dockerfile builder and points the healthcheck at
+`/api/voice/config` — a route in front of the authentication gate, so a healthy
+container is not reported as unhealthy for want of a cookie.
+
+## Anywhere else
+
+The image is ordinary. Anything that runs a container works:
+
+```bash
+docker build -t realsessions .
+docker run -p 8787:8787 --env-file .env.production realsessions
+```
+
+**Not Cloudflare Workers**, without a rewrite. The server is `node:http`, talks
+to Postgres over TCP, and holds WebSockets open for the length of an answer.
+Workers would need Durable Objects for the sockets and Hyperdrive for the
+database, which is a port rather than a deploy.
+
+## After the first deploy
+
+- Point `REALSESSIONS_SITE_URL` at the real domain, or reset emails link to
+  localhost.
+- If you use Mercado Pago, set the webhook to
+  `https://yourdomain/api/billing/webhook` — it cannot reach localhost, which is
+  why the signature path is untestable locally.
+- The schema applies itself on boot. Every statement is `IF NOT EXISTS`, so
+  there is no migration step and a restart is a no-op.

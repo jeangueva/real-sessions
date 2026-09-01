@@ -379,6 +379,9 @@ is the second line.
 
 ## Deploying
 
+**[DEPLOY.md](./DEPLOY.md)** has the full procedure, the required variables and
+why each one refuses to degrade.
+
 One image serves the API and the built web app:
 
 ```bash
