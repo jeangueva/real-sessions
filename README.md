@@ -154,6 +154,15 @@ const evaluation = await evaluateInterview(context, session.transcript);
 
 ---
 
+## License
+
+[MIT](./LICENSE). Note that this covers the prompt architecture too — the
+interviewer and evaluator prompts in `src/prompts/` are the substance of the
+product, and MIT lets anyone use them commercially. That is the intent; it is
+worth knowing it is the intent.
+
+---
+
 The rest of this file is engineering notes: what was measured, what was chosen,
 and what is deliberately not done yet.
 
