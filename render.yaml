@@ -1,0 +1,107 @@
+# Render blueprint — the whole stack in one file.
+#
+# Connect the repo in the Render dashboard and it reads this: a Docker web
+# service, a Postgres instance, and a Redis instance, wired to each other.
+# No CLI and no local callback, which is the reason this exists rather than a
+# platform config that needs a login.
+#
+# Everything marked `sync: false` is a secret Render prompts for on first
+# deploy and never stores in this file.
+
+services:
+  - type: web
+    name: real-sessions
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # All three services share a region so Postgres and Redis are reachable on
+    # the private network rather than over the internet. Virginia is the
+    # closest Render region to Latin America.
+    region: virginia
+    plan: starter
+    healthCheckPath: /api/voice/config
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render injects these from the instances declared below. The app reads
+      # both at boot and refuses to start without them.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: real-sessions-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: real-sessions-redis
+          type: redis
+          property: connectionString
+
+      # Signs identity cookies. Generated once and kept stable across deploys —
+      # a value that changed on each deploy would sign everyone out mid-interview.
+      # The app requires at least 32 characters and says so loudly at boot if it
+      # ever gets less.
+      - key: REALSESSIONS_SESSION_SECRET
+        generateValue: true
+
+      # Behind Render's proxy, so X-Forwarded-For is the real client. Off by
+      # default everywhere else, because a caller who can set the header
+      # otherwise mints unlimited rate-limit identities.
+      - key: REALSESSIONS_TRUST_PROXY
+        value: "1"
+
+      # Reset and confirmation links are built from this. Left unset they point
+      # at localhost, which makes every email useless.
+      - key: REALSESSIONS_SITE_URL
+        sync: false
+
+      # --- required: the app will not start without these -------------------
+      # Without them password-reset links are printed to the log instead of
+      # sent, which is a log full of account-takeover tokens.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+      # At least one model provider. OpenRouter covers every default model.
+      - key: OPENROUTER_API_KEY
+        sync: false
+
+      # --- optional: each degrades on its own, and says so at startup -------
+      # Unset: the browser's own speech recognition, which Chrome routes
+      # through Google and Firefox does not implement.
+      - key: DEEPGRAM_API_KEY
+        sync: false
+
+      # Unset: the paid plan is reachable only by an early-access grant, and
+      # the app says payments are off rather than offering a broken button.
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADOPAGO_WEBHOOK_SECRET
+        sync: false
+      - key: MERCADOPAGO_AMOUNT
+        sync: false
+      - key: MERCADOPAGO_CURRENCY
+        sync: false
+
+      # Unset: nobody can verify contributed questions, so none reach an
+      # interview. Comma-separated account emails.
+      - key: REALSESSIONS_REVIEWERS
+        sync: false
+
+  - type: redis
+    name: real-sessions-redis
+    region: virginia
+    plan: starter
+    # Reachable only from inside the Render private network. Redis here holds
+    # interviews in flight and rate-limit counters; neither should be exposed.
+    ipAllowList: []
+    # Both of those expire on their own, so evicting the oldest under memory
+    # pressure loses nothing that was not already going to lapse.
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: real-sessions-db
+    databaseName: realsessions
+    user: realsessions
+    region: virginia
+    plan: basic-256mb

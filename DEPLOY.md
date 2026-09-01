@@ -35,6 +35,39 @@ Each of these degrades on its own and says so in the startup line.
 | `REALSESSIONS_SITE_URL` | Links in emails point at `http://localhost:5173` |
 | `REALSESSIONS_TRUST_PROXY=1` | Set **only** behind a proxy you control. Otherwise any caller can rotate `X-Forwarded-For` and mint unlimited rate-limit identities |
 
+## Render (recommended)
+
+`render.yaml` declares the whole stack — a Docker web service, Postgres, and
+Redis, wired to each other. Connect the repo in the dashboard and Render reads
+it. **No CLI and no local callback**, which is the reason it is the recommended
+path: the platform CLIs authenticate through a browser callback with a deadline,
+and that is the step that fails when it fails.
+
+1. render.com → New → Blueprint → connect this repository.
+2. Render finds `render.yaml` and shows the three services it will create.
+3. It prompts for every secret marked `sync: false`. The four that matter:
+
+   | | |
+   | --- | --- |
+   | `RESEND_API_KEY`, `EMAIL_FROM` | **Required.** The service will not start without them |
+   | `OPENROUTER_API_KEY` | **Required.** No model, no interview |
+   | `REALSESSIONS_SITE_URL` | Your Render URL. Unset, every emailed link points at localhost |
+
+   The rest are optional and each degrades on its own.
+4. Apply. `DATABASE_URL`, `REDIS_URL` and the cookie secret are filled in by
+   Render itself.
+
+All three services share a region so Postgres and Redis are reached over the
+private network. Redis has an empty `ipAllowList`, so it is not exposed at all.
+
+`REALSESSIONS_TRUST_PROXY=1` is set because Render terminates TLS in front of
+the app, which makes `X-Forwarded-For` the real client. It is off everywhere
+else on purpose: without a proxy in front, anyone can rotate that header and
+mint unlimited rate-limit identities.
+
+After the first deploy, set `REALSESSIONS_SITE_URL` to the real URL and — if you
+use Mercado Pago — point its webhook at `https://<your-url>/api/billing/webhook`.
+
 ## Railway
 
 ```bash

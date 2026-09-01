@@ -380,7 +380,9 @@ is the second line.
 ## Deploying
 
 **[DEPLOY.md](./DEPLOY.md)** has the full procedure, the required variables and
-why each one refuses to degrade.
+why each one refuses to degrade. `render.yaml` declares the whole stack, so
+connecting the repo in Render's dashboard is the shortest path — no CLI, no
+browser callback with a deadline.
 
 One image serves the API and the built web app:
 
