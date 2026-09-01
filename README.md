@@ -38,8 +38,8 @@ Built from the prompt architecture in
 ### 2. Install
 
 ```bash
-git clone https://github.com/jeangueva/realsessions.git
-cd realsessions
+git clone https://github.com/jeangueva/real-sessions.git
+cd real-sessions
 npm install
 cd web && npm install && cd ..
 ```
