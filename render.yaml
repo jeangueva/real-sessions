@@ -17,10 +17,15 @@ services:
     # the private network rather than over the internet. Virginia is the
     # closest Render region to Latin America.
     region: virginia
-    # Free to start, so a first deploy needs no card on file. Read the note at
-    # the bottom of this file before treating it as production: a free web
-    # service sleeps after inactivity and a free Postgres expires.
-    plan: free
+    # Paid, so the service stops sleeping after fifteen minutes idle — an
+    # interview in progress does not survive a cold start, which is the worst
+    # possible moment to lose someone.
+    #
+    # `0.5c-512mb` at $7/month is Render's cheapest paid tier. 512 MB is
+    # adequate rather than generous: tsx holds the TypeScript compiler in
+    # memory, and a CV upload loads pdf.js on top of it. If uploads start
+    # failing under load, `1c-2g` is the next step up.
+    plan: 0.5c-512mb
     healthCheckPath: /api/voice/config
 
     envVars:
@@ -116,22 +121,21 @@ databases:
     # the `basic-256mb` this file guessed at before anyone had looked.
     plan: 0.1c-256mb
 
-# ── Before this is production ───────────────────────────────────────────────
+# ── On the plans ────────────────────────────────────────────────────────────
 #
-# The free plans above exist so a first deploy needs no card. Each one gives
-# something up, and two of them matter:
+# Web and Postgres are paid; Redis is not, and that asymmetry is deliberate.
 #
-#   Web (free)       Sleeps after ~15 minutes idle. The next visitor waits
-#                    through a cold start of roughly a minute — and an
-#                    interview in progress does not survive it.
+#   Web        Free sleeps after ~15 minutes idle, and the next visitor waits
+#              out a cold start of roughly a minute. An interview in progress
+#              does not survive it.
 #
-#   Postgres         Now paid, for exactly that reason. Free expired after 30
-#                    days and deleted the data with it.
+#   Postgres   Free expires after 30 days and is deleted with everything in it.
 #
-#   Redis (free)     Small, and evicts under pressure. Least consequential —
-#                    everything in it already has a TTL.
+#   Redis      Still free, and the least consequential of the three: it holds
+#              interviews in flight and rate-limit counters, both of which
+#              already expire on their own. Eviction under pressure loses
+#              nothing that was not about to lapse anyway.
 #
-# The web service is still free, so it sleeps after roughly fifteen minutes idle
-# and an interview in progress does not survive the cold start. Changing its
-# `plan: free` to `starter` is the remaining step; nothing else in this file
-# moves.
+# Every plan identifier here comes from Render's own picker. They are named for
+# CPU and memory — `0.5c-512mb` — not `starter` or `basic-256mb`, both of which
+# this file guessed at before anyone had opened that screen. Neither exists.

@@ -47,11 +47,19 @@ Postgres is on a paid tier (`0.1c-256mb`, $6/month) because the free one expires
 after 30 days and deletes the data with it — transcripts, progress, XP, badges.
 That is not a limit to discover the hard way.
 
-The web service is still free, which means it sleeps after about fifteen minutes
-idle and an interview in progress does not survive the cold start. Changing its
-`plan: free` to `starter` is the remaining step.
+The web service is on `0.5c-512mb` ($7/month) so it stops sleeping after fifteen
+minutes idle — a cold start in the middle of an interview loses the candidate at
+the worst possible moment.
 
-Either change requires a card on file, which Render asks for in its own
+Redis stays free on purpose. It holds interviews in flight and rate-limit
+counters, both of which already expire; eviction under pressure loses nothing
+that was not about to lapse.
+
+Every plan identifier is Render's own, named for CPU and memory —
+`0.5c-512mb`, `0.1c-256mb`. Not `starter` or `basic-256mb`; neither exists, and
+both were in this file until someone opened the plan picker.
+
+Both paid plans require a card on file, which Render asks for in its own
 dashboard.
 
 1. render.com → New → Blueprint → connect this repository.
