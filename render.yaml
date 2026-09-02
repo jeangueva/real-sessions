@@ -17,7 +17,10 @@ services:
     # the private network rather than over the internet. Virginia is the
     # closest Render region to Latin America.
     region: virginia
-    plan: starter
+    # Free to start, so a first deploy needs no card on file. Read the note at
+    # the bottom of this file before treating it as production: a free web
+    # service sleeps after inactivity and a free Postgres expires.
+    plan: free
     healthCheckPath: /api/voice/config
 
     envVars:
@@ -91,7 +94,7 @@ services:
   - type: redis
     name: real-sessions-redis
     region: virginia
-    plan: starter
+    plan: free
     # Reachable only from inside the Render private network. Redis here holds
     # interviews in flight and rate-limit counters; neither should be exposed.
     ipAllowList: []
@@ -104,4 +107,23 @@ databases:
     databaseName: realsessions
     user: realsessions
     region: virginia
-    plan: basic-256mb
+    plan: free
+
+# ── Before this is production ───────────────────────────────────────────────
+#
+# The free plans above exist so a first deploy needs no card. Each one gives
+# something up, and two of them matter:
+#
+#   Web (free)       Sleeps after ~15 minutes idle. The next visitor waits
+#                    through a cold start of roughly a minute — and an
+#                    interview in progress does not survive it.
+#
+#   Postgres (free)  Expires after 30 days and the data goes with it. This is
+#                    the one that will actually hurt: transcripts, progress,
+#                    XP and badges all live here.
+#
+#   Redis (free)     Small, and evicts under pressure. Least consequential —
+#                    everything in it already has a TTL.
+#
+# To go to production, change `plan: free` to `starter` on the web service and
+# to a paid tier on Postgres, and add a card. Nothing else in this file changes.
