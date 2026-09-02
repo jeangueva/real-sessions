@@ -40,6 +40,7 @@ export interface UserStore {
    * does not reset the setup screen they just configured.
    */
   transfer(fromOwnerId: string, toOwnerId: string): Promise<number>;
+  eraseOwner(ownerId: string): Promise<void>;
 }
 
 /** Ninety days: long enough to be useful, short enough to not hoard. */
@@ -82,6 +83,10 @@ class RedisUserStore implements UserStore {
     await this.client.del(prefsKey(fromOwnerId));
     return 1;
   }
+
+  async eraseOwner(ownerId: string): Promise<void> {
+    await this.client.del(prefsKey(ownerId));
+  }
 }
 
 class MemoryUserStore implements UserStore {
@@ -103,6 +108,10 @@ class MemoryUserStore implements UserStore {
     if (!this.prefs.has(toOwnerId)) this.prefs.set(toOwnerId, incoming);
     this.prefs.delete(fromOwnerId);
     return 1;
+  }
+
+  async eraseOwner(ownerId: string): Promise<void> {
+    this.prefs.delete(ownerId);
   }
 }
 

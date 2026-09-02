@@ -90,6 +90,12 @@ export interface Persona {
   voice: { rate: number; pitch: number; prefer: string[] };
 }
 
+export interface Role {
+  id: string;
+  label: string;
+  focus: string;
+}
+
 export interface Sector {
   id: string;
   label: string;
@@ -489,6 +495,22 @@ export function fetchHistoryEntry(id: string) {
  * Public rather than identity-scoped: it is asked before the microphone opens,
  * and the answer is the same for everyone.
  */
+/**
+ * Erases the account and everything attached to it.
+ *
+ * The address is typed back as confirmation — the server checks it, so this is
+ * not a courtesy the client could skip.
+ */
+export function deleteAccount(email: string) {
+  return withIdentity(() =>
+    request<{ ok: true; kept: string }>("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }),
+  );
+}
+
 export function fetchVoiceConfig() {
   return request<{ live: boolean }>("/api/voice/config", { method: "GET" });
 }
@@ -550,6 +572,7 @@ export function fetchReviewQueue() {
       queue: PendingQuestion[];
       depth: number;
       companies: { id: string; name: string }[];
+      roles: { id: string; label: string }[];
     }>("/api/review", { method: "GET" }),
   );
 }
@@ -668,6 +691,7 @@ export function fetchCatalogue() {
       sectors: Sector[];
       companies: CatalogueCompany[];
       personas: Persona[];
+      roles: Role[];
     }>("/api/catalogue", { method: "GET" }),
   );
 }

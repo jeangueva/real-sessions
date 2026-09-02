@@ -38,8 +38,15 @@ export const MAX_REPORTS_PER_COMPANY = 20;
 export interface ContributionStore {
   /** Returns false when it duplicates one this contributor already sent. */
   submit(ownerId: string, report: QuestionReport): Promise<boolean>;
-  /** Verified questions for a company — the only ones fit to show or use. */
-  verified(companyId: string): Promise<StoredQuestion[]>;
+  /**
+   * Verified questions for a company, optionally narrowed to a role.
+   *
+   * A role filter returns that role's questions *plus* the ones reported
+   * without a role. Those are the general ones — "tell me about a hard
+   * tradeoff" — and excluding them would mean a rarely-reported role gets
+   * nothing at all rather than the questions that apply to everyone.
+   */
+  verified(companyId: string, roleId?: string | null): Promise<StoredQuestion[]>;
   /** How many reports a company has, by status. Drives the public counter. */
   countsFor(companyId: string): Promise<{ pending: number; verified: number }>;
   /** The review queue, oldest first so nothing waits indefinitely. */
@@ -79,24 +86,19 @@ class PostgresContributionStore implements ContributionStore {
     return (rowCount ?? 0) > 0;
   }
 
-  async verified(companyId: string): Promise<StoredQuestion[]> {
+  async verified(companyId: string, roleId?: string | null): Promise<StoredQuestion[]> {
     const { rows } = await this.pool.query(
       `SELECT id, company_id, stage, role, question, status, created_at
          FROM question_reports
         WHERE company_id = $1 AND status = 'verified'
-        ORDER BY created_at DESC
+          AND ($2::text IS NULL OR role = $2 OR role IS NULL)
+        -- Role-specific first: with a cap on how many reach the prompt, the
+        -- ones written for this role should not be crowded out by general ones.
+        ORDER BY (role IS NULL), created_at DESC
         LIMIT 50`,
-      [companyId],
+      [companyId, roleId ?? null],
     );
-    return rows.map((row) => ({
-      id: row.id as number,
-      companyId: row.company_id as string,
-      stage: (row.stage as string | null) ?? null,
-      role: (row.role as string | null) ?? null,
-      question: row.question as string,
-      status: row.status as StoredQuestion["status"],
-      createdAt: new Date(row.created_at).toISOString(),
-    }));
+    return rows.map(toStored);
   }
 
   async countsFor(companyId: string) {
@@ -179,9 +181,16 @@ class MemoryContributionStore implements ContributionStore {
     return true;
   }
 
-  async verified(companyId: string): Promise<StoredQuestion[]> {
+  async verified(companyId: string, roleId?: string | null): Promise<StoredQuestion[]> {
     return this.reports
-      .filter((row) => row.companyId === companyId && row.status === "verified")
+      .filter(
+        (row) =>
+          row.companyId === companyId &&
+          row.status === "verified" &&
+          (!roleId || row.role === roleId || row.role === null),
+      )
+      // Role-specific before general, matching the Postgres ordering.
+      .sort((a, b) => Number(a.role === null) - Number(b.role === null))
       .map(({ hash: _hash, ...row }) => row);
   }
 

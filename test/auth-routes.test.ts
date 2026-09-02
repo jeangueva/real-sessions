@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { post, startHarness, type Harness } from "./support/http.js";
+import { completeInterview, post, startHarness, type Harness } from "./support/http.js";
 
 /**
  * The account-recovery routes.
@@ -217,5 +217,82 @@ describe("confirming an address", () => {
     await api.call("/api/auth/logout", post({}));
     api.forget();
     expect((await api.call("/api/auth/verify/resend", post({}))).status).toBe(401);
+  });
+});
+
+describe("deleting an account", () => {
+  it("refuses a guest, who has no account to delete", async () => {
+    const response = await api.call("/api/account", { method: "DELETE" });
+    expect(response.status).toBe(400);
+  });
+
+  it("needs the address typed back exactly", async () => {
+    // A button alone is too easy to hit for the one action with no undo.
+    await signUp();
+    const wrong = await api.call("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "someone@else.com" }),
+    });
+    expect(wrong.status).toBe(400);
+
+    // And the account is untouched.
+    expect((await api.json<{ kind: string }>("/api/auth/me")).kind).toBe("user");
+  });
+
+  it("erases the account and signs the browser out", async () => {
+    await signUp();
+    const response = await api.call("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL }),
+    });
+    expect(response.status).toBe(200);
+
+    // The cookie is cleared, so the browser is no longer anyone.
+    expect((await api.json<{ kind: string | null }>("/api/auth/me")).kind).toBeNull();
+  });
+
+  it("releases the address, so it can be used again", async () => {
+    // Deleting only the record would leave the email claimed forever and lock
+    // the person out of their own address.
+    await signUp();
+    await api.call("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL }),
+    });
+
+    await api.authenticate();
+    expect((await signUp()).status).toBe(201);
+  });
+
+  it("takes the sessions and progress with it", async () => {
+    await signUp();
+    await completeInterview(api);
+    expect((await api.json<{ sessions: unknown[] }>("/api/history")).sessions).toHaveLength(1);
+
+    await api.call("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL }),
+    });
+
+    // A fresh identity, and nothing of the old one survives under it.
+    await api.authenticate();
+    expect((await api.json<{ sessions: unknown[] }>("/api/history")).sessions).toEqual([]);
+    expect((await api.json<{ xp: number }>("/api/profile")).xp).toBe(0);
+  });
+
+  it("says what it kept", async () => {
+    await signUp();
+    const body = await api.json<{ kept: string }>("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL }),
+    });
+    // Contributions carry a one-way hash, not an owner id — already unlinkable,
+    // and deleting them would remove knowledge other candidates rely on.
+    expect(body.kept).toMatch(/contributed/i);
   });
 });

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Action, Eyebrow, Field, Panel, Section } from "@/design-system";
 import { ApiError, contributeQuestion, fetchCatalogue } from "@/lib/api";
-import type { CatalogueCompany, Sector } from "@/lib/api";
+import type { CatalogueCompany, Role, Sector } from "@/lib/api";
 
 const STAGES = ["Behavioral", "Technical deep dive", "System design", "Other"];
 
@@ -21,6 +21,7 @@ const STAGES = ["Behavioral", "Technical deep dive", "System design", "Other"];
 export function Contribute() {
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [sector, setSector] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [stage, setStage] = useState(STAGES[0]!);
@@ -35,6 +36,7 @@ export function Contribute() {
       .then((result) => {
         setSectors(result.sectors);
         setCompanies(result.companies);
+        setRoles(result.roles);
         setCompanyId(result.companies[0]?.id ?? "");
       })
       .catch(() => undefined);
@@ -85,7 +87,8 @@ export function Contribute() {
           <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">
             Our interviewers ask plausible questions. Real ones are better. If
             you have sat an interview at one of these companies, add what you
-            were asked — anonymously.
+            were asked — anonymously. Tagged by role, so a backend candidate is
+            asked backend questions.
           </p>
 
           <dl className="mt-8 flex flex-col gap-5 border-t border-line pt-6">
@@ -164,14 +167,27 @@ export function Contribute() {
                 </select>
               </Field>
 
-              <Field label="Role" hint="Optional" htmlFor="c-role">
-                <input
+              <Field
+                label="Role"
+                hint="Leave it as any role if the question was not specific to one."
+                htmlFor="c-role"
+              >
+                <select
                   id="c-role"
                   value={role}
                   onChange={(event) => setRole(event.target.value)}
-                  placeholder="Growth PM"
-                  className="focus-ring rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
-                />
+                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                >
+                  {/* A list rather than free text, because these are filtered
+                      by role: "Backend Engineer", "backend engineer" and "BE"
+                      as separate values would make that filter useless. */}
+                  <option value="">Any role</option>
+                  {roles.map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </div>
 

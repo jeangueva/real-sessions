@@ -21,6 +21,7 @@ export function Review() {
   const [queue, setQueue] = useState<PendingQuestion[] | null>(null);
   const [depth, setDepth] = useState(0);
   const [companies, setCompanies] = useState<Record<string, string>>({});
+  const [roles, setRoles] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +38,11 @@ export function Review() {
         setCompanies(
           Object.fromEntries(
             (result.companies ?? []).map((entry) => [entry.id, entry.name]),
+          ),
+        );
+        setRoles(
+          Object.fromEntries(
+            (result.roles ?? []).map((entry) => [entry.id, entry.label]),
           ),
         );
       })
@@ -134,7 +140,7 @@ export function Review() {
                   <p className="text-xs text-cream-faint">
                     {companies[entry.companyId] ?? entry.companyId}
                     {entry.stage && ` · ${entry.stage}`}
-                    {entry.role && ` · ${entry.role}`}
+                    {entry.role ? ` · ${roles[entry.role] ?? entry.role}` : " · any role"}
                     {` · ${formatSessionDate(entry.createdAt)}`}
                   </p>
                   {/* Rendered as plain text, never as markup: this is the one

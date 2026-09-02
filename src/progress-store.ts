@@ -118,6 +118,15 @@ export interface ProgressStore {
   leaderboard(limit: number): Promise<LeaderboardRow[]>;
   /** Moves a guest's whole record onto an account. */
   transfer(fromOwnerId: string, toOwnerId: string): Promise<number>;
+  /**
+   * Erases everything belonging to one identity.
+   *
+   * Contributions are deliberately not touched. They carry a one-way hash
+   * rather than an owner id, so they are already unlinkable — and deleting
+   * them would remove community knowledge that other candidates rely on, which
+   * is not what someone deleting their own account is asking for.
+   */
+  eraseOwner(ownerId: string): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -396,6 +405,24 @@ class PostgresProgressStore implements ProgressStore {
     }
   }
 
+  async eraseOwner(ownerId: string): Promise<void> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      // Sessions cascade to turns and metrics; the other two reference
+      // sessions with ON DELETE SET NULL, so they are removed explicitly.
+      await client.query(`DELETE FROM xp_events WHERE owner_id = $1`, [ownerId]);
+      await client.query(`DELETE FROM badges WHERE owner_id = $1`, [ownerId]);
+      await client.query(`DELETE FROM sessions WHERE owner_id = $1`, [ownerId]);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async close(): Promise<void> {
     // The pool is shared and closed centrally by closeDb().
   }
@@ -595,6 +622,16 @@ class MemoryProgressStore implements ProgressStore {
       this.badges.delete(fromOwnerId);
     }
     return moved;
+  }
+
+  async eraseOwner(ownerId: string): Promise<void> {
+    for (const [id, session] of this.sessions) {
+      if (session.ownerId === ownerId) this.sessions.delete(id);
+    }
+    for (let i = this.xp.length - 1; i >= 0; i -= 1) {
+      if (this.xp[i]!.ownerId === ownerId) this.xp.splice(i, 1);
+    }
+    this.badges.delete(ownerId);
   }
 
   async close(): Promise<void> {

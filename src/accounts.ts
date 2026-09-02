@@ -73,6 +73,14 @@ export interface AccountStore {
   ): Promise<void>;
   /** Reads and deletes in one step, so a link cannot be used twice. */
   consumeToken(purpose: TokenPurpose, tokenHash: string): Promise<string | null>;
+  /**
+   * Erases an account.
+   *
+   * Both keys go: the record and the email reservation that points at it. If
+   * only the record were removed the address would stay claimed forever, and
+   * the person could never sign up again with their own email.
+   */
+  erase(id: string): Promise<void>;
 }
 
 export type TokenPurpose = "reset" | "verify";
@@ -226,6 +234,16 @@ class RedisAccountStore implements AccountStore {
     return account;
   }
 
+  async erase(id: string): Promise<void> {
+    const account = await this.findById(id);
+    if (!account) return;
+    // Email reservation first. If this process dies between the two, a
+    // released address with an orphaned record is recoverable — a claimed
+    // address with no record is a permanent lockout.
+    await this.client.del(emailKey(account.email));
+    await this.client.del(accountKey(id));
+  }
+
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     const account = await this.findById(id);
     if (!account) return;
@@ -297,6 +315,13 @@ class MemoryAccountStore implements AccountStore {
   }
 
   private readonly tokens = new Map<string, { accountId: string; expiresAt: number }>();
+
+  async erase(id: string): Promise<void> {
+    const account = this.byId.get(id);
+    if (!account) return;
+    this.byEmail.delete(account.email);
+    this.byId.delete(id);
+  }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     const account = this.byId.get(id);

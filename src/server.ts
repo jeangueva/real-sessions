@@ -44,6 +44,7 @@
  *   POST /api/auth/reset                → set a new password
  *   POST /api/auth/verify               → confirm an email address
  *   POST /api/auth/verify/resend        → send another confirmation
+ *   DELETE /api/account                 → erases the account and its data
  *
  * Every route but /api/auth requires that identity, and every interview is
  * owned by the identity that created it.
@@ -144,6 +145,7 @@ import {
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled } from "./reviewers.js";
+import { ROLES, roleIdFor } from "./roles.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
@@ -1030,6 +1032,68 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "DELETE" && path === "/api/account") {
+    if (identity.kind !== "user") {
+      return json(res, 400, {
+        error: "There is no account to delete — you are practising as a guest.",
+      });
+    }
+
+    const account = await ACCOUNTS.findById(identity.id);
+    if (!account) return json(res, 404, { error: "No account found." });
+
+    // Typing the address is the confirmation. A button alone is too easy to
+    // hit for something with no undo, and this is the one action in the
+    // product that destroys data on purpose.
+    const body = await readJson(req);
+    if (normalizeEmail(body["email"]) !== account.email) {
+      return json(res, 400, {
+        error: "Type your email address exactly to confirm.",
+      });
+    }
+
+    /**
+     * Billing first, and it is allowed to fail the request.
+     *
+     * Everything after this is irreversible, and deleting the account while a
+     * subscription is still live would leave someone paying Mercado Pago for a
+     * product they can no longer reach — with no account left to cancel it
+     * from. Better to refuse the deletion and say why.
+     */
+    const subscription = await SUBSCRIPTIONS.forOwner(identity.id).catch(() => null);
+    if (subscription && subscription.status !== "cancelled") {
+      try {
+        await cancelPreapproval(subscription.externalId);
+      } catch (error) {
+        console.error("[realsessions] cancel before delete failed:", error);
+        return json(res, 502, {
+          error:
+            "We could not cancel your subscription, so nothing was deleted. " +
+            "Cancel it first, then delete the account.",
+        });
+      }
+    }
+
+    // Data before identity: if this dies halfway, the account still exists and
+    // the request can be retried. Erasing the account first would strand the
+    // rest with no way to reach it.
+    await recordQuietly(PROGRESS.eraseOwner(identity.id));
+    await recordQuietly(PROFILES.clear(identity.id));
+    await recordQuietly(PLANS.eraseOwner(identity.id));
+    await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
+    await recordQuietly(USERS.eraseOwner(identity.id));
+    await ACCOUNTS.erase(identity.id);
+
+    res.setHeader("Set-Cookie", clearCookieHeader(secureCookies));
+    json(res, 200, {
+      ok: true,
+      // Said explicitly because it is the one thing that survives, and someone
+      // deleting their account deserves to know what does.
+      kept: "Questions you contributed stay, anonymised — they were never linked to you.",
+    });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/billing/checkout") {
     if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
 
@@ -1173,7 +1237,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       companyId,
       question,
       stage: optional("stage"),
-      role: optional("role"),
+      // Normalised to a known role id, or null. Free text gave "Backend
+      // Engineer", "backend engineer" and "BE" as three different roles with
+      // one question each, which makes filtering by role useless.
+      role: roleIdFor(optional("role")),
     });
 
     json(res, stored ? 201 : 200, {
@@ -1196,6 +1263,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       queue: await CONTRIBUTIONS.pending(50),
       depth: await CONTRIBUTIONS.queueDepth(),
       companies: COMPANIES.map(({ id, name }) => ({ id, name })),
+      roles: ROLES.map(({ id, label }) => ({ id, label })),
     });
     return;
   }
@@ -1256,7 +1324,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // on. A read failure costs the interview nothing.
     const known = findCompany(context.companyName);
     const knownQuestions = known
-      ? await CONTRIBUTIONS.verified(known.id)
+      ? await CONTRIBUTIONS.verified(known.id, roleIdFor(context.targetRole))
           .then((rows) => rows.map((row) => row.question))
           .catch(() => [])
       : [];
@@ -1610,7 +1678,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   if (req.method === "GET" && path === "/api/catalogue") {
-    json(res, 200, { sectors: SECTORS, companies: COMPANIES, personas: PERSONAS });
+    json(res, 200, {
+      sectors: SECTORS,
+      companies: COMPANIES,
+      personas: PERSONAS,
+      roles: ROLES,
+    });
     return;
   }
 

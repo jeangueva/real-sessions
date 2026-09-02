@@ -32,6 +32,7 @@ export interface SubscriptionStore {
   /** Resolves the owner from the provider's id, which is all a webhook has. */
   byExternalId(externalId: string): Promise<Subscription | null>;
   transfer(fromOwnerId: string, toOwnerId: string): Promise<void>;
+  eraseOwner(ownerId: string): Promise<void>;
 }
 
 class PostgresSubscriptionStore implements SubscriptionStore {
@@ -84,6 +85,10 @@ class PostgresSubscriptionStore implements SubscriptionStore {
     );
     await this.pool.query(`DELETE FROM subscriptions WHERE owner_id = $1`, [fromOwnerId]);
   }
+
+  async eraseOwner(ownerId: string) {
+    await this.pool.query(`DELETE FROM subscriptions WHERE owner_id = $1`, [ownerId]);
+  }
 }
 
 function toSubscription(row: Record<string, unknown>): Subscription {
@@ -132,6 +137,10 @@ class MemorySubscriptionStore implements SubscriptionStore {
       this.byOwner.set(toOwnerId, { ...incoming, ownerId: toOwnerId });
     }
     this.byOwner.delete(fromOwnerId);
+  }
+
+  async eraseOwner(ownerId: string) {
+    this.byOwner.delete(ownerId);
   }
 }
 

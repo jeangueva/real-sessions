@@ -108,6 +108,8 @@ export interface EntitlementStore {
    */
   revoke(ownerId: string, source: string): Promise<void>;
   transfer(fromOwnerId: string, toOwnerId: string): Promise<void>;
+  /** Erases every grant. Used when an account is deleted. */
+  eraseOwner(ownerId: string): Promise<void>;
 }
 
 class PostgresEntitlementStore implements EntitlementStore {
@@ -171,6 +173,10 @@ class PostgresEntitlementStore implements EntitlementStore {
       [fromOwnerId, toOwnerId],
     );
   }
+
+  async eraseOwner(ownerId: string) {
+    await this.pool.query(`DELETE FROM entitlements WHERE owner_id = $1`, [ownerId]);
+  }
 }
 
 class MemoryEntitlementStore implements EntitlementStore {
@@ -229,6 +235,10 @@ class MemoryEntitlementStore implements EntitlementStore {
     if (!incoming) return;
     this.grants.set(toOwnerId, [...(this.grants.get(toOwnerId) ?? []), ...incoming]);
     this.grants.delete(fromOwnerId);
+  }
+
+  async eraseOwner(ownerId: string) {
+    this.grants.delete(ownerId);
   }
 }
 
