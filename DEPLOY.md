@@ -43,17 +43,16 @@ it. **No CLI and no local callback**, which is the reason it is the recommended
 path: the platform CLIs authenticate through a browser callback with a deadline,
 and that is the step that fails when it fails.
 
-The blueprint asks for **free** instances, so the first deploy needs no card on
-file. That is a starting point, not a destination — see the note at the bottom
-of `render.yaml`. Two of the three matter:
+Postgres is on a paid tier (`0.1c-256mb`, $6/month) because the free one expires
+after 30 days and deletes the data with it — transcripts, progress, XP, badges.
+That is not a limit to discover the hard way.
 
-- The free web service sleeps after about fifteen minutes idle, and an
-  interview in progress does not survive the cold start.
-- **Free Postgres expires after 30 days and takes the data with it** —
-  transcripts, progress, XP, badges. This is the one that will hurt.
+The web service is still free, which means it sleeps after about fifteen minutes
+idle and an interview in progress does not survive the cold start. Changing its
+`plan: free` to `starter` is the remaining step.
 
-Changing `plan: free` to a paid tier on the web service and Postgres is the only
-edit needed, and it requires a card.
+Either change requires a card on file, which Render asks for in its own
+dashboard.
 
 1. render.com → New → Blueprint → connect this repository.
 2. Render finds `render.yaml` and shows the three services it will create.

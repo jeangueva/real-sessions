@@ -107,7 +107,14 @@ databases:
     databaseName: realsessions
     user: realsessions
     region: virginia
-    plan: free
+    # Paid, because free expires after 30 days and takes the data with it —
+    # transcripts, progress, XP, badges. $6/month for 0.1 CPU and 256 MB, which
+    # is the smallest tier Render offers and ample for a workload whose largest
+    # table is interview turns.
+    #
+    # The identifier is Render's own, from the plan picker: `0.1c-256mb`, not
+    # the `basic-256mb` this file guessed at before anyone had looked.
+    plan: 0.1c-256mb
 
 # ── Before this is production ───────────────────────────────────────────────
 #
@@ -118,12 +125,13 @@ databases:
 #                    through a cold start of roughly a minute — and an
 #                    interview in progress does not survive it.
 #
-#   Postgres (free)  Expires after 30 days and the data goes with it. This is
-#                    the one that will actually hurt: transcripts, progress,
-#                    XP and badges all live here.
+#   Postgres         Now paid, for exactly that reason. Free expired after 30
+#                    days and deleted the data with it.
 #
 #   Redis (free)     Small, and evicts under pressure. Least consequential —
 #                    everything in it already has a TTL.
 #
-# To go to production, change `plan: free` to `starter` on the web service and
-# to a paid tier on Postgres, and add a card. Nothing else in this file changes.
+# The web service is still free, so it sleeps after roughly fifteen minutes idle
+# and an interview in progress does not survive the cold start. Changing its
+# `plan: free` to `starter` is the remaining step; nothing else in this file
+# moves.
