@@ -67,6 +67,44 @@ describe("running an interview", () => {
     expect(body.turn.text).toContain("hard tradeoff");
   });
 
+  it("reports the generic employer it actually ran, not the one asked for", async () => {
+    // The free plan replaces the company server-side. Returning the requested
+    // name would let the interview screen tell a free candidate they had just
+    // rehearsed against Stripe.
+    api.provider.reply("Opener.");
+    const body = await api.json<{
+      context: { companyName: string; generic: boolean; targetRole: string };
+    }>(
+      "/api/sessions",
+      post({
+        candidateName: "Mariana",
+        targetRole: "Growth PM",
+        companyName: "Stripe",
+        interviewStage: "Behavioral",
+      }),
+    );
+    expect(body.context.companyName).not.toBe("Stripe");
+    expect(body.context.generic).toBe(true);
+    // The role survives — that is the whole of what a free session targets.
+    expect(body.context.targetRole).toBe("Growth PM");
+  });
+
+  it("reports the real employer on the paid plan", async () => {
+    await api.makePremium();
+    api.provider.reply("Opener.");
+    const body = await api.json<{ context: { companyName: string; generic: boolean } }>(
+      "/api/sessions",
+      post({
+        candidateName: "Mariana",
+        targetRole: "Growth PM",
+        companyName: "Stripe",
+        interviewStage: "Behavioral",
+      }),
+    );
+    expect(body.context.companyName).toBe("Stripe");
+    expect(body.context.generic).toBe(false);
+  });
+
   it("rejects a payload missing the fields the prompt needs", async () => {
     const response = await api.call("/api/sessions", post({ candidateName: "X" }));
     expect(response.status).toBe(400);
@@ -555,5 +593,127 @@ describe("when the database goes away", () => {
     // XP falls back to the daily cap being spent, so a blip withholds points
     // rather than handing out an unbounded number of them.
     expect(body.xp.gained).toBe(0);
+  });
+});
+
+describe("the interviewer's voice", () => {
+  const realFetch = globalThis.fetch;
+  const KEY = process.env.DEEPGRAM_API_KEY;
+
+  /**
+   * Intercepts Deepgram only.
+   *
+   * The harness itself talks to the server over `fetch`, so a blanket stub
+   * would break every call in this block. Everything that is not Deepgram is
+   * handed straight back to the real implementation.
+   */
+  function stubDeepgram(reply: { ok: boolean; body?: Uint8Array } = { ok: true }) {
+    const seen: string[] = [];
+    globalThis.fetch = (async (
+      input: Parameters<typeof fetch>[0],
+      init?: RequestInit,
+    ) => {
+      const url = String(input);
+      if (!url.includes("api.deepgram.com")) return realFetch(input, init);
+      seen.push(url);
+      return {
+        ok: reply.ok,
+        status: reply.ok ? 200 : 500,
+        arrayBuffer: async () => (reply.body ?? new Uint8Array([7, 7, 7])).buffer,
+        text: async () => "",
+      } as unknown as Response;
+    }) as typeof fetch;
+    return seen;
+  }
+
+  beforeEach(() => {
+    process.env.DEEPGRAM_API_KEY = "test-key";
+    return api.authenticate();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+    if (KEY === undefined) delete process.env.DEEPGRAM_API_KEY;
+    else process.env.DEEPGRAM_API_KEY = KEY;
+  });
+
+  it("returns audio for a phrase", async () => {
+    stubDeepgram({ ok: true, body: new Uint8Array([1, 2, 3, 4]) });
+    const response = await api.call(
+      "/api/voice/speak",
+      post({ text: "Tell me about a tradeoff.", personaId: "skeptic" }),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("audio/mpeg");
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(
+      new Uint8Array([1, 2, 3, 4]),
+    );
+  });
+
+  it("maps the persona to its voice on the server", async () => {
+    // The client never names a model. If it could, the account's key would be
+    // pointed wherever a caller liked.
+    const seen = stubDeepgram();
+    await api.call(
+      "/api/voice/speak",
+      post({ text: "Hello.", personaId: "systems", model: "aura-2-thalia-en" }),
+    );
+    expect(seen[0]).toContain("aura-2-draco-en");
+    expect(seen[0]).not.toContain("aura-2-thalia-en");
+  });
+
+  it("falls back to the default interviewer for an unknown persona", async () => {
+    const seen = stubDeepgram();
+    const response = await api.call(
+      "/api/voice/speak",
+      post({ text: "Hello.", personaId: "nobody" }),
+    );
+    expect(response.status).toBe(200);
+    expect(seen[0]).toContain("aura-2-orion-en");
+  });
+
+  it("refuses an empty phrase", async () => {
+    const seen = stubDeepgram();
+    expect((await api.call("/api/voice/speak", post({ text: "  " }))).status).toBe(400);
+    expect(seen).toHaveLength(0);
+  });
+
+  it("refuses a phrase past the cap without calling the provider", async () => {
+    const seen = stubDeepgram();
+    const response = await api.call(
+      "/api/voice/speak",
+      post({ text: "a".repeat(5000) }),
+    );
+    expect(response.status).toBe(400);
+    expect(seen).toHaveLength(0);
+  });
+
+  it("answers 502 when the provider fails, so the client can fall back", async () => {
+    stubDeepgram({ ok: false });
+    const response = await api.call("/api/voice/speak", post({ text: "Hello." }));
+    expect(response.status).toBe(502);
+    // The provider's own message can carry account detail and stays server-side.
+    expect(await response.text()).not.toContain("deepgram");
+  });
+
+  it("answers 503 when no key is configured", async () => {
+    delete process.env.DEEPGRAM_API_KEY;
+    const response = await api.call("/api/voice/speak", post({ text: "Hello." }));
+    expect(response.status).toBe(503);
+  });
+
+  it("sits behind the authentication gate", async () => {
+    // The server is a module singleton, so a second harness cannot listen.
+    // Dropping the cookie is how an anonymous caller is expressed here.
+    api.forget();
+    const response = await api.call("/api/voice/speak", post({ text: "Hi." }));
+    expect(response.status).toBe(401);
+  });
+
+  it("reports whether a real voice is available", async () => {
+    const body = await api.json<{ live: boolean; speech: boolean }>(
+      "/api/voice/config",
+    );
+    expect(body.speech).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  createAuraOutput,
   createSpeechInput,
   createSpeechOutput,
   takeSpeakablePhrases,
@@ -35,13 +36,22 @@ export function useVoice({
   onFinalAnswer,
   sessionStartedAt,
   voiceProfile = NEUTRAL_VOICE,
+  personaId = "",
 }: {
   enabled: boolean;
   onFinalAnswer: (text: string) => void;
   /** Epoch ms the session began. All timings are offsets from this. */
   sessionStartedAt: number;
-  /** The interviewer archetype's delivery. Arrives with the session. */
+  /**
+   * The interviewer archetype's delivery through the browser synthesiser.
+   * Only reached when the server has no Deepgram key.
+   */
   voiceProfile?: VoiceProfile;
+  /**
+   * Which interviewer is speaking. Sent to the server, which owns the mapping
+   * from a person to a voice — the client never names a model.
+   */
+  personaId?: string;
 }) {
   /**
    * Null until the server has said whether live transcription is configured.
@@ -49,12 +59,16 @@ export function useVoice({
    * back to the browser when a better option was available.
    */
   const [live, setLive] = useState<boolean | null>(null);
+  /** Whether the interviewer speaks with a real voice or the browser's. */
+  const [aura, setAura] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     fetchVoiceConfig()
       .then((config) => {
-        if (!cancelled) setLive(config.live && deepgramInputSupported());
+        if (cancelled) return;
+        setLive(config.live && deepgramInputSupported());
+        setAura(config.speech);
       })
       // A failure here means browser speech, which is the safe default.
       .catch(() => {
@@ -72,8 +86,17 @@ export function useVoice({
   // Rebuilt when the profile changes, which happens once — when the session
   // reports which interviewer it gave you.
   const output = useMemo(
-    () => createSpeechOutput("en-US", voiceProfile),
-    [voiceProfile.rate, voiceProfile.pitch, voiceProfile.prefer.join(",")],
+    () =>
+      aura
+        ? createAuraOutput(personaId, voiceProfile)
+        : createSpeechOutput("en-US", voiceProfile),
+    [
+      aura,
+      personaId,
+      voiceProfile.rate,
+      voiceProfile.pitch,
+      voiceProfile.prefer.join(","),
+    ],
   );
 
   const [listening, setListening] = useState(false);
@@ -118,6 +141,10 @@ export function useVoice({
 
   const enqueue = useCallback(
     (phrase: string) => {
+      // A phrase queued behind another is fetched now rather than when its
+      // turn comes, so the round trip overlaps with the sentence still
+      // playing. Without this every sentence boundary is a half-second gap.
+      if (outstanding.current > 0) output.prime?.(phrase);
       outstanding.current += 1;
       setSpeaking(true);
       queue.current = queue.current

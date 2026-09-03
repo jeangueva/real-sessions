@@ -84,10 +84,19 @@ export interface CandidateProfile {
 
 export interface Persona {
   id: string;
+  /** The archetype, e.g. "The skeptic". */
   label: string;
+  /** Their name — said out loud in the interview's first turn. */
+  name: string;
+  title: string;
+  initials: string;
   summary: string;
   behaviour: string;
-  voice: { rate: number; pitch: number; prefer: string[] };
+  voice: {
+    model: string;
+    /** Browser-synthesiser settings, used only when Aura is unavailable. */
+    fallback: { rate: number; pitch: number; prefer: string[] };
+  };
 }
 
 export interface Role {
@@ -206,7 +215,11 @@ async function postStream(
   body: unknown,
   handlers: {
     onDelta: (text: string) => void;
-    onSession?: (sessionId: string, persona: Persona) => void;
+    onSession?: (
+      sessionId: string,
+      persona: Persona,
+      running: RunningContext,
+    ) => void;
   },
 ): Promise<InterviewerTurn> {
   let response: Response;
@@ -254,8 +267,12 @@ async function postStream(
         if (event?.name === "delta") {
           handlers.onDelta((event.data as { text: string }).text);
         } else if (event?.name === "session") {
-          const payload = event.data as { sessionId: string; persona: Persona };
-          handlers.onSession?.(payload.sessionId, payload.persona);
+          const payload = event.data as {
+            sessionId: string;
+            persona: Persona;
+            context: RunningContext;
+          };
+          handlers.onSession?.(payload.sessionId, payload.persona, payload.context);
         } else if (event?.name === "turn") {
           turn = (event.data as { turn: InterviewerTurn }).turn;
         } else if (event?.name === "error") {
@@ -291,13 +308,32 @@ function readFrame(frame: string): { name: string; data: unknown } | null {
   }
 }
 
+/**
+ * What the interview is actually running against.
+ *
+ * Not the same thing as what was requested: the free plan replaces the chosen
+ * employer with a generic one, and the screen has to say which it got.
+ */
+export interface RunningContext {
+  companyName: string;
+  targetRole: string;
+  interviewStage: string;
+  industry: string;
+  /** True when the employer was replaced — a role interview, not a company one. */
+  generic: boolean;
+}
+
 /** Streaming start. Resolves with the finished turn once the stream closes. */
 export function startSessionStream(
   context: InterviewContext,
   options: { mode: SessionMode; personaId: string },
   handlers: {
     onDelta: (text: string) => void;
-    onSession: (sessionId: string, persona: Persona) => void;
+    onSession: (
+      sessionId: string,
+      persona: Persona,
+      running: RunningContext,
+    ) => void;
   },
 ) {
   return withIdentity(() =>
@@ -512,7 +548,9 @@ export function deleteAccount(email: string) {
 }
 
 export function fetchVoiceConfig() {
-  return request<{ live: boolean }>("/api/voice/config", { method: "GET" });
+  return request<{ live: boolean; speech: boolean }>("/api/voice/config", {
+    method: "GET",
+  });
 }
 
 export interface Subscription {

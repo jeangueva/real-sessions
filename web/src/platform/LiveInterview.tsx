@@ -14,6 +14,7 @@ import type {
   CoachTip,
   InterviewerTurn,
   Persona,
+  RunningContext,
   SessionMode,
 } from "@/lib/api";
 import { NEUTRAL_VOICE } from "@/lib/voice";
@@ -66,6 +67,12 @@ export function LiveInterview() {
   const [error, setError] = useState<string | null>(null);
   const [voiceOn, setVoiceOn] = useState(false);
   const [persona, setPersona] = useState<Persona | null>(null);
+  /**
+   * What the server is actually interviewing against. Null until the session
+   * event lands, which is why the header falls back to the requested values —
+   * for the second before it arrives, they are the best guess available.
+   */
+  const [running, setRunning] = useState<RunningContext | null>(null);
   const [tips, setTips] = useState<CoachTip[]>([]);
   const [coaching, setCoaching] = useState(false);
   /** True once the coach has answered for the turn currently on screen. */
@@ -84,7 +91,10 @@ export function LiveInterview() {
     enabled: voiceOn,
     onFinalAnswer: (text) => submitRef.current(text),
     sessionStartedAt: startedAt.current,
-    voiceProfile: persona?.voice ?? NEUTRAL_VOICE,
+    voiceProfile: persona?.voice.fallback ?? NEUTRAL_VOICE,
+    // The assigned interviewer, not the requested one — on the free plan the
+    // server picks, and the voice has to match whoever actually showed up.
+    personaId: persona?.id ?? personaId,
   });
 
   useEffect(() => {
@@ -105,11 +115,14 @@ export function LiveInterview() {
       {
         // The session id arrives first so a mid-stream failure is still
         // recoverable — the interview exists server-side either way.
-        onSession: (id, assigned) => {
+        onSession: (id, assigned, resolved) => {
           setSessionId(id);
           // The server decides which archetype you get when none was picked,
           // so the voice profile has to come back rather than be assumed.
           setPersona(assigned);
+          // And which employer, if any. On the free plan it replaced the one
+          // that was picked, and the header must not keep claiming otherwise.
+          setRunning(resolved);
         },
         onDelta: (chunk) => {
           setStreaming((current) => current + chunk);
@@ -205,8 +218,16 @@ export function LiveInterview() {
   return (
     <>
       <PageHeader
-        title={`${company} · ${stage}`}
-        meta={role}
+        title={
+          running?.generic
+            ? `${running.targetRole} · ${running.interviewStage}`
+            : `${running?.companyName ?? company} · ${running?.interviewStage ?? stage}`
+        }
+        meta={
+          running?.generic
+            ? "General role interview · targeting a company is on the paid plan"
+            : (running?.targetRole ?? role)
+        }
         actions={
           <div className="flex items-center gap-3">
             {voice.supported && (
@@ -224,7 +245,20 @@ export function LiveInterview() {
                 Voice {voiceOn ? "on" : "off"}
               </button>
             )}
-            {persona && <Badge>{persona.label}</Badge>}
+            {persona && (
+              <span className="flex items-center gap-2 rounded-full border border-line py-1 pl-1 pr-3">
+                <span
+                  aria-hidden
+                  className="grid h-7 w-7 place-items-center rounded-full bg-cream/10 text-[11px] font-semibold tracking-wide text-cream-bright"
+                >
+                  {persona.initials}
+                </span>
+                <span className="text-xs leading-tight">
+                  <span className="block text-cream-bright">{persona.name}</span>
+                  <span className="block text-cream-dim">{persona.title}</span>
+                </span>
+              </span>
+            )}
             <Badge>{mode === "real" ? "Real" : "Practice"}</Badge>
             <Badge tone={busy ? "live" : "neutral"}>
               {busy && !turn && !streaming

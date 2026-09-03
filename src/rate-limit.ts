@@ -24,6 +24,12 @@ export const RULES = {
   startSession: { limit: 12, windowMs: 60 * 60 * 1000 },
   /** Normal conversation pace, with headroom for retries. */
   answer: { limit: 120, windowMs: 60 * 60 * 1000 },
+  /**
+   * One request per spoken sentence, so a seven-turn interview costs about
+   * thirty. Set high enough that a long session never trips it and low enough
+   * that a script cannot bill the Deepgram account by the hour.
+   */
+  speech: { limit: 400, windowMs: 60 * 60 * 1000 },
   /** The single most expensive call in the product. */
   evaluation: { limit: 20, windowMs: 60 * 60 * 1000 },
   /** Sign-up, per IP. Generous for a shared office, tight for a script. */

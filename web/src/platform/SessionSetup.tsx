@@ -153,25 +153,34 @@ export function SessionSetup() {
             <ChoiceField label="Stage" options={STAGES} value={stage} onChange={setStage} />
 
             <Field
-              label="Interviewer"
+              label="Who interviews you"
               hint={
                 !can?.choosePersona
-                  ? "Each company has a default temperament. Choosing your own is part of the paid plan."
-                  : (personas.find((p) => p.id === personaId)?.summary ??
-                    "Leave it and you get the one this company implies.")
+                  ? "Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
+                  : "Six people, six temperaments, six voices. The same answer does not land the same way with each."
               }
             >
-              <div role="radiogroup" aria-label="Interviewer" className="flex flex-wrap gap-2">
-                <Pill
-                  label="Company default"
+              <div
+                role="radiogroup"
+                aria-label="Interviewer"
+                className="grid gap-2"
+              >
+                <InterviewerCard
+                  initials="?"
+                  name="Company default"
+                  title="Whoever this company would send"
+                  summary="Stripe sends a skeptic. Airbnb sends a host."
                   selected={personaId === ""}
                   onSelect={() => setPersonaId("")}
                   disabled={can ? !can.choosePersona : false}
                 />
                 {personas.map((entry) => (
-                  <Pill
+                  <InterviewerCard
                     key={entry.id}
-                    label={entry.label}
+                    initials={entry.initials}
+                    name={entry.name}
+                    title={entry.title}
+                    summary={entry.summary}
                     selected={personaId === entry.id}
                     onSelect={() => setPersonaId(entry.id)}
                     disabled={can ? !can.choosePersona : false}
@@ -248,6 +257,74 @@ export function SessionSetup() {
 }
 
 /** One option in a pill group. */
+
+/**
+ * One interviewer in the roster.
+ *
+ * Deliberately a card and not a pill: these are people, and a row of pills
+ * reading "The skeptic / The warm host" reads as a tone setting rather than as
+ * choosing who is across the table. The name and the job are what the
+ * interviewer says out loud in their first sentence, so they belong here.
+ */
+function InterviewerCard({
+  initials,
+  name,
+  title,
+  summary,
+  selected,
+  onSelect,
+  disabled = false,
+}: {
+  initials: string;
+  name: string;
+  title: string;
+  summary: string;
+  selected: boolean;
+  onSelect: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      role="radio"
+      aria-checked={selected}
+      aria-disabled={disabled}
+      disabled={disabled}
+      onClick={onSelect}
+      className={`focus-ring flex items-start gap-3 rounded-2xl border p-3 text-left transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
+        selected
+          ? "border-cream bg-cream text-black"
+          : "border-line text-cream-dim hover:text-cream-bright"
+      }`}
+    >
+      <span
+        aria-hidden
+        className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-semibold tracking-wide ${
+          selected ? "bg-black/10 text-black" : "bg-cream/10 text-cream-bright"
+        }`}
+      >
+        {initials}
+      </span>
+      <span className="min-w-0">
+        <span
+          className={`block text-sm font-medium ${selected ? "text-black" : "text-cream-bright"}`}
+        >
+          {name}
+        </span>
+        <span className={`block text-xs ${selected ? "text-black/70" : "text-cream-dim"}`}>
+          {title}
+        </span>
+        <span
+          className={`mt-1 block text-xs leading-snug ${
+            selected ? "text-black/70" : "text-cream-dim"
+          }`}
+        >
+          {summary}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function Pill({
   label,
   selected,

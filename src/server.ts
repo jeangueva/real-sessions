@@ -161,6 +161,13 @@ import {
   type SubscriptionStore,
 } from "./billing/store.js";
 import { deepgramConfigured } from "./voice/deepgram.js";
+import {
+  MAX_SPEECH_CHARS,
+  SPEECH_MIME,
+  SpeechError,
+  synthesize,
+  ttsConfigured,
+} from "./voice/tts.js";
 import { writeBrief, BriefError } from "./brief.js";
 import {
   createUserStore,
@@ -379,6 +386,31 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> 
  * the frontend was taught about it separately — two lists to keep in step, and
  * a silent downgrade when they drifted.
  */
+/**
+ * The part of a resolved context the interview screen displays.
+ *
+ * `readContext` can replace what the client asked for — a free session runs
+ * against a generic employer whatever company was picked — so the screen has
+ * to render what the interview is actually about rather than what was
+ * requested. `generic` is what lets it say so out loud instead of quietly
+ * printing a different name than the one the candidate chose.
+ */
+function shown(context: InterviewContext): {
+  companyName: string;
+  targetRole: string;
+  interviewStage: string;
+  industry: string;
+  generic: boolean;
+} {
+  return {
+    companyName: context.companyName,
+    targetRole: context.targetRole,
+    interviewStage: context.interviewStage,
+    industry: context.industry,
+    generic: context.companyName === GENERIC_COMPANY,
+  };
+}
+
 function readContext(
   body: Record<string, unknown>,
   targetCompany = true,
@@ -951,7 +983,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // Deliberately in front of the authentication gate: it is asked before the
     // microphone is opened, the answer is identical for everyone, and making
     // it authenticated cost a 401 on the first call of every session.
-    json(res, 200, { live: deepgramConfigured() });
+    json(res, 200, { live: deepgramConfigured(), speech: ttsConfigured() });
     return;
   }
 
@@ -1147,6 +1179,54 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // just happened, including how long the paid period still runs.
     const resolved = await reconcileSubscription(held.externalId);
     json(res, 200, { plan: resolved ?? "free" });
+    return;
+  }
+
+  /**
+   * The interviewer's voice.
+   *
+   * The client sends a persona, never a model: which voice that maps to is a
+   * server decision, so a caller cannot point the account's Deepgram key at an
+   * arbitrary voice — or at arbitrary text, since the length cap lives here too.
+   *
+   * Failure is answered honestly rather than papered over. A 5xx tells the
+   * client to stop asking and fall back to the browser synthesiser for the rest
+   * of the session; retrying every sentence against a provider that is down
+   * would leave the interview stuttering into silence.
+   */
+  if (req.method === "POST" && path === "/api/voice/speak") {
+    if (!ttsConfigured()) return json(res, 503, { error: "Speech is not configured." });
+    if (await limited(res, `speech:${identity.id}`, RULES.speech)) return;
+
+    const body = await readJson(req);
+    const text = typeof body["text"] === "string" ? body["text"].trim() : "";
+    if (text === "") return json(res, 400, { error: "text is required." });
+    if (text.length > MAX_SPEECH_CHARS) {
+      return json(res, 400, { error: "Phrase too long." });
+    }
+
+    const persona = findPersona(
+      typeof body["personaId"] === "string" ? body["personaId"] : null,
+    );
+
+    try {
+      const audio = await synthesize(text, persona.voice.model);
+      res.writeHead(200, {
+        "Content-Type": SPEECH_MIME,
+        "Content-Length": String(audio.byteLength),
+        // Same phrase, same voice, same bytes — but a transcript is what the
+        // candidate said around it, so this stays out of shared caches.
+        "Cache-Control": "private, max-age=3600",
+      });
+      res.end(Buffer.from(audio));
+    } catch (error) {
+      // 502 whatever went wrong: from the client's side a bad key, a timeout
+      // and a provider outage all mean the same thing — use the browser voice.
+      console.error("[realsessions] speak failed:", error);
+      // The provider's own message can carry account detail, so it is logged
+      // and not returned.
+      json(res, 502, { error: "Could not synthesize speech." });
+    }
     return;
   }
 
@@ -1366,7 +1446,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     if (wantsStream(req)) {
       openStream(res);
-      sendEvent(res, "session", { sessionId, persona });
+      // The context goes back, not just the id. On the free plan the employer
+      // the client asked for was replaced above, and a header still reading
+      // "Stripe" would tell a free candidate they rehearsed against Stripe.
+      sendEvent(res, "session", { sessionId, persona, context: shown(context) });
       const turn = await session.startStream((chunk) =>
         sendEvent(res, "delta", { text: chunk }),
       );
@@ -1378,7 +1461,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const turn = await session.start();
     await persist();
-    json(res, 201, { sessionId, turn, persona });
+    json(res, 201, { sessionId, turn, persona, context: shown(context) });
     return;
   }
 

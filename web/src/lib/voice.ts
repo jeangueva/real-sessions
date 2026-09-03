@@ -34,6 +34,12 @@ export interface SpeechOutput {
    * It never rejects: one failed phrase must not break the queue behind it.
    */
   speak(text: string): Promise<"ok" | "blocked" | "error">;
+  /**
+   * Optional hint that `text` will be spoken soon. Implementations that fetch
+   * audio use it to overlap the network with the phrase already playing; the
+   * browser synthesiser has nothing to prefetch and does not implement it.
+   */
+  prime?(text: string): void;
   cancel(): void;
   readonly speaking: boolean;
 }
@@ -189,6 +195,30 @@ export interface VoiceProfile {
 /** Used until a session reports its interviewer's profile. */
 export const NEUTRAL_VOICE: VoiceProfile = { rate: 0.96, pitch: 1, prefer: [] };
 
+/**
+ * Voices that are jokes, not people.
+ *
+ * macOS ships a couple of dozen novelty voices — Zarvox, Bubbles, Bad News —
+ * in the same list as Samantha and Daniel, and they sort near the top
+ * alphabetically. Without this the last-resort `pool[0]` picks "Albert", and a
+ * candidate rehearsing for a job interview gets a cartoon frog. Matched as
+ * substrings, and against the localised names Chrome reports, because macOS
+ * translates them.
+ */
+const NOVELTY = [
+  "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos",
+  "good news", "jester", "junior", "kathy", "organ", "superstar", "trinoids",
+  "whisper", "wobble", "zarvox", "ralph", "fred",
+  // Spanish-localised names, as reported by Chrome on a Spanish system.
+  "malas noticias", "buenas noticias", "burbujas", "campanas", "bufón",
+  "órgano", "violonchelos", "superestrella", "susurro",
+];
+
+function isNovelty(name: string): boolean {
+  const lower = name.toLowerCase();
+  return NOVELTY.some((bad) => lower.includes(bad));
+}
+
 export function createSpeechOutput(
   lang = "en-US",
   profile: VoiceProfile = NEUTRAL_VOICE,
@@ -214,7 +244,11 @@ export function createSpeechOutput(
     const english = voices.filter((voice) =>
       voice.lang.startsWith(lang.split("-")[0]!),
     );
-    const pool = english.length > 0 ? english : voices;
+    const candidates = english.length > 0 ? english : voices;
+    // Novelty voices are dropped before anything else looks at the list, so
+    // neither a persona preference nor the last-resort pick can reach one.
+    const serious = candidates.filter((voice) => !isNovelty(voice.name));
+    const pool = serious.length > 0 ? serious : candidates;
 
     // The persona's preferred names first. Installed voices differ by OS,
     // browser and language pack, so this is a preference and never a
@@ -305,4 +339,137 @@ export function takeSpeakablePhrases(buffer: string): {
   }
 
   return { phrases, rest };
+}
+
+/* -------------------------------------------------------------------------
+ * Aura — the interviewer's real voice.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Speaks through the server's Deepgram proxy, falling back to the browser.
+ *
+ * The fallback is permanent once it triggers, and that is deliberate. If the
+ * provider is down, retrying every sentence turns the interview into a series
+ * of two-second silences; switching once and staying switched keeps the
+ * conversation moving with a worse voice, which is the better failure.
+ *
+ * The first phrase of a turn costs a round trip (~500ms to first byte). Every
+ * phrase after it is fetched while the previous one is still playing, so the
+ * gap between sentences is the network only when the model out-writes the
+ * speaker — which it does not, at 40 words a turn.
+ */
+export function createAuraOutput(
+  personaId: string,
+  fallbackProfile: VoiceProfile = NEUTRAL_VOICE,
+  lang = "en-US",
+): SpeechOutput {
+  const fallback = createSpeechOutput(lang, fallbackProfile);
+  let degraded = false;
+
+  /**
+   * Phrases already being fetched, keyed by their text so `prime` and `speak`
+   * share one request. Bounded: a turn is under 40 words, so more than three
+   * outstanding means something is wrong, and an unbounded map here would let a
+   * runaway stream fire a request per sentence.
+   */
+  const inflight = new Map<string, Promise<Blob | null>>();
+  const MAX_PREFETCH = 3;
+  let current: HTMLAudioElement | null = null;
+  let playing = false;
+
+  const fetchAudio = async (text: string): Promise<Blob | null> => {
+    try {
+      const response = await fetch("/api/voice/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ text, personaId }),
+      });
+      if (!response.ok) return null;
+      return await response.blob();
+    } catch {
+      return null;
+    }
+  };
+
+  const take = (text: string): Promise<Blob | null> => {
+    const pending = inflight.get(text);
+    if (pending) {
+      inflight.delete(text);
+      return pending;
+    }
+    return fetchAudio(text);
+  };
+
+  const play = (blob: Blob): Promise<"ok" | "blocked" | "error"> =>
+    new Promise((resolve) => {
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      current = audio;
+      playing = true;
+
+      const done = (result: "ok" | "blocked" | "error") => {
+        URL.revokeObjectURL(url);
+        if (current === audio) {
+          current = null;
+          playing = false;
+        }
+        resolve(result);
+      };
+
+      audio.onended = () => done("ok");
+      audio.onerror = () => done("error");
+      // Autoplay is refused until the page has had a trusted user gesture,
+      // exactly as `speechSynthesis` is — reported, never swallowed, because a
+      // silent interviewer looks like a broken product.
+      audio.play().catch(() => done("blocked"));
+    });
+
+  return {
+    supported: true,
+    get speaking() {
+      return degraded ? fallback.speaking : playing;
+    },
+
+    /** Starts fetching a phrase that is not its turn to play yet. */
+    prime(text: string) {
+      if (degraded) return;
+      const trimmed = text.trim();
+      if (trimmed === "") return;
+      if (inflight.has(trimmed) || inflight.size >= MAX_PREFETCH) return;
+      inflight.set(trimmed, fetchAudio(trimmed));
+    },
+
+    async speak(text) {
+      const trimmed = text.trim();
+      if (trimmed === "") return "ok";
+      if (degraded) return fallback.speak(trimmed);
+
+      const blob = await take(trimmed);
+      if (!blob || blob.size === 0) {
+        // One failure is enough: from here on this session uses the browser.
+        degraded = true;
+        return fallback.speak(trimmed);
+      }
+
+      const result = await play(blob);
+      // "blocked" is the browser's autoplay policy, not the provider — falling
+      // back would hit the same wall, so it is reported as-is.
+      if (result === "error") {
+        degraded = true;
+        return fallback.speak(trimmed);
+      }
+      return result;
+    },
+
+    cancel() {
+      inflight.clear();
+      if (current) {
+        current.pause();
+        current = null;
+      }
+      playing = false;
+      fallback.cancel();
+    },
+  };
 }
