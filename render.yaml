@@ -90,6 +90,12 @@ services:
         sync: false
       - key: MERCADOPAGO_CURRENCY
         sync: false
+      # The opt-in for charging real money. A token starting with "TEST-" needs
+      # nothing here. Any other token is assumed to be production, and the
+      # checkout answers 503 until this is exactly "1" — so credentials left
+      # behind after a test cannot quietly bill the first real candidate.
+      - key: MERCADOPAGO_LIVE
+        sync: false
 
       # Unset: nobody can verify contributed questions, so none reach an
       # interview. Comma-separated account emails.

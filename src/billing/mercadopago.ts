@@ -46,6 +46,58 @@ export function mercadoPagoConfigured(): boolean {
   return Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
 }
 
+/**
+ * Mercado Pago's test access tokens carry this prefix; production ones do not.
+ *
+ * Worth being precise about what this can and cannot tell you. A `TEST-` token
+ * cannot move real money, so seeing it is a reliable *all clear*. The absence
+ * of it is not proof of the opposite — a token minted for a sandbox test user
+ * looks exactly like a production one — which is why the check below treats
+ * "not obviously test" as "assume real money" and asks for an explicit answer
+ * rather than guessing.
+ */
+export const TEST_TOKEN_PREFIX = "TEST-";
+
+/** True when the configured token demonstrably cannot charge anyone. */
+export function usesTestCredentials(
+  token = process.env.MERCADOPAGO_ACCESS_TOKEN,
+): boolean {
+  return Boolean(token?.startsWith(TEST_TOKEN_PREFIX));
+}
+
+/** The operator's explicit "yes, this deployment charges real money". */
+export function liveBillingEnabled(): boolean {
+  return process.env.MERCADOPAGO_LIVE === "1";
+}
+
+/**
+ * Why checkout is refused, or null when it may proceed.
+ *
+ * The failure this exists to prevent is quiet and expensive: production
+ * credentials pasted into a staging deployment, or left behind after a test,
+ * and the first real candidate who clicks Upgrade is charged for real. Nothing
+ * in the flow would look wrong — Mercado Pago would do exactly what it was
+ * asked.
+ *
+ * So real-money billing is opt-in rather than a side effect of which token
+ * happens to be set. A `TEST-` token needs no opt-in: it cannot charge anyone,
+ * and making the sandbox harder to run than production would push people
+ * towards testing against production.
+ *
+ * Deliberately not applied to the webhook. That route only reads a status back
+ * and reconciles it, and refusing there would strand someone who is already
+ * paying — the opposite of the harm being prevented.
+ */
+export function checkoutBlockReason(): string | null {
+  if (usesTestCredentials()) return null;
+  if (liveBillingEnabled()) return null;
+  return (
+    "Live billing is not enabled on this deployment. The configured Mercado " +
+    "Pago token is not a test token, so a checkout here would charge real " +
+    "money. Set MERCADOPAGO_LIVE=1 to allow it, or use test credentials."
+  );
+}
+
 export interface PlanConfig {
   /** Amount per period, in the currency of the Mercado Pago account. */
   amount: number;

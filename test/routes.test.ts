@@ -438,6 +438,43 @@ describe("billing", () => {
     expect(response.status).toBe(503);
   });
 
+  it("refuses a checkout that would charge real money without an opt-in", async () => {
+    // Fully configured, priced, and still refused: the token is not a test one
+    // and nobody has said this deployment may take money.
+    const before = { ...process.env };
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+    delete process.env.MERCADOPAGO_LIVE;
+    try {
+      const response = await api.call("/api/billing/checkout", post({}));
+      expect(response.status).toBe(503);
+      expect(((await response.json()) as { error: string }).error).toContain(
+        "MERCADOPAGO_LIVE",
+      );
+
+      // And the UI is told, so it hides the button rather than offering one
+      // that fails.
+      const state = await api.json<{ configured: boolean }>("/api/billing");
+      expect(state.configured).toBe(false);
+    } finally {
+      process.env = before;
+    }
+  });
+
+  it("reports itself configured once a test token is in place", async () => {
+    const before = { ...process.env };
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+    try {
+      const state = await api.json<{ configured: boolean }>("/api/billing");
+      expect(state.configured).toBe(true);
+    } finally {
+      process.env = before;
+    }
+  });
+
   it("has nothing to cancel before anyone subscribes", async () => {
     expect((await api.call("/api/billing/cancel", post({}))).status).toBe(404);
   });

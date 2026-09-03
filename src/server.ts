@@ -149,6 +149,7 @@ import { ROLES, roleIdFor } from "./roles.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
+  checkoutBlockReason,
   createPreapproval,
   fetchPreapproval,
   grantsAccess,
@@ -1055,7 +1056,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   };
 
   if (req.method === "GET" && path === "/api/billing") {
-    const configured = mercadoPagoConfigured() && planConfig() !== null;
+    // `configured` is what the UI branches on to show the upgrade button, so
+    // a deployment that would refuse the checkout reports itself unconfigured
+    // rather than offering a button that 503s.
+    const configured =
+      mercadoPagoConfigured() && planConfig() !== null && checkoutBlockReason() === null;
     json(res, 200, {
       configured,
       plan: planConfig(),
@@ -1134,6 +1139,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 503, {
         error: "Payments are not configured on this deployment yet.",
       });
+    }
+    // Checked here rather than at boot: a deployment with the wrong token
+    // should still serve interviews, it just must not take anyone's money.
+    const blocked = checkoutBlockReason();
+    if (blocked) {
+      console.error("[realsessions] checkout refused:", blocked);
+      return json(res, 503, { error: blocked });
     }
     if (plan === "premium") {
       return json(res, 409, { error: "You are already on the paid plan." });
