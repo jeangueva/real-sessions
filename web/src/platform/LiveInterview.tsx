@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Lightbulb, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
-import { Action, Badge, Panel } from "@/design-system";
+import { Action, Badge, Panel, Waveform } from "@/design-system";
 import { useVoice } from "@/hooks/useVoice";
 import { PageBody, PageHeader } from "./AppShell";
 import {
@@ -18,6 +18,7 @@ import type {
   SessionMode,
 } from "@/lib/api";
 import { NEUTRAL_VOICE } from "@/lib/voice";
+import { resumeAudio } from "@/lib/audio-level";
 
 interface SetupState {
   company?: string;
@@ -156,6 +157,9 @@ export function LiveInterview() {
       return;
     }
     setVoiceOn(true);
+    // The same click starts the audio graph. Without it the analyser stays
+    // suspended and the waveform never sees the interviewer's voice.
+    resumeAudio();
     // This click is the trusted gesture Chrome requires before it will speak,
     // and the turn already on screen arrived before any gesture existed — so
     // it can only be spoken from here.
@@ -275,7 +279,22 @@ export function LiveInterview() {
       <PageBody className="flex flex-1 flex-col gap-8 lg:flex-row lg:gap-10">
         <div className="flex flex-1 flex-col justify-between gap-8">
           <div className="w-full">
-            <p className="text-xs text-cream-faint">Interviewer</p>
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-cream-faint">Interviewer</p>
+              {voiceOn && (
+                <Waveform
+                  active={voice.speaking}
+                  level={voice.voiceLevel}
+                  measured={voice.voiceMeasured()}
+                  label={
+                    voice.speaking
+                      ? `${persona?.name ?? "The interviewer"} is speaking`
+                      : "The interviewer is not speaking"
+                  }
+                  className="text-cream-bright"
+                />
+              )}
+            </div>
             {/* The reveal is the model actually generating, not a timed effect.
                 aria-live announces the finished turn once, rather than
                 re-reading the sentence on every token. */}
@@ -355,9 +374,18 @@ export function LiveInterview() {
                   className="focus-ring w-full resize-none bg-transparent text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50 sm:text-base"
                 />
                 {voiceOn && voice.listening && (
-                  <p className="text-sm text-cream-dim" aria-live="polite">
-                    {voice.transcript || "Listening…"}
-                  </p>
+                  <div className="flex items-start gap-3">
+                    <Waveform
+                      active
+                      level={voice.micLevel}
+                      measured={voice.micMeasured()}
+                      label="Your microphone is picking you up"
+                      className="mt-0.5 shrink-0 text-cream-bright"
+                    />
+                    <p className="text-sm text-cream-dim" aria-live="polite">
+                      {voice.transcript || "Listening…"}
+                    </p>
+                  </div>
                 )}
                 {voice.error && (
                   <p role="alert" className="text-xs text-cream-bright">

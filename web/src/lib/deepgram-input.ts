@@ -10,6 +10,8 @@
  * Chrome. It costs a network round trip and an API key.
  */
 import type { SpeechInput } from "./voice";
+import { meterFromStream, UNMEASURED } from "./audio-level";
+import type { LevelMeter } from "./audio-level";
 
 /** Matches the close codes the gateway sends. */
 const CLOSE_UNAVAILABLE = 4001;
@@ -62,6 +64,7 @@ export function createDeepgramInput(): SpeechInput {
     return {
       supported: false,
       listening: false,
+      meter: UNMEASURED,
       start: () => undefined,
       stop: () => undefined,
     };
@@ -71,6 +74,11 @@ export function createDeepgramInput(): SpeechInput {
   let recorder: MediaRecorder | null = null;
   let stream: MediaStream | null = null;
   let listening = false;
+  /**
+   * Reads the same track the recorder is sending up, so the bars on screen
+   * and the words Deepgram receives are the same audio.
+   */
+  let meter: LevelMeter = UNMEASURED;
 
   /**
    * Finalised text, kept apart from the interim tail.
@@ -84,6 +92,8 @@ export function createDeepgramInput(): SpeechInput {
 
   const teardown = () => {
     listening = false;
+    meter.stop();
+    meter = UNMEASURED;
     recorder?.state !== "inactive" && recorder?.stop();
     recorder = null;
     // Releasing the tracks is what turns off the browser's recording
@@ -96,6 +106,9 @@ export function createDeepgramInput(): SpeechInput {
 
   return {
     supported: true,
+    get meter() {
+      return meter;
+    },
     get listening() {
       return listening;
     },
@@ -180,6 +193,7 @@ export function createDeepgramInput(): SpeechInput {
               return;
             }
             stream = granted;
+            meter = meterFromStream(granted);
             const media = new MediaRecorder(granted, { mimeType: mime });
             media.ondataavailable = (event) => {
               if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {

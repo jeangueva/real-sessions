@@ -14,8 +14,16 @@
  *    remain a first-class path rather than a fallback nobody maintains.
  */
 
+import { meterFromElement, UNMEASURED } from "./audio-level";
+import type { LevelMeter } from "./audio-level";
+
 export interface SpeechInput {
   readonly supported: boolean;
+  /**
+   * Loudness of what the microphone is hearing. `UNMEASURED` until listening
+   * starts, and for implementations with no audio node to tap.
+   */
+  readonly meter?: LevelMeter;
   /** Begins listening. `onInterim` fires as words are recognised. */
   start(handlers: {
     onInterim: (text: string) => void;
@@ -28,6 +36,11 @@ export interface SpeechInput {
 
 export interface SpeechOutput {
   readonly supported: boolean;
+  /**
+   * Loudness of the voice coming out. `UNMEASURED` for the browser
+   * synthesiser, which exposes no audio node to attach to.
+   */
+  readonly meter?: LevelMeter;
   /**
    * Speaks a phrase. Resolves with `"blocked"` when the browser refused for
    * lack of a user gesture, `"error"` for anything else, `"ok"` otherwise.
@@ -101,6 +114,7 @@ export function createSpeechInput(lang = "en-US"): SpeechInput {
     return {
       supported: false,
       listening: false,
+      meter: UNMEASURED,
       start: () => undefined,
       stop: () => undefined,
     };
@@ -126,6 +140,9 @@ export function createSpeechInput(lang = "en-US"): SpeechInput {
 
   return {
     supported: true,
+    // Chrome's SpeechRecognition owns the microphone internally and hands out
+    // no stream, so there is nothing here to measure.
+    meter: UNMEASURED,
     get listening() {
       return listening;
     },
@@ -229,6 +246,7 @@ export function createSpeechOutput(
     return {
       supported: false,
       speaking: false,
+      meter: UNMEASURED,
       speak: async () => "error" as const,
       cancel: () => undefined,
     };
@@ -271,6 +289,9 @@ export function createSpeechOutput(
 
   return {
     supported: true,
+    // `speechSynthesis` renders straight to the output device; there is no
+    // node to attach an analyser to.
+    meter: UNMEASURED,
     get speaking() {
       return synth.speaking;
     },
@@ -376,6 +397,12 @@ export function createAuraOutput(
   const MAX_PREFETCH = 3;
   let current: HTMLAudioElement | null = null;
   let playing = false;
+  /**
+   * The meter for the phrase in the air. Rebuilt per element, because
+   * `createMediaElementSource` accepts a given element exactly once and this
+   * output creates one per sentence.
+   */
+  let live: LevelMeter = UNMEASURED;
 
   const fetchAudio = async (text: string): Promise<Blob | null> => {
     try {
@@ -407,12 +434,24 @@ export function createAuraOutput(
       const audio = new Audio(url);
       current = audio;
       playing = true;
+      live.stop();
+      live = UNMEASURED;
+      // Attached on `playing`, not before it. `captureStream` hands back a
+      // stream with no audio track until the element is actually playing, so
+      // metering at construction time silently produces a dead meter.
+      audio.onplaying = () => {
+        if (current !== audio) return;
+        live.stop();
+        live = meterFromElement(audio);
+      };
 
       const done = (result: "ok" | "blocked" | "error") => {
         URL.revokeObjectURL(url);
         if (current === audio) {
           current = null;
           playing = false;
+          live.stop();
+          live = UNMEASURED;
         }
         resolve(result);
       };
@@ -429,6 +468,11 @@ export function createAuraOutput(
     supported: true,
     get speaking() {
       return degraded ? fallback.speaking : playing;
+    },
+    get meter() {
+      // Once degraded the browser synthesiser is talking, and it cannot be
+      // measured — so the caller is told, rather than shown a dead meter.
+      return degraded ? UNMEASURED : live;
     },
 
     /** Starts fetching a phrase that is not its turn to play yet. */
@@ -468,6 +512,8 @@ export function createAuraOutput(
         current.pause();
         current = null;
       }
+      live.stop();
+      live = UNMEASURED;
       playing = false;
       fallback.cancel();
     },

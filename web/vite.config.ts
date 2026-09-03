@@ -24,6 +24,8 @@ export default defineConfig({
       ["test/speech-input.test.ts", "node"],
       ["test/use-voice.test.ts", "node"],
       ["test/hero-video.test.ts", "node"],
+      ["test/audio-level.test.ts", "node"],
+      ["test/waveform.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },

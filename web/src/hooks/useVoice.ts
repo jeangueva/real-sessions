@@ -271,5 +271,17 @@ export function useVoice({
     flushSpeech,
     cancelSpeech,
     takeTimings,
+    /**
+     * Live loudness, read once per animation frame by the waveform rather
+     * than held in state — sixty re-renders a second of the interview screen
+     * would be a high price for a transform.
+     *
+     * Functions, not values, for the same reason, and because the underlying
+     * meter is replaced as elements and streams come and go.
+     */
+    micLevel: () => input.meter?.level() ?? 0,
+    micMeasured: () => input.meter?.measured ?? false,
+    voiceLevel: () => output.meter?.level() ?? 0,
+    voiceMeasured: () => output.meter?.measured ?? false,
   };
 }
