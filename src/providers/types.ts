@@ -35,6 +35,16 @@ export interface ChatRequest {
    * the rest, which simply fail as before.
    */
   fallbacks?: string[];
+  /**
+   * Ask the router for the fastest endpoint rather than its default pick.
+   *
+   * Only the live interview sets this. A model served from four providers can
+   * differ by a second in time-to-first-token depending on which one the
+   * router happens to choose, and in a voice conversation that second is the
+   * whole difference between a pause and a stall. The evaluator does not set
+   * it: nobody is waiting on that call, and the default routing is cheaper.
+   */
+  latencyFirst?: boolean;
 }
 
 /** Wall-clock timings. TTFT is what a voice pipeline actually feels. */

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Action, Field, Panel, Eyebrow } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
@@ -92,65 +93,72 @@ export function SessionSetup() {
       />
 
       <PageBody>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <Panel variant="glass" className="flex flex-col gap-6 p-6">
+        {/* Two columns from `xl`: the form takes whatever the viewport has,
+            the briefing sits in a fixed rail beside it. Below that they stack.
+            Everything inside the form scrolls sideways rather than wrapping,
+            so adding a company never pushes the Begin button off-screen. */}
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
             <Eyebrow>Interview setup</Eyebrow>
 
             {can && !can.targetCompany && (
-              <Panel variant="glass" className="flex flex-col gap-3 p-4">
-                <p className="flex items-center gap-2 text-sm text-cream-bright">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cream-dim">
                   <Lock className="h-4 w-4 shrink-0" aria-hidden />
-                  You are on the free plan
+                  <span>
+                    <span className="text-cream-bright">You are on the free plan.</span>{" "}
+                    A general interview for your role, scored honestly. Targeting a
+                    company, your CV and live coaching are on the paid plan.
+                  </span>
                 </p>
-                <p className="text-xs text-cream-dim">
-                  This runs as a general interview for your role — a real one,
-                  scored honestly. Targeting a specific company, uploading your
-                  CV and live coaching are on the paid plan.
-                </p>
-                <Link to="/#early-access" className="self-start">
+                <Link to="/#early-access" className="shrink-0">
                   <Action tone="glass">Six months free</Action>
                 </Link>
-              </Panel>
+              </div>
             )}
 
-            <Field
-              label="Sector"
-              hint={
-                !can?.targetCompany
-                  ? "Choosing a sector is part of the paid plan."
-                  : activeSector
-                    ? `Your interviewer will expect ${activeSector.metrics}.`
-                    : "Sets the vocabulary and the numbers you will be asked for."
-              }
-            >
-              <div role="radiogroup" aria-label="Sector" className="flex flex-wrap gap-2">
-                <Pill
-                  label="All"
-                  selected={sector === ""}
-                  onSelect={() => setSector("")}
-                  disabled={can ? !can.targetCompany : false}
-                />
-                {sectors.map((entry) => (
+            {/* All four on one row from `xl`, two-up below it. Each is a rail,
+                so a long list costs sideways space rather than a fourth row. */}
+            <div className="grid min-w-0 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <Field
+                label="Sector"
+                hint={
+                  !can?.targetCompany
+                    ? "Choosing a sector is part of the paid plan."
+                    : activeSector
+                      ? `Your interviewer will expect ${activeSector.metrics}.`
+                      : "Sets the vocabulary and the numbers you will be asked for."
+                }
+              >
+                <Rail label="Sector">
                   <Pill
-                    key={entry.id}
-                    label={entry.label}
-                    selected={sector === entry.id}
-                    onSelect={() => setSector(entry.id)}
+                    label="All"
+                    selected={sector === ""}
+                    onSelect={() => setSector("")}
                     disabled={can ? !can.targetCompany : false}
                   />
-                ))}
-              </div>
-            </Field>
+                  {sectors.map((entry) => (
+                    <Pill
+                      key={entry.id}
+                      label={entry.label}
+                      selected={sector === entry.id}
+                      onSelect={() => setSector(entry.id)}
+                      disabled={can ? !can.targetCompany : false}
+                    />
+                  ))}
+                </Rail>
+              </Field>
 
-            <ChoiceField
-              label="Company"
-              options={visibleCompanies}
-              value={company}
-              onChange={setCompany}
-              disabled={can ? !can.targetCompany : false}
-            />
-            <ChoiceField label="Target role" options={ROLES} value={role} onChange={setRole} />
-            <ChoiceField label="Stage" options={STAGES} value={stage} onChange={setStage} />
+              <ChoiceField
+                label="Company"
+                options={visibleCompanies}
+                value={company}
+                onChange={setCompany}
+                disabled={can ? !can.targetCompany : false}
+              />
+              <ChoiceField label="Target role" options={ROLES} value={role} onChange={setRole} />
+              <ChoiceField label="Stage" options={STAGES} value={stage} onChange={setStage} />
+            </div>
 
             <Field
               label="Who interviews you"
@@ -160,10 +168,13 @@ export function SessionSetup() {
                   : "Six people, six temperaments, six voices. The same answer does not land the same way with each."
               }
             >
+              {/* A carousel rather than a grid: six cards stacked vertically
+                  is most of a screen, and the choice is a browse, not a form
+                  field. Snap points so a flick lands on a card. */}
               <div
                 role="radiogroup"
                 aria-label="Interviewer"
-                className="grid gap-2"
+                className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2"
               >
                 <InterviewerCard
                   initials="?"
@@ -188,34 +199,35 @@ export function SessionSetup() {
                 ))}
               </div>
             </Field>
-
-            <Field
-              label="Mode"
-              hint={
-                mode === "practice"
-                  ? "Coaching notes appear beside the transcript as you go."
-                  : "No coaching until the end — closer to the real thing, and worth more XP."
-              }
-            >
-              <div role="radiogroup" aria-label="Mode" className="flex flex-wrap gap-2">
-                <Pill
-                  label="Practice"
-                  selected={mode === "practice"}
-                  onSelect={() => setMode("practice")}
-                />
-                <Pill
-                  label="Real"
-                  selected={mode === "real"}
-                  onSelect={() => setMode("real")}
-                />
-              </div>
-            </Field>
           </Panel>
 
-          <div className="flex flex-col justify-between gap-6">
-            <Panel className="p-6">
+          <div className="flex flex-col gap-4">
+            {/* Mode sits with the briefing because it is what the last line of
+                the briefing is describing. */}
+            <Panel className="flex flex-col gap-5 p-6">
+              <Field
+                label="Mode"
+                hint={
+                  mode === "practice"
+                    ? "Coaching notes appear beside the transcript as you go."
+                    : "No coaching until the end — closer to the real thing, and worth more XP."
+                }
+              >
+                <Rail label="Mode">
+                  <Pill
+                    label="Practice"
+                    selected={mode === "practice"}
+                    onSelect={() => setMode("practice")}
+                  />
+                  <Pill
+                    label="Real"
+                    selected={mode === "real"}
+                    onSelect={() => setMode("real")}
+                  />
+                </Rail>
+              </Field>
               <Eyebrow>What to expect</Eyebrow>
-              <ul className="mt-4 flex flex-col gap-3 text-sm text-cream-dim">
+              <ul className="-mt-2 flex flex-col gap-3 text-sm text-cream-dim">
                 <li>
                   The interviewer stays in character. It will not translate a
                   word or correct your grammar mid-interview.
@@ -243,8 +255,8 @@ export function SessionSetup() {
               className="self-start"
               onClick={() =>
                 navigate("/app/session", {
-                state: { company, role, stage, mode, personaId },
-              })
+                  state: { company, role, stage, mode, personaId },
+                })
               }
             >
               Begin
@@ -257,6 +269,29 @@ export function SessionSetup() {
 }
 
 /** One option in a pill group. */
+
+/**
+ * A row of options that scrolls sideways instead of wrapping.
+ *
+ * Wrapping is what made this screen tall: eighteen companies became four rows,
+ * four fields became a column taller than the viewport, and the Begin button
+ * ended up below the fold on a laptop. A rail keeps every field one line high
+ * whatever the list length, and the overflow is a gesture people already have.
+ *
+ * `-mx-1 px-1` so a focus ring on the first pill is not clipped by the
+ * scroll container.
+ */
+function Rail({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [&>*]:shrink-0"
+    >
+      {children}
+    </div>
+  );
+}
 
 /**
  * One interviewer in the roster.
@@ -290,7 +325,7 @@ function InterviewerCard({
       aria-disabled={disabled}
       disabled={disabled}
       onClick={onSelect}
-      className={`focus-ring flex items-start gap-3 rounded-2xl border p-3 text-left transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`focus-ring flex w-60 shrink-0 snap-start items-start gap-3 rounded-2xl border p-3 text-left transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
         selected
           ? "border-cream bg-cream text-black"
           : "border-line text-cream-dim hover:text-cream-bright"
@@ -314,7 +349,7 @@ function InterviewerCard({
           {title}
         </span>
         <span
-          className={`mt-1 block text-xs leading-snug ${
+          className={`mt-1 line-clamp-2 block text-xs leading-snug ${
             selected ? "text-black/70" : "text-cream-dim"
           }`}
         >
@@ -370,7 +405,7 @@ function ChoiceField({
 }) {
   return (
     <Field label={label}>
-      <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
+      <Rail label={label}>
         {options.map((option) => (
           <Pill
             key={option}
@@ -380,7 +415,7 @@ function ChoiceField({
             disabled={disabled}
           />
         ))}
-      </div>
+      </Rail>
     </Field>
   );
 }

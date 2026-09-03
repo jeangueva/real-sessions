@@ -324,6 +324,8 @@ export class InterviewSession {
       ...(this.fallbackModels.length > 0
         ? { fallbacks: this.fallbackModels }
         : {}),
+      // This is the call a candidate is waiting on with their mouth shut.
+      latencyFirst: true,
       ...(onDelta
         ? {
             onDelta: (chunk: string) => {

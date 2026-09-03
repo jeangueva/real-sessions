@@ -80,12 +80,23 @@ export class OpenAICompatibleProvider implements ModelProvider {
    * OpenRouter's native routing: `models` lists the primary plus fallbacks, and
    * it moves down the list on error or saturation. The response reports which
    * one actually ran.
+   *
+   * `provider.sort` picks between the endpoints serving one model. Left alone
+   * the router balances price and availability; "latency" makes it pick the
+   * fastest, which measured 434ms to first token against 2916ms unsorted for
+   * the same model. Both fields are OpenRouter's own, so both hang off the
+   * same capability flag.
    */
-  private routing(model: string, fallbacks?: string[]): Record<string, unknown> {
-    if (!this.supportsModelFallback || !fallbacks || fallbacks.length === 0) {
-      return {};
-    }
-    return { models: [model, ...fallbacks] };
+  private routing(
+    model: string,
+    fallbacks?: string[],
+    latencyFirst?: boolean,
+  ): Record<string, unknown> {
+    if (!this.supportsModelFallback) return {};
+    return {
+      ...(fallbacks && fallbacks.length > 0 ? { models: [model, ...fallbacks] } : {}),
+      ...(latencyFirst ? { provider: { sort: "latency" } } : {}),
+    };
   }
 
   private extraBody(): Record<string, unknown> {
@@ -138,7 +149,7 @@ export class OpenAICompatibleProvider implements ModelProvider {
           max_tokens: request.maxTokens,
           stream: true,
           stream_options: { include_usage: true },
-          ...this.routing(request.model, request.fallbacks),
+          ...this.routing(request.model, request.fallbacks, request.latencyFirst),
           ...extra,
         } as OpenAI.ChatCompletionCreateParamsStreaming),
       );
@@ -176,7 +187,7 @@ export class OpenAICompatibleProvider implements ModelProvider {
         model: request.model,
         messages,
         max_tokens: request.maxTokens,
-        ...this.routing(request.model, request.fallbacks),
+        ...this.routing(request.model, request.fallbacks, request.latencyFirst),
         ...extra,
       } as OpenAI.ChatCompletionCreateParamsNonStreaming),
     );
@@ -203,6 +214,7 @@ export class OpenAICompatibleProvider implements ModelProvider {
           { role: "user", content: request.prompt },
         ],
         max_tokens: request.maxTokens,
+        // No latency sort here: the evaluator runs after the interview is over.
         ...this.routing(request.model, request.fallbacks),
         ...extra,
         response_format: {

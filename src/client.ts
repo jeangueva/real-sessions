@@ -21,10 +21,28 @@
  */
 const BLANKET_OVERRIDE = process.env.REALSESSIONS_MODEL;
 
+/**
+ * The live interviewer. Chosen on time-to-first-sentence, not on benchmark
+ * score, because this is the only model call a person sits through.
+ *
+ * Measured against the real Phase 1 prompt, median of three, milliseconds to
+ * the first complete sentence — which is when speech can start:
+ *
+ *   deepseek-v4-flash [sorted by latency]   518
+ *   gemini-3.5-flash-lite [sorted]          631
+ *   gemini-3.1-flash-lite                   997
+ *   nova-2-lite                            1025
+ *   claude-haiku-4.5                       1741
+ *   qwen3.7-flash                    429 from the provider, repeatedly
+ *
+ * The previous default was that last line. DeepSeek had already cleared every
+ * Phase 1 rule in the benchmark; what it lacked was a fast endpoint, and
+ * `latencyFirst` is what supplies one.
+ */
 export const INTERVIEWER_MODEL =
   BLANKET_OVERRIDE ??
   process.env.REALSESSIONS_INTERVIEWER_MODEL ??
-  "qwen/qwen3.7-flash";
+  "deepseek/deepseek-v4-flash";
 
 export const EVALUATOR_MODEL =
   BLANKET_OVERRIDE ??
@@ -40,7 +58,9 @@ function fallbackList(envName: string, defaults: string[]): string[] {
 
 export const INTERVIEWER_FALLBACKS = fallbackList(
   "REALSESSIONS_INTERVIEWER_FALLBACKS",
-  ["deepseek/deepseek-v4-flash", "google/gemini-3.5-flash-lite"],
+  // Ordered by the same measurement as the primary, so a fallback is a
+  // slower interview rather than a stalled one.
+  ["google/gemini-3.5-flash-lite", "google/gemini-3.1-flash-lite"],
 );
 
 export const EVALUATOR_FALLBACKS = fallbackList(
