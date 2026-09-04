@@ -26,6 +26,7 @@ export default defineConfig({
       ["test/hero-video.test.ts", "node"],
       ["test/audio-level.test.ts", "node"],
       ["test/waveform.test.ts", "node"],
+      ["test/setup-search.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },

@@ -1778,6 +1778,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       companies: COMPANIES,
       personas: PERSONAS,
       roles: ROLES,
+      // The placeholder a free session is recorded against. The client needs
+      // it to avoid printing "a well-regarded technology company" back at
+      // someone as though it were where they interviewed.
+      genericCompany: GENERIC_COMPANY,
     });
     return;
   }

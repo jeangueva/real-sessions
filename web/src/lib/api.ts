@@ -404,6 +404,12 @@ export interface SessionSummary {
   role: string;
   stage: string;
   mode: SessionMode;
+  /**
+   * Which interviewer ran it. Carried so a past session can be repeated
+   * exactly — same company, same role, same person across the table — which
+   * is the only way two scores are comparable.
+   */
+  personaId: string | null;
   startedAt: string;
   completedAt: string | null;
   score: number | null;
@@ -729,6 +735,8 @@ export function fetchCatalogue() {
       sectors: Sector[];
       companies: CatalogueCompany[];
       personas: Persona[];
+      /** The stand-in company a free session is recorded against. */
+      genericCompany: string;
       roles: Role[];
     }>("/api/catalogue", { method: "GET" }),
   );

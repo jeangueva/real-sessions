@@ -4,15 +4,34 @@ import { useNavigate } from "react-router-dom";
 import { Action, Field, Panel, Eyebrow } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
-import { Lock } from "lucide-react";
-import { fetchCatalogue, fetchPlan, fetchPreferences } from "@/lib/api";
+import { Lock, X } from "lucide-react";
+import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences } from "@/lib/api";
 import type {
   Capabilities,
   CatalogueCompany,
   Persona,
   SessionMode,
+  SessionSummary,
   Sector,
 } from "@/lib/api";
+import { SetupSearch, type SetupChoice } from "./SetupSearch";
+
+/**
+ * Whether the briefing has been dismissed. Per-device and low stakes, so it
+ * lives in the browser rather than in the account's preferences — which hold
+ * real settings, not "I have read this".
+ */
+const BRIEFING_KEY = "realsessions.briefing.dismissed";
+
+function briefingDismissed(): boolean {
+  try {
+    return localStorage.getItem(BRIEFING_KEY) === "1";
+  } catch {
+    // Private windows and blocked site data both throw. Showing the tips is
+    // the safe answer.
+    return false;
+  }
+}
 
 const ROLES = [
   "Senior Product Designer",
@@ -38,6 +57,60 @@ export function SessionSetup() {
   const [role, setRole] = useState(ROLES[0]!);
   const [stage, setStage] = useState(STAGES[0]!);
   const [mode, setMode] = useState<SessionMode>("practice");
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [showBriefing, setShowBriefing] = useState(() => !briefingDismissed());
+  /** What a free session is stored under. Never shown; used to hide it. */
+  const [genericCompany, setGenericCompany] = useState("");
+
+  const dismissBriefing = () => {
+    setShowBriefing(false);
+    try {
+      localStorage.setItem(BRIEFING_KEY, "1");
+    } catch {
+      // The panel still closes for this visit; it just comes back next time.
+    }
+  };
+
+  /**
+   * Applies a search result.
+   *
+   * A past session sets every field at once — company, role, stage, mode and
+   * the interviewer — because a rerun against a different interviewer measures
+   * the interviewer, not the candidate. That is the whole point of repeating
+   * one.
+   */
+  const applyChoice = (choice: SetupChoice) => {
+    switch (choice.kind) {
+      case "session": {
+        const past = choice.session;
+        // A free session was recorded against the placeholder, which is not a
+        // company anyone can pick. Leave the current choice alone rather than
+        // setting a value the picker would immediately snap away from.
+        if (past.company && past.company !== genericCompany) setCompany(past.company);
+        setRole(past.role);
+        setStage(past.stage);
+        setMode(past.mode);
+        setSector(past.sectorId ?? "");
+        setPersonaId(past.personaId ?? "");
+        break;
+      }
+      case "company":
+        setCompany(choice.label);
+        break;
+      case "role":
+        setRole(choice.label);
+        break;
+      case "stage":
+        setStage(choice.label);
+        break;
+      case "sector":
+        setSector(choice.id);
+        break;
+      case "persona":
+        setPersonaId(choice.id);
+        break;
+    }
+  };
 
   useEffect(() => {
     // A failure here is not worth an error banner: the fallback list still
@@ -47,10 +120,16 @@ export function SessionSetup() {
         setSectors(result.sectors);
         setCompanies(result.companies);
         setPersonas(result.personas);
+        setGenericCompany(result.genericCompany ?? "");
       })
       .catch(() => undefined);
     fetchPlan()
       .then((result) => setCan(result.capabilities))
+      .catch(() => undefined);
+    // Only for the search box. A first-time candidate has none, and the field
+    // still works as a way into the form.
+    fetchHistory()
+      .then((result) => setSessions(result.sessions))
       .catch(() => undefined);
   }, []);
 
@@ -92,18 +171,27 @@ export function SessionSetup() {
         meta="Seven turns, about ten minutes. You can stop at any point."
       />
 
-      <PageBody>
-        {/* Two columns from `xl`: the form takes whatever the viewport has,
-            the briefing sits in a fixed rail beside it. Below that they stack.
-            Everything inside the form scrolls sideways rather than wrapping,
-            so adding a company never pushes the Begin button off-screen. */}
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
-            <Eyebrow>Interview setup</Eyebrow>
+      <PageBody className="flex flex-col gap-4">
+        <SetupSearch
+          sessions={sessions}
+          companies={visibleCompanies}
+          roles={ROLES}
+          stages={STAGES}
+          sectors={sectors}
+          personas={personas}
+          genericCompany={genericCompany}
+          onChoose={applyChoice}
+        />
 
+        {/* Full width. Everything inside scrolls sideways rather than
+            wrapping, so a longer list costs lateral space, never a new row
+            that pushes Begin below the fold. */}
+        <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Eyebrow>Interview setup</Eyebrow>
             {can && !can.targetCompany && (
-              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cream-dim">
+              <div className="flex min-w-0 flex-1 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                <p className="flex min-w-0 items-center gap-2 text-xs text-cream-dim">
                   <Lock className="h-4 w-4 shrink-0" aria-hidden />
                   <span>
                     <span className="text-cream-bright">You are on the free plan.</span>{" "}
@@ -116,153 +204,159 @@ export function SessionSetup() {
                 </Link>
               </div>
             )}
+          </div>
 
-            {/* All four on one row from `xl`, two-up below it. Each is a rail,
-                so a long list costs sideways space rather than a fourth row. */}
-            <div className="grid min-w-0 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              <Field
-                label="Sector"
-                hint={
-                  !can?.targetCompany
-                    ? "Choosing a sector is part of the paid plan."
-                    : activeSector
-                      ? `Your interviewer will expect ${activeSector.metrics}.`
-                      : "Sets the vocabulary and the numbers you will be asked for."
-                }
-              >
-                <Rail label="Sector">
+          {/* All five on one row from `xl`. Each is a rail. */}
+          <div className="grid min-w-0 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+            <Field
+              label="Sector"
+              hint={
+                !can?.targetCompany
+                  ? "Part of the paid plan."
+                  : activeSector
+                    ? `Expect ${activeSector.metrics}.`
+                    : "Sets the vocabulary and the numbers you will be asked for."
+              }
+            >
+              <Rail label="Sector">
+                <Pill
+                  label="All"
+                  selected={sector === ""}
+                  onSelect={() => setSector("")}
+                  disabled={can ? !can.targetCompany : false}
+                />
+                {sectors.map((entry) => (
                   <Pill
-                    label="All"
-                    selected={sector === ""}
-                    onSelect={() => setSector("")}
+                    key={entry.id}
+                    label={entry.label}
+                    selected={sector === entry.id}
+                    onSelect={() => setSector(entry.id)}
                     disabled={can ? !can.targetCompany : false}
                   />
-                  {sectors.map((entry) => (
-                    <Pill
-                      key={entry.id}
-                      label={entry.label}
-                      selected={sector === entry.id}
-                      onSelect={() => setSector(entry.id)}
-                      disabled={can ? !can.targetCompany : false}
-                    />
-                  ))}
-                </Rail>
-              </Field>
+                ))}
+              </Rail>
+            </Field>
 
-              <ChoiceField
-                label="Company"
-                options={visibleCompanies}
-                value={company}
-                onChange={setCompany}
-                disabled={can ? !can.targetCompany : false}
-              />
-              <ChoiceField label="Target role" options={ROLES} value={role} onChange={setRole} />
-              <ChoiceField label="Stage" options={STAGES} value={stage} onChange={setStage} />
-            </div>
+            <ChoiceField
+              label="Company"
+              options={visibleCompanies}
+              value={company}
+              onChange={setCompany}
+              disabled={can ? !can.targetCompany : false}
+            />
+            <ChoiceField label="Target role" options={ROLES} value={role} onChange={setRole} />
+            <ChoiceField label="Stage" options={STAGES} value={stage} onChange={setStage} />
 
             <Field
-              label="Who interviews you"
+              label="Mode"
               hint={
-                !can?.choosePersona
-                  ? "Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
-                  : "Six people, six temperaments, six voices. The same answer does not land the same way with each."
+                mode === "practice"
+                  ? "Coaching notes appear beside the transcript."
+                  : "No coaching until the end. Worth more XP."
               }
             >
-              {/* A carousel rather than a grid: six cards stacked vertically
-                  is most of a screen, and the choice is a browse, not a form
-                  field. Snap points so a flick lands on a card. */}
-              <div
-                role="radiogroup"
-                aria-label="Interviewer"
-                className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2"
-              >
+              <Rail label="Mode">
+                <Pill
+                  label="Practice"
+                  selected={mode === "practice"}
+                  onSelect={() => setMode("practice")}
+                />
+                <Pill
+                  label="Real"
+                  selected={mode === "real"}
+                  onSelect={() => setMode("real")}
+                />
+              </Rail>
+            </Field>
+          </div>
+
+          <Field
+            label="Who interviews you"
+            hint={
+              !can?.choosePersona
+                ? "Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
+                : "Six people, six temperaments, six voices. The same answer does not land the same way with each."
+            }
+          >
+            {/* A carousel rather than a grid: six cards stacked vertically is
+                most of a screen, and the choice is a browse, not a form field.
+                Snap points so a flick lands on a card. */}
+            <div
+              role="radiogroup"
+              aria-label="Interviewer"
+              className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2"
+            >
+              <InterviewerCard
+                initials="?"
+                name="Company default"
+                title="Whoever this company would send"
+                summary="Stripe sends a skeptic. Airbnb sends a host."
+                selected={personaId === ""}
+                onSelect={() => setPersonaId("")}
+                disabled={can ? !can.choosePersona : false}
+              />
+              {personas.map((entry) => (
                 <InterviewerCard
-                  initials="?"
-                  name="Company default"
-                  title="Whoever this company would send"
-                  summary="Stripe sends a skeptic. Airbnb sends a host."
-                  selected={personaId === ""}
-                  onSelect={() => setPersonaId("")}
+                  key={entry.id}
+                  initials={entry.initials}
+                  name={entry.name}
+                  title={entry.title}
+                  summary={entry.summary}
+                  selected={personaId === entry.id}
+                  onSelect={() => setPersonaId(entry.id)}
                   disabled={can ? !can.choosePersona : false}
                 />
-                {personas.map((entry) => (
-                  <InterviewerCard
-                    key={entry.id}
-                    initials={entry.initials}
-                    name={entry.name}
-                    title={entry.title}
-                    summary={entry.summary}
-                    selected={personaId === entry.id}
-                    onSelect={() => setPersonaId(entry.id)}
-                    disabled={can ? !can.choosePersona : false}
-                  />
-                ))}
-              </div>
-            </Field>
-          </Panel>
+              ))}
+            </div>
+          </Field>
 
-          <div className="flex flex-col gap-4">
-            {/* Mode sits with the briefing because it is what the last line of
-                the briefing is describing. */}
-            <Panel className="flex flex-col gap-5 p-6">
-              <Field
-                label="Mode"
-                hint={
-                  mode === "practice"
-                    ? "Coaching notes appear beside the transcript as you go."
-                    : "No coaching until the end — closer to the real thing, and worth more XP."
-                }
-              >
-                <Rail label="Mode">
-                  <Pill
-                    label="Practice"
-                    selected={mode === "practice"}
-                    onSelect={() => setMode("practice")}
-                  />
-                  <Pill
-                    label="Real"
-                    selected={mode === "real"}
-                    onSelect={() => setMode("real")}
-                  />
-                </Rail>
-              </Field>
-              <Eyebrow>What to expect</Eyebrow>
-              <ul className="-mt-2 flex flex-col gap-3 text-sm text-cream-dim">
-                <li>
-                  The interviewer stays in character. It will not translate a
-                  word or correct your grammar mid-interview.
-                </li>
-                <li>
-                  Vague answers get challenged. Have a specific example and a
-                  number ready.
-                </li>
-                <li>
-                  {/* Promising coaching to someone who will not get it is the
-                      kind of small lie that makes a paywall feel like a bug. */}
-                  {!can?.liveCoaching
-                    ? "Feedback comes as a report at the end. Live coaching is on the paid plan."
-                    : mode === "practice"
-                      ? "Coaching notes appear on the side. The interviewer never sees them."
-                      : "No help until the report at the end."}
-                </li>
-              </ul>
-            </Panel>
+          <Action
+            withArrow
+            className="self-start"
+            onClick={() =>
+              navigate("/app/session", {
+                state: { company, role, stage, mode, personaId },
+              })
+            }
+          >
+            Begin
+          </Action>
+        </Panel>
 
-            {/* self-start: the parent is a stretch-aligned flex column, which
-                pulled the pill to the full column width. */}
-            <Action
-              withArrow
-              className="self-start"
-              onClick={() =>
-                navigate("/app/session", {
-                  state: { company, role, stage, mode, personaId },
-                })
-              }
+        {/* Dismissible: it is a briefing, and a briefing stops being useful on
+            the fourth interview. Closing it is remembered per device. */}
+        {showBriefing && (
+          <Panel className="relative p-6">
+            <button
+              type="button"
+              onClick={dismissBriefing}
+              aria-label="Dismiss what to expect"
+              className="focus-ring absolute right-4 top-4 rounded-full p-1 text-cream-faint transition-colors hover:text-cream-bright"
             >
-              Begin
-            </Action>
-          </div>
-        </div>
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+            <Eyebrow>What to expect</Eyebrow>
+            <ul className="mt-4 grid gap-3 pr-8 text-sm text-cream-dim md:grid-cols-3">
+              <li>
+                The interviewer stays in character. It will not translate a word
+                or correct your grammar mid-interview.
+              </li>
+              <li>
+                Vague answers get challenged. Have a specific example and a
+                number ready.
+              </li>
+              <li>
+                {/* Promising coaching to someone who will not get it is the
+                    kind of small lie that makes a paywall feel like a bug. */}
+                {!can?.liveCoaching
+                  ? "Feedback comes as a report at the end. Live coaching is on the paid plan."
+                  : mode === "practice"
+                    ? "Coaching notes appear on the side. The interviewer never sees them."
+                    : "No help until the report at the end."}
+              </li>
+            </ul>
+          </Panel>
+        )}
       </PageBody>
     </>
   );
