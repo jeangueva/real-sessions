@@ -2,16 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { Backdrop } from "./backdrop";
 
 /**
- * Full-bleed looping video behind the hero.
+ * Full-bleed looping video behind the hero. It never stops.
  *
- * The seam is the whole problem. A `loop` attribute cuts hard from the last
- * frame to the first, and a CSS transition cannot help because there is no
- * event to hang it on that fires early enough. So the fade is driven by hand:
- * `timeupdate` watches for the last {@link FADE_OUT_AT} seconds and starts a
- * fade-out, `ended` resets and fades back in. Every fade runs on
- * requestAnimationFrame and cancels the one before it, so two fades can never
- * fight over opacity — and each one resumes from wherever the last one got to
- * rather than snapping to full.
+ * The first version faded the picture out over the last half second, waited,
+ * seeked back and faded in — hand-driven, to avoid the hard cut a `loop`
+ * attribute makes at the seam. It hid the cut and bought a worse problem: on a
+ * ten-second clip the background went to a CSS gradient for about a second in
+ * every ten. A hard join you might notice once is better than a hole you
+ * notice every time.
+ *
+ * So playback is native `loop` now, and the only fade left is the one on the
+ * way in, so the hero does not pop from black on load. `ended` never fires on
+ * a looping element, and `timeupdate` no longer has anything to watch for.
  *
  * Three ways this degrades, all of them to the CSS `Backdrop`:
  *   - `prefers-reduced-motion`, where a full-screen loop is precisely the thing
@@ -22,22 +24,6 @@ import { Backdrop } from "./backdrop";
 
 /** Fade length, milliseconds. */
 export const FADE_MS = 500;
-/** Seconds before the end at which the fade-out begins. */
-export const FADE_OUT_AT = 0.55;
-/** Gap between `ended` and the restart, so the seek lands before playback. */
-const RESTART_DELAY_MS = 100;
-
-/**
- * Whether the loop seam is close enough to start fading.
- *
- * Pulled out of the event handler so the decision can be tested without a
- * video element: `timeupdate` fires several times a second and the guard has
- * to hold for a stream whose duration is not yet known.
- */
-export function shouldStartFadeOut(duration: number, currentTime: number): boolean {
-  if (!Number.isFinite(duration) || duration <= 0) return false;
-  return duration - currentTime <= FADE_OUT_AT;
-}
 
 /** Opacity at `elapsed` ms into a fade from `from` to `to`. */
 export function fadeValue(from: number, to: number, elapsed: number): number {
@@ -48,8 +34,6 @@ export function fadeValue(from: number, to: number, elapsed: number): number {
 export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<number | null>(null);
-  /** Guards against `timeupdate` re-triggering a fade-out already running. */
-  const fadingOutRef = useRef(false);
   const [failed, setFailed] = useState(false);
 
   // Read once, not watched: a full-screen video appearing because someone
@@ -75,8 +59,8 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
     /** Animates opacity to `target`, starting from wherever it is now. */
     const fade = (target: number) => {
       cancel();
-      // Resumes from wherever the last fade got to rather than snapping, so an
-      // interrupted fade-out does not flash to full before fading again.
+      // Resumes from wherever the last fade got to rather than snapping, so a
+      // stall recovered mid-fade does not flash.
       const from = Number(video.style.opacity || "0");
       const start = performance.now();
       const step = (now: number) => {
@@ -88,36 +72,24 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
       frameRef.current = requestAnimationFrame(step);
     };
 
-    const onPlaying = () => {
-      if (!fadingOutRef.current) fade(1);
+    // Fires on the first play and again after any stall the browser recovers
+    // from. Idempotent: a fade to 1 from 1 is a no-op frame.
+    const onPlaying = () => fade(1);
+
+    /**
+     * A looping element should never pause on its own, but browsers do stall
+     * one — a background tab, a codec hiccup, a device waking up. Nothing
+     * restarted it, and the hero sat on a frozen frame until reload.
+     */
+    const onPause = () => {
+      if (!video.ended) void video.play().catch(() => undefined);
     };
 
-    const onTimeUpdate = () => {
-      // The ref is the whole guard: timeupdate keeps firing through the fade,
-      // and without it every event would restart the animation from the
-      // current opacity and the video would never actually reach zero.
-      if (fadingOutRef.current) return;
-      if (shouldStartFadeOut(video.duration, video.currentTime)) {
-        fadingOutRef.current = true;
-        fade(0);
-      }
-    };
-
-    const onEnded = () => {
-      cancel();
-      video.style.opacity = "0";
-      window.setTimeout(() => {
-        video.currentTime = 0;
-        void video.play().catch(() => setFailed(true));
-        fadingOutRef.current = false;
-        fade(1);
-      }, RESTART_DELAY_MS);
-    };
+    const onError = () => setFailed(true);
 
     video.addEventListener("playing", onPlaying);
-    video.addEventListener("timeupdate", onTimeUpdate);
-    video.addEventListener("ended", onEnded);
-    video.addEventListener("error", () => setFailed(true));
+    video.addEventListener("pause", onPause);
+    video.addEventListener("error", onError);
 
     // Autoplay is refused in some browsers even when muted. Falling back to
     // the CSS field is better than a frozen first frame.
@@ -126,8 +98,8 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
     return () => {
       cancel();
       video.removeEventListener("playing", onPlaying);
-      video.removeEventListener("timeupdate", onTimeUpdate);
-      video.removeEventListener("ended", onEnded);
+      video.removeEventListener("pause", onPause);
+      video.removeEventListener("error", onError);
     };
   }, [usable, src]);
 
@@ -141,6 +113,9 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
 
       <video
         ref={videoRef}
+        // The loop that never stops. The seam is a hard cut; the alternative
+        // shipped before this was a second of CSS gradient every ten.
+        loop
         muted
         // Both are required for autoplay on iOS; without playsInline Safari
         // takes the video fullscreen the moment it plays.

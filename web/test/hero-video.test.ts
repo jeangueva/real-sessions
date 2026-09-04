@@ -1,35 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  FADE_MS,
-  FADE_OUT_AT,
-  fadeValue,
-  shouldStartFadeOut,
-} from "../src/design-system/hero-video";
+import { FADE_MS, fadeValue } from "../src/design-system/hero-video";
 import { pickMimeType, voiceSocketUrl } from "../src/lib/deepgram-input";
-
-describe("shouldStartFadeOut", () => {
-  it("holds until the last moments of the clip", () => {
-    expect(shouldStartFadeOut(10, 5)).toBe(false);
-    expect(shouldStartFadeOut(10, 10 - FADE_OUT_AT - 0.01)).toBe(false);
-  });
-
-  it("fires once the seam is close", () => {
-    // Asserted just inside the window rather than exactly on it: the boundary
-    // is not a contract, and `10 - 0.55` is not exactly 9.45 in binary floats.
-    // timeupdate fires at arbitrary times anyway, never on the threshold.
-    expect(shouldStartFadeOut(10, 10 - FADE_OUT_AT + 0.01)).toBe(true);
-    expect(shouldStartFadeOut(10, 9.9)).toBe(true);
-    expect(shouldStartFadeOut(10, 10)).toBe(true);
-  });
-
-  it("does nothing while the duration is unknown", () => {
-    // A streaming video reports Infinity, and NaN before metadata arrives.
-    // Either would otherwise satisfy the comparison and fade out immediately.
-    expect(shouldStartFadeOut(Infinity, 3)).toBe(false);
-    expect(shouldStartFadeOut(Number.NaN, 3)).toBe(false);
-    expect(shouldStartFadeOut(0, 0)).toBe(false);
-  });
-});
 
 describe("fadeValue", () => {
   it("runs from start to target across the fade", () => {
