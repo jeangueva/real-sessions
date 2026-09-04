@@ -44,10 +44,13 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
 
-  const usable = Boolean(src) && !failed && !reducedMotion;
+  /** Whether the element is worth mounting at all. */
+  const hasVideo = Boolean(src) && !failed;
+  /** Whether it is allowed to play. */
+  const animated = hasVideo && !reducedMotion;
 
   useEffect(() => {
-    if (!usable) return;
+    if (!hasVideo) return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -55,6 +58,31 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
     };
+
+    const onError = () => setFailed(true);
+
+    /**
+     * Reduced motion gets the footage, held on its first frame.
+     *
+     * The alternative was a CSS gradient, which threw away the art direction
+     * to obey a setting that asks for no *motion* — not for no picture. The
+     * `currentTime` nudge is what makes a paused element actually paint:
+     * without a seek some browsers hold the frame buffer empty until play().
+     * No fade either, because a fade is motion too.
+     */
+    if (!animated) {
+      const show = () => {
+        video.style.opacity = "1";
+      };
+      video.addEventListener("loadeddata", show);
+      video.addEventListener("error", onError);
+      video.currentTime = 0;
+      if (video.readyState >= 2) show();
+      return () => {
+        video.removeEventListener("loadeddata", show);
+        video.removeEventListener("error", onError);
+      };
+    }
 
     /** Animates opacity to `target`, starting from wherever it is now. */
     const fade = (target: number) => {
@@ -85,8 +113,6 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
       if (!video.ended) void video.play().catch(() => undefined);
     };
 
-    const onError = () => setFailed(true);
-
     video.addEventListener("playing", onPlaying);
     video.addEventListener("pause", onPause);
     video.addEventListener("error", onError);
@@ -101,21 +127,22 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
       video.removeEventListener("pause", onPause);
       video.removeEventListener("error", onError);
     };
-  }, [usable, src]);
+  }, [hasVideo, animated, src]);
 
-  if (!usable) return <Backdrop variant="hero" still={reducedMotion} />;
+  if (!hasVideo) return <Backdrop variant="hero" still={reducedMotion} />;
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {/* The CSS field sits underneath, not instead: it is what shows through
-          during the fade at the loop seam, so the seam never reaches black. */}
-      <Backdrop variant="hero" />
+          while the first frame is still decoding. Held still when the video
+          is, so nothing on the screen is moving under reduced motion. */}
+      <Backdrop variant="hero" still={!animated} />
 
       <video
         ref={videoRef}
         // The loop that never stops. The seam is a hard cut; the alternative
         // shipped before this was a second of CSS gradient every ten.
-        loop
+        loop={animated}
         muted
         // Both are required for autoplay on iOS; without playsInline Safari
         // takes the video fullscreen the moment it plays.
