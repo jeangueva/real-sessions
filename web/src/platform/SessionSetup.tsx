@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Action, Field, Panel, Eyebrow } from "@/design-system";
+import { Action, Panel, Eyebrow } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
 import { Lock, X } from "lucide-react";
@@ -17,7 +17,7 @@ import type {
   Sector,
 } from "@/lib/api";
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
-import { OverflowRow } from "./OverflowRow";
+import { FilterBar, FilterOption, FilterSegment } from "./FilterBar";
 
 /**
  * Whether the briefing has been dismissed. Per-device and low stakes, so it
@@ -243,164 +243,212 @@ export function SessionSetup() {
         <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
           <Eyebrow>Interview setup</Eyebrow>
 
-          {/* All five on one row from `xl`. Each is a rail. */}
-          {/* Ordered by what this plan can actually change.
-              On free, sector and company are locked, and leading with two
-              controls that refuse to move reads as a broken form rather than
-              as a paywall. The sort is stable, so a paid plan — where nothing
-              is locked — keeps the declared order. */}
-          <div className="flex min-w-0 flex-col gap-5">
+          {/* One bar of selectors rather than six rows of pills. The bar
+              shows what is chosen — the thing a person rereads before
+              pressing Begin — and opens the options only for the field being
+              changed. Ordered by what this plan can actually change: on free,
+              leading with two controls that refuse to move reads as a broken
+              form rather than as a paywall. */}
+          <FilterBar>
             {orderByEnabled([
-              {
-                key: "sector",
-                enabled: can?.targetCompany ?? true,
-                node: (
-                  <Field
-                    label="Sector"
-                    hint={
-                      !can?.targetCompany
-                        ? "Part of the paid plan."
-                        : activeSector
-                          ? `Expect ${activeSector.metrics}.`
-                          : "Sets the vocabulary and the numbers you will be asked for."
-                    }
-                  >
-                    <OverflowRow label="Sector" title="Sector">
-                      <Pill
-                        label="All"
-                        selected={sector === ""}
-                        onSelect={() => setSector("")}
-                        disabled={can ? !can.targetCompany : false}
-                      />
-                      {sectors.map((entry) => (
-                        <Pill
-                          key={entry.id}
-                          label={entry.label}
-                          selected={sector === entry.id}
-                          onSelect={() => setSector(entry.id)}
-                          disabled={can ? !can.targetCompany : false}
-                        />
-                      ))}
-                    </OverflowRow>
-                  </Field>
-                ),
-              },
-              {
-                key: "company",
-                enabled: can?.targetCompany ?? true,
-                node: (
-                  <ChoiceField
-                    label="Company"
-                    options={visibleCompanies}
-                    value={company}
-                    onChange={setCompany}
-                    disabled={can ? !can.targetCompany : false}
-                  />
-                ),
-              },
               {
                 key: "role",
                 enabled: true,
                 node: (
-                  <ChoiceField
+                  <FilterSegment
                     label="Role"
-                    options={roleLabels}
                     value={role}
-                    onChange={setRole}
-                  />
+                    hint="What you are interviewing for. It also decides which rounds exist."
+                  >
+                    {(close) =>
+                      roleLabels.map((option) => (
+                        <FilterOption
+                          key={option}
+                          label={option}
+                          detail={roles.find((r) => r.label === option)?.focus}
+                          selected={role === option}
+                          onSelect={() => {
+                            setRole(option);
+                            close();
+                          }}
+                        />
+                      ))
+                    }
+                  </FilterSegment>
                 ),
               },
               {
                 key: "stage",
                 enabled: true,
                 node: (
-                  <Field
+                  <FilterSegment
                     label="Stage"
-                    hint={
-                      visibleStages.find((entry) => entry.label === stage)?.summary ??
-                      "Which round of the process you are sitting."
-                    }
+                    value={stage}
+                    hint="Which round of the process you are sitting."
                   >
-                    <OverflowRow label="Stage" title="Stage">
-                      {visibleStages.map((entry) => (
-                        <Pill
+                    {(close) =>
+                      visibleStages.map((entry) => (
+                        <FilterOption
                           key={entry.id}
                           label={entry.label}
+                          detail={entry.summary}
                           selected={stage === entry.label}
-                          onSelect={() => setStage(entry.label)}
+                          onSelect={() => {
+                            setStage(entry.label);
+                            close();
+                          }}
                         />
-                      ))}
-                    </OverflowRow>
-                  </Field>
+                      ))
+                    }
+                  </FilterSegment>
                 ),
               },
               {
                 key: "mode",
                 enabled: true,
                 node: (
-                  <Field
+                  <FilterSegment
                     label="Mode"
-                    hint={
-                      mode === "practice"
-                        ? "Coaching notes appear beside the transcript."
-                        : "No coaching until the end. Worth more XP."
-                    }
+                    value={mode === "practice" ? "Practice" : "Real"}
                   >
-                    <OverflowRow label="Mode" title="Mode">
-                      <Pill
-                        label="Practice"
-                        selected={mode === "practice"}
-                        onSelect={() => setMode("practice")}
-                      />
-                      <Pill
-                        label="Real"
-                        selected={mode === "real"}
-                        onSelect={() => setMode("real")}
-                      />
-                    </OverflowRow>
-                  </Field>
+                    {(close) => (
+                      <>
+                        <FilterOption
+                          label="Practice"
+                          detail="Coaching notes appear beside the transcript."
+                          selected={mode === "practice"}
+                          onSelect={() => {
+                            setMode("practice");
+                            close();
+                          }}
+                        />
+                        <FilterOption
+                          label="Real"
+                          detail="No coaching until the end. Worth more XP."
+                          selected={mode === "real"}
+                          onSelect={() => {
+                            setMode("real");
+                            close();
+                          }}
+                        />
+                      </>
+                    )}
+                  </FilterSegment>
+                ),
+              },
+              {
+                key: "interviewer",
+                enabled: can?.choosePersona ?? true,
+                node: (
+                  <FilterSegment
+                    label="Interviewer"
+                    value={
+                      personas.find((p) => p.id === personaId)?.name ?? "Company default"
+                    }
+                    hint="Six people, six temperaments, six voices. The same answer does not land the same way with each."
+                    disabled={can ? !can.choosePersona : false}
+                    disabledReason="Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
+                  >
+                    {(close) => (
+                      <>
+                        <FilterOption
+                          label="Company default"
+                          detail="Stripe sends a skeptic. Airbnb sends a host."
+                          selected={personaId === ""}
+                          onSelect={() => {
+                            setPersonaId("");
+                            close();
+                          }}
+                        />
+                        {personas.map((entry) => (
+                          <FilterOption
+                            key={entry.id}
+                            label={`${entry.name} · ${entry.title}`}
+                            detail={entry.summary}
+                            selected={personaId === entry.id}
+                            onSelect={() => {
+                              setPersonaId(entry.id);
+                              close();
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
+                  </FilterSegment>
+                ),
+              },
+              {
+                key: "sector",
+                enabled: can?.targetCompany ?? true,
+                node: (
+                  <FilterSegment
+                    label="Sector"
+                    value={activeSector?.label ?? "All"}
+                    hint={
+                      activeSector
+                        ? `Expect ${activeSector.metrics}.`
+                        : "Sets the vocabulary and the numbers you will be asked for."
+                    }
+                    disabled={can ? !can.targetCompany : false}
+                    disabledReason="Choosing a sector is part of the paid plan."
+                  >
+                    {(close) => (
+                      <>
+                        <FilterOption
+                          label="All"
+                          selected={sector === ""}
+                          onSelect={() => {
+                            setSector("");
+                            close();
+                          }}
+                        />
+                        {sectors.map((entry) => (
+                          <FilterOption
+                            key={entry.id}
+                            label={entry.label}
+                            detail={entry.metrics}
+                            selected={sector === entry.id}
+                            onSelect={() => {
+                              setSector(entry.id);
+                              close();
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
+                  </FilterSegment>
+                ),
+              },
+              {
+                key: "company",
+                enabled: can?.targetCompany ?? true,
+                node: (
+                  <FilterSegment
+                    label="Company"
+                    value={can && !can.targetCompany ? "General role" : company}
+                    disabled={can ? !can.targetCompany : false}
+                    disabledReason="Targeting a specific company is part of the paid plan."
+                  >
+                    {(close) =>
+                      visibleCompanies.map((option) => (
+                        <FilterOption
+                          key={option}
+                          label={option}
+                          selected={company === option}
+                          onSelect={() => {
+                            setCompany(option);
+                            close();
+                          }}
+                        />
+                      ))
+                    }
+                  </FilterSegment>
                 ),
               },
             ]).map((entry) => (
               <Fragment key={entry.key}>{entry.node}</Fragment>
             ))}
-          </div>
-
-          <Field
-            label="Who interviews you"
-            hint={
-              !can?.choosePersona
-                ? "Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
-                : "Six people, six temperaments, six voices. The same answer does not land the same way with each."
-            }
-          >
-            {/* Same rule as every other row: show what fits, and put the rest
-                behind one button. Six cards never fitted a laptop, and a card
-                you have to drag into view is a card nobody meets. */}
-            <OverflowRow label="Interviewer" title="Who interviews you">
-              <InterviewerCard
-                initials="?"
-                name="Company default"
-                title="Whoever this company would send"
-                summary="Stripe sends a skeptic. Airbnb sends a host."
-                selected={personaId === ""}
-                onSelect={() => setPersonaId("")}
-                disabled={can ? !can.choosePersona : false}
-              />
-              {personas.map((entry) => (
-                <InterviewerCard
-                  key={entry.id}
-                  initials={entry.initials}
-                  name={entry.name}
-                  title={entry.title}
-                  summary={entry.summary}
-                  selected={personaId === entry.id}
-                  onSelect={() => setPersonaId(entry.id)}
-                  disabled={can ? !can.choosePersona : false}
-                />
-              ))}
-            </OverflowRow>
-          </Field>
+          </FilterBar>
 
           <Action
             withArrow
@@ -476,131 +524,4 @@ export interface SetupFieldEntry {
  */
 export function orderByEnabled<T extends { enabled: boolean }>(entries: T[]): T[] {
   return [...entries.filter((e) => e.enabled), ...entries.filter((e) => !e.enabled)];
-}
-
-/**
- * One interviewer in the roster.
- *
- * Deliberately a card and not a pill: these are people, and a row of pills
- * reading "The skeptic / The warm host" reads as a tone setting rather than as
- * choosing who is across the table. The name and the job are what the
- * interviewer says out loud in their first sentence, so they belong here.
- */
-function InterviewerCard({
-  initials,
-  name,
-  title,
-  summary,
-  selected,
-  onSelect,
-  disabled = false,
-}: {
-  initials: string;
-  name: string;
-  title: string;
-  summary: string;
-  selected: boolean;
-  onSelect: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      role="radio"
-      aria-checked={selected}
-      aria-disabled={disabled}
-      disabled={disabled}
-      onClick={onSelect}
-      className={`focus-ring flex w-60 shrink-0 items-start gap-3 rounded-2xl border p-3 text-left transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
-        selected
-          ? "border-cream bg-cream text-black"
-          : "border-line text-cream-dim hover:text-cream-bright"
-      }`}
-    >
-      <span
-        aria-hidden
-        className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-semibold tracking-wide ${
-          selected ? "bg-black/10 text-black" : "bg-cream/10 text-cream-bright"
-        }`}
-      >
-        {initials}
-      </span>
-      <span className="min-w-0">
-        <span
-          className={`block text-sm font-medium ${selected ? "text-black" : "text-cream-bright"}`}
-        >
-          {name}
-        </span>
-        <span className={`block text-xs ${selected ? "text-black/70" : "text-cream-dim"}`}>
-          {title}
-        </span>
-        <span
-          className={`mt-1 line-clamp-2 block text-xs leading-snug ${
-            selected ? "text-black/70" : "text-cream-dim"
-          }`}
-        >
-          {summary}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-function Pill({
-  label,
-  selected,
-  onSelect,
-  disabled = false,
-}: {
-  label: string;
-  selected: boolean;
-  onSelect: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      role="radio"
-      aria-checked={selected}
-      aria-disabled={disabled}
-      disabled={disabled}
-      onClick={onSelect}
-      className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm ${
-        selected
-          ? "border-cream bg-cream text-black"
-          : "border-line text-cream-dim hover:text-cream-bright"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-/** Pill-group selector. Used wherever a short option list needs picking. */
-function ChoiceField({
-  label,
-  options,
-  value,
-  onChange,
-  disabled = false,
-}: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (next: string) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <Field label={label}>
-      <OverflowRow label={label} title={label}>
-        {options.map((option) => (
-          <Pill
-            key={option}
-            label={option}
-            selected={option === value}
-            onSelect={() => onChange(option)}
-            disabled={disabled}
-          />
-        ))}
-      </OverflowRow>
-    </Field>
-  );
 }
