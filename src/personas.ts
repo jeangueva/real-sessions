@@ -197,3 +197,31 @@ const COMPANY_DEFAULT: Record<string, string> = {
 export function defaultPersonaFor(company: string): Persona {
   return findPersona(COMPANY_DEFAULT[company] ?? DEFAULT_PERSONA_ID);
 }
+
+/** The interviewers whose job is one of `titles`. */
+export function personasWithTitle(titles: readonly string[]): Persona[] {
+  return PERSONAS.filter((persona) => titles.includes(persona.title));
+}
+
+/**
+ * The interviewer a session actually gets.
+ *
+ * A recruiter screen run by a principal architect is the same
+ * convincing-and-wrong failure as a designer sitting a system design round:
+ * the interview reads fine and rehearses something that does not happen. So a
+ * requested interviewer who does not hold one of the round's jobs is replaced
+ * rather than honoured — by the company's own default when that default
+ * qualifies, and otherwise by the first person who does.
+ */
+export function castFor(
+  titles: readonly string[],
+  company: string,
+  requested?: Persona | null,
+): Persona {
+  const eligible = personasWithTitle(titles);
+  if (eligible.length === 0) return requested ?? defaultPersonaFor(company);
+  if (requested && eligible.some((entry) => entry.id === requested.id)) return requested;
+
+  const house = defaultPersonaFor(company);
+  return eligible.find((entry) => entry.id === house.id) ?? eligible[0]!;
+}

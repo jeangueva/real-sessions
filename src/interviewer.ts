@@ -16,7 +16,7 @@ import {
   type InterviewerTurn,
   type TranscriptTurn,
 } from "./types.js";
-import { resolveStage } from "./stages.js";
+import { resolveStages, turnBudget } from "./stages.js";
 
 /** Opens the session: the API requires the first message to be from `user`. */
 export const SESSION_KICKOFF_MESSAGE =
@@ -69,6 +69,8 @@ export interface InterviewSessionOptions {
   model?: string;
   /** Responses are voice-length (<40 words), so this stays deliberately small. */
   maxTokens?: number;
+  /** The rounds this session runs, in order. */
+  stages?: readonly string[];
   minTurns?: number;
   maxTurns?: number;
   /**
@@ -132,10 +134,14 @@ export class InterviewSession {
     // question is barely started at the point a behavioural one has resolved,
     // and running both to the same seven turns made one rushed and the other
     // padded.
-    const stage = resolveStage(context.targetRole, context.interviewStage);
-    const maxTurns = options.maxTurns ?? stage.maxTurns;
+    const stages = resolveStages(
+      context.targetRole,
+      options.stages ?? context.interviewStage,
+    );
+    const budget = turnBudget(stages);
+    const maxTurns = options.maxTurns ?? budget.maxTurns;
     // A caller who shortens the session shouldn't also have to restate the floor.
-    const minTurns = Math.min(options.minTurns ?? stage.minTurns, maxTurns);
+    const minTurns = Math.min(options.minTurns ?? budget.minTurns, maxTurns);
     this.model = options.model ?? INTERVIEWER_MODEL;
     this.provider = options.provider ?? resolveProvider(this.model);
     this.maxTokens = options.maxTokens ?? 512;
@@ -146,6 +152,7 @@ export class InterviewSession {
     this.candidateBrief = options.candidateBrief ?? null;
     this.knownQuestions = [...(options.knownQuestions ?? [])];
     this.systemPrompt = buildInterviewerPrompt(context, {
+      stages: stages.map((entry) => entry.id),
       minTurns,
       maxTurns,
       personaId: this.personaId,

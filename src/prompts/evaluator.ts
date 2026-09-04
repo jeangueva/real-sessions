@@ -1,6 +1,6 @@
 import type { InterviewContext, TranscriptTurn } from "../types.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
-import { resolveStage } from "../stages.js";
+import { composeRubric, resolveStages } from "../stages.js";
 
 /**
  * Phase 2 — the Evaluator. Sent as the `system` prompt of the async
@@ -35,12 +35,18 @@ Address the candidate in the second person ("you"), be specific, and make every 
 Every string you return is rendered as plain text. Write plain prose only — no markdown, no asterisks for emphasis, no bold, no headings, no numbered or bulleted lists inside a field. A sentence like "skipped the **S**ituation" reaches the candidate with the asterisks still in it.`;
 
 /** Renders the Phase 2 system prompt. */
-export function buildEvaluatorPrompt(context: InterviewContext): string {
+export function buildEvaluatorPrompt(
+  context: InterviewContext,
+  stages?: readonly string[],
+): string {
   return renderTemplate(EVALUATOR_TEMPLATE, {
     ...toTemplateVariables(context),
     // The same answer is strong in one round and thin in another, and the
-    // evaluator had no way to know which round it was reading.
-    stage_rubric: resolveStage(context.targetRole, context.interviewStage).rubric,
+    // evaluator had no way to know which round it was reading. A combined
+    // session gets each round's bar rather than an average of them.
+    stage_rubric: composeRubric(
+      resolveStages(context.targetRole, stages ?? context.interviewStage),
+    ),
   });
 }
 

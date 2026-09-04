@@ -112,6 +112,8 @@ export interface Stage {
   summary: string;
   minTurns: number;
   maxTurns: number;
+  /** The job titles that run this round. Filters the interviewer picker. */
+  titles: string[];
 }
 
 export interface Sector {
@@ -342,7 +344,12 @@ export interface RunningContext {
 /** Streaming start. Resolves with the finished turn once the stream closes. */
 export function startSessionStream(
   context: InterviewContext,
-  options: { mode: SessionMode; personaId: string },
+  options: {
+    mode: SessionMode;
+    personaId: string;
+    /** The rounds this session covers, in order. */
+    stages?: string[];
+  },
   handlers: {
     onDelta: (text: string) => void;
     onSession: (
@@ -756,6 +763,8 @@ export function fetchCatalogue() {
       genericCompany: string;
       /** The rounds each role can sit, keyed by role id. */
       stagesByRole: { roleId: string; stages: Stage[] }[];
+      /** The most rounds one session will run. */
+      maxCombinedStages: number;
       roles: Role[];
     }>("/api/catalogue", { method: "GET" }),
   );

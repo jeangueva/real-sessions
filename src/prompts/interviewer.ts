@@ -1,7 +1,7 @@
 import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
-import { resolveStage } from "../stages.js";
+import { composeBrief, resolveStages, turnBudget } from "../stages.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
 /**
@@ -106,6 +106,8 @@ export function buildKnownQuestions(questions: readonly string[]): string {
 
 export interface InterviewerPromptOptions {
   /** Lower bound advertised in the structure section. Default 5. */
+  /** The rounds this session runs, in order. Falls back to the context's. */
+  stages?: readonly string[];
   minTurns?: number;
   /** Upper bound advertised in the structure section. Default 7. */
   maxTurns?: number;
@@ -169,7 +171,10 @@ export function buildInterviewerPrompt(
     persona_behaviour: persona.behaviour,
     interviewer_name: persona.name,
     interviewer_title: persona.title,
-    stage_brief: resolveStage(context.targetRole, context.interviewStage).brief,
+    stage_brief: composeBrief(
+      resolveStages(context.targetRole, options.stages ?? context.interviewStage),
+      maxTurns,
+    ),
     min_turns: String(minTurns),
     max_turns: String(maxTurns),
   });

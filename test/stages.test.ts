@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { ROLES } from "../src/roles.js";
 import {
+  MAX_COMBINED,
   STAGES,
+  composeBrief,
+  composeRubric,
   findStage,
   resolveStage,
+  resolveStages,
   stageCatalogue,
   stagesFor,
+  titlesFor,
+  turnBudget,
+  turnSplit,
 } from "../src/stages.js";
+import { castFor, findPersona } from "../src/personas.js";
 import { buildInterviewerPrompt } from "../src/prompts/interviewer.js";
 import { buildEvaluatorPrompt } from "../src/prompts/evaluator.js";
 import type { InterviewContext } from "../src/types.js";
@@ -136,5 +144,140 @@ describe("stageCatalogue", () => {
     for (const entry of catalogue) {
       expect(entry.stages.length).toBeGreaterThan(1);
     }
+  });
+});
+
+describe("combining rounds in one session", () => {
+  it("keeps the caller's order", () => {
+    // An interview that opens on values and ends on a screen is not a thing
+    // that happens.
+    const rounds = resolveStages("backend-engineer", ["recruiter-screen", "behavioral"]);
+    expect(rounds.map((s) => s.id)).toEqual(["recruiter-screen", "behavioral"]);
+  });
+
+  it("drops a round the role does not sit rather than substituting one", () => {
+    const rounds = resolveStages("product-designer", ["behavioral", "system-design"]);
+    expect(rounds.map((s) => s.id)).toEqual(["behavioral"]);
+  });
+
+  it("ignores duplicates and caps the combination", () => {
+    // An hour split four ways is four shallow conversations.
+    const rounds = resolveStages("backend-engineer", [
+      "behavioral",
+      "behavioral",
+      "technical-deep-dive",
+      "system-design",
+      "values",
+    ]);
+    expect(rounds).toHaveLength(MAX_COMBINED);
+    expect(new Set(rounds.map((s) => s.id)).size).toBe(MAX_COMBINED);
+  });
+
+  it("falls back to behavioural when nothing survives", () => {
+    expect(resolveStages("product-designer", ["system-design"]).map((s) => s.id)).toEqual([
+      "behavioral",
+    ]);
+  });
+
+  it("adds turns for a second round without simply summing them", () => {
+    // Two rounds back to back at full length is an interview nobody finishes.
+    const one = turnBudget(resolveStages("backend-engineer", ["system-design"]));
+    const two = turnBudget(
+      resolveStages("backend-engineer", ["system-design", "behavioral"]),
+    );
+    expect(two.maxTurns).toBeGreaterThan(one.maxTurns);
+    expect(two.maxTurns).toBeLessThan(one.maxTurns + 7);
+    expect(two.maxTurns).toBeLessThanOrEqual(12);
+  });
+
+  it("gives every round at least a couple of turns", () => {
+    const rounds = resolveStages("backend-engineer", [
+      "recruiter-screen",
+      "behavioral",
+      "system-design",
+    ]);
+    const split = turnSplit(rounds, turnBudget(rounds).maxTurns);
+    expect(split).toHaveLength(3);
+    for (const turns of split) expect(turns).toBeGreaterThanOrEqual(2);
+    expect(split.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(
+      turnBudget(rounds).maxTurns,
+    );
+  });
+
+  it("tells the interviewer not to announce the change of subject", () => {
+    // Told to cover two things, a model says "now I would like to move on to
+    // the culture portion", which is not what an interviewer sounds like.
+    const brief = composeBrief(
+      resolveStages("backend-engineer", ["behavioral", "values"]),
+      10,
+    );
+    expect(brief).toContain("without announcing it");
+    expect(brief).toContain("behavioural round");
+    expect(brief).toContain("values round");
+  });
+
+  it("gives the evaluator each round's own bar", () => {
+    const rubric = composeRubric(
+      resolveStages("backend-engineer", ["behavioral", "system-design"]),
+    );
+    expect(rubric).toContain("rather than averaging");
+    expect(rubric).toContain("Behavioral:");
+    expect(rubric).toContain("System design:");
+  });
+
+  it("leaves a single round's brief exactly as written", () => {
+    const solo = resolveStages("backend-engineer", ["system-design"]);
+    expect(composeBrief(solo, 9)).toBe(solo[0]!.brief);
+    expect(composeRubric(solo)).toBe(solo[0]!.rubric);
+  });
+});
+
+describe("who runs the round", () => {
+  it("sends a recruiter to a screen and nobody else", () => {
+    expect(titlesFor([findStage("recruiter-screen")])).toEqual(["Talent Partner"]);
+  });
+
+  it("keeps the recruiter out of a system design round", () => {
+    expect(titlesFor([findStage("system-design")])).not.toContain("Talent Partner");
+  });
+
+  it("prefers someone who can run every round of a combination", () => {
+    // Behavioural and values overlap on the director.
+    const both = titlesFor([findStage("behavioral"), findStage("values")]);
+    expect(both).toEqual(["Director of Engineering"]);
+  });
+
+  it("casts for the opening round when no one title covers all of them", () => {
+    // A recruiter screen and a system design round in one sitting is not one
+    // person's job. The candidate meets the opener first.
+    const mixed = titlesFor([findStage("recruiter-screen"), findStage("system-design")]);
+    expect(mixed).toEqual(["Talent Partner"]);
+  });
+
+  it("replaces a requested interviewer who does not hold the job", () => {
+    // Asking for the architect to run your screen is the same
+    // convincing-and-wrong failure as a designer sitting system design.
+    const cast = castFor(
+      titlesFor([findStage("recruiter-screen")]),
+      "Stripe",
+      findPersona("systems"),
+    );
+    expect(cast.title).toBe("Talent Partner");
+  });
+
+  it("honours a requested interviewer who does hold it", () => {
+    const cast = castFor(
+      titlesFor([findStage("system-design")]),
+      "Stripe",
+      findPersona("systems"),
+    );
+    expect(cast.id).toBe("systems");
+  });
+
+  it("prefers the company's own default when it qualifies", () => {
+    // Stripe sends a skeptic, and the skeptic is a director — who does run
+    // behavioural rounds.
+    const cast = castFor(titlesFor([findStage("behavioral")]), "Stripe", null);
+    expect(cast.id).toBe("skeptic");
   });
 });

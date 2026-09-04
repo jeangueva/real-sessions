@@ -30,6 +30,8 @@ interface SetupState {
   stage?: string;
   mode?: SessionMode;
   personaId?: string;
+  /** The rounds this session covers, in order. */
+  stages?: string[];
 }
 
 /** Until the session says otherwise. The round decides the real number. */
@@ -63,6 +65,7 @@ export function LiveInterview() {
   const stage = setup.stage ?? "Behavioral";
   const mode: SessionMode = setup.mode ?? "practice";
   const personaId = setup.personaId ?? "";
+  const stages = setup.stages ?? [];
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [turn, setTurn] = useState<InterviewerTurn | null>(null);
@@ -141,7 +144,7 @@ export function LiveInterview() {
         companyName: company,
         interviewStage: stage,
       },
-      { mode, personaId },
+      { mode, personaId, stages },
       {
         // The session id arrives first so a mid-stream failure is still
         // recoverable — the interview exists server-side either way.
@@ -168,7 +171,7 @@ export function LiveInterview() {
       })
       .catch((caught: unknown) => setError(describe(caught)))
       .finally(() => setBusy(false));
-  }, [company, role, stage, mode, personaId]);
+  }, [company, role, stage, mode, personaId, stages.join(",")]);
 
   useEffect(() => {
     if (turn && !turn.isComplete && !busy) inputRef.current?.focus();

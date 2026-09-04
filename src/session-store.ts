@@ -28,6 +28,16 @@ export interface StoredSession {
    * when a deploy lands, and they read as practice.
    */
   mode?: SessionMode;
+  /**
+   * The rounds this interview covers, in order, by id.
+   *
+   * Held here because a combined session records its stage as a joined label
+   * ("Behavioral + Values"), which no lookup resolves — the evaluator would
+   * grade the whole thing as behavioural. Optional for the same reason `mode`
+   * is: sessions written before this field existed are still in flight when a
+   * deploy lands, and they read as whatever their single stage says.
+   */
+  stages?: string[];
 }
 
 export interface SessionStore {

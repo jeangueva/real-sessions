@@ -60,7 +60,15 @@ export function SessionSetup() {
   const [sector, setSector] = useState("");
   const [company, setCompany] = useState(FALLBACK_COMPANIES[0]!);
   const [role, setRole] = useState(FALLBACK_ROLES[0]!);
-  const [stage, setStage] = useState("Behavioral");
+  /**
+   * The rounds this session covers, in order, by id.
+   *
+   * A list rather than one value because real interviews combine — a screen
+   * that drifts into behavioural, a technical that closes on values — and
+   * rehearsing them one at a time never rehearses the handover.
+   */
+  const [stageIds, setStageIds] = useState<string[]>([]);
+  const [maxCombined, setMaxCombined] = useState(3);
   const [mode, setMode] = useState<SessionMode>("practice");
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [showBriefing, setShowBriefing] = useState(() => !briefingDismissed());
@@ -93,7 +101,16 @@ export function SessionSetup() {
         // setting a value the picker would immediately snap away from.
         if (past.company && past.company !== genericCompany) setCompany(past.company);
         setRole(past.role);
-        setStage(past.stage);
+        // A combined session is recorded as joined labels, which is what the
+        // rerun has to restore — one round of a two-round interview is not
+        // the same rehearsal.
+        setStageIds(
+          past.stage
+            .split(" + ")
+            .map((label) => label.trim())
+            .map((label) => visibleStages.find((entry) => entry.label === label)?.id)
+            .filter((id): id is string => Boolean(id)),
+        );
         setMode(past.mode);
         setSector(past.sectorId ?? "");
         setPersonaId(past.personaId ?? "");
@@ -105,9 +122,11 @@ export function SessionSetup() {
       case "role":
         setRole(choice.label);
         break;
-      case "stage":
-        setStage(choice.label);
+      case "stage": {
+        const found = visibleStages.find((entry) => entry.label === choice.label);
+        if (found) setStageIds([found.id]);
         break;
+      }
       case "sector":
         setSector(choice.id);
         break;
@@ -128,6 +147,7 @@ export function SessionSetup() {
         setGenericCompany(result.genericCompany ?? "");
         setRoles(result.roles ?? []);
         setStagesByRole(result.stagesByRole ?? []);
+        setMaxCombined(result.maxCombinedStages ?? 3);
       })
       .catch(() => undefined);
     fetchPlan()
@@ -171,13 +191,64 @@ export function SessionSetup() {
     return stagesByRole.find((entry) => entry.roleId === id)?.stages ?? [];
   }, [roles, stagesByRole, role]);
 
-  // Changing role can strand the current round outside the list. Falling back
-  // to the first keeps the picker and the interview agreeing.
+  /** The chosen rounds, in the order they were chosen. */
+  const chosenStages = useMemo(
+    () =>
+      stageIds
+        .map((id) => visibleStages.find((entry) => entry.id === id))
+        .filter((entry): entry is Stage => Boolean(entry)),
+    [stageIds, visibleStages],
+  );
+
+  // Changing role strands rounds the new role does not sit. Dropping them and
+  // falling back to the first keeps the picker and the interview agreeing.
   useEffect(() => {
-    if (visibleStages.length > 0 && !visibleStages.some((s) => s.label === stage)) {
-      setStage(visibleStages[0]!.label);
+    if (visibleStages.length === 0) return;
+    setStageIds((current) => {
+      const kept = current.filter((id) => visibleStages.some((s) => s.id === id));
+      return kept.length > 0 ? kept : [visibleStages[0]!.id];
+    });
+  }, [visibleStages]);
+
+  const toggleStage = (id: string) => {
+    setStageIds((current) => {
+      if (current.includes(id)) {
+        // Never leave the interview with no round at all.
+        return current.length === 1 ? current : current.filter((entry) => entry !== id);
+      }
+      // Past the cap, the oldest choice makes way — quieter than refusing the
+      // click and leaving the reader to work out why nothing happened.
+      return current.length >= maxCombined
+        ? [...current.slice(1), id]
+        : [...current, id];
+    });
+  };
+
+  /**
+   * The interviewers who could credibly run these rounds.
+   *
+   * Prefers someone who covers all of them; when no one title does — a
+   * recruiter screen and a system design round in one sitting — it casts for
+   * the round that opens the interview.
+   */
+  const eligiblePersonas = useMemo(() => {
+    if (chosenStages.length === 0) return personas;
+    const shared = chosenStages.reduce<string[]>(
+      (kept, entry) => kept.filter((title) => entry.titles.includes(title)),
+      [...(chosenStages[0]?.titles ?? [])],
+    );
+    const titles = shared.length > 0 ? shared : (chosenStages[0]?.titles ?? []);
+    const found = personas.filter((entry) => titles.includes(entry.title));
+    return found.length > 0 ? found : personas;
+  }, [chosenStages, personas]);
+
+  // A chosen interviewer who does not run the new round is dropped back to the
+  // company default rather than silently replaced server-side.
+  useEffect(() => {
+    if (personaId && !eligiblePersonas.some((entry) => entry.id === personaId)) {
+      setPersonaId("");
     }
-  }, [visibleStages, stage]);
+  }, [eligiblePersonas, personaId]);
 
   const visibleCompanies = useMemo(() => {
     if (companies.length === 0) return FALLBACK_COMPANIES;
@@ -283,20 +354,22 @@ export function SessionSetup() {
                 node: (
                   <FilterSegment
                     label="Stage"
-                    value={stage}
-                    hint="Which round of the process you are sitting."
+                    value={
+                      chosenStages.map((entry) => entry.label).join(" + ") || "Behavioral"
+                    }
+                    hint={`Which rounds you are sitting. Pick up to ${maxCombined} — real interviews often cover more than one, and the handover between them is its own skill.`}
                   >
-                    {(close) =>
+                    {() =>
                       visibleStages.map((entry) => (
                         <FilterOption
                           key={entry.id}
                           label={entry.label}
                           detail={entry.summary}
-                          selected={stage === entry.label}
-                          onSelect={() => {
-                            setStage(entry.label);
-                            close();
-                          }}
+                          selected={stageIds.includes(entry.id)}
+                          // Deliberately does not close: picking several is
+                          // the point, and a panel that shut after the first
+                          // would hide that entirely.
+                          onSelect={() => toggleStage(entry.id)}
                         />
                       ))
                     }
@@ -345,7 +418,7 @@ export function SessionSetup() {
                     value={
                       personas.find((p) => p.id === personaId)?.name ?? "Company default"
                     }
-                    hint="Six people, six temperaments, six voices. The same answer does not land the same way with each."
+                    hint="Only the people who actually run these rounds. A recruiter does not take a system design interview."
                     disabled={can ? !can.choosePersona : false}
                     disabledReason="Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
                   >
@@ -360,7 +433,7 @@ export function SessionSetup() {
                             close();
                           }}
                         />
-                        {personas.map((entry) => (
+                        {eligiblePersonas.map((entry) => (
                           <FilterOption
                             key={entry.id}
                             label={`${entry.name} · ${entry.title}`}
@@ -455,7 +528,14 @@ export function SessionSetup() {
             className="self-start"
             onClick={() =>
               navigate("/app/session", {
-                state: { company, role, stage, mode, personaId },
+                state: {
+                  company,
+                  role,
+                  stage: chosenStages.map((entry) => entry.label).join(" + "),
+                  stages: chosenStages.map((entry) => entry.id),
+                  mode,
+                  personaId,
+                },
               })
             }
           >

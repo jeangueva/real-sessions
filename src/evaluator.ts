@@ -21,6 +21,12 @@ export class EvaluationParseError extends Error {
 }
 
 export interface EvaluateOptions {
+  /**
+   * The rounds the interview covered, in order. Passed explicitly because a
+   * combined session records its stage as a joined label, which no lookup
+   * resolves — leaving the evaluator grading everything as behavioural.
+   */
+  stages?: readonly string[];
   /** Defaults to the vendor implied by `model`. Inject a stub in tests. */
   provider?: ModelProvider;
   model?: string;
@@ -55,7 +61,7 @@ export async function evaluateInterview(
 
   const response = await provider.json({
     model,
-    system: buildEvaluatorPrompt(context),
+    system: buildEvaluatorPrompt(context, options.stages),
     prompt: formatTranscript(transcript, context),
     maxTokens: options.maxTokens ?? 4096,
     schema: EvaluationSchema,

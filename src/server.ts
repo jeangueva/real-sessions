@@ -118,7 +118,7 @@ import {
 } from "./gamification.js";
 import { coachTurn } from "./coach.js";
 import { COMPANIES, SECTORS, findCompany, sectorForCompany } from "./sectors.js";
-import { PERSONAS, defaultPersonaFor, findPersona } from "./personas.js";
+import { PERSONAS, castFor, defaultPersonaFor, findPersona } from "./personas.js";
 import {
   capabilitiesFor,
   createEntitlementStore,
@@ -146,7 +146,12 @@ import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extra
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled } from "./reviewers.js";
 import { ROLES, roleIdFor } from "./roles.js";
-import { stageCatalogue } from "./stages.js";
+import {
+  MAX_COMBINED,
+  resolveStages,
+  stageCatalogue,
+  titlesFor,
+} from "./stages.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
@@ -1390,6 +1395,17 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "POST" && path === "/api/sessions") {
     if (await limited(res, `start:${identity.id}`, RULES.startSession)) return;
     const body = await readJson(req);
+    /**
+     * One session can cover several rounds, because real ones do — a screen
+     * that drifts into behavioural, a technical that closes on values. The
+     * old single `interviewStage` still works and is what an older client
+     * sends; `stages` is the ordered list.
+     */
+    const wantedStages = Array.isArray(body["stages"])
+      ? (body["stages"] as unknown[]).filter(
+          (entry): entry is string => typeof entry === "string",
+        )
+      : undefined;
     // Free runs against a role, not an employer. The downgrade happens here
     // rather than by hiding the picker, because hiding a control is a courtesy
     // and this is the paywall.
@@ -1397,12 +1413,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const mode = readMode(body["mode"]);
     // An unknown or absent id resolves to the company's own default rather
     // than to a neutral interviewer — every session has a temperament.
-    const persona =
+    const requested =
       can.choosePersona &&
       typeof body["personaId"] === "string" &&
       body["personaId"] !== ""
         ? findPersona(body["personaId"])
-        : defaultPersonaFor(context.companyName);
+        : null;
 
     // The brief is read once, here, and travels in the session snapshot — so
     // an interview keeps the CV it started with even if one is uploaded
@@ -1422,7 +1438,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
           .catch(() => [])
       : [];
 
+    const rounds = resolveStages(context.targetRole, wantedStages ?? context.interviewStage);
+    // Whoever actually runs these rounds. A recruiter does not take a system
+    // design interview, and honouring the request would rehearse a meeting
+    // that does not happen.
+    const persona = castFor(titlesFor(rounds), context.companyName, requested);
     const session = new InterviewSession(context, {
+      stages: rounds.map((round) => round.id),
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
       knownQuestions,
@@ -1440,7 +1462,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         company: context.companyName,
         sectorId: sectorForCompany(context.companyName)?.id ?? null,
         role: context.targetRole,
-        stage: context.interviewStage,
+        stage: rounds.map((round) => round.label).join(" + "),
         mode,
         personaId: persona.id,
       }),
@@ -1448,6 +1470,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const persist = async (): Promise<void> => {
       await STORE.set(sessionId, {
+        // Carried so the evaluator can weigh each round against its own bar.
+        stages: rounds.map((round) => round.id),
         snapshot: session.snapshot(),
         context,
         ownerId: identity.id,
@@ -1592,7 +1616,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const evaluation = await evaluateInterview(
       stored.context,
       session.transcript,
-      PROVIDER ? { provider: PROVIDER } : {},
+      {
+        ...(PROVIDER ? { provider: PROVIDER } : {}),
+        ...(stored.stages ? { stages: stored.stages } : {}),
+      },
     );
     const score = evaluation.overall_score_percentage;
 
@@ -1794,6 +1821,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // because offering an engineer's system design round to a designer is
       // the thing this replaces.
       stagesByRole: stageCatalogue(),
+      // The most rounds one session will run. The picker caps at this.
+      maxCombinedStages: MAX_COMBINED,
       // The placeholder a free session is recorded against. The client needs
       // it to avoid printing "a well-regarded technology company" back at
       // someone as though it were where they interviewed.
