@@ -161,22 +161,22 @@ export function Tour() {
           the target stays clickable, which is what people try first. */}
       <div
         onClick={close}
-        className="absolute inset-x-0 top-0 bg-black/60"
+        className="absolute inset-x-0 top-0 bg-scrim"
         style={{ height: Math.max(0, spot.top) }}
       />
       <div
         onClick={close}
-        className="absolute inset-x-0 bottom-0 bg-black/60"
+        className="absolute inset-x-0 bottom-0 bg-scrim"
         style={{ top: spot.top + spot.height }}
       />
       <div
         onClick={close}
-        className="absolute left-0 bg-black/60"
+        className="absolute left-0 bg-scrim"
         style={{ top: spot.top, height: spot.height, width: Math.max(0, spot.left) }}
       />
       <div
         onClick={close}
-        className="absolute right-0 bg-black/60"
+        className="absolute right-0 bg-scrim"
         style={{ top: spot.top, height: spot.height, left: spot.left + spot.width }}
       />
 

@@ -41,6 +41,8 @@ export default {
           lift: "rgb(var(--surface-lift) / var(--surface-lift-alpha))",
         },
         line: "var(--line)",
+        // The dim behind a spotlight or a modal. Softer on a light ground.
+        scrim: "var(--scrim)",
       },
       fontFamily: {
         sans: ['"Almarai"', "system-ui", "sans-serif"],

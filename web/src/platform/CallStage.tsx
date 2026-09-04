@@ -78,7 +78,11 @@ export function CallStage({
       <div
         className={
           sharing
-            ? "absolute left-4 top-14 flex items-center gap-3 rounded-2xl border border-line bg-black/70 p-3 backdrop-blur"
+            // A surface, not literal black: the label on it is the ink
+            // colour, and on a light theme near-black text on a black plate
+            // is invisible. It sits over arbitrary shared content, so it
+            // stays mostly opaque.
+            ? "absolute left-4 top-14 flex items-center gap-3 rounded-2xl border border-line bg-surface-deep/90 p-3 backdrop-blur"
             : "flex flex-col items-center gap-4 text-center"
         }
       >

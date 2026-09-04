@@ -32,6 +32,15 @@
     --surface-lift: 255 255 255;
     --surface-lift-alpha: 0.05;
     --line: rgba(222, 219, 200, 0.14);
+    /**
+     * The dim behind a spotlight or a modal.
+     *
+     * Sixty percent black over a black page is barely a change of tone. Over
+     * a white one it turns the whole screen mid-grey, which reads as broken
+     * rather than as focused — so the light theme dims by half as much and
+     * still separates the highlighted control from everything else.
+     */
+    --scrim: rgba(0, 0, 0, 0.6);
   }
 
   /**
@@ -51,6 +60,7 @@
     --surface-lift: 26 30 34;
     --surface-lift-alpha: 0.05;
     --line: rgba(26, 30, 34, 0.16);
+    --scrim: rgba(0, 0, 0, 0.32);
   }
 
   * {
