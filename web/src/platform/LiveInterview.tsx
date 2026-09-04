@@ -285,7 +285,7 @@ export function LiveInterview() {
                 <Waveform
                   active={voice.speaking}
                   level={voice.voiceLevel}
-                  measured={voice.voiceMeasured()}
+                  measured={voice.voiceMeasured}
                   label={
                     voice.speaking
                       ? `${persona?.name ?? "The interviewer"} is speaking`
@@ -378,7 +378,7 @@ export function LiveInterview() {
                     <Waveform
                       active
                       level={voice.micLevel}
-                      measured={voice.micMeasured()}
+                      measured={voice.micMeasured}
                       label="Your microphone is picking you up"
                       className="mt-0.5 shrink-0 text-cream-bright"
                     />

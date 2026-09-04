@@ -84,7 +84,7 @@ export function barHeight(
 export function Waveform({
   active,
   level,
-  measured = true,
+  measured = () => true,
   label,
   className = "",
 }: {
@@ -92,8 +92,14 @@ export function Waveform({
   active: boolean;
   /** Loudness right now, 0–1. Polled once per frame; never a React value. */
   level: () => number;
-  /** False when `level` is not a real measurement and the wave is decorative. */
-  measured?: boolean;
+  /**
+   * Whether `level` is a real measurement. A function, not a boolean, because
+   * it changes *after* the render that starts a phrase: the meter attaches to
+   * the audio element on its `playing` event, and nothing re-renders when it
+   * does. Read as a value, this was permanently false and the bars ran the
+   * decorative wave through every sentence the interviewer actually spoke.
+   */
+  measured?: () => boolean;
   /** What a screen reader is told, since the bars themselves say nothing. */
   label: string;
   className?: string;
@@ -136,11 +142,12 @@ export function Waveform({
       if (reduced && now - lastPaint < 120) return;
       lastPaint = now;
 
+      const measuredNow = isMeasured.current();
       const shape = {
         active: live.current,
-        measured: isMeasured.current,
+        measured: measuredNow,
         reduced,
-        level: isMeasured.current ? source.current() : 0,
+        level: measuredNow ? source.current() : 0,
         elapsed: now - started,
       };
       eased = ease(eased, targetFor(shape));
