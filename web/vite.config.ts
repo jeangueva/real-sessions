@@ -29,6 +29,7 @@ export default defineConfig({
       ["test/setup-search.test.ts", "node"],
       ["test/overflow-row.test.ts", "node"],
       ["test/scroll-to-section.test.ts", "node"],
+      ["test/transcript-panel.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },

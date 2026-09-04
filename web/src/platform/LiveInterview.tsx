@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Lightbulb, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { Action, Badge, Panel, Waveform } from "@/design-system";
 import { useVoice } from "@/hooks/useVoice";
 import { PageBody, PageHeader } from "./AppShell";
@@ -18,6 +18,10 @@ import type {
   SessionMode,
 } from "@/lib/api";
 import { NEUTRAL_VOICE } from "@/lib/voice";
+import { useCamera, useScreenShare } from "@/hooks/useMediaStream";
+import { CallControls } from "./CallControls";
+import { CallStage } from "./CallStage";
+import { TranscriptPanel, type TranscriptLine } from "./TranscriptPanel";
 import { resumeAudio } from "@/lib/audio-level";
 
 interface SetupState {
@@ -74,6 +78,13 @@ export function LiveInterview() {
    * for the second before it arrives, they are the best guess available.
    */
   const [running, setRunning] = useState<RunningContext | null>(null);
+  /**
+   * Everything said so far, in order, attributed. The turn state holds only
+   * what is on screen now; a call needs the record beside it.
+   */
+  const [lines, setLines] = useState<TranscriptLine[]>([]);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [tab, setTab] = useState<"transcript" | "chat">("transcript");
   const [tips, setTips] = useState<CoachTip[]>([]);
   const [coaching, setCoaching] = useState(false);
   /** True once the coach has answered for the turn currently on screen. */
@@ -87,6 +98,21 @@ export function LiveInterview() {
    * read per turn so the offsets stay comparable across the session.
    */
   const startedAt = useRef(Date.now());
+  /** Ids for transcript rows. The index is not stable enough to be a key. */
+  const lineSeq = useRef(0);
+
+  const addLine = (speaker: TranscriptLine["speaker"], text: string) => {
+    const trimmed = text.trim();
+    if (trimmed === "") return;
+    lineSeq.current += 1;
+    setLines((current) => [
+      ...current,
+      { id: `l${lineSeq.current}`, speaker, text: trimmed },
+    ]);
+  };
+
+  const camera = useCamera();
+  const screen = useScreenShare();
 
   const voice = useVoice({
     enabled: voiceOn,
@@ -134,6 +160,7 @@ export function LiveInterview() {
       .then((result) => {
         voice.flushSpeech();
         setTurn(result);
+        addLine("interviewer", result.text);
       })
       .catch((caught: unknown) => setError(describe(caught)))
       .finally(() => setBusy(false));
@@ -149,13 +176,15 @@ export function LiveInterview() {
   // the microphone never calls a stale closure with an old session id.
   submitRef.current = (text: string) => void submit(text);
 
-  const toggleVoice = () => {
-    if (voiceOn) {
-      voice.cancelSpeech();
-      voice.stopListening();
-      setVoiceOn(false);
-      return;
-    }
+  /**
+   * Turns the voice on, from a click.
+   *
+   * The click is load-bearing twice over: it is the trusted gesture Chrome
+   * requires before anything will play, and it is what starts the audio graph
+   * the waveform reads. Which is why the mic button routes through here the
+   * first time rather than going straight to `startListening`.
+   */
+  const startVoice = () => {
     setVoiceOn(true);
     // The same click starts the audio graph. Without it the analyser stays
     // suspended and the waveform never sees the interviewer's voice.
@@ -165,6 +194,8 @@ export function LiveInterview() {
     // it can only be spoken from here.
     const current = turn?.text ?? streaming;
     if (current) voice.speakNow(current);
+    // Opening the mic is the reason they pressed it.
+    voice.startListening();
   };
 
   /**
@@ -200,6 +231,10 @@ export function LiveInterview() {
     setTurn(null);
     setTips([]);
     setCoached(false);
+    // Recorded before the request, not after it: a failed turn still happened
+    // as far as the candidate is concerned, and losing what they just said
+    // would be the worst possible response to an error.
+    addLine("candidate", trimmed);
     try {
       const next = await sendAnswerStream(sessionId, trimmed, timings, (chunk) => {
         setStreaming((current) => current + chunk);
@@ -207,6 +242,7 @@ export function LiveInterview() {
       });
       voice.flushSpeech();
       setTurn(next);
+      addLine("interviewer", next.text);
       setAnswer("");
       fetchCoaching(sessionId);
     } catch (caught) {
@@ -218,15 +254,46 @@ export function LiveInterview() {
   };
 
   const showCoaching = mode === "practice";
+  const finished = Boolean(turn?.isComplete);
+  const heading = running?.generic
+    ? `${running.targetRole} · ${running.interviewStage}`
+    : `${running?.companyName ?? company} · ${running?.interviewStage ?? stage}`;
+  const status =
+    busy && !turn && !streaming
+      ? "Connecting"
+      : `Turn ${turn?.turnNumber ?? "…"} of ${MAX_TURNS}`;
+
+  /**
+   * The mic button is the call's, so it owns turning voice on as well.
+   * Nobody unmutes expecting to still be muted, and the voice toggle was a
+   * separate switch in the header that had to be found first.
+   */
+  const toggleMic = () => {
+    if (voice.listening) {
+      voice.stopListening();
+      return;
+    }
+    if (!voiceOn) {
+      startVoice();
+      return;
+    }
+    voice.startListening();
+  };
+
+  const leave = () => {
+    voice.cancelSpeech();
+    voice.stopListening();
+    camera.stop();
+    screen.stop();
+    navigate(finished && sessionId ? `/app/feedback` : "/app", {
+      state: finished && sessionId ? { sessionId } : undefined,
+    });
+  };
 
   return (
     <>
       <PageHeader
-        title={
-          running?.generic
-            ? `${running.targetRole} · ${running.interviewStage}`
-            : `${running?.companyName ?? company} · ${running?.interviewStage ?? stage}`
-        }
+        title={heading}
         meta={
           running?.generic
             ? "General role interview · targeting a company is on the paid plan"
@@ -234,230 +301,137 @@ export function LiveInterview() {
         }
         actions={
           <div className="flex items-center gap-3">
-            {voice.supported && (
-              <button
-                onClick={toggleVoice}
-                aria-pressed={voiceOn}
-                aria-label={voiceOn ? "Turn voice off" : "Turn voice on"}
-                className="focus-ring flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
-              >
-                {voiceOn ? (
-                  <Volume2 className="h-4 w-4" aria-hidden />
-                ) : (
-                  <VolumeX className="h-4 w-4" aria-hidden />
-                )}
-                Voice {voiceOn ? "on" : "off"}
-              </button>
-            )}
-            {persona && (
-              <span className="flex items-center gap-2 rounded-full border border-line py-1 pl-1 pr-3">
-                <span
-                  aria-hidden
-                  className="grid h-7 w-7 place-items-center rounded-full bg-cream/10 text-[11px] font-semibold tracking-wide text-cream-bright"
-                >
-                  {persona.initials}
-                </span>
-                <span className="text-xs leading-tight">
-                  <span className="block text-cream-bright">{persona.name}</span>
-                  <span className="block text-cream-dim">{persona.title}</span>
-                </span>
-              </span>
-            )}
             <Badge>{mode === "real" ? "Real" : "Practice"}</Badge>
-            <Badge tone={busy ? "live" : "neutral"}>
-              {busy && !turn && !streaming
-                ? "Connecting"
-                : `Turn ${turn?.turnNumber ?? "…"} of ${MAX_TURNS}`}
-            </Badge>
+            <Badge tone={busy ? "live" : "neutral"}>{status}</Badge>
           </div>
         }
       />
 
-      {/* The interview column and the coaching column sit side by side from
-          `lg` up. Below that the coaching stacks under the answer box rather
-          than competing with it for a phone's width. */}
-      <PageBody className="flex flex-1 flex-col gap-8 lg:flex-row lg:gap-10">
-        <div className="flex flex-1 flex-col justify-between gap-8">
-          <div className="w-full">
-            <div className="flex items-center gap-3">
-              <p className="text-xs text-cream-faint">Interviewer</p>
-              {voiceOn && (
-                <Waveform
-                  active={voice.speaking}
-                  level={voice.voiceLevel}
-                  measured={voice.voiceMeasured}
-                  label={
-                    voice.speaking
-                      ? `${persona?.name ?? "The interviewer"} is speaking`
-                      : "The interviewer is not speaking"
-                  }
-                  className="text-cream-bright"
-                />
-              )}
-            </div>
-            {/* The reveal is the model actually generating, not a timed effect.
-                aria-live announces the finished turn once, rather than
-                re-reading the sentence on every token. */}
-            {/* Sized for a sentence, not a slogan: `text-headline` reaches 72px
-                on a wide screen, which pushed the answer box off the viewport
-                once a full question arrived. */}
-            <p
-              className="mt-4 min-h-[6rem] text-[clamp(1.25rem,2.2vw,2rem)] font-normal leading-[1.25] text-cream-bright"
-              aria-live="polite"
-              aria-busy={busy}
-            >
-              {turn?.text || streaming || (
-                <span className="text-cream-faint">
-                  {error ? "—" : "Connecting to your interviewer…"}
-                </span>
-              )}
-              {busy && streaming && (
-                <span
-                  aria-hidden
-                  className="ml-[2px] inline-block h-[0.9em] w-[3px] bg-cream align-middle animate-blink"
-                />
-              )}
-            </p>
-          </div>
+      <PageBody className="flex flex-1 flex-col">
+        <div className="flex min-h-[70vh] flex-1 flex-col gap-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
+            <div className="flex min-h-0 flex-1 flex-col gap-3">
+              <CallStage
+                initials={persona?.initials ?? "…"}
+                name={persona?.name ?? "Your interviewer"}
+                title={persona?.title ?? "Joining…"}
+                speaking={voice.speaking}
+                voiceLevel={voice.voiceLevel}
+                voiceMeasured={voice.voiceMeasured}
+                cameraStream={camera.stream}
+                cameraError={camera.error}
+                screenStream={screen.stream}
+                status={status}
+              />
 
-          <div className="w-full">
-            {error && (
-              <Panel variant="glass" className="mb-3 flex flex-wrap items-center justify-between gap-3 p-4">
-                <p role="alert" className="text-sm text-cream-bright">
-                  {error}
-                </p>
-                <Action
-                  tone="ghost"
-                  onClick={() => (turn ? void submit() : window.location.reload())}
-                >
-                  Try again
-                </Action>
-              </Panel>
-            )}
+              {/* What the interviewer just asked, under the tile — the one
+                  thing a candidate needs in front of them while answering,
+                  and the one thing a scrolling transcript is bad at holding
+                  still. */}
+              <p
+                className="min-h-[3.5rem] text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
+                aria-live="polite"
+                aria-busy={busy}
+              >
+                {turn?.text || streaming || (
+                  <span className="text-cream-faint">
+                    {error ? "—" : "Connecting to your interviewer…"}
+                  </span>
+                )}
+              </p>
 
-            {turn?.isComplete ? (
-              <Panel variant="glass" className="flex flex-col gap-4 p-6">
-                <p className="text-sm text-cream-dim">
-                  Interview complete. Your transcript is ready to evaluate.
+              {voice.listening && (
+                <div className="flex items-start gap-3">
+                  <Waveform
+                    active
+                    level={voice.micLevel}
+                    measured={voice.micMeasured}
+                    label="Your microphone is picking you up"
+                    className="mt-0.5 shrink-0 text-cream-bright"
+                  />
+                  <p className="text-sm text-cream-dim" aria-live="polite">
+                    {voice.transcript || "Listening…"}
+                  </p>
+                </div>
+              )}
+
+              {(error || voice.error || camera.error || screen.error) && (
+                <p role="alert" className="text-xs text-cream-bright">
+                  {error ?? voice.error ?? camera.error ?? screen.error}
                 </p>
+              )}
+
+              {voice.blocked && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <p role="alert" className="text-xs text-cream-bright">
+                    Your browser blocked audio until you interact with the page.
+                  </p>
+                  <button
+                    onClick={() => voice.speakNow(turn?.text ?? streaming)}
+                    className="focus-ring rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+                  >
+                    Play this turn
+                  </button>
+                </div>
+              )}
+
+              {finished && (
                 <Action
                   withArrow
                   className="self-start"
                   onClick={() =>
-                    navigate("/app/feedback", {
-                      state: { sessionId, company, role, stage },
-                    })
+                    navigate("/app/feedback", { state: { sessionId } })
                   }
                 >
                   See feedback
                 </Action>
-              </Panel>
-            ) : (
-              <Panel variant="glass" className="flex flex-col gap-4 p-4 sm:p-6">
-                <label htmlFor="answer" className="sr-only">
-                  Your answer
-                </label>
-                <textarea
-                  id="answer"
-                  ref={inputRef}
-                  value={answer}
-                  disabled={busy || !sessionId}
-                  onChange={(event) => setAnswer(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      void submit();
-                    }
-                  }}
-                  rows={3}
-                  placeholder="Answer out loud with the mic, or type here."
-                  className="focus-ring w-full resize-none bg-transparent text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50 sm:text-base"
-                />
-                {voiceOn && voice.listening && (
-                  <div className="flex items-start gap-3">
-                    <Waveform
-                      active
-                      level={voice.micLevel}
-                      measured={voice.micMeasured}
-                      label="Your microphone is picking you up"
-                      className="mt-0.5 shrink-0 text-cream-bright"
-                    />
-                    <p className="text-sm text-cream-dim" aria-live="polite">
-                      {voice.transcript || "Listening…"}
-                    </p>
-                  </div>
-                )}
-                {voice.error && (
-                  <p role="alert" className="text-xs text-cream-bright">
-                    {voice.error}
-                  </p>
-                )}
-                {voice.blocked && (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <p role="alert" className="text-xs text-cream-bright">
-                      Your browser blocked audio until you interact with the page.
-                    </p>
-                    <button
-                      onClick={() => voice.speakNow(turn?.text ?? streaming)}
-                      className="focus-ring rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
-                    >
-                      Play this turn
-                    </button>
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-xs text-cream-faint">
-                    {voiceOn
-                      ? "Tap the mic and answer out loud"
-                      : "Enter to send · Shift + Enter for a new line"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {voiceOn && voice.inputSupported && (
-                      <button
-                        onClick={() =>
-                          voice.listening
-                            ? voice.stopListening()
-                            : voice.startListening()
-                        }
-                        /* The mic stays shut while the interviewer talks, or it
-                           transcribes the synthesised voice back into the answer. */
-                        disabled={busy || voice.speaking || !sessionId}
-                        title={
-                          voice.speaking
-                            ? "Wait for the interviewer to finish"
-                            : undefined
-                        }
-                        aria-pressed={voice.listening}
-                        aria-label={voice.listening ? "Stop recording" : "Start recording"}
-                        className={`focus-ring flex h-11 w-11 items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
-                          voice.listening
-                            ? "bg-cream text-black"
-                            : "border border-line text-cream-dim hover:text-cream-bright"
-                        }`}
-                      >
-                        {voice.listening ? (
-                          <Mic className="h-4 w-4" aria-hidden />
-                        ) : (
-                          <MicOff className="h-4 w-4" aria-hidden />
-                        )}
-                      </button>
-                    )}
-                    <Action
-                      onClick={() => void submit()}
-                      disabled={busy || answer.trim() === "" || !sessionId}
-                    >
-                      {speaking ? "Speaking…" : busy ? "Thinking…" : "Send"}
-                    </Action>
-                  </div>
-                </div>
-              </Panel>
+              )}
+            </div>
+
+            {panelOpen && (
+              <TranscriptPanel
+                lines={lines}
+                pending={busy ? streaming : ""}
+                interviewerName={persona?.name ?? null}
+                tab={tab}
+                onTab={setTab}
+                answer={answer}
+                onAnswer={setAnswer}
+                onSend={() => void submit()}
+                canSend={!busy && Boolean(sessionId) && !finished}
+                hint={
+                  speaking
+                    ? "Speaking…"
+                    : busy
+                      ? "Thinking…"
+                      : "Enter to send · Shift + Enter for a new line"
+                }
+              />
             )}
           </div>
-        </div>
 
-        {showCoaching && (
-          <CoachPanel tips={tips} working={coaching} answered={coached} />
-        )}
+          <div className="shrink-0 pt-1">
+            <CallControls
+              micOn={voice.listening}
+              micSupported={voice.inputSupported}
+              onToggleMic={toggleMic}
+              cameraOn={camera.on}
+              cameraSupported={camera.supported}
+              onToggleCamera={() => (camera.on ? camera.stop() : camera.start())}
+              sharing={screen.on}
+              shareSupported={screen.supported}
+              onToggleShare={() => (screen.on ? screen.stop() : screen.start())}
+              panelOpen={panelOpen}
+              onTogglePanel={() => setPanelOpen((open) => !open)}
+              onLeave={leave}
+              leaveLabel={finished ? "End and see feedback" : "Leave the interview"}
+            />
+          </div>
+
+          {showCoaching && (
+            <CoachPanel tips={tips} working={coaching} answered={coached} />
+          )}
+        </div>
       </PageBody>
     </>
   );
