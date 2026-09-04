@@ -3,6 +3,56 @@
 @tailwind utilities;
 
 @layer base {
+  /**
+   * The palette, as variables, so a theme is a swap rather than a rewrite.
+   *
+   * Every colour in the app already goes through a named token — `cream`,
+   * `surface-*`, `line` — so nothing needed renaming to get a second theme.
+   * What changed is that those tokens now read from here.
+   *
+   * `--cream` is the ink, not the colour. In light mode it becomes near-black,
+   * and `cream-dim`, `cream-faint` and `line` follow automatically because
+   * they are alpha steps of the same variable. That is the whole reason the
+   * light theme is nine lines and not nine hundred.
+   *
+   * Channels rather than colours because Tailwind's `/50` opacity modifiers
+   * compile to `rgb(var(--x) / 0.5)`, which needs the raw numbers.
+   */
+  :root {
+    --cream: 222 219 200;
+    --cream-bright: 225 224 204;
+    --surface-base: 0 0 0;
+    --surface-raised: 16 16 16;
+    --surface-card: 33 33 33;
+    --surface-deep: 4 33 46;
+    /* Recessed panels inside a surface — transcript, call stage. */
+    --surface-sunken: 0 0 0;
+    --surface-sunken-alpha: 0.25;
+    /* A barely-there lift, for a row that is hovered or selected. */
+    --surface-lift: 255 255 255;
+    --surface-lift-alpha: 0.05;
+    --line: rgba(222, 219, 200, 0.14);
+  }
+
+  /**
+   * Light. Not an inversion — the navy shell would read as mud flipped, so
+   * the surfaces are chosen rather than computed, and the ink is a warm
+   * near-black that keeps the product from looking like a spreadsheet.
+   */
+  :root[data-theme="light"] {
+    --cream: 26 30 34;
+    --cream-bright: 12 15 18;
+    --surface-base: 250 249 245;
+    --surface-raised: 255 255 255;
+    --surface-card: 242 240 233;
+    --surface-deep: 255 255 255;
+    --surface-sunken: 26 30 34;
+    --surface-sunken-alpha: 0.04;
+    --surface-lift: 26 30 34;
+    --surface-lift-alpha: 0.05;
+    --line: rgba(26, 30, 34, 0.16);
+  }
+
   * {
     font-family: "Almarai", -apple-system, BlinkMacSystemFont, "Segoe UI",
       Roboto, sans-serif;
@@ -37,6 +87,22 @@
 
 @layer components {
   /* Liquid glass. The only surface treatment allowed to float over video. */
+  /* Highlights are white on a dark ground and near-black on a light one, so
+     the glass reads as glass either way rather than as haze. */
+  :root[data-theme="light"] .liquid-glass {
+    background: rgba(26, 30, 34, 0.02);
+    box-shadow: inset 0 1px 1px rgba(26, 30, 34, 0.06);
+  }
+
+  :root[data-theme="light"] .liquid-glass::before {
+    background: linear-gradient(
+      180deg,
+      rgba(26, 30, 34, 0.16) 0%,
+      rgba(26, 30, 34, 0.06) 20%,
+      rgba(26, 30, 34, 0) 40%
+    );
+  }
+
   .liquid-glass {
     background: rgba(255, 255, 255, 0.01);
     background-blend-mode: luminosity;

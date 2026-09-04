@@ -16,8 +16,8 @@ interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const TONE: Record<Tone, string> = {
-  solid: "bg-cream text-black hover:gap-3",
-  glass: "liquid-glass text-cream-bright hover:bg-white/5",
+  solid: "bg-cream text-surface-base hover:gap-3",
+  glass: "liquid-glass text-cream-bright hover:bg-surface-lift",
   ghost: "text-cream-dim hover:text-cream-bright",
 };
 

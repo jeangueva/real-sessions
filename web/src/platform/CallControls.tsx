@@ -44,7 +44,7 @@ function ControlButton({
   const tone = danger
     ? "bg-red-500/90 text-white hover:bg-red-500"
     : active
-      ? "bg-cream text-black"
+      ? "bg-cream text-surface-base"
       : "border border-line text-cream-dim hover:text-cream-bright";
 
   return (

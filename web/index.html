@@ -10,6 +10,29 @@
       href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
+    <script>
+      /**
+       * Applies the stored theme before the first paint.
+       *
+       * In React this would run after hydration, and the page would flash the
+       * dark palette on its way to a light one — which is worse than either
+       * theme. Deliberately duplicated from src/lib/theme.ts and deliberately
+       * tiny: it reads one key and sets one attribute.
+       */
+      (function () {
+        try {
+          var stored = localStorage.getItem("realsessions.theme");
+          var light =
+            stored === "light" ||
+            (stored !== "dark" &&
+              window.matchMedia("(prefers-color-scheme: light)").matches);
+          if (light) document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.style.colorScheme = light ? "light" : "dark";
+        } catch (error) {
+          /* Blocked storage. The dark theme is what :root declares anyway. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

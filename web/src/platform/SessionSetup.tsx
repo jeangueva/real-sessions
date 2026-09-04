@@ -18,6 +18,7 @@ import type {
 } from "@/lib/api";
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
 import { FilterBar, FilterOption, FilterSegment } from "./FilterBar";
+import { Tour } from "./Tour";
 
 /**
  * Whether the briefing has been dismissed. Per-device and low stakes, so it
@@ -275,6 +276,7 @@ export function SessionSetup() {
         meta="Seven turns, about ten minutes. You can stop at any point."
       />
 
+      <Tour />
       <PageBody>
         {/* The spacing lives on a wrapper, not on PageBody: its className goes
             on the outer padding element, and the children sit in a plain block
@@ -297,6 +299,7 @@ export function SessionSetup() {
           </div>
         )}
 
+        <div data-tour="search">
         <SetupSearch
           sessions={sessions}
           companies={visibleCompanies}
@@ -307,6 +310,7 @@ export function SessionSetup() {
           genericCompany={genericCompany}
           onChoose={applyChoice}
         />
+        </div>
 
         {/* Full width. Everything inside scrolls sideways rather than
             wrapping, so a longer list costs lateral space, never a new row
@@ -320,6 +324,7 @@ export function SessionSetup() {
               changed. Ordered by what this plan can actually change: on free,
               leading with two controls that refuse to move reads as a broken
               form rather than as a paywall. */}
+          <div data-tour="setup">
           <FilterBar>
             {orderByEnabled([
               {
@@ -522,9 +527,11 @@ export function SessionSetup() {
               <Fragment key={entry.key}>{entry.node}</Fragment>
             ))}
           </FilterBar>
+          </div>
 
           <Action
             withArrow
+            data-tour="begin"
             className="self-start"
             onClick={() =>
               navigate("/app/session", {

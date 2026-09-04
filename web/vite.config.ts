@@ -30,6 +30,7 @@ export default defineConfig({
       ["test/scroll-to-section.test.ts", "node"],
       ["test/transcript-panel.test.ts", "node"],
       ["test/filter-bar.test.ts", "node"],
+      ["test/tour.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },

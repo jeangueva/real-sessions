@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Eyebrow, Field, Panel, Action } from "@/design-system";
+import { useTheme } from "@/hooks/useTheme";
+import { resetTour } from "@/lib/tour";
 import { PageBody, PageHeader } from "./AppShell";
 import { Billing } from "./Billing";
 import { DeleteAccount } from "./DeleteAccount";
@@ -25,6 +27,8 @@ const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Preferences, stored per identity and used to pre-fill a new session. */
 export function Settings() {
+  const { choice, theme, setChoice } = useTheme();
+  const [tourReset, setTourReset] = useState(false);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +89,57 @@ export function Settings() {
     <>
       <PageHeader title="Settings" meta="Account and practice preferences" />
       <PageBody>
+        <Panel className="mb-4 flex max-w-2xl flex-col gap-4 p-6">
+          <Eyebrow>Appearance</Eyebrow>
+          <Field
+            label="Theme"
+            hint={
+              choice === "system"
+                ? `Following your device, which is currently ${theme}.`
+                : "Fixed, whatever your device does."
+            }
+          >
+            <div role="radiogroup" aria-label="Theme" className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["system", "System"],
+                  ["dark", "Dark"],
+                  ["light", "Light"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  role="radio"
+                  aria-checked={choice === value}
+                  onClick={() => setChoice(value)}
+                  className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
+                    choice === value
+                      ? "border-cream bg-cream text-surface-base"
+                      : "border-line text-cream-dim hover:text-cream-bright"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <Field
+            label="Guided tour"
+            hint="The walkthrough shown the first time you open a session."
+          >
+            <button
+              onClick={() => {
+                resetTour();
+                setTourReset(true);
+              }}
+              className="focus-ring self-start rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
+            >
+              {tourReset ? "It will run next time" : "Show it again"}
+            </button>
+          </Field>
+        </Panel>
+
         <Panel className="flex max-w-2xl flex-col gap-6 p-6">
           <Eyebrow>Practice</Eyebrow>
 

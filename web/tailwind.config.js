@@ -20,21 +20,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Warm cream. Primary text and accents on every dark surface.
+        /**
+         * The ink. Warm cream on the dark theme, near-black on the light one
+         * — the token is the role, not the colour, which is why the whole app
+         * themes without a single class changing.
+         */
         cream: {
-          DEFAULT: "#DEDBC8",
-          bright: "#E1E0CC",
-          dim: "rgba(222, 219, 200, 0.7)",
-          faint: "rgba(222, 219, 200, 0.45)",
+          DEFAULT: "rgb(var(--cream) / <alpha-value>)",
+          bright: "rgb(var(--cream-bright) / <alpha-value>)",
+          dim: "rgb(var(--cream) / 0.7)",
+          faint: "rgb(var(--cream) / 0.45)",
         },
-        // Surfaces, darkest to lightest. Named by role, not by shade.
+        // Surfaces, named by role rather than by shade for the same reason.
         surface: {
-          base: "#000000",
-          raised: "#101010",
-          card: "#212121",
-          deep: "#04212E", // Velorah navy, for focus states and the app shell
+          base: "rgb(var(--surface-base) / <alpha-value>)",
+          raised: "rgb(var(--surface-raised) / <alpha-value>)",
+          card: "rgb(var(--surface-card) / <alpha-value>)",
+          deep: "rgb(var(--surface-deep) / <alpha-value>)",
+          sunken: "rgb(var(--surface-sunken) / var(--surface-sunken-alpha))",
+          lift: "rgb(var(--surface-lift) / var(--surface-lift-alpha))",
         },
-        line: "rgba(222, 219, 200, 0.14)",
+        line: "var(--line)",
       },
       fontFamily: {
         sans: ['"Almarai"', "system-ui", "sans-serif"],

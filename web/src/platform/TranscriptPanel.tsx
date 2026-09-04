@@ -66,7 +66,7 @@ export function TranscriptPanel({
   }, [lines.length, pending]);
 
   return (
-    <aside className="flex min-h-0 w-full flex-col rounded-3xl border border-line bg-black/20 lg:w-[26rem]">
+    <aside className="flex min-h-0 w-full flex-col rounded-3xl border border-line bg-surface-sunken lg:w-[26rem]">
       <div
         role="tablist"
         aria-label="Session panel"
@@ -80,7 +80,7 @@ export function TranscriptPanel({
             onClick={() => onTab(name)}
             className={`focus-ring flex-1 rounded-full px-3 py-1.5 text-xs capitalize transition-colors sm:text-sm ${
               tab === name
-                ? "bg-cream text-black"
+                ? "bg-cream text-surface-base"
                 : "text-cream-dim hover:text-cream-bright"
             }`}
           >
@@ -154,7 +154,7 @@ export function TranscriptPanel({
             <button
               onClick={onSend}
               disabled={!canSend || answer.trim() === ""}
-              className="focus-ring flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-xs text-black transition-opacity disabled:opacity-40 sm:text-sm"
+              className="focus-ring flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-xs text-surface-base transition-opacity disabled:opacity-40 sm:text-sm"
             >
               <Send className="h-4 w-4" aria-hidden />
               Send

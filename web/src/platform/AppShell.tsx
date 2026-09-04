@@ -83,10 +83,13 @@ export function AppShell() {
               to={to}
               end={end}
               title={label}
+              // The tour points at Progress; marking every item keeps that
+              // selector honest if the list is ever reordered.
+              data-tour={to.split("/").pop()}
               className={({ isActive }) =>
                 `focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-300 ${
                   isActive
-                    ? "bg-white/5 text-cream-bright"
+                    ? "bg-surface-lift text-cream-bright"
                     : "text-cream-dim hover:text-cream-bright"
                 }`
               }

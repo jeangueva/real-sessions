@@ -61,7 +61,7 @@ export function CallStage({
   const sharing = screenStream !== null;
 
   return (
-    <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-3xl border border-line bg-black/40 p-6">
+    <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface-sunken p-6">
       {/* Sharing rearranges the room rather than adding to it, the way a
           call does: what you are presenting is the thing worth the space, and
           the interviewer shrinks to a strip that still shows them talking. */}
@@ -88,7 +88,7 @@ export function CallStage({
             sharing
               ? "h-10 w-10 text-sm"
               : "h-24 w-24 text-2xl sm:h-32 sm:w-32 sm:text-3xl"
-          } ${speaking ? "bg-cream text-black" : "bg-cream/10 text-cream-bright"}`}
+          } ${speaking ? "bg-cream text-surface-base" : "bg-cream/10 text-cream-bright"}`}
         >
           {initials}
         </span>
@@ -114,7 +114,7 @@ export function CallStage({
       {/* The self-view. Kept small and in the corner: it is a mirror to
           glance at, not the thing being watched. */}
       {(cameraStream || cameraError) && (
-        <div className="absolute bottom-4 right-4 w-32 overflow-hidden rounded-2xl border border-line bg-black/60 sm:w-44">
+        <div className="absolute bottom-4 right-4 w-32 overflow-hidden rounded-2xl border border-line bg-surface-sunken sm:w-44">
           {cameraStream ? (
             <video
               ref={self}
