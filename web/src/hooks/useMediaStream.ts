@@ -114,6 +114,13 @@ const SCREEN_MESSAGES: Record<string, string> = {
   ...MESSAGES,
   NotAllowedError: "",
   NotFoundError: "No screen was available to share.",
+  /**
+   * Chrome refuses to open the picker unless the document is visible, and
+   * rejects with this. Measured: `getDisplayMedia` on a backgrounded tab
+   * throws `InvalidStateError: Invalid state` before any picker appears. The
+   * spec message says nothing a person can act on; this one does.
+   */
+  InvalidStateError: "Bring this tab to the front, then try sharing again.",
 };
 
 /** A mirror. `facingMode: "user"` so a phone opens the front camera. */
