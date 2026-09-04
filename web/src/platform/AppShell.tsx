@@ -170,6 +170,10 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
             <NavLink
               to={to}
               end={end}
+              // The rail is still in the DOM at this width, collapsed to a
+              // zero-sized box. Marking this one too means the tour has a
+              // real target to point at rather than the rail's empty rect.
+              data-tour={to.split("/").pop()}
               className={({ isActive }) =>
                 `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] transition-colors ${
                   isActive ? "text-cream-bright" : "text-cream-dim"

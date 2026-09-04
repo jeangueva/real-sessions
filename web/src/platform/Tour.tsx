@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import {
   TOUR_STEPS,
+  firstVisible,
   markTourSeen,
   stepsPresent,
   tourSeen,
@@ -31,25 +32,37 @@ export interface Spot {
   height: number;
 }
 
-/** Where the card goes: below the spotlight, or above when there is no room. */
+/** Roughly the card at its tallest. Used to decide which side it fits on. */
+export const CARD_HEIGHT = 200;
+
+/**
+ * Where the card goes: below the spotlight, above it, or pinned to the bottom.
+ *
+ * The third case is the one a phone needs. The setup bar stacks to four
+ * hundred pixels there, leaving no room on either side, and the first version
+ * put the card below regardless — off the bottom of the screen with the Next
+ * button on it. Overlapping the spotlight is worse-looking and strictly
+ * better: an overlapping card can be read and pressed.
+ */
 export function cardPosition(
   spot: Spot,
   viewportWidth: number,
   viewportHeight: number,
   cardWidth = 340,
 ): { left: number; top?: number; bottom?: number } {
-  const left = Math.max(
-    12,
-    Math.min(spot.left, viewportWidth - cardWidth - 12),
-  );
-  const below = viewportHeight - (spot.top + spot.height);
-  // 220 is roughly the card at its tallest. Below when it fits, above when it
-  // does not — and below anyway when neither side has room, because a card
-  // pinned to the top edge is easier to read than one off the bottom.
-  if (below > 220 || below > spot.top) {
-    return { left, top: spot.top + spot.height + PAD * 2 };
-  }
-  return { left, bottom: viewportHeight - spot.top + PAD * 2 };
+  const left = Math.max(12, Math.min(spot.left, viewportWidth - cardWidth - 12));
+  const below = viewportHeight - (spot.top + spot.height) - PAD * 2;
+  const above = spot.top - PAD * 2;
+
+  if (below >= CARD_HEIGHT) return { left, top: spot.top + spot.height + PAD * 2 };
+  if (above >= CARD_HEIGHT) return { left, bottom: viewportHeight - spot.top + PAD * 2 };
+  return { left, bottom: 12 };
+}
+
+/** Keeps the spotlight inside the viewport, so the ring never runs off. */
+export function clampSpot(spot: Spot, viewportHeight: number): Spot {
+  const top = Math.max(0, spot.top);
+  return { ...spot, top, height: Math.min(spot.height, viewportHeight - top) };
 }
 
 export function Tour() {
@@ -64,7 +77,7 @@ export function Tour() {
     if (tourSeen()) return;
     const timer = window.setTimeout(() => {
       const present = stepsPresent(TOUR_STEPS, (selector) =>
-        Boolean(document.querySelector(selector)),
+        Boolean(firstVisible(selector)),
       );
       if (present.length > 0) setSteps(present);
     }, 600);
@@ -80,17 +93,45 @@ export function Tour() {
 
   useLayoutEffect(() => {
     if (!step) return;
+
     const measure = () => {
-      const target = document.querySelector(step.target);
+      // The same rule as the filter: a collapsed rail is not a target, and
+      // on a phone the real one is the bottom bar under the same marker.
+      const target = firstVisible(step.target);
       if (!target) return;
       const rect = target.getBoundingClientRect();
-      setSpot({
-        top: rect.top - PAD,
-        left: rect.left - PAD,
-        width: rect.width + PAD * 2,
-        height: rect.height + PAD * 2,
-      });
+      setSpot(
+        clampSpot(
+          {
+            top: rect.top - PAD,
+            left: rect.left - PAD,
+            width: rect.width + PAD * 2,
+            height: rect.height + PAD * 2,
+          },
+          window.innerHeight,
+        ),
+      );
     };
+
+    /**
+     * Brings the target on screen before measuring it.
+     *
+     * On a phone the setup bar stacks and Begin ends up eight hundred pixels
+     * down a six-hundred-pixel viewport — the spotlight was landing below the
+     * fold, on a control nobody could see. Instant rather than smooth: this
+     * measures immediately afterwards, and a scroll still in flight measures
+     * the wrong box.
+     */
+    const target = firstVisible(step.target);
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      const above = rect.top < PAD * 2;
+      const below = rect.bottom > window.innerHeight - PAD * 2;
+      if (above || below) {
+        target.scrollIntoView({ block: "center", behavior: "instant" as ScrollBehavior });
+      }
+    }
+
     measure();
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);

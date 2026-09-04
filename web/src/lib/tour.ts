@@ -75,16 +75,26 @@ export function resetTour(): void {
 }
 
 /**
- * Drops steps whose target is not on the page.
+ * Drops steps whose target is not on screen.
  *
- * The bar hides controls on the free plan and the sidebar collapses on a
- * phone, so a step can point at nothing through no fault of its own. Pointing
- * a spotlight at an element that does not exist is the failure everyone has
- * seen: an arrow into empty space, and no way forward.
+ * Visible, not merely present — which is the distinction this got wrong the
+ * first time. On a phone the sidebar collapses but stays in the DOM as a
+ * zero-sized box, so `querySelector` found it, the step survived, and the
+ * spotlight was a sixteen-pixel dot in the top corner pointing at nothing.
+ * The free plan hides controls the same way.
  */
 export function stepsPresent(
   steps: readonly TourStep[],
-  exists: (selector: string) => boolean,
+  visible: (selector: string) => boolean,
 ): TourStep[] {
-  return steps.filter((step) => exists(step.target));
+  return steps.filter((step) => visible(step.target));
+}
+
+/** A target counts when something matching it has an actual box on screen. */
+export function firstVisible(selector: string, doc: Document = document): Element | null {
+  for (const element of doc.querySelectorAll(selector)) {
+    const rect = element.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) return element;
+  }
+  return null;
 }

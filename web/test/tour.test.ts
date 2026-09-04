@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TOUR_STEPS, stepsPresent } from "../src/lib/tour";
-import { cardPosition, type Spot } from "../src/platform/Tour";
+import { CARD_HEIGHT, cardPosition, clampSpot, type Spot } from "../src/platform/Tour";
 
 /**
  * The first-run walkthrough.
@@ -55,11 +55,19 @@ describe("cardPosition", () => {
     expect(at.bottom).toBe(900 - 800 + 16);
   });
 
-  it("stays below when the spotlight is near the top, however tight", () => {
-    // Flipping there would put the card off the top instead, which is worse:
-    // the buttons are at the bottom of the card.
-    const at = cardPosition(spot({ top: 20, height: 40 }), 1440, 300);
-    expect(at.top).toBe(20 + 40 + 16);
+  it("pins to the bottom when neither side has room", () => {
+    // The phone case. The setup bar stacks to four hundred pixels there,
+    // leaving nowhere to put the card — and the first version put it below
+    // regardless, off the bottom of the screen with the Next button on it.
+    // An overlapping card can at least be read and pressed.
+    const at = cardPosition(spot({ top: 100, height: 450 }), 500, 674);
+    expect(at.top).toBeUndefined();
+    expect(at.bottom).toBe(12);
+  });
+
+  it("goes above when only the space above fits it", () => {
+    const at = cardPosition(spot({ top: 400, height: 100 }), 1440, 560);
+    expect(at.bottom).toBe(560 - 400 + 16);
   });
 
   it("pulls left rather than running off the right edge", () => {
@@ -71,4 +79,30 @@ describe("cardPosition", () => {
   it("never goes off the left edge either", () => {
     expect(cardPosition(spot({ left: -80 }), 1440, 900).left).toBeGreaterThanOrEqual(12);
   });
+
+  it("needs a card's worth of room, not a sliver", () => {
+    // Just under the threshold has to flip; just over must not.
+    const tight = cardPosition(spot({ top: 40, height: 40 }), 1440, 40 + 40 + CARD_HEIGHT);
+    expect(tight.top).toBeUndefined();
+  });
+});
+
+describe("clampSpot", () => {
+  it("keeps the ring inside the viewport", () => {
+    // The mobile bar is fixed to the bottom edge, and the eight pixels of
+    // padding pushed the ring past it.
+    const clamped = clampSpot({ top: 600, left: 10, width: 100, height: 90 }, 674);
+    expect(clamped.top + clamped.height).toBeLessThanOrEqual(674);
+  });
+
+  it("does not let a target above the fold go negative", () => {
+    const clamped = clampSpot({ top: -20, left: 10, width: 100, height: 60 }, 674);
+    expect(clamped.top).toBe(0);
+  });
+
+  it("leaves a spotlight that already fits alone", () => {
+    const original = { top: 100, left: 10, width: 100, height: 60 };
+    expect(clampSpot(original, 674)).toEqual(original);
+  });
+
 });
