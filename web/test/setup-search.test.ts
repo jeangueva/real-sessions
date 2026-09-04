@@ -5,6 +5,7 @@ import {
   matchScore,
   sessionLabel,
 } from "../src/platform/SetupSearch";
+import { orderByEnabled } from "../src/platform/SessionSetup";
 import type { Persona, SessionSummary, Sector } from "../src/lib/api";
 
 /**
@@ -168,5 +169,51 @@ describe("session labels", () => {
   it("says so when a session was never scored", () => {
     // Blank would read as zero, which is a much worse thing to tell someone.
     expect(describeSession(session({ score: null }))).toContain("not scored");
+  });
+});
+
+describe("field order", () => {
+  it("puts what this plan can change first", () => {
+    // A free candidate met sector and company — the two locked controls —
+    // before anything they could touch, which reads as a broken form.
+    const ordered = orderByEnabled([
+      { key: "sector", enabled: false },
+      { key: "company", enabled: false },
+      { key: "role", enabled: true },
+      { key: "stage", enabled: true },
+      { key: "mode", enabled: true },
+    ]);
+    expect(ordered.map((e) => e.key)).toEqual([
+      "role",
+      "stage",
+      "mode",
+      "sector",
+      "company",
+    ]);
+  });
+
+  it("leaves a paid plan exactly as declared", () => {
+    const declared = [
+      { key: "sector", enabled: true },
+      { key: "company", enabled: true },
+      { key: "role", enabled: true },
+    ];
+    expect(orderByEnabled(declared).map((e) => e.key)).toEqual([
+      "sector",
+      "company",
+      "role",
+    ]);
+  });
+
+  it("keeps the declared order inside each group", () => {
+    // Stability matters: the locked half should still read sector-then-company,
+    // not in whatever order a sort happened to leave them.
+    const ordered = orderByEnabled([
+      { key: "a", enabled: false },
+      { key: "b", enabled: true },
+      { key: "c", enabled: false },
+      { key: "d", enabled: true },
+    ]);
+    expect(ordered.map((e) => e.key)).toEqual(["b", "d", "a", "c"]);
   });
 });

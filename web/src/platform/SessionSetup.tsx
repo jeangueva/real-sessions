@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Action, Field, Panel, Eyebrow } from "@/design-system";
@@ -171,7 +171,28 @@ export function SessionSetup() {
         meta="Seven turns, about ten minutes. You can stop at any point."
       />
 
-      <PageBody className="flex flex-col gap-4">
+      <PageBody>
+        {/* The spacing lives on a wrapper, not on PageBody: its className goes
+            on the outer padding element, and the children sit in a plain block
+            inside it — so a gap set there never reaches them, and the search
+            box ended up flush against the panel below it. */}
+        <div className="flex flex-col gap-6">
+        {can && !can.targetCompany && (
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cream-dim">
+              <Lock className="h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                <span className="text-cream-bright">You are on the free plan.</span>{" "}
+                A general interview for your role, scored honestly. Targeting a
+                company, your CV and live coaching are on the paid plan.
+              </span>
+            </p>
+            <Link to="/#early-access" className="shrink-0">
+              <Action tone="glass">Six months free</Action>
+            </Link>
+          </div>
+        )}
+
         <SetupSearch
           sessions={sessions}
           companies={visibleCompanies}
@@ -187,87 +208,117 @@ export function SessionSetup() {
             wrapping, so a longer list costs lateral space, never a new row
             that pushes Begin below the fold. */}
         <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Eyebrow>Interview setup</Eyebrow>
-            {can && !can.targetCompany && (
-              <div className="flex min-w-0 flex-1 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-                <p className="flex min-w-0 items-center gap-2 text-xs text-cream-dim">
-                  <Lock className="h-4 w-4 shrink-0" aria-hidden />
-                  <span>
-                    <span className="text-cream-bright">You are on the free plan.</span>{" "}
-                    A general interview for your role, scored honestly. Targeting a
-                    company, your CV and live coaching are on the paid plan.
-                  </span>
-                </p>
-                <Link to="/#early-access" className="shrink-0">
-                  <Action tone="glass">Six months free</Action>
-                </Link>
-              </div>
-            )}
-          </div>
+          <Eyebrow>Interview setup</Eyebrow>
 
           {/* All five on one row from `xl`. Each is a rail. */}
+          {/* Ordered by what this plan can actually change.
+              On free, sector and company are locked, and leading with two
+              controls that refuse to move reads as a broken form rather than
+              as a paywall. The sort is stable, so a paid plan — where nothing
+              is locked — keeps the declared order. */}
           <div className="grid min-w-0 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-            <Field
-              label="Sector"
-              hint={
-                !can?.targetCompany
-                  ? "Part of the paid plan."
-                  : activeSector
-                    ? `Expect ${activeSector.metrics}.`
-                    : "Sets the vocabulary and the numbers you will be asked for."
-              }
-            >
-              <Rail label="Sector">
-                <Pill
-                  label="All"
-                  selected={sector === ""}
-                  onSelect={() => setSector("")}
-                  disabled={can ? !can.targetCompany : false}
-                />
-                {sectors.map((entry) => (
-                  <Pill
-                    key={entry.id}
-                    label={entry.label}
-                    selected={sector === entry.id}
-                    onSelect={() => setSector(entry.id)}
+            {orderByEnabled([
+              {
+                key: "sector",
+                enabled: can?.targetCompany ?? true,
+                node: (
+                  <Field
+                    label="Sector"
+                    hint={
+                      !can?.targetCompany
+                        ? "Part of the paid plan."
+                        : activeSector
+                          ? `Expect ${activeSector.metrics}.`
+                          : "Sets the vocabulary and the numbers you will be asked for."
+                    }
+                  >
+                    <Rail label="Sector">
+                      <Pill
+                        label="All"
+                        selected={sector === ""}
+                        onSelect={() => setSector("")}
+                        disabled={can ? !can.targetCompany : false}
+                      />
+                      {sectors.map((entry) => (
+                        <Pill
+                          key={entry.id}
+                          label={entry.label}
+                          selected={sector === entry.id}
+                          onSelect={() => setSector(entry.id)}
+                          disabled={can ? !can.targetCompany : false}
+                        />
+                      ))}
+                    </Rail>
+                  </Field>
+                ),
+              },
+              {
+                key: "company",
+                enabled: can?.targetCompany ?? true,
+                node: (
+                  <ChoiceField
+                    label="Company"
+                    options={visibleCompanies}
+                    value={company}
+                    onChange={setCompany}
                     disabled={can ? !can.targetCompany : false}
                   />
-                ))}
-              </Rail>
-            </Field>
-
-            <ChoiceField
-              label="Company"
-              options={visibleCompanies}
-              value={company}
-              onChange={setCompany}
-              disabled={can ? !can.targetCompany : false}
-            />
-            <ChoiceField label="Target role" options={ROLES} value={role} onChange={setRole} />
-            <ChoiceField label="Stage" options={STAGES} value={stage} onChange={setStage} />
-
-            <Field
-              label="Mode"
-              hint={
-                mode === "practice"
-                  ? "Coaching notes appear beside the transcript."
-                  : "No coaching until the end. Worth more XP."
-              }
-            >
-              <Rail label="Mode">
-                <Pill
-                  label="Practice"
-                  selected={mode === "practice"}
-                  onSelect={() => setMode("practice")}
-                />
-                <Pill
-                  label="Real"
-                  selected={mode === "real"}
-                  onSelect={() => setMode("real")}
-                />
-              </Rail>
-            </Field>
+                ),
+              },
+              {
+                key: "role",
+                enabled: true,
+                node: (
+                  <ChoiceField
+                    label="Target role"
+                    options={ROLES}
+                    value={role}
+                    onChange={setRole}
+                  />
+                ),
+              },
+              {
+                key: "stage",
+                enabled: true,
+                node: (
+                  <ChoiceField
+                    label="Stage"
+                    options={STAGES}
+                    value={stage}
+                    onChange={setStage}
+                  />
+                ),
+              },
+              {
+                key: "mode",
+                enabled: true,
+                node: (
+                  <Field
+                    label="Mode"
+                    hint={
+                      mode === "practice"
+                        ? "Coaching notes appear beside the transcript."
+                        : "No coaching until the end. Worth more XP."
+                    }
+                  >
+                    <Rail label="Mode">
+                      <Pill
+                        label="Practice"
+                        selected={mode === "practice"}
+                        onSelect={() => setMode("practice")}
+                      />
+                      <Pill
+                        label="Real"
+                        selected={mode === "real"}
+                        onSelect={() => setMode("real")}
+                      />
+                    </Rail>
+                  </Field>
+                ),
+              },
+            ]).map((entry) => (
+              <Fragment key={entry.key}>{entry.node}</Fragment>
+            ))}
           </div>
 
           <Field
@@ -357,12 +408,34 @@ export function SessionSetup() {
             </ul>
           </Panel>
         )}
+        </div>
       </PageBody>
     </>
   );
 }
 
 /** One option in a pill group. */
+
+/** A setup control, with whether this plan can actually change it. */
+export interface SetupFieldEntry {
+  key: string;
+  enabled: boolean;
+  node: ReactNode;
+}
+
+/**
+ * Puts the controls this plan can change first.
+ *
+ * A free candidate opening the form met sector and company — the two things
+ * they cannot touch — before anything they can. That reads as a form that does
+ * not work, which is a worse first impression than a paywall.
+ *
+ * Stable by construction: partitioning preserves declaration order inside each
+ * group, so a paid plan (nothing locked) is untouched.
+ */
+export function orderByEnabled<T extends { enabled: boolean }>(entries: T[]): T[] {
+  return [...entries.filter((e) => e.enabled), ...entries.filter((e) => !e.enabled)];
+}
 
 /**
  * A row of options that scrolls sideways instead of wrapping.
