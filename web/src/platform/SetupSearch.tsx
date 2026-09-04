@@ -271,7 +271,10 @@ export function SetupSearch({
         <ul
           id="setup-suggestions"
           role="listbox"
-          className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-line bg-ink p-1 shadow-xl"
+          // bg-surface-deep, not bg-ink: there is no `ink` in the palette, so the
+          // class resolved to nothing and the setup panel showed straight
+          // through the suggestions. Opaque, and above the panel.
+          className="absolute z-30 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-line bg-surface-deep p-1 shadow-2xl"
         >
           {choices.map((choice, index) => {
             const key =

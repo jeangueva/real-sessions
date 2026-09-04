@@ -15,6 +15,7 @@ import type {
   Sector,
 } from "@/lib/api";
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
+import { OverflowRow } from "./OverflowRow";
 
 /**
  * Whether the briefing has been dismissed. Per-device and low stakes, so it
@@ -216,7 +217,7 @@ export function SessionSetup() {
               controls that refuse to move reads as a broken form rather than
               as a paywall. The sort is stable, so a paid plan — where nothing
               is locked — keeps the declared order. */}
-          <div className="grid min-w-0 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="flex min-w-0 flex-col gap-5">
             {orderByEnabled([
               {
                 key: "sector",
@@ -232,7 +233,7 @@ export function SessionSetup() {
                           : "Sets the vocabulary and the numbers you will be asked for."
                     }
                   >
-                    <Rail label="Sector">
+                    <OverflowRow label="Sector" title="Sector">
                       <Pill
                         label="All"
                         selected={sector === ""}
@@ -248,7 +249,7 @@ export function SessionSetup() {
                           disabled={can ? !can.targetCompany : false}
                         />
                       ))}
-                    </Rail>
+                    </OverflowRow>
                   </Field>
                 ),
               },
@@ -270,7 +271,7 @@ export function SessionSetup() {
                 enabled: true,
                 node: (
                   <ChoiceField
-                    label="Target role"
+                    label="Role"
                     options={ROLES}
                     value={role}
                     onChange={setRole}
@@ -301,7 +302,7 @@ export function SessionSetup() {
                         : "No coaching until the end. Worth more XP."
                     }
                   >
-                    <Rail label="Mode">
+                    <OverflowRow label="Mode" title="Mode">
                       <Pill
                         label="Practice"
                         selected={mode === "practice"}
@@ -312,7 +313,7 @@ export function SessionSetup() {
                         selected={mode === "real"}
                         onSelect={() => setMode("real")}
                       />
-                    </Rail>
+                    </OverflowRow>
                   </Field>
                 ),
               },
@@ -329,14 +330,10 @@ export function SessionSetup() {
                 : "Six people, six temperaments, six voices. The same answer does not land the same way with each."
             }
           >
-            {/* A carousel rather than a grid: six cards stacked vertically is
-                most of a screen, and the choice is a browse, not a form field.
-                Snap points so a flick lands on a card. */}
-            <div
-              role="radiogroup"
-              aria-label="Interviewer"
-              className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2"
-            >
+            {/* Same rule as every other row: show what fits, and put the rest
+                behind one button. Six cards never fitted a laptop, and a card
+                you have to drag into view is a card nobody meets. */}
+            <OverflowRow label="Interviewer" title="Who interviews you">
               <InterviewerCard
                 initials="?"
                 name="Company default"
@@ -358,7 +355,7 @@ export function SessionSetup() {
                   disabled={can ? !can.choosePersona : false}
                 />
               ))}
-            </div>
+            </OverflowRow>
           </Field>
 
           <Action
@@ -438,29 +435,6 @@ export function orderByEnabled<T extends { enabled: boolean }>(entries: T[]): T[
 }
 
 /**
- * A row of options that scrolls sideways instead of wrapping.
- *
- * Wrapping is what made this screen tall: eighteen companies became four rows,
- * four fields became a column taller than the viewport, and the Begin button
- * ended up below the fold on a laptop. A rail keeps every field one line high
- * whatever the list length, and the overflow is a gesture people already have.
- *
- * `-mx-1 px-1` so a focus ring on the first pill is not clipped by the
- * scroll container.
- */
-function Rail({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label={label}
-      className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [&>*]:shrink-0"
-    >
-      {children}
-    </div>
-  );
-}
-
-/**
  * One interviewer in the roster.
  *
  * Deliberately a card and not a pill: these are people, and a row of pills
@@ -492,7 +466,7 @@ function InterviewerCard({
       aria-disabled={disabled}
       disabled={disabled}
       onClick={onSelect}
-      className={`focus-ring flex w-60 shrink-0 snap-start items-start gap-3 rounded-2xl border p-3 text-left transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`focus-ring flex w-60 shrink-0 items-start gap-3 rounded-2xl border p-3 text-left transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
         selected
           ? "border-cream bg-cream text-black"
           : "border-line text-cream-dim hover:text-cream-bright"
@@ -572,7 +546,7 @@ function ChoiceField({
 }) {
   return (
     <Field label={label}>
-      <Rail label={label}>
+      <OverflowRow label={label} title={label}>
         {options.map((option) => (
           <Pill
             key={option}
@@ -582,7 +556,7 @@ function ChoiceField({
             disabled={disabled}
           />
         ))}
-      </Rail>
+      </OverflowRow>
     </Field>
   );
 }

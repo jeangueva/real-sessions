@@ -27,6 +27,7 @@ export default defineConfig({
       ["test/audio-level.test.ts", "node"],
       ["test/waveform.test.ts", "node"],
       ["test/setup-search.test.ts", "node"],
+      ["test/overflow-row.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },
