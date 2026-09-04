@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
+import { scrollToSection } from "@/lib/scroll-to-section";
 
 /**
  * Two plans.
@@ -86,7 +87,13 @@ export function Pricing() {
                 <CheckItem key={item}>{item}</CheckItem>
               ))}
             </ul>
-            <a href="#early-access" className="mt-auto self-start">
+            <a
+              href="#early-access"
+              className="mt-auto self-start"
+              onClick={(event) => {
+                if (scrollToSection("#early-access")) event.preventDefault();
+              }}
+            >
               <Action withArrow>Get six months free</Action>
             </a>
           </Panel>

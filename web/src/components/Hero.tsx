@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame } from "@/design-system";
+import { scrollToSection } from "@/lib/scroll-to-section";
 
 /**
  * The landing page is one scroll, so the nav is anchors into it — a plain
@@ -48,7 +49,16 @@ export function Hero() {
               destination scrolling does not reach. */}
           {NAV.map(({ label, href }) => (
             <li key={label} className="hidden sm:block">
-              <a href={href} className={navLink}>
+              {/* Still a real href, so it opens in a new tab, copies as a
+                  link, and works before the JS lands. The handler only takes
+                  over when it actually finds the section. */}
+              <a
+                href={href}
+                className={navLink}
+                onClick={(event) => {
+                  if (scrollToSection(href)) event.preventDefault();
+                }}
+              >
                 {label}
               </a>
             </li>

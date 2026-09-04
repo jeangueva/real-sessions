@@ -28,6 +28,7 @@ export default defineConfig({
       ["test/waveform.test.ts", "node"],
       ["test/setup-search.test.ts", "node"],
       ["test/overflow-row.test.ts", "node"],
+      ["test/scroll-to-section.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },
