@@ -10,6 +10,8 @@ import type {
   Capabilities,
   CatalogueCompany,
   Persona,
+  Role,
+  Stage,
   SessionMode,
   SessionSummary,
   Sector,
@@ -34,13 +36,11 @@ function briefingDismissed(): boolean {
   }
 }
 
-const ROLES = [
-  "Senior Product Designer",
-  "Backend Engineer",
-  "Growth PM",
-  "Data Analyst",
-];
-const STAGES = ["Behavioral", "Technical deep dive", "System design"];
+/**
+ * Shown until the catalogue arrives. The server owns both lists — it had six
+ * roles while this file hard-coded four, so two of them were unreachable.
+ */
+const FALLBACK_ROLES = ["Senior Product Designer", "Backend Engineer"];
 
 /** Shown until the catalogue arrives, so the form is never empty on load. */
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
@@ -49,14 +49,18 @@ const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 export function SessionSetup() {
   const navigate = useNavigate();
   const [sectors, setSectors] = useState<Sector[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [stagesByRole, setStagesByRole] = useState<
+    { roleId: string; stages: Stage[] }[]
+  >([]);
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [personaId, setPersonaId] = useState("");
   const [can, setCan] = useState<Capabilities | null>(null);
   const [sector, setSector] = useState("");
   const [company, setCompany] = useState(FALLBACK_COMPANIES[0]!);
-  const [role, setRole] = useState(ROLES[0]!);
-  const [stage, setStage] = useState(STAGES[0]!);
+  const [role, setRole] = useState(FALLBACK_ROLES[0]!);
+  const [stage, setStage] = useState("Behavioral");
   const [mode, setMode] = useState<SessionMode>("practice");
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [showBriefing, setShowBriefing] = useState(() => !briefingDismissed());
@@ -122,6 +126,8 @@ export function SessionSetup() {
         setCompanies(result.companies);
         setPersonas(result.personas);
         setGenericCompany(result.genericCompany ?? "");
+        setRoles(result.roles ?? []);
+        setStagesByRole(result.stagesByRole ?? []);
       })
       .catch(() => undefined);
     fetchPlan()
@@ -138,7 +144,7 @@ export function SessionSetup() {
     fetchPreferences()
       .then(({ preferences }) => {
         setRole((current) =>
-          ROLES.includes(preferences.defaultRole) ? preferences.defaultRole : current,
+          preferences.defaultRole || current,
         );
         setCompany((current) => preferences.defaultCompany || current);
         setSector(preferences.defaultSector);
@@ -146,6 +152,32 @@ export function SessionSetup() {
       })
       .catch(() => undefined);
   }, []);
+
+  const roleLabels = useMemo(
+    () => (roles.length > 0 ? roles.map((entry) => entry.label) : FALLBACK_ROLES),
+    [roles],
+  );
+
+  /**
+   * The rounds this role actually sits.
+   *
+   * Every role used to be offered the same three, so a Senior Product Designer
+   * could pick "System design" and get a convincing interview about something
+   * that round does not mean for them. Convincing and wrong is the worst of
+   * the options: nothing on screen said the rehearsal was off-target.
+   */
+  const visibleStages = useMemo(() => {
+    const id = roles.find((entry) => entry.label === role)?.id;
+    return stagesByRole.find((entry) => entry.roleId === id)?.stages ?? [];
+  }, [roles, stagesByRole, role]);
+
+  // Changing role can strand the current round outside the list. Falling back
+  // to the first keeps the picker and the interview agreeing.
+  useEffect(() => {
+    if (visibleStages.length > 0 && !visibleStages.some((s) => s.label === stage)) {
+      setStage(visibleStages[0]!.label);
+    }
+  }, [visibleStages, stage]);
 
   const visibleCompanies = useMemo(() => {
     if (companies.length === 0) return FALLBACK_COMPANIES;
@@ -197,8 +229,8 @@ export function SessionSetup() {
         <SetupSearch
           sessions={sessions}
           companies={visibleCompanies}
-          roles={ROLES}
-          stages={STAGES}
+          roles={roleLabels}
+          stages={visibleStages.map((entry) => entry.label)}
           sectors={sectors}
           personas={personas}
           genericCompany={genericCompany}
@@ -272,7 +304,7 @@ export function SessionSetup() {
                 node: (
                   <ChoiceField
                     label="Role"
-                    options={ROLES}
+                    options={roleLabels}
                     value={role}
                     onChange={setRole}
                   />
@@ -282,12 +314,24 @@ export function SessionSetup() {
                 key: "stage",
                 enabled: true,
                 node: (
-                  <ChoiceField
+                  <Field
                     label="Stage"
-                    options={STAGES}
-                    value={stage}
-                    onChange={setStage}
-                  />
+                    hint={
+                      visibleStages.find((entry) => entry.label === stage)?.summary ??
+                      "Which round of the process you are sitting."
+                    }
+                  >
+                    <OverflowRow label="Stage" title="Stage">
+                      {visibleStages.map((entry) => (
+                        <Pill
+                          key={entry.id}
+                          label={entry.label}
+                          selected={stage === entry.label}
+                          onSelect={() => setStage(entry.label)}
+                        />
+                      ))}
+                    </OverflowRow>
+                  </Field>
                 ),
               },
               {

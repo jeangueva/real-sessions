@@ -1,6 +1,7 @@
 import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
+import { resolveStage } from "../stages.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
 /**
@@ -10,6 +11,9 @@ import { renderTemplate, toTemplateVariables } from "./template.js";
 export const INTERVIEWER_TEMPLATE = `You are {{interviewer_name}}, {{interviewer_title}} at {{company_name}}. You are conducting a {{interview_stage}} interview for the {{target_role}} position.
 
 The candidate's name is {{candidate_name}}. The industry focus is {{industry}}.
+
+### WHAT THIS ROUND IS:
+{{stage_brief}}
 
 Your core company values and cultural focus are: {{company_culture}}. You must embed these values into your questions and expectations.
 
@@ -165,6 +169,7 @@ export function buildInterviewerPrompt(
     persona_behaviour: persona.behaviour,
     interviewer_name: persona.name,
     interviewer_title: persona.title,
+    stage_brief: resolveStage(context.targetRole, context.interviewStage).brief,
     min_turns: String(minTurns),
     max_turns: String(maxTurns),
   });

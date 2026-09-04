@@ -1,5 +1,6 @@
 import type { InterviewContext, TranscriptTurn } from "../types.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
+import { resolveStage } from "../stages.js";
 
 /**
  * Phase 2 — the Evaluator. Sent as the `system` prompt of the async
@@ -12,6 +13,9 @@ export const EVALUATOR_TEMPLATE = `You are an expert Technical Recruiter and Eng
 You will be provided with a transcript of a {{interview_stage}} interview for a {{target_role}} position at {{company_name}} (Industry: {{industry}}). The candidate's name is {{candidate_name}}.
 
 Your task is to analyze the candidate's performance in the transcript and provide a highly structured, objective evaluation.
+
+### WHAT THIS ROUND WAS FOR:
+{{stage_rubric}}
 
 ### EVALUATION CRITERIA:
 1. **Technical & Domain Vocabulary:** Did they use the correct terminology for their {{target_role}}? Were words used in the right context?
@@ -32,7 +36,12 @@ Every string you return is rendered as plain text. Write plain prose only — no
 
 /** Renders the Phase 2 system prompt. */
 export function buildEvaluatorPrompt(context: InterviewContext): string {
-  return renderTemplate(EVALUATOR_TEMPLATE, toTemplateVariables(context));
+  return renderTemplate(EVALUATOR_TEMPLATE, {
+    ...toTemplateVariables(context),
+    // The same answer is strong in one round and thin in another, and the
+    // evaluator had no way to know which round it was reading.
+    stage_rubric: resolveStage(context.targetRole, context.interviewStage).rubric,
+  });
 }
 
 /**

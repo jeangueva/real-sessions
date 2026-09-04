@@ -105,6 +105,15 @@ export interface Role {
   focus: string;
 }
 
+/** A round of the process. Which ones exist depends on the role. */
+export interface Stage {
+  id: string;
+  label: string;
+  summary: string;
+  minTurns: number;
+  maxTurns: number;
+}
+
 export interface Sector {
   id: string;
   label: string;
@@ -219,6 +228,7 @@ async function postStream(
       sessionId: string,
       persona: Persona,
       running: RunningContext,
+      maxTurns: number,
     ) => void;
   },
 ): Promise<InterviewerTurn> {
@@ -271,8 +281,14 @@ async function postStream(
             sessionId: string;
             persona: Persona;
             context: RunningContext;
+            maxTurns: number;
           };
-          handlers.onSession?.(payload.sessionId, payload.persona, payload.context);
+          handlers.onSession?.(
+            payload.sessionId,
+            payload.persona,
+            payload.context,
+            payload.maxTurns,
+          );
         } else if (event?.name === "turn") {
           turn = (event.data as { turn: InterviewerTurn }).turn;
         } else if (event?.name === "error") {
@@ -333,6 +349,7 @@ export function startSessionStream(
       sessionId: string,
       persona: Persona,
       running: RunningContext,
+      maxTurns: number,
     ) => void;
   },
 ) {
@@ -737,6 +754,8 @@ export function fetchCatalogue() {
       personas: Persona[];
       /** The stand-in company a free session is recorded against. */
       genericCompany: string;
+      /** The rounds each role can sit, keyed by role id. */
+      stagesByRole: { roleId: string; stages: Stage[] }[];
       roles: Role[];
     }>("/api/catalogue", { method: "GET" }),
   );

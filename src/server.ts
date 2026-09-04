@@ -146,6 +146,7 @@ import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extra
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled } from "./reviewers.js";
 import { ROLES, roleIdFor } from "./roles.js";
+import { stageCatalogue } from "./stages.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
@@ -1461,7 +1462,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // The context goes back, not just the id. On the free plan the employer
       // the client asked for was replaced above, and a header still reading
       // "Stripe" would tell a free candidate they rehearsed against Stripe.
-      sendEvent(res, "session", { sessionId, persona, context: shown(context) });
+      sendEvent(res, "session", {
+        sessionId,
+        persona,
+        context: shown(context),
+        maxTurns: session.maxTurnCount,
+      });
       const turn = await session.startStream((chunk) =>
         sendEvent(res, "delta", { text: chunk }),
       );
@@ -1473,7 +1479,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const turn = await session.start();
     await persist();
-    json(res, 201, { sessionId, turn, persona, context: shown(context) });
+    json(res, 201, {
+      sessionId,
+      turn,
+      persona,
+      context: shown(context),
+      maxTurns: session.maxTurnCount,
+    });
     return;
   }
 
@@ -1778,6 +1790,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       companies: COMPANIES,
       personas: PERSONAS,
       roles: ROLES,
+      // Which rounds each role can sit. Sent as a map rather than a flat list
+      // because offering an engineer's system design round to a designer is
+      // the thing this replaces.
+      stagesByRole: stageCatalogue(),
       // The placeholder a free session is recorded against. The client needs
       // it to avoid printing "a well-regarded technology company" back at
       // someone as though it were where they interviewed.

@@ -16,6 +16,7 @@ import {
   type InterviewerTurn,
   type TranscriptTurn,
 } from "./types.js";
+import { resolveStage } from "./stages.js";
 
 /** Opens the session: the API requires the first message to be from `user`. */
 export const SESSION_KICKOFF_MESSAGE =
@@ -127,9 +128,14 @@ export class InterviewSession {
     readonly context: InterviewContext,
     options: InterviewSessionOptions = {},
   ) {
-    const maxTurns = options.maxTurns ?? 7;
+    // The round sets the length unless the caller overrides it. A design
+    // question is barely started at the point a behavioural one has resolved,
+    // and running both to the same seven turns made one rushed and the other
+    // padded.
+    const stage = resolveStage(context.targetRole, context.interviewStage);
+    const maxTurns = options.maxTurns ?? stage.maxTurns;
     // A caller who shortens the session shouldn't also have to restate the floor.
-    const minTurns = Math.min(options.minTurns ?? 5, maxTurns);
+    const minTurns = Math.min(options.minTurns ?? stage.minTurns, maxTurns);
     this.model = options.model ?? INTERVIEWER_MODEL;
     this.provider = options.provider ?? resolveProvider(this.model);
     this.maxTokens = options.maxTokens ?? 512;
@@ -277,6 +283,11 @@ export class InterviewSession {
    * the full response is generated. `onDelta` receives text chunks with the
    * completion flag already withheld.
    */
+  /** How many interviewer turns this round runs to. The client shows it. */
+  get maxTurnCount(): number {
+    return this.maxTurns;
+  }
+
   async submitAnswerStream(
     answer: string,
     onDelta: (chunk: string) => void,

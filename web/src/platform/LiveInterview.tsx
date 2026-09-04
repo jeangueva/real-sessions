@@ -32,7 +32,8 @@ interface SetupState {
   personaId?: string;
 }
 
-const MAX_TURNS = 7;
+/** Until the session says otherwise. The round decides the real number. */
+const DEFAULT_MAX_TURNS = 7;
 
 const TIP_LABEL: Record<CoachTip["kind"], string> = {
   structure: "Structure",
@@ -78,6 +79,8 @@ export function LiveInterview() {
    * for the second before it arrives, they are the best guess available.
    */
   const [running, setRunning] = useState<RunningContext | null>(null);
+  /** How long this round runs. Behavioural is shorter than system design. */
+  const [maxTurns, setMaxTurns] = useState(DEFAULT_MAX_TURNS);
   /**
    * Everything said so far, in order, attributed. The turn state holds only
    * what is on screen now; a call needs the record beside it.
@@ -142,7 +145,7 @@ export function LiveInterview() {
       {
         // The session id arrives first so a mid-stream failure is still
         // recoverable — the interview exists server-side either way.
-        onSession: (id, assigned, resolved) => {
+        onSession: (id, assigned, resolved, turns) => {
           setSessionId(id);
           // The server decides which archetype you get when none was picked,
           // so the voice profile has to come back rather than be assumed.
@@ -150,6 +153,7 @@ export function LiveInterview() {
           // And which employer, if any. On the free plan it replaced the one
           // that was picked, and the header must not keep claiming otherwise.
           setRunning(resolved);
+          if (turns > 0) setMaxTurns(turns);
         },
         onDelta: (chunk) => {
           setStreaming((current) => current + chunk);
@@ -261,7 +265,7 @@ export function LiveInterview() {
   const status =
     busy && !turn && !streaming
       ? "Connecting"
-      : `Turn ${turn?.turnNumber ?? "…"} of ${MAX_TURNS}`;
+      : `Turn ${turn?.turnNumber ?? "…"} of ${maxTurns}`;
 
   /**
    * The mic button is the call's, so it owns turning voice on as well.
