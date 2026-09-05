@@ -5,7 +5,12 @@
 import type { Evaluation } from "./evaluation";
 
 export interface InterviewContext {
-  candidateName: string;
+  /**
+   * Optional: the server resolves it from the account's own settings. The
+   * client used to send a hardcoded "Mariana", which greeted every candidate
+   * as somebody else.
+   */
+  candidateName?: string;
   targetRole: string;
   companyName: string;
   interviewStage: string;
@@ -461,6 +466,8 @@ export interface SessionSummary {
 }
 
 export interface Preferences {
+  /** What the interviewer calls you. Empty means the server guesses. */
+  candidateName: string;
   defaultRole: string;
   defaultCompany: string;
   interviewLength: number;

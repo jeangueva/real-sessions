@@ -197,6 +197,21 @@ export function Settings() {
           {preferences && (
             <>
               <Field
+                label={t("settings.yourName")}
+                hint={t("settings.yourNameHint")}
+                htmlFor="candidate-name"
+              >
+                <input
+                  id="candidate-name"
+                  value={preferences.candidateName}
+                  onChange={(event) => update({ candidateName: event.target.value })}
+                  placeholder={t("settings.yourNamePlaceholder")}
+                  maxLength={60}
+                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                />
+              </Field>
+
+              <Field
                 label="Default target role"
                 hint="Used to pre-fill new sessions."
                 htmlFor="role"

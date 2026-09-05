@@ -184,6 +184,7 @@ import {
 import { writeBrief, BriefError } from "./brief.js";
 import {
   createUserStore,
+  nameFromEmail,
   readPreferences,
   type UserStore,
 } from "./user-store.js";
@@ -428,7 +429,7 @@ function readContext(
   body: Record<string, unknown>,
   targetCompany = true,
 ): InterviewContext {
-  const required = ["candidateName", "targetRole", "companyName", "interviewStage"] as const;
+  const required = ["targetRole", "companyName", "interviewStage"] as const;
 
   const missing = required.filter(
     (key) => typeof body[key] !== "string" || (body[key] as string).trim() === "",
@@ -1452,6 +1453,22 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // rather than by hiding the picker, because hiding a control is a courtesy
     // and this is the paywall.
     const context = readContext(body, can.targetCompany);
+    /**
+     * What the interviewer calls them.
+     *
+     * Their own setting first, then a guess from the address they signed up
+     * with, and otherwise nothing — the prompt is told the name is unknown
+     * and greets them without one. This used to be the string "Mariana",
+     * hardcoded in the client, which meant everyone who ever signed up was
+     * greeted as someone else.
+     */
+    const preferences = await USERS.getPreferences(identity.id).catch(() => null);
+    const signedUp =
+      identity.kind === "user" ? await ACCOUNTS.findById(identity.id).catch(() => null) : null;
+    context.candidateName =
+      preferences?.candidateName?.trim() ||
+      nameFromEmail(signedUp?.email) ||
+      "unknown — greet them without a name";
     const mode = readMode(body["mode"]);
     // An unknown or absent id resolves to the company's own default rather
     // than to a neutral interviewer — every session has a temperament.

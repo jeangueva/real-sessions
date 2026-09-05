@@ -150,7 +150,6 @@ export function LiveInterview() {
     setStreaming("");
     startSessionStream(
       {
-        candidateName: "Mariana",
         targetRole: role,
         companyName: company,
         interviewStage: stage,

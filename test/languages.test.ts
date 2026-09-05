@@ -11,6 +11,7 @@ import { liveQuery } from "../src/voice/deepgram.js";
 import { buildInterviewerPrompt } from "../src/prompts/interviewer.js";
 import { buildEvaluatorPrompt } from "../src/prompts/evaluator.js";
 import { capabilitiesFor } from "../src/entitlements.js";
+import { nameFromEmail } from "../src/user-store.js";
 import type { InterviewContext } from "../src/types.js";
 
 /**
@@ -144,5 +145,34 @@ describe("the paywall", () => {
   it("is a paid feature", () => {
     expect(capabilitiesFor("free").interviewLanguage).toBe(false);
     expect(capabilitiesFor("premium").interviewLanguage).toBe(true);
+  });
+});
+
+describe("what the interviewer calls you", () => {
+  it("takes a first name from an email that has one", () => {
+    expect(nameFromEmail("jean.perez@work.com")).toBe("Jean");
+    expect(nameFromEmail("mariana_lopes@work.com")).toBe("Mariana");
+    expect(nameFromEmail("ANA@work.com")).toBe("Ana");
+  });
+
+  it("returns nothing for the shapes that are clearly not a name", () => {
+    // Initials and digits, which no greeting should ever use.
+    expect(nameFromEmail("jp@work.com")).toBe("");
+    expect(nameFromEmail("j.perez@work.com")).toBe("");
+    expect(nameFromEmail("42@work.com")).toBe("");
+    expect(nameFromEmail(null)).toBe("");
+    expect(nameFromEmail("")).toBe("");
+  });
+
+  it("cannot tell a squashed login from a short name, and says so", () => {
+    // "jperez" and "ana" are the same shape to any rule that does not know
+    // which one is a person. This returns "Jperez", and the honest fix is not
+    // a cleverer heuristic — it is the name field in settings, which always
+    // wins over this guess.
+    expect(nameFromEmail("jperez@work.com")).toBe("Jperez");
+  });
+
+  it("keeps accented names intact", () => {
+    expect(nameFromEmail("joão@work.com")).toBe("João");
   });
 });

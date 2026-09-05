@@ -14,6 +14,15 @@
 import type { RedisClientType } from "redis";
 
 export interface Preferences {
+  /**
+   * What the interviewer calls you.
+   *
+   * Empty means "we do not know yet" — the server guesses from the account's
+   * email address and the interviewer is told to skip the name rather than
+   * invent one. It was a hardcoded "Mariana" until someone signed up and got
+   * greeted as a stranger.
+   */
+  candidateName: string;
   defaultRole: string;
   defaultCompany: string;
   interviewLength: number;
@@ -24,6 +33,7 @@ export interface Preferences {
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
+  candidateName: "",
   defaultRole: "Senior Product Designer",
   defaultCompany: "Stripe",
   interviewLength: 7,
@@ -120,6 +130,25 @@ export function createUserStore(client: RedisClientType | null): UserStore {
 }
 
 /** Validates and clamps a preferences payload from the client. */
+/**
+ * A first name guessed from an email address.
+ *
+ * "jean.perez@work.com" is Jean. Initials and digits are rejected, because no
+ * greeting should ever use them.
+ *
+ * What this cannot do is tell "jperez" from "ana" — they are the same shape,
+ * and it will happily greet someone as Jperez. That is why the name field in
+ * settings exists and always wins over this: the guess is a decent opening
+ * default, not a substitute for asking.
+ */
+export function nameFromEmail(email: string | null | undefined): string {
+  const local = (email ?? "").split("@")[0] ?? "";
+  const first = local.split(/[._-]/)[0] ?? "";
+  // Letters only, and long enough to be a name rather than an initial.
+  if (!/^[a-zA-ZÀ-ÿ]{3,}$/.test(first)) return "";
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+}
+
 export function readPreferences(body: Record<string, unknown>): Preferences {
   const text = (key: string, max: number): string =>
     typeof body[key] === "string" ? (body[key] as string).trim().slice(0, max) : "";
@@ -132,6 +161,9 @@ export function readPreferences(body: Record<string, unknown>): Preferences {
     interviewLength: Number.isFinite(rawLength)
       ? Math.min(7, Math.max(5, Math.round(rawLength)))
       : DEFAULT_PREFERENCES.interviewLength,
+    // Empty is meaningful: it means nobody has said, and the server falls
+    // back to the account rather than to a name we made up.
+    candidateName: text("candidateName", 60),
     defaultRole: text("defaultRole", 120) || DEFAULT_PREFERENCES.defaultRole,
     defaultCompany: text("defaultCompany", 80) || DEFAULT_PREFERENCES.defaultCompany,
     // Empty is meaningful here — it is "no sector filter" — so it is not

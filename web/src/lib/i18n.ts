@@ -137,6 +137,10 @@ const EN = {
   "settings.interfaceLanguage": "Interface language",
   "settings.interfaceLanguageHint":
     "The language of this app. What the interviewer speaks is chosen per interview.",
+  "settings.yourName": "Your name",
+  "settings.yourNameHint":
+    "What the interviewer calls you. Left empty, it is guessed from your email — and skipped entirely rather than invented.",
+  "settings.yourNamePlaceholder": "How you want to be greeted",
   "settings.tour": "Guided tour",
   "settings.tourHint": "The walkthrough shown the first time you open a session.",
   "settings.tourAgain": "Show it again",
@@ -264,6 +268,10 @@ const ES: Record<MessageKey, string> = {
   "settings.interfaceLanguage": "Idioma de la interfaz",
   "settings.interfaceLanguageHint":
     "El idioma de esta aplicación. Lo que habla el entrevistador se elige en cada entrevista.",
+  "settings.yourName": "Tu nombre",
+  "settings.yourNameHint":
+    "Cómo te llama el entrevistador. Vacío, se adivina desde tu email — y si no se puede, no te llama de ninguna forma en vez de inventarlo.",
+  "settings.yourNamePlaceholder": "Cómo querés que te saluden",
   "settings.tour": "Tour guiado",
   "settings.tourHint": "El recorrido que se muestra la primera vez que abrís una sesión.",
   "settings.tourAgain": "Mostrarlo de nuevo",
@@ -383,6 +391,10 @@ const PT: Record<MessageKey, string> = {
   "settings.interfaceLanguage": "Idioma da interface",
   "settings.interfaceLanguageHint":
     "O idioma deste aplicativo. O que o entrevistador fala é escolhido em cada entrevista.",
+  "settings.yourName": "Seu nome",
+  "settings.yourNameHint":
+    "Como o entrevistador te chama. Vazio, é deduzido do seu email — e se não der, ele não usa nome nenhum em vez de inventar.",
+  "settings.yourNamePlaceholder": "Como você quer ser cumprimentado",
   "settings.tour": "Tour guiado",
   "settings.tourHint": "O passo a passo mostrado na primeira vez que você abre uma sessão.",
   "settings.tourAgain": "Mostrar de novo",
