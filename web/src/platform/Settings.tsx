@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Eyebrow, Field, Panel, Action } from "@/design-system";
 import { useTheme } from "@/hooks/useTheme";
+import { useLocale } from "@/hooks/useLocale";
+import { LOCALES } from "@/lib/i18n";
 import { resetTour } from "@/lib/tour";
 import { PageBody, PageHeader } from "./AppShell";
 import { Billing } from "./Billing";
@@ -28,6 +30,7 @@ const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 /** Preferences, stored per identity and used to pre-fill a new session. */
 export function Settings() {
   const { choice, theme, setChoice } = useTheme();
+  const { locale, setLocale, t } = useLocale();
   const [tourReset, setTourReset] = useState(false);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -87,24 +90,31 @@ export function Settings() {
 
   return (
     <>
-      <PageHeader title="Settings" meta="Account and practice preferences" />
+      <PageHeader title={t("settings.title")} meta={t("settings.meta")} />
       <PageBody>
         <Panel className="mb-4 flex max-w-2xl flex-col gap-4 p-6">
-          <Eyebrow>Appearance</Eyebrow>
+          <Eyebrow>{t("settings.appearance")}</Eyebrow>
           <Field
-            label="Theme"
+            label={t("settings.theme")}
             hint={
               choice === "system"
-                ? `Following your device, which is currently ${theme}.`
-                : "Fixed, whatever your device does."
+                ? t("settings.themeFollowing", {
+                    theme:
+                      theme === "dark" ? t("settings.themeDark") : t("settings.themeLight"),
+                  })
+                : t("settings.themeFixed")
             }
           >
-            <div role="radiogroup" aria-label="Theme" className="flex flex-wrap gap-2">
+            <div
+              role="radiogroup"
+              aria-label={t("settings.theme")}
+              className="flex flex-wrap gap-2"
+            >
               {(
                 [
-                  ["system", "System"],
-                  ["dark", "Dark"],
-                  ["light", "Light"],
+                  ["system", t("settings.themeSystem")],
+                  ["dark", t("settings.themeDark")],
+                  ["light", t("settings.themeLight")],
                 ] as const
               ).map(([value, label]) => (
                 <button
@@ -124,9 +134,40 @@ export function Settings() {
             </div>
           </Field>
 
+          {/* The interface language, not the interview's. Free, because
+              asking a Latin American candidate to navigate an English app is
+              not a thing to charge for — what costs is the interviewer
+              speaking their language, and that is chosen per interview. */}
           <Field
-            label="Guided tour"
-            hint="The walkthrough shown the first time you open a session."
+            label={t("settings.interfaceLanguage")}
+            hint={t("settings.interfaceLanguageHint")}
+          >
+            <div
+              role="radiogroup"
+              aria-label={t("settings.interfaceLanguage")}
+              className="flex flex-wrap gap-2"
+            >
+              {LOCALES.map((entry) => (
+                <button
+                  key={entry.id}
+                  role="radio"
+                  aria-checked={locale === entry.id}
+                  onClick={() => setLocale(entry.id)}
+                  className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
+                    locale === entry.id
+                      ? "border-cream bg-cream text-surface-base"
+                      : "border-line text-cream-dim hover:text-cream-bright"
+                  }`}
+                >
+                  {entry.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <Field
+            label={t("settings.tour")}
+            hint={t("settings.tourHint")}
           >
             <button
               onClick={() => {
@@ -135,7 +176,7 @@ export function Settings() {
               }}
               className="focus-ring self-start rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
             >
-              {tourReset ? "It will run next time" : "Show it again"}
+              {tourReset ? t("settings.tourReset") : t("settings.tourAgain")}
             </button>
           </Field>
         </Panel>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useT } from "@/hooks/useLocale";
 import {
   MessageSquare,
   Mic,
@@ -91,10 +92,11 @@ export function CallControls({
   onLeave: () => void;
   leaveLabel: string;
 }) {
+  const t = useT();
   return (
     <div className="flex items-center justify-center gap-3">
       <ControlButton
-        label={micOn ? "Mute microphone" : "Unmute microphone"}
+        label={micOn ? t("call.mute") : t("call.unmute")}
         active={micOn}
         disabled={!micSupported}
         onClick={onToggleMic}
@@ -104,11 +106,11 @@ export function CallControls({
       </ControlButton>
 
       <ControlButton
-        label={cameraOn ? "Turn camera off" : "Turn camera on"}
+        label={cameraOn ? t("call.cameraOff") : t("call.cameraOn")}
         active={cameraOn}
         disabled={!cameraSupported}
         onClick={onToggleCamera}
-        title="Only you ever see this. Nothing is sent or recorded."
+        title={t("call.cameraNote")}
       >
         {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
       </ControlButton>
@@ -117,21 +119,17 @@ export function CallControls({
           walking a portfolio or a diagram through out loud is its own skill,
           and it reads differently when the thing is actually on screen. */}
       <ControlButton
-        label={sharing ? "Stop sharing your screen" : "Share your screen"}
+        label={sharing ? t("call.stopShare") : t("call.share")}
         active={sharing}
         disabled={!shareSupported}
         onClick={onToggleShare}
-        title={
-          shareSupported
-            ? "Only you see it. Nothing is sent or recorded."
-            : "This browser cannot share a screen"
-        }
+        title={shareSupported ? t("call.shareNote") : undefined}
       >
         <MonitorUp className="h-5 w-5" />
       </ControlButton>
 
       <ControlButton
-        label={panelOpen ? "Hide transcript" : "Show transcript"}
+        label={panelOpen ? t("call.hidePanel") : t("call.showPanel")}
         active={panelOpen}
         onClick={onTogglePanel}
       >

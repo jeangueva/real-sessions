@@ -13,6 +13,7 @@ import {
 import type { ReactNode } from "react";
 import { fetchPlan, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * The signed-in shell. It sits on `surface-deep` rather than pure black so the
@@ -25,14 +26,15 @@ import type { Session } from "@/lib/api";
  * an icon rail, and at `lg` it opens into labels.
  */
 const NAV = [
-  { to: "/app", label: "New session", icon: Play, end: true },
-  { to: "/app/profile", label: "Your context", icon: FileUser, end: false },
-  { to: "/app/progress", label: "Progress", icon: LineChart, end: false },
-  { to: "/app/history", label: "History", icon: History, end: false },
-  { to: "/app/settings", label: "Settings", icon: Settings, end: false },
+  { to: "/app", key: "nav.new" as const, icon: Play, end: true },
+  { to: "/app/profile", key: "nav.context" as const, icon: FileUser, end: false },
+  { to: "/app/progress", key: "nav.progress" as const, icon: LineChart, end: false },
+  { to: "/app/history", key: "nav.history" as const, icon: History, end: false },
+  { to: "/app/settings", key: "nav.settings" as const, icon: Settings, end: false },
 ];
 
 export function AppShell() {
+  const t = useT();
   const [session, setSession] = useState<Session | null>(null);
   /**
    * Whether to show the review entry point. The server decides — this only
@@ -71,18 +73,18 @@ export function AppShell() {
               ? [
                   {
                     to: "/app/review",
-                    label: "Review",
+                    key: "nav.review" as const,
                     icon: ShieldCheck,
                     end: false,
                   },
                 ]
               : []),
-          ].map(({ to, label, icon: Icon, end }) => (
+          ].map(({ to, key, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              title={label}
+              title={t(key)}
               // The tour points at Progress; marking every item keeps that
               // selector honest if the list is ever reordered.
               data-tour={to.split("/").pop()}
@@ -95,7 +97,7 @@ export function AppShell() {
               }
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="hidden lg:inline">{label}</span>
+              <span className="hidden lg:inline">{t(key)}</span>
             </NavLink>
           ))}
         </nav>
@@ -113,25 +115,25 @@ export function AppShell() {
                 onClick={() => {
                   void signOut().then(() => window.location.assign("/"));
                 }}
-                title="Sign out"
+                title={t("nav.signOut")}
                 className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
               >
                 <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
-                <span className="hidden lg:inline">Sign out</span>
+                <span className="hidden lg:inline">{t("nav.signOut")}</span>
               </button>
             </>
           ) : (
             <>
               <p className="hidden px-3 text-xs text-cream-faint lg:block">
-                Practising as a guest
+                {t("nav.guest")}
               </p>
               <Link
                 to="/signin"
-                title="Save my progress"
+                title={t("nav.save")}
                 className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
               >
                 <LogIn className="h-4 w-4 shrink-0" aria-hidden />
-                <span className="hidden lg:inline">Save my progress</span>
+                <span className="hidden lg:inline">{t("nav.save")}</span>
               </Link>
             </>
           )}
@@ -159,13 +161,14 @@ export function AppShell() {
 const MOBILE_NAV = NAV.filter(({ to }) => to !== "/app/settings");
 
 function MobileNav({ signedIn }: { signedIn: boolean }) {
+  const t = useT();
   return (
     <nav
-      aria-label="Sections"
+      aria-label={t("nav.sections")}
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface-deep/95 backdrop-blur md:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
-        {MOBILE_NAV.map(({ to, label, icon: Icon, end }) => (
+        {MOBILE_NAV.map(({ to, key, icon: Icon, end }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -181,8 +184,9 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
               }
             >
               <Icon className="h-5 w-5" aria-hidden />
-              {/* The rail's labels are longer than a fifth of a phone screen. */}
-              {label === "New session" ? "New" : label === "Your context" ? "You" : label}
+              {/* The rail's labels are longer than a fifth of a phone screen,
+                  so the two longest are shortened to their first word. */}
+              {t(key).split(" ")[0]}
             </NavLink>
           </li>
         ))}

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Send } from "lucide-react";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * The side panel: what was said, and a way to say something by typing.
@@ -27,10 +28,14 @@ export interface TranscriptLine {
  * the candidate: their own name is on the account, and reading it back at
  * them in their own transcript is oddly formal.
  */
-export function speakerLabel(speaker: Speaker, interviewer: string | null): string {
-  if (speaker === "candidate") return "You";
+export function speakerLabel(
+  speaker: Speaker,
+  interviewer: string | null,
+  words: { you: string; interviewer: string } = { you: "You", interviewer: "Interviewer" },
+): string {
+  if (speaker === "candidate") return words.you;
   const first = (interviewer ?? "").trim().split(/\s+/)[0];
-  return first ? `Interviewer (${first})` : "Interviewer";
+  return first ? `${words.interviewer} (${first})` : words.interviewer;
 }
 
 export function TranscriptPanel({
@@ -57,6 +62,8 @@ export function TranscriptPanel({
   canSend: boolean;
   hint: string;
 }) {
+  const t = useT();
+  const words = { you: t("call.you"), interviewer: t("call.interviewer") };
   const foot = useRef<HTMLDivElement>(null);
 
   // Follows the conversation down. A transcript that has to be scrolled by
@@ -69,7 +76,7 @@ export function TranscriptPanel({
     <aside className="flex min-h-0 w-full flex-col rounded-3xl border border-line bg-surface-sunken lg:w-[26rem]">
       <div
         role="tablist"
-        aria-label="Session panel"
+        aria-label={t("panel.label")}
         className="flex shrink-0 gap-1 border-b border-line p-2"
       >
         {(["transcript", "chat"] as const).map((name) => (
@@ -84,7 +91,7 @@ export function TranscriptPanel({
                 : "text-cream-dim hover:text-cream-bright"
             }`}
           >
-            {name}
+            {name === "transcript" ? t("panel.transcript") : t("panel.chat")}
           </button>
         ))}
       </div>
@@ -93,7 +100,7 @@ export function TranscriptPanel({
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {lines.length === 0 && pending === "" ? (
             <p className="text-xs text-cream-faint">
-              What you both say appears here, as it is said.
+              {t("panel.empty")}
             </p>
           ) : (
             <ol className="flex flex-col gap-4">
@@ -106,7 +113,7 @@ export function TranscriptPanel({
                         : "text-cream-faint"
                     }`}
                   >
-                    {speakerLabel(line.speaker, interviewerName)}
+                    {speakerLabel(line.speaker, interviewerName, words)}
                   </p>
                   <p className="mt-1 text-sm leading-snug text-cream-dim">{line.text}</p>
                 </li>
@@ -114,7 +121,7 @@ export function TranscriptPanel({
               {pending !== "" && (
                 <li>
                   <p className="text-xs text-cream-bright">
-                    {speakerLabel("interviewer", interviewerName)}
+                    {speakerLabel("interviewer", interviewerName, words)}
                   </p>
                   <p className="mt-1 text-sm leading-snug text-cream-faint">
                     {pending}
@@ -132,8 +139,7 @@ export function TranscriptPanel({
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
           <p className="text-xs text-cream-faint">
-            Typing is the same interview — it just skips the microphone. Useful
-            for a word you cannot say out loud yet.
+            {t("panel.typingNote")}
           </p>
           <textarea
             value={answer}
@@ -146,7 +152,7 @@ export function TranscriptPanel({
             }}
             disabled={!canSend}
             rows={6}
-            placeholder="Type your answer…"
+            placeholder={t("panel.placeholder")}
             className="focus-ring min-h-0 flex-1 resize-none rounded-2xl border border-line bg-transparent p-3 text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50"
           />
           <div className="flex items-center justify-between gap-3">
@@ -157,7 +163,7 @@ export function TranscriptPanel({
               className="focus-ring flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-xs text-surface-base transition-opacity disabled:opacity-40 sm:text-sm"
             >
               <Send className="h-4 w-4" aria-hidden />
-              Send
+              {t("panel.send")}
             </button>
           </div>
         </div>

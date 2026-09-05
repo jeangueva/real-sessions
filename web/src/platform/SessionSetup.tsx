@@ -20,6 +20,7 @@ import type {
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
 import { FilterBar, FilterOption, FilterSegment } from "./FilterBar";
 import { Tour } from "./Tour";
+import { useT } from "@/hooks/useLocale";
 import { RecentSessions } from "./RecentSessions";
 
 /**
@@ -50,6 +51,7 @@ const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Collects exactly the variables the Phase 1 prompt needs — nothing more. */
 export function SessionSetup() {
+  const t = useT();
   const navigate = useNavigate();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -287,8 +289,8 @@ export function SessionSetup() {
   return (
     <>
       <PageHeader
-        title="Start an interview"
-        meta="Seven turns, about ten minutes. You can stop at any point."
+        title={t("setup.title")}
+        meta={t("setup.meta")}
       />
 
       <Tour />
@@ -303,13 +305,12 @@ export function SessionSetup() {
             <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cream-dim">
               <Lock className="h-4 w-4 shrink-0" aria-hidden />
               <span>
-                <span className="text-cream-bright">You are on the free plan.</span>{" "}
-                A general interview for your role, scored honestly. Targeting a
-                company, your CV and live coaching are on the paid plan.
+                <span className="text-cream-bright">{t("setup.freePlan")}</span>{" "}
+                {t("setup.freePlanBody")}
               </span>
             </p>
             <Link to="/#early-access" className="shrink-0">
-              <Action tone="glass">Six months free</Action>
+              <Action tone="glass">{t("setup.sixMonths")}</Action>
             </Link>
           </div>
         )}
@@ -331,7 +332,7 @@ export function SessionSetup() {
             wrapping, so a longer list costs lateral space, never a new row
             that pushes Begin below the fold. */}
         <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
-          <Eyebrow>Interview setup</Eyebrow>
+          <Eyebrow>{t("setup.eyebrow")}</Eyebrow>
 
           {/* One bar of selectors rather than six rows of pills. The bar
               shows what is chosen — the thing a person rereads before
@@ -347,9 +348,9 @@ export function SessionSetup() {
                 enabled: true,
                 node: (
                   <FilterSegment
-                    label="Role"
+                    label={t("field.role")}
                     value={role}
-                    hint="What you are interviewing for. It also decides which rounds exist."
+                    hint={t("field.roleHint")}
                   >
                     {(close) =>
                       roleLabels.map((option) => (
@@ -373,7 +374,7 @@ export function SessionSetup() {
                 enabled: true,
                 node: (
                   <FilterSegment
-                    label="Stage"
+                    label={t("field.stage")}
                     value={
                       chosenStages.map((entry) => entry.label).join(" + ") || "Behavioral"
                     }
@@ -401,14 +402,14 @@ export function SessionSetup() {
                 enabled: can?.interviewLanguage ?? true,
                 node: (
                   <FilterSegment
-                    label="Language"
+                    label={t("field.language")}
                     value={
                       languages.find((entry) => entry.id === languageId)?.label ??
                       "English"
                     }
-                    hint="What the interviewer speaks. The report comes back in English either way."
+                    hint={t("field.languageHint")}
                     disabled={can ? !can.interviewLanguage : false}
-                    disabledReason="Interviewing in Spanish or Portuguese is part of the paid plan. Free runs the English interview."
+                    disabledReason={t("field.languageLocked")}
                   >
                     {(close) =>
                       languages.map((entry) => (
@@ -432,14 +433,14 @@ export function SessionSetup() {
                 enabled: true,
                 node: (
                   <FilterSegment
-                    label="Mode"
-                    value={mode === "practice" ? "Practice" : "Real"}
+                    label={t("field.mode")}
+                    value={mode === "practice" ? t("field.practice") : t("field.real")}
                   >
                     {(close) => (
                       <>
                         <FilterOption
-                          label="Practice"
-                          detail="Coaching notes appear beside the transcript."
+                          label={t("field.practice")}
+                          detail={t("field.practiceHint")}
                           selected={mode === "practice"}
                           onSelect={() => {
                             setMode("practice");
@@ -447,8 +448,8 @@ export function SessionSetup() {
                           }}
                         />
                         <FilterOption
-                          label="Real"
-                          detail="No coaching until the end. Worth more XP."
+                          label={t("field.real")}
+                          detail={t("field.realHint")}
                           selected={mode === "real"}
                           onSelect={() => {
                             setMode("real");
@@ -465,19 +466,19 @@ export function SessionSetup() {
                 enabled: can?.choosePersona ?? true,
                 node: (
                   <FilterSegment
-                    label="Interviewer"
+                    label={t("field.interviewer")}
                     value={
-                      personas.find((p) => p.id === personaId)?.name ?? "Company default"
+                      personas.find((p) => p.id === personaId)?.name ?? t("field.companyDefault")
                     }
-                    hint="Only the people who actually run these rounds. A recruiter does not take a system design interview."
+                    hint={t("field.interviewerHint")}
                     disabled={can ? !can.choosePersona : false}
-                    disabledReason="Each company sends the interviewer its culture implies. Picking your own is part of the paid plan."
+                    disabledReason={t("field.interviewerLocked")}
                   >
                     {(close) => (
                       <>
                         <FilterOption
-                          label="Company default"
-                          detail="Stripe sends a skeptic. Airbnb sends a host."
+                          label={t("field.companyDefault")}
+                          detail={t("field.companyDefaultHint")}
                           selected={personaId === ""}
                           onSelect={() => {
                             setPersonaId("");
@@ -506,20 +507,20 @@ export function SessionSetup() {
                 enabled: can?.targetCompany ?? true,
                 node: (
                   <FilterSegment
-                    label="Sector"
-                    value={activeSector?.label ?? "All"}
+                    label={t("field.sector")}
+                    value={activeSector?.label ?? t("field.all")}
                     hint={
                       activeSector
                         ? `Expect ${activeSector.metrics}.`
                         : "Sets the vocabulary and the numbers you will be asked for."
                     }
                     disabled={can ? !can.targetCompany : false}
-                    disabledReason="Choosing a sector is part of the paid plan."
+                    disabledReason={t("field.sectorLocked")}
                   >
                     {(close) => (
                       <>
                         <FilterOption
-                          label="All"
+                          label={t("field.all")}
                           selected={sector === ""}
                           onSelect={() => {
                             setSector("");
@@ -548,10 +549,10 @@ export function SessionSetup() {
                 enabled: can?.targetCompany ?? true,
                 node: (
                   <FilterSegment
-                    label="Company"
-                    value={can && !can.targetCompany ? "General role" : company}
+                    label={t("field.company")}
+                    value={can && !can.targetCompany ? t("field.generalRole") : company}
                     disabled={can ? !can.targetCompany : false}
-                    disabledReason="Targeting a specific company is part of the paid plan."
+                    disabledReason={t("field.companyLocked")}
                   >
                     {(close) =>
                       visibleCompanies.map((option) => (
@@ -595,7 +596,7 @@ export function SessionSetup() {
               })
             }
           >
-            Begin
+            {t("setup.begin")}
           </Action>
         </Panel>
 

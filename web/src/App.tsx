@@ -19,6 +19,7 @@ import { Settings } from "@/platform/Settings";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
 import { ConfirmEmail } from "@/platform/ConfirmEmail";
+import { LocaleProvider } from "@/hooks/useLocale";
 
 function Landing() {
   return (
@@ -44,6 +45,7 @@ export function App() {
      * less motion could be left looking at an empty panel.
      */
     <MotionConfig reducedMotion="user">
+    <LocaleProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -65,6 +67,7 @@ export function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </LocaleProvider>
     </MotionConfig>
   );
 }

@@ -32,6 +32,7 @@ export default defineConfig({
       ["test/filter-bar.test.ts", "node"],
       ["test/tour.test.ts", "node"],
       ["test/recent-sessions.test.ts", "node"],
+      ["test/i18n.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },

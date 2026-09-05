@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { History, Search, X } from "lucide-react";
 import type { Persona, SessionSummary, Sector } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * One field that both configures an interview and finds an old one.
@@ -171,6 +172,7 @@ export function SetupSearch({
   onChoose: (choice: SetupChoice) => void;
   disabled?: boolean;
 }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -226,7 +228,7 @@ export function SetupSearch({
           aria-expanded={open}
           aria-controls="setup-suggestions"
           aria-autocomplete="list"
-          placeholder="Search a company, a role, or a past session to run again"
+          placeholder={t("setup.search")}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
@@ -255,7 +257,7 @@ export function SetupSearch({
         {query !== "" && (
           <button
             type="button"
-            aria-label="Clear search"
+            aria-label={t("setup.clearSearch")}
             onClick={() => {
               setQuery("");
               setOpen(false);

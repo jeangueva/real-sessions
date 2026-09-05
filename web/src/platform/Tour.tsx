@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useT } from "@/hooks/useLocale";
 import {
   TOUR_STEPS,
   firstVisible,
@@ -66,6 +67,7 @@ export function clampSpot(spot: Spot, viewportHeight: number): Spot {
 }
 
 export function Tour() {
+  const t = useT();
   const [steps, setSteps] = useState<TourStep[] | null>(null);
   const [index, setIndex] = useState(0);
   const [spot, setSpot] = useState<Spot | null>(null);
@@ -156,7 +158,7 @@ export function Tour() {
   const card = cardPosition(spot, window.innerWidth, window.innerHeight);
 
   return createPortal(
-    <div className="fixed inset-0 z-[60]" role="dialog" aria-label="Guided tour">
+    <div className="fixed inset-0 z-[60]" role="dialog" aria-label={t("tour.label")}>
       {/* Four panels around the target rather than one overlay with a hole:
           the target stays clickable, which is what people try first. */}
       <div
@@ -199,7 +201,7 @@ export function Tour() {
           <p className="text-sm text-cream-bright">{step.title}</p>
           <button
             onClick={close}
-            aria-label="Close the tour"
+            aria-label={t("tour.close")}
             className="focus-ring -mr-1 -mt-1 rounded-full p-1 text-cream-faint transition-colors hover:text-cream-bright"
           >
             <X className="h-4 w-4" aria-hidden />
@@ -209,7 +211,7 @@ export function Tour() {
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="text-xs text-cream-faint">
-            {index + 1} of {steps.length}
+            {t("tour.stepOf", { index: index + 1, total: steps.length })}
           </span>
           <div className="flex items-center gap-2">
             {index > 0 && (
@@ -217,20 +219,20 @@ export function Tour() {
                 onClick={() => setIndex((current) => current - 1)}
                 className="focus-ring rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
               >
-                Back
+                {t("tour.back")}
               </button>
             )}
             <button
               onClick={close}
               className="focus-ring rounded-full px-3 py-1.5 text-xs text-cream-faint transition-colors hover:text-cream-bright"
             >
-              Skip
+              {t("tour.skip")}
             </button>
             <button
               onClick={() => (last ? close() : setIndex((current) => current + 1))}
               className="focus-ring rounded-full bg-cream px-4 py-1.5 text-xs text-surface-base"
             >
-              {last ? "Got it" : "Next"}
+              {last ? t("tour.done") : t("tour.next")}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { History } from "lucide-react";
 import type { SessionSummary } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * The last few interviews, as a row you can scroll and press.
@@ -33,10 +34,14 @@ export function recentFirst(
  * well-regarded technology company" on a card reads like a bug rather than
  * like a plan tier.
  */
-export function companyLabel(session: SessionSummary, genericCompany: string): string {
+export function companyLabel(
+  session: SessionSummary,
+  genericCompany: string,
+  generalLabel = "General role",
+): string {
   return session.company && session.company !== genericCompany
     ? session.company
-    : "General role";
+    : generalLabel;
 }
 
 /** "12 Aug" — enough to place an attempt without a timestamp's precision. */
@@ -56,17 +61,18 @@ export function RecentSessions({
   /** Loads this session's configuration into the bar above. */
   onPick: (session: SessionSummary) => void;
 }) {
+  const t = useT();
   const recent = recentFirst(sessions);
   // Nothing to show on a first visit, and an empty rail with a heading is
   // worse than no rail: it promises something the account does not have yet.
   if (recent.length === 0) return null;
 
   return (
-    <section aria-label="Recent sessions" className="flex min-w-0 flex-col gap-3">
+    <section aria-label={t("recent.label")} className="flex min-w-0 flex-col gap-3">
       <div className="flex items-center gap-2">
         <History className="h-4 w-4 text-cream-faint" aria-hidden />
         <h2 className="text-xs uppercase tracking-[0.18em] text-cream-faint">
-          Run one again
+          {t("recent.heading")}
         </h2>
       </div>
 
@@ -88,7 +94,7 @@ export function RecentSessions({
                   {session.stage}
                 </span>
                 <span className="mt-1 block truncate text-xs text-cream-faint">
-                  {companyLabel(session, genericCompany)}
+                  {companyLabel(session, genericCompany, t("field.generalRole"))}
                 </span>
               </span>
               <span className="flex items-baseline justify-between gap-2">
