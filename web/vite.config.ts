@@ -31,6 +31,7 @@ export default defineConfig({
       ["test/transcript-panel.test.ts", "node"],
       ["test/filter-bar.test.ts", "node"],
       ["test/tour.test.ts", "node"],
+      ["test/recent-sessions.test.ts", "node"],
     ],
     setupFiles: ["./test/setup.ts"],
   },

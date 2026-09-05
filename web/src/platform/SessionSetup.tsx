@@ -19,6 +19,7 @@ import type {
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
 import { FilterBar, FilterOption, FilterSegment } from "./FilterBar";
 import { Tour } from "./Tour";
+import { RecentSessions } from "./RecentSessions";
 
 /**
  * Whether the briefing has been dismissed. Per-device and low stakes, so it
@@ -86,6 +87,34 @@ export function SessionSetup() {
   };
 
   /**
+   * Loads a past interview's configuration back into the bar.
+   *
+   * Shared by the search field and the recent rail, which are two ways to
+   * reach the same action — and two places for it to drift out of step if it
+   * were written twice.
+   */
+  const loadSession = (past: SessionSummary) => {
+    // A free session was recorded against the placeholder, which is not a
+    // company anyone can pick. Leave the current choice alone rather than
+    // setting a value the picker would immediately snap away from.
+    if (past.company && past.company !== genericCompany) setCompany(past.company);
+    setRole(past.role);
+    // A combined session is recorded as joined labels, which is what the
+    // rerun has to restore — one round of a two-round interview is not the
+    // same rehearsal.
+    setStageIds(
+      past.stage
+        .split(" + ")
+        .map((label) => label.trim())
+        .map((label) => visibleStages.find((entry) => entry.label === label)?.id)
+        .filter((id): id is string => Boolean(id)),
+    );
+    setMode(past.mode);
+    setSector(past.sectorId ?? "");
+    setPersonaId(past.personaId ?? "");
+  };
+
+  /**
    * Applies a search result.
    *
    * A past session sets every field at once — company, role, stage, mode and
@@ -95,28 +124,9 @@ export function SessionSetup() {
    */
   const applyChoice = (choice: SetupChoice) => {
     switch (choice.kind) {
-      case "session": {
-        const past = choice.session;
-        // A free session was recorded against the placeholder, which is not a
-        // company anyone can pick. Leave the current choice alone rather than
-        // setting a value the picker would immediately snap away from.
-        if (past.company && past.company !== genericCompany) setCompany(past.company);
-        setRole(past.role);
-        // A combined session is recorded as joined labels, which is what the
-        // rerun has to restore — one round of a two-round interview is not
-        // the same rehearsal.
-        setStageIds(
-          past.stage
-            .split(" + ")
-            .map((label) => label.trim())
-            .map((label) => visibleStages.find((entry) => entry.label === label)?.id)
-            .filter((id): id is string => Boolean(id)),
-        );
-        setMode(past.mode);
-        setSector(past.sectorId ?? "");
-        setPersonaId(past.personaId ?? "");
+      case "session":
+        loadSession(choice.session);
         break;
-      }
       case "company":
         setCompany(choice.label);
         break;
@@ -549,6 +559,12 @@ export function SessionSetup() {
             Begin
           </Action>
         </Panel>
+
+        <RecentSessions
+          sessions={sessions}
+          genericCompany={genericCompany}
+          onPick={loadSession}
+        />
 
         {/* Dismissible: it is a briefing, and a briefing stops being useful on
             the fourth interview. Closing it is remembered per device. */}
