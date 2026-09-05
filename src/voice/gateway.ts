@@ -121,7 +121,7 @@ export function attachVoiceGateway(server: Server, deps: GatewayDeps): WebSocket
     });
   });
 
-  wss.on("connection", (client: WebSocket, _req: IncomingMessage, identity: string) => {
+  wss.on("connection", (client: WebSocket, req: IncomingMessage, identity: string) => {
     if (!deepgramConfigured()) {
       // Closed immediately with a code the client understands, rather than
       // accepting audio and silently transcribing nothing.
@@ -165,6 +165,14 @@ export function attachVoiceGateway(server: Server, deps: GatewayDeps): WebSocket
 
     try {
       upstream = openDeepgram({
+        // The socket carries the language the session is running in. Without
+        // it a Spanish interview is transcribed by an English-only model,
+        // which returns confident nonsense rather than an error.
+        language:
+          new URL(
+            req.url ?? "/",
+            `http://${req.headers.host ?? "localhost"}`,
+          ).searchParams.get("language") ?? undefined,
         onTranscript: (transcript) => say({ type: "transcript", ...transcript }),
         onError: (message) => {
           console.error("[realsessions] deepgram:", message);

@@ -152,6 +152,12 @@ import {
   stageCatalogue,
   titlesFor,
 } from "./stages.js";
+import {
+  DEFAULT_LANGUAGE,
+  LANGUAGES,
+  findLanguage,
+  voiceFor,
+} from "./languages.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
@@ -1076,23 +1082,35 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   if (req.method === "DELETE" && path === "/api/account") {
-    if (identity.kind !== "user") {
-      return json(res, 400, {
-        error: "There is no account to delete — you are practising as a guest.",
-      });
-    }
+    /**
+     * A guest can erase their own data too.
+     *
+     * They accumulate the same things a signed-up account does — transcripts,
+     * scores, XP, a row on the leaderboard — and until this existed the only
+     * deletion route told them they had nothing to delete. "You have no
+     * account" is a true statement about the sign-up table and a false one
+     * about the data, and it left the person who most wanted out with no way
+     * out.
+     *
+     * No email confirmation, because there is no email to type. The
+     * confirmation is in the interface instead, and the blast radius is one
+     * browser's own cookie: this can only ever erase the caller.
+     */
+    const account =
+      identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
 
-    const account = await ACCOUNTS.findById(identity.id);
-    if (!account) return json(res, 404, { error: "No account found." });
+    if (identity.kind === "user") {
+      if (!account) return json(res, 404, { error: "No account found." });
 
-    // Typing the address is the confirmation. A button alone is too easy to
-    // hit for something with no undo, and this is the one action in the
-    // product that destroys data on purpose.
-    const body = await readJson(req);
-    if (normalizeEmail(body["email"]) !== account.email) {
-      return json(res, 400, {
-        error: "Type your email address exactly to confirm.",
-      });
+      // Typing the address is the confirmation. A button alone is too easy to
+      // hit for something with no undo, and this is the one action in the
+      // product that destroys data on purpose.
+      const body = await readJson(req);
+      if (normalizeEmail(body["email"]) !== account.email) {
+        return json(res, 400, {
+          error: "Type your email address exactly to confirm.",
+        });
+      }
     }
 
     /**
@@ -1125,7 +1143,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await recordQuietly(PLANS.eraseOwner(identity.id));
     await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
     await recordQuietly(USERS.eraseOwner(identity.id));
-    await ACCOUNTS.erase(identity.id);
+    // Only a signed-up identity has a row here; a guest never did.
+    if (account) await ACCOUNTS.erase(identity.id);
 
     res.setHeader("Set-Cookie", clearCookieHeader(secureCookies));
     json(res, 200, {
@@ -1226,9 +1245,20 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const persona = findPersona(
       typeof body["personaId"] === "string" ? body["personaId"] : null,
     );
+    // The same person in a different language. Null means the vendor has no
+    // voice for it — Portuguese — and the client speaks through the browser.
+    const spoken = findLanguage(
+      typeof body["language"] === "string" ? body["language"] : null,
+    );
+    const voice = voiceFor(persona.id, persona.voice.model, spoken);
+    if (!voice) {
+      return json(res, 409, {
+        error: `No ${spoken.promptLabel} voice is available.`,
+      });
+    }
 
     try {
-      const audio = await synthesize(text, persona.voice.model);
+      const audio = await synthesize(text, voice);
       res.writeHead(200, {
         "Content-Type": SPEECH_MIME,
         "Content-Length": String(audio.byteLength),
@@ -1401,6 +1431,18 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
      * old single `interviewStage` still works and is what an older client
      * sends; `stages` is the ordered list.
      */
+    /**
+     * The interview language, on the paid plan only.
+     *
+     * Free rehearses the English interview the product is named for. This is
+     * not the interface language — that is a separate setting and not
+     * something to charge for.
+     */
+    const language = findLanguage(
+      can.interviewLanguage && typeof body["language"] === "string"
+        ? body["language"]
+        : DEFAULT_LANGUAGE,
+    );
     const wantedStages = Array.isArray(body["stages"])
       ? (body["stages"] as unknown[]).filter(
           (entry): entry is string => typeof entry === "string",
@@ -1445,6 +1487,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const persona = castFor(titlesFor(rounds), context.companyName, requested);
     const session = new InterviewSession(context, {
       stages: rounds.map((round) => round.id),
+      language: language.id,
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
       knownQuestions,
@@ -1472,6 +1515,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       await STORE.set(sessionId, {
         // Carried so the evaluator can weigh each round against its own bar.
         stages: rounds.map((round) => round.id),
+        language: language.id,
         snapshot: session.snapshot(),
         context,
         ownerId: identity.id,
@@ -1491,6 +1535,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         persona,
         context: shown(context),
         maxTurns: session.maxTurnCount,
+        language: language.id,
       });
       const turn = await session.startStream((chunk) =>
         sendEvent(res, "delta", { text: chunk }),
@@ -1509,6 +1554,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       persona,
       context: shown(context),
       maxTurns: session.maxTurnCount,
+      language: language.id,
     });
     return;
   }
@@ -1619,6 +1665,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       {
         ...(PROVIDER ? { provider: PROVIDER } : {}),
         ...(stored.stages ? { stages: stored.stages } : {}),
+        ...(stored.language ? { language: stored.language } : {}),
       },
     );
     const score = evaluation.overall_score_percentage;
@@ -1821,6 +1868,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // because offering an engineer's system design round to a designer is
       // the thing this replaces.
       stagesByRole: stageCatalogue(),
+      languages: LANGUAGES,
       // The most rounds one session will run. The picker caps at this.
       maxCombinedStages: MAX_COMBINED,
       // The placeholder a free session is recorded against. The client needs

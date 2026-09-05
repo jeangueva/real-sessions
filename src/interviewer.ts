@@ -71,6 +71,8 @@ export interface InterviewSessionOptions {
   maxTokens?: number;
   /** The rounds this session runs, in order. */
   stages?: readonly string[];
+  /** What the interview is conducted in. English unless someone chose. */
+  language?: string;
   minTurns?: number;
   maxTurns?: number;
   /**
@@ -153,6 +155,7 @@ export class InterviewSession {
     this.knownQuestions = [...(options.knownQuestions ?? [])];
     this.systemPrompt = buildInterviewerPrompt(context, {
       stages: stages.map((entry) => entry.id),
+      ...(options.language ? { language: options.language } : {}),
       minTurns,
       maxTurns,
       personaId: this.personaId,

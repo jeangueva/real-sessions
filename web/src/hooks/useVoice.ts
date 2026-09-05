@@ -37,6 +37,8 @@ export function useVoice({
   sessionStartedAt,
   voiceProfile = NEUTRAL_VOICE,
   personaId = "",
+  language = "en",
+  bcp47 = "en-US",
 }: {
   enabled: boolean;
   onFinalAnswer: (text: string) => void;
@@ -52,6 +54,10 @@ export function useVoice({
    * from a person to a voice — the client never names a model.
    */
   personaId?: string;
+  /** What the interview is conducted in. Drives both halves of the voice. */
+  language?: string;
+  /** The same language as a BCP-47 tag, for the browser synthesiser. */
+  bcp47?: string;
 }) {
   /**
    * Null until the server has said whether live transcription is configured.
@@ -80,19 +86,21 @@ export function useVoice({
   }, []);
 
   const input = useMemo(
-    () => (live ? createDeepgramInput() : createSpeechInput()),
-    [live],
+    () => (live ? createDeepgramInput(language) : createSpeechInput(bcp47)),
+    [live, language, bcp47],
   );
   // Rebuilt when the profile changes, which happens once — when the session
   // reports which interviewer it gave you.
   const output = useMemo(
     () =>
       aura
-        ? createAuraOutput(personaId, voiceProfile)
-        : createSpeechOutput("en-US", voiceProfile),
+        ? createAuraOutput(personaId, voiceProfile, bcp47, language)
+        : createSpeechOutput(bcp47, voiceProfile),
     [
       aura,
       personaId,
+      language,
+      bcp47,
       voiceProfile.rate,
       voiceProfile.pitch,
       voiceProfile.prefer.join(","),

@@ -67,6 +67,8 @@ export interface Capabilities {
   liveCoaching: boolean;
   advancedFeedback: boolean;
   historyLimit: number;
+  /** Run the interview in Spanish or Portuguese. Not the interface language. */
+  interviewLanguage: boolean;
 }
 
 export interface ProfileLink {
@@ -97,6 +99,15 @@ export interface Persona {
     /** Browser-synthesiser settings, used only when Aura is unavailable. */
     fallback: { rate: number; pitch: number; prefer: string[] };
   };
+}
+
+/** A language the interview can be conducted in. */
+export interface Language {
+  id: string;
+  label: string;
+  bcp47: string;
+  /** Present when the experience is degraded — no vendor voice, say. */
+  caveat?: string;
 }
 
 export interface Role {
@@ -231,6 +242,7 @@ async function postStream(
       persona: Persona,
       running: RunningContext,
       maxTurns: number,
+      language: string,
     ) => void;
   },
 ): Promise<InterviewerTurn> {
@@ -284,12 +296,14 @@ async function postStream(
             persona: Persona;
             context: RunningContext;
             maxTurns: number;
+            language: string;
           };
           handlers.onSession?.(
             payload.sessionId,
             payload.persona,
             payload.context,
             payload.maxTurns,
+            payload.language,
           );
         } else if (event?.name === "turn") {
           turn = (event.data as { turn: InterviewerTurn }).turn;
@@ -349,6 +363,8 @@ export function startSessionStream(
     personaId: string;
     /** The rounds this session covers, in order. */
     stages?: string[];
+    /** What the interviewer speaks. English unless the plan allows a choice. */
+    language?: string;
   },
   handlers: {
     onDelta: (text: string) => void;
@@ -357,6 +373,7 @@ export function startSessionStream(
       persona: Persona,
       running: RunningContext,
       maxTurns: number,
+      language: string,
     ) => void;
   },
 ) {
@@ -765,6 +782,7 @@ export function fetchCatalogue() {
       stagesByRole: { roleId: string; stages: Stage[] }[];
       /** The most rounds one session will run. */
       maxCombinedStages: number;
+      languages: Language[];
       roles: Role[];
     }>("/api/catalogue", { method: "GET" }),
   );

@@ -141,8 +141,13 @@ describe("the Aura voice", () => {
 
     expect(played).toEqual(["blob:fake"]);
     const body = JSON.parse(String(fetchMock.mock.calls[0]![1]!.body));
-    // The persona travels, never a model — the server owns that mapping.
-    expect(body).toEqual({ text: "Tell me about a tradeoff.", personaId: "skeptic" });
+    // The persona and the language travel, never a model — the server owns
+    // the mapping from those two to a voice.
+    expect(body).toEqual({
+      text: "Tell me about a tradeoff.",
+      personaId: "skeptic",
+      language: "en",
+    });
   });
 
   it("falls back to the browser when the server refuses", async () => {

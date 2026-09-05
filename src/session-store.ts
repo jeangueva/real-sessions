@@ -38,6 +38,12 @@ export interface StoredSession {
    * deploy lands, and they read as whatever their single stage says.
    */
   stages?: string[];
+  /**
+   * The language the interview ran in. Held for the same reason as the
+   * rounds: the evaluator has to grade the language that was actually
+   * spoken, and nothing else on the session says which that was.
+   */
+  language?: string;
 }
 
 export interface SessionStore {

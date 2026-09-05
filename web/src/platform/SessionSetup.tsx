@@ -9,6 +9,7 @@ import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences } from "@/lib
 import type {
   Capabilities,
   CatalogueCompany,
+  Language,
   Persona,
   Role,
   Stage,
@@ -71,6 +72,9 @@ export function SessionSetup() {
    */
   const [stageIds, setStageIds] = useState<string[]>([]);
   const [maxCombined, setMaxCombined] = useState(3);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  /** What the interviewer speaks. Not the interface language. */
+  const [languageId, setLanguageId] = useState("en");
   const [mode, setMode] = useState<SessionMode>("practice");
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [showBriefing, setShowBriefing] = useState(() => !briefingDismissed());
@@ -159,6 +163,7 @@ export function SessionSetup() {
         setRoles(result.roles ?? []);
         setStagesByRole(result.stagesByRole ?? []);
         setMaxCombined(result.maxCombinedStages ?? 3);
+        setLanguages(result.languages ?? []);
       })
       .catch(() => undefined);
     fetchPlan()
@@ -392,6 +397,37 @@ export function SessionSetup() {
                 ),
               },
               {
+                key: "language",
+                enabled: can?.interviewLanguage ?? true,
+                node: (
+                  <FilterSegment
+                    label="Language"
+                    value={
+                      languages.find((entry) => entry.id === languageId)?.label ??
+                      "English"
+                    }
+                    hint="What the interviewer speaks. The report comes back in English either way."
+                    disabled={can ? !can.interviewLanguage : false}
+                    disabledReason="Interviewing in Spanish or Portuguese is part of the paid plan. Free runs the English interview."
+                  >
+                    {(close) =>
+                      languages.map((entry) => (
+                        <FilterOption
+                          key={entry.id}
+                          label={entry.label}
+                          detail={entry.caveat}
+                          selected={languageId === entry.id}
+                          onSelect={() => {
+                            setLanguageId(entry.id);
+                            close();
+                          }}
+                        />
+                      ))
+                    }
+                  </FilterSegment>
+                ),
+              },
+              {
                 key: "mode",
                 enabled: true,
                 node: (
@@ -550,6 +586,9 @@ export function SessionSetup() {
                   role,
                   stage: chosenStages.map((entry) => entry.label).join(" + "),
                   stages: chosenStages.map((entry) => entry.id),
+                  language: languageId,
+                  bcp47:
+                    languages.find((entry) => entry.id === languageId)?.bcp47 ?? "en-US",
                   mode,
                   personaId,
                 },

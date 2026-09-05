@@ -32,6 +32,9 @@ interface SetupState {
   personaId?: string;
   /** The rounds this session covers, in order. */
   stages?: string[];
+  /** What the interviewer speaks. */
+  language?: string;
+  bcp47?: string;
 }
 
 /** Until the session says otherwise. The round decides the real number. */
@@ -66,6 +69,12 @@ export function LiveInterview() {
   const mode: SessionMode = setup.mode ?? "practice";
   const personaId = setup.personaId ?? "";
   const stages = setup.stages ?? [];
+  /**
+   * The language the server actually ran, not the one requested — free plans
+   * get English whatever was asked for, and the voice has to match the words.
+   */
+  const [language, setLanguage] = useState(setup.language ?? "en");
+  const bcp47 = setup.bcp47 ?? "en-US";
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [turn, setTurn] = useState<InterviewerTurn | null>(null);
@@ -128,6 +137,8 @@ export function LiveInterview() {
     // The assigned interviewer, not the requested one — on the free plan the
     // server picks, and the voice has to match whoever actually showed up.
     personaId: persona?.id ?? personaId,
+    language,
+    bcp47,
   });
 
   useEffect(() => {
@@ -144,11 +155,11 @@ export function LiveInterview() {
         companyName: company,
         interviewStage: stage,
       },
-      { mode, personaId, stages },
+      { mode, personaId, stages, language },
       {
         // The session id arrives first so a mid-stream failure is still
         // recoverable — the interview exists server-side either way.
-        onSession: (id, assigned, resolved, turns) => {
+        onSession: (id, assigned, resolved, turns, spoken) => {
           setSessionId(id);
           // The server decides which archetype you get when none was picked,
           // so the voice profile has to come back rather than be assumed.
@@ -157,6 +168,7 @@ export function LiveInterview() {
           // that was picked, and the header must not keep claiming otherwise.
           setRunning(resolved);
           if (turns > 0) setMaxTurns(turns);
+          if (spoken) setLanguage(spoken);
         },
         onDelta: (chunk) => {
           setStreaming((current) => current + chunk);

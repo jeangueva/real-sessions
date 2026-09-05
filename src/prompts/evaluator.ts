@@ -1,6 +1,7 @@
 import type { InterviewContext, TranscriptTurn } from "../types.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 import { composeRubric, resolveStages } from "../stages.js";
+import { findLanguage } from "../languages.js";
 
 /**
  * Phase 2 — the Evaluator. Sent as the `system` prompt of the async
@@ -8,7 +9,9 @@ import { composeRubric, resolveStages } from "../stages.js";
  * `output_config.format` (see src/schema.ts), so this prompt describes the
  * *judgement*, not the serialization.
  */
-export const EVALUATOR_TEMPLATE = `You are an expert Technical Recruiter and English Language Coach specializing in helping Latin American tech professionals secure remote jobs in the US and Europe.
+export const EVALUATOR_TEMPLATE = `You are an expert Technical Recruiter and language coach specializing in helping Latin American tech professionals secure remote jobs in the US and Europe.
+
+This interview was conducted in {{language}}. Judge the candidate's {{language}} — its vocabulary, its grammar, its fluency — and write your feedback in English regardless, because that is the language of the report they will read.
 
 You will be provided with a transcript of a {{interview_stage}} interview for a {{target_role}} position at {{company_name}} (Industry: {{industry}}). The candidate's name is {{candidate_name}}.
 
@@ -21,7 +24,7 @@ Your task is to analyze the candidate's performance in the transcript and provid
 1. **Technical & Domain Vocabulary:** Did they use the correct terminology for their {{target_role}}? Were words used in the right context?
 2. **Communication Structure:** Did they use logical frameworks (like the STAR method) to explain their ideas? Were their answers concise or rambling?
 3. **Cultural Fit:** Did their answers align with the expectations of {{company_name}} (Culture: {{company_culture}})?
-4. **Grammar & Fluency:** Identify repeated grammatical errors that hinder professional communication (do not nitpick minor mistakes; focus on clarity).
+4. **Grammar & Fluency:** Identify repeated grammatical errors in their {{language}} that hinder professional communication (do not nitpick minor mistakes; focus on clarity).
 
 ### SCORING:
 - \`overall_score_percentage\` is 0-100 and must be consistent with the two sub-scores; do not inflate it out of politeness.
@@ -38,9 +41,13 @@ Every string you return is rendered as plain text. Write plain prose only — no
 export function buildEvaluatorPrompt(
   context: InterviewContext,
   stages?: readonly string[],
+  language?: string,
 ): string {
   return renderTemplate(EVALUATOR_TEMPLATE, {
     ...toTemplateVariables(context),
+    // Grading Spanish against an English rubric would mark a fluent candidate
+    // down for not being fluent in a language they were not speaking.
+    language: findLanguage(language).promptLabel,
     // The same answer is strong in one round and thin in another, and the
     // evaluator had no way to know which round it was reading. A combined
     // session gets each round's bar rather than an average of them.

@@ -15,6 +15,7 @@
  */
 import { WebSocket } from "ws";
 import process from "node:process";
+import { DEFAULT_LANGUAGE, findLanguage } from "../languages.js";
 
 /** Audio the browser sends up. Matches what MediaRecorder produces. */
 export const CLIENT_AUDIO_MIME = "audio/webm;codecs=opus";
@@ -28,6 +29,8 @@ export interface DeepgramTranscript {
 }
 
 export interface DeepgramHandlers {
+  /** What to transcribe. English unless the session chose otherwise. */
+  language?: string;
   onTranscript: (transcript: DeepgramTranscript) => void;
   onError: (message: string) => void;
   onClose: () => void;
@@ -46,10 +49,19 @@ export function deepgramConfigured(): boolean {
  * default of 10ms cuts people off mid-thought; interviews are full of pauses
  * for thinking, so this is set long and deliberately.
  */
-export function liveQuery(): string {
+export function liveQuery(language: string = DEFAULT_LANGUAGE): string {
+  /**
+   * The model follows the language, not the other way round.
+   *
+   * Nova-3 is English-only on this account — checked against Deepgram's model
+   * list — so a Spanish interview transcribed with it would return confident
+   * English nonsense rather than an error. Nova-2 covers es and pt-BR, which
+   * is the trade: an older model that hears the right language.
+   */
+  const chosen = findLanguage(language);
   const params = new URLSearchParams({
-    model: "nova-3",
-    language: "en-US",
+    model: chosen.sttModel,
+    language: chosen.stt,
     // Sent as-is by MediaRecorder; Deepgram detects the container itself.
     encoding: "opus",
     smart_format: "true",
@@ -86,7 +98,9 @@ export function openDeepgram(handlers: DeepgramHandlers): DeepgramSocket {
   const key = process.env.DEEPGRAM_API_KEY;
   if (!key) throw new Error("DEEPGRAM_API_KEY is not set.");
 
-  const socket = new WebSocket(`wss://api.deepgram.com/v1/listen?${liveQuery()}`, {
+  const socket = new WebSocket(
+    `wss://api.deepgram.com/v1/listen?${liveQuery(handlers.language)}`,
+    {
     headers: { Authorization: `Token ${key}` },
   });
 

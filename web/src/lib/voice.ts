@@ -383,6 +383,8 @@ export function createAuraOutput(
   personaId: string,
   fallbackProfile: VoiceProfile = NEUTRAL_VOICE,
   lang = "en-US",
+  /** Which language to speak. The server owns the voice it maps to. */
+  language = "en",
 ): SpeechOutput {
   const fallback = createSpeechOutput(lang, fallbackProfile);
   let degraded = false;
@@ -410,7 +412,7 @@ export function createAuraOutput(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ text, personaId }),
+        body: JSON.stringify({ text, personaId, language }),
       });
       if (!response.ok) return null;
       return await response.blob();

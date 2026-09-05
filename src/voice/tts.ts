@@ -43,6 +43,20 @@ export const AURA_VOICES = new Set([
   "aura-2-saturn-en",
   "aura-2-athena-en",
   "aura-2-hermes-en",
+  /**
+   * The Spanish cast. Latin American throughout — Castilian would be an odd
+   * choice for this audience, and Deepgram has plenty of both.
+   *
+   * These have to be listed here or the speak route refuses every Spanish
+   * phrase, which is exactly what a test caught: the allowlist is the thing
+   * that makes a model id safe to put in a URL, and it does not grow itself.
+   */
+  "aura-2-sirio-es",
+  "aura-2-selena-es",
+  "aura-2-estrella-es",
+  "aura-2-celeste-es",
+  "aura-2-luciano-es",
+  "aura-2-olivia-es",
 ]);
 
 /** What Aura returns, and what the route forwards unchanged. */

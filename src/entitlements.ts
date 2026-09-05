@@ -38,6 +38,14 @@ export interface Capabilities {
   advancedFeedback: boolean;
   /** Sessions kept in history and plotted. Free keeps the most recent few. */
   historyLimit: number;
+  /**
+   * Run the interview in Spanish or Portuguese rather than English.
+   *
+   * Deliberately not the interface language, which is a different setting and
+   * not something to charge for. This is what the interviewer speaks — free
+   * rehearses the English interview the product is named for.
+   */
+  interviewLanguage: boolean;
 }
 
 const FREE: Capabilities = {
@@ -50,6 +58,7 @@ const FREE: Capabilities = {
   // Not zero. One session with nothing to compare it against is the reason to
   // upgrade; zero is just a broken screen.
   historyLimit: 3,
+  interviewLanguage: false,
 };
 
 const PREMIUM: Capabilities = {
@@ -60,6 +69,7 @@ const PREMIUM: Capabilities = {
   liveCoaching: true,
   advancedFeedback: true,
   historyLimit: 50,
+  interviewLanguage: true,
 };
 
 export function capabilitiesFor(plan: Plan): Capabilities {

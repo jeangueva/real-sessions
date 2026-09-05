@@ -2,6 +2,7 @@ import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, resolveStages, turnBudget } from "../stages.js";
+import { findLanguage } from "../languages.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
 /**
@@ -33,6 +34,9 @@ Your core company values and cultural focus are: {{company_culture}}. You must e
 
 ### WHAT THIS ROUND IS:
 {{stage_brief}}
+
+### LANGUAGE:
+Conduct this entire interview in {{language}}. Every question, every acknowledgement, every aside. The candidate may answer in another language — if they do, stay in {{language}} yourself rather than following them, and do not remark on it. Technical terms that have no natural translation stay as they are; a Spanish interview says "deploy" and "pull request", it does not invent words for them.
 
 ### RULES OF ENGAGEMENT:
 1. **One Question at a Time:** NEVER ask multiple questions in a single response. Wait for the candidate's answer before moving forward.
@@ -109,6 +113,8 @@ export interface InterviewerPromptOptions {
   /** Lower bound advertised in the structure section. Default 5. */
   /** The rounds this session runs, in order. Falls back to the context's. */
   stages?: readonly string[];
+  /** What the interview is conducted in. English unless someone chose. */
+  language?: string;
   minTurns?: number;
   /** Upper bound advertised in the structure section. Default 7. */
   maxTurns?: number;
@@ -170,6 +176,7 @@ export function buildInterviewerPrompt(
     candidate_brief: buildCandidateBrief(options.candidateBrief ?? null),
     known_questions: buildKnownQuestions(options.knownQuestions ?? []),
     persona_behaviour: persona.behaviour,
+    language: findLanguage(options.language).promptLabel,
     interviewer_name: persona.name,
     interviewer_title: persona.title,
     stage_brief: composeBrief(

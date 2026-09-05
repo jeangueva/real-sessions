@@ -41,13 +41,21 @@ describe("pickMimeType", () => {
 describe("voiceSocketUrl", () => {
   it("follows the page's own scheme and host", () => {
     expect(voiceSocketUrl({ protocol: "http:", host: "localhost:5173" })).toBe(
-      "ws://localhost:5173/api/voice",
+      "ws://localhost:5173/api/voice?language=en",
+    );
+  });
+
+  it("carries the language, because the gateway picks the model from it", () => {
+    // Nova-3 is English-only on this account: a Spanish interview sent to it
+    // returns confident English rather than an error.
+    expect(voiceSocketUrl({ protocol: "http:", host: "localhost:5173" }, "es")).toContain(
+      "language=es",
     );
   });
 
   it("upgrades to wss on a secure page", () => {
     // A ws:// socket from an https:// page is blocked as mixed content.
-    expect(voiceSocketUrl({ protocol: "https:", host: "realsessions.app" })).toBe(
+    expect(voiceSocketUrl({ protocol: "https:", host: "realsessions.app" })).toContain(
       "wss://realsessions.app/api/voice",
     );
   });

@@ -221,9 +221,26 @@ describe("confirming an address", () => {
 });
 
 describe("deleting an account", () => {
-  it("refuses a guest, who has no account to delete", async () => {
+  it("erases a guest's data, which they otherwise had no way to remove", async () => {
+    // A guest accumulates the same transcripts, scores and leaderboard rows a
+    // signed-up account does. This route used to answer "you have no account"
+    // — true about the sign-up table, false about the data, and it left the
+    // person who most wanted out with no way out.
+    await api.authenticate();
     const response = await api.call("/api/account", { method: "DELETE" });
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
+  });
+
+  it("takes no email from a guest, because there is none to type", async () => {
+    // The confirmation lives in the interface instead. The blast radius is
+    // one browser's own cookie: this can only ever erase the caller.
+    await api.authenticate();
+    const response = await api.call("/api/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "someone@else.com" }),
+    });
+    expect(response.status).toBe(200);
   });
 
   it("needs the address typed back exactly", async () => {

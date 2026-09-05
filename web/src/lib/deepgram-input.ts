@@ -54,12 +54,18 @@ export function deepgramInputSupported(): boolean {
  * Hard-coding a host would break the moment this runs anywhere but localhost,
  * and the Vite dev proxy already forwards `/api` — including upgrades.
  */
-export function voiceSocketUrl(location: { protocol: string; host: string }): string {
+export function voiceSocketUrl(
+  location: { protocol: string; host: string },
+  language = "en",
+): string {
   const scheme = location.protocol === "https:" ? "wss:" : "ws:";
-  return `${scheme}//${location.host}/api/voice`;
+  // The gateway picks the transcription model from this. Without it a Spanish
+  // interview is heard by an English-only model, which returns confident
+  // English rather than an error.
+  return `${scheme}//${location.host}/api/voice?language=${encodeURIComponent(language)}`;
 }
 
-export function createDeepgramInput(): SpeechInput {
+export function createDeepgramInput(language = "en"): SpeechInput {
   if (!deepgramInputSupported()) {
     return {
       supported: false,
@@ -126,7 +132,7 @@ export function createDeepgramInput(): SpeechInput {
         return;
       }
 
-      const ws = new WebSocket(voiceSocketUrl(window.location));
+      const ws = new WebSocket(voiceSocketUrl(window.location, language));
       ws.binaryType = "arraybuffer";
       socket = ws;
 
