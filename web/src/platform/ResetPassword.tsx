@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, requestPasswordReset, resetPassword } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * Both halves of the reset flow. With a `token` in the URL it sets a new
@@ -15,22 +16,24 @@ export function ResetPassword() {
 }
 
 function Shell({ title, children }: { title: string; children: React.ReactNode }) {
+  const t = useT();
   return (
     <AuthLayout>
-    <Eyebrow>Password</Eyebrow>
+    <Eyebrow>{t("auth.password")}</Eyebrow>
     <h1 className="mt-3 text-title font-normal text-cream-bright">{title}</h1>
     {children}
     <Link
       to="/signin"
       className="focus-ring mt-8 block rounded text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
     >
-      Back to sign in
+      {t("auth.backToSignIn")}
     </Link>
     </AuthLayout>
   );
 }
 
 function RequestLink() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +47,7 @@ function RequestLink() {
       // so does this screen — confirming it here would undo that.
       setSent(result.message);
     } catch {
-      setSent("If that address has an account, a reset link is on its way.");
+      setSent(t("auth.resetFallback"));
     } finally {
       setBusy(false);
     }
@@ -52,19 +55,19 @@ function RequestLink() {
 
   if (sent) {
     return (
-      <Shell title="Check your email">
+      <Shell title={t("auth.checkEmail")}>
         <p className="mt-6 text-sm text-cream-dim">{sent}</p>
         <p className="mt-3 text-xs text-cream-faint">
-          The link works once and expires in 30 minutes.
+          {t("auth.linkOnce")}
         </p>
       </Shell>
     );
   }
 
   return (
-    <Shell title="Reset your password">
+    <Shell title={t("auth.resetTitle")}>
       <form onSubmit={submit} className="mt-8 flex flex-col gap-5">
-        <Field label="Email" htmlFor="email">
+        <Field label={t("auth.email")} htmlFor="email">
           <input
             id="email"
             type="email"
@@ -77,7 +80,7 @@ function RequestLink() {
           />
         </Field>
         <Action type="submit" disabled={busy} className="self-start">
-          {busy ? "…" : "Send reset link"}
+          {busy ? "…" : t("auth.sendLink")}
         </Action>
       </form>
     </Shell>
@@ -85,6 +88,7 @@ function RequestLink() {
 }
 
 function SetNewPassword({ token }: { token: string }) {
+  const t = useT();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -100,7 +104,7 @@ function SetNewPassword({ token }: { token: string }) {
       navigate("/app", { replace: true });
     } catch (caught) {
       setError(
-        caught instanceof ApiError ? caught.message : "Could not reset password.",
+        caught instanceof ApiError ? caught.message : t("auth.couldNotReset"),
       );
     } finally {
       setBusy(false);
@@ -108,12 +112,12 @@ function SetNewPassword({ token }: { token: string }) {
   };
 
   return (
-    <Shell title="Choose a new password">
+    <Shell title={t("auth.chooseNew")}>
       <form onSubmit={submit} className="mt-8 flex flex-col gap-5">
         <Field
-          label="New password"
+          label={t("auth.newPassword")}
           htmlFor="password"
-          hint="At least 12 characters. A phrase works well."
+          hint={t("auth.passwordHint")}
         >
           <input
             id="password"
@@ -131,10 +135,10 @@ function SetNewPassword({ token }: { token: string }) {
           </p>
         )}
         <p className="text-xs text-cream-faint">
-          Setting a new password signs out every other device.
+          {t("auth.signsOutOthers")}
         </p>
         <Action type="submit" disabled={busy} className="self-start">
-          {busy ? "…" : "Set password"}
+          {busy ? "…" : t("auth.setPassword")}
         </Action>
       </form>
     </Shell>

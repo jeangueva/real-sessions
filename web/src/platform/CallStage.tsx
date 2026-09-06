@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { VideoOff } from "lucide-react";
 import { Waveform } from "@/design-system";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * The two tiles: whoever is talking, and you in the corner.
@@ -39,6 +40,7 @@ export function CallStage({
   /** "Connecting", "Turn 3 of 7" — whatever the header would have said. */
   status: string;
 }) {
+  const t = useT();
   const self = useRef<HTMLVideoElement>(null);
   const shared = useRef<HTMLVideoElement>(null);
 
@@ -70,7 +72,7 @@ export function CallStage({
           ref={shared}
           muted
           playsInline
-          aria-label="The screen you are sharing"
+          aria-label={t("call.sharedScreen")}
           className="absolute inset-0 h-full w-full bg-black object-contain"
         />
       )}
@@ -106,7 +108,7 @@ export function CallStage({
           active={speaking}
           level={voiceLevel}
           measured={voiceMeasured}
-          label={speaking ? `${name} is speaking` : `${name} is not speaking`}
+          label={speaking ? t("call.speaking", { name }) : t("call.notSpeaking", { name })}
           className="text-cream-bright"
         />
       </div>
@@ -124,7 +126,7 @@ export function CallStage({
               ref={self}
               muted
               playsInline
-              aria-label="Your camera, visible only to you"
+              aria-label={t("call.selfView")}
               className="aspect-video w-full scale-x-[-1] object-cover"
             />
           ) : (

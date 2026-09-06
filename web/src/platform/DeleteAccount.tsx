@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Action, Eyebrow, Field, Panel } from "@/design-system";
 import { ApiError, deleteAccount } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * Erasing an account.
@@ -16,6 +17,7 @@ import { ApiError, deleteAccount } from "@/lib/api";
  * questions do not.
  */
 export function DeleteAccount({ email }: { email: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,7 +33,7 @@ export function DeleteAccount({ email }: { email: string }) {
       window.location.assign("/");
     } catch (caught) {
       setError(
-        caught instanceof ApiError ? caught.message : "Could not delete the account.",
+        caught instanceof ApiError ? caught.message : t("delete.couldNot"),
       );
       setBusy(false);
     }
@@ -39,18 +41,18 @@ export function DeleteAccount({ email }: { email: string }) {
 
   return (
     <Panel className="mt-4 max-w-2xl border border-line p-6">
-      <Eyebrow>Delete account</Eyebrow>
+      <Eyebrow>{t("delete.title")}</Eyebrow>
 
       {!open ? (
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <p className="text-sm text-cream-dim">
-            Removes your account and everything attached to it. There is no undo.
+            {t("delete.summary")}
           </p>
           <button
             onClick={() => setOpen(true)}
             className="focus-ring shrink-0 rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright"
           >
-            Delete my account
+            {t("delete.button")}
           </button>
         </div>
       ) : (
@@ -58,23 +60,21 @@ export function DeleteAccount({ email }: { email: string }) {
           <div className="flex gap-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-cream" aria-hidden />
             <div className="text-sm text-cream-dim">
-              <p className="text-cream-bright">This cannot be undone.</p>
+              <p className="text-cream-bright">{t("delete.noUndo")}</p>
               <ul className="mt-3 flex flex-col gap-1.5 text-xs">
-                <li>Your interviews, transcripts and evaluations</li>
-                <li>Your progress, XP, level and badges</li>
-                <li>Your CV, portfolio links and the brief written from them</li>
-                <li>Your preferences, and any subscription — cancelled first</li>
+                <li>{t("delete.itemSessions")}</li>
+                <li>{t("delete.itemProgress")}</li>
+                <li>{t("delete.itemProfile")}</li>
+                <li>{t("delete.itemPreferences")}</li>
               </ul>
               <p className="mt-3 text-xs">
-                Questions you contributed stay. They were never linked to you —
-                what is stored beside them is a one-way hash — so there is
-                nothing of yours left in them to remove.
+                {t("delete.questionsStay")}
               </p>
             </div>
           </div>
 
           <Field
-            label={`Type ${email} to confirm`}
+            label={t("delete.typeToConfirm", { email })}
             htmlFor="confirm-email"
           >
             <input
@@ -100,7 +100,7 @@ export function DeleteAccount({ email }: { email: string }) {
               // the check that matters.
               disabled={busy || typed.trim().toLowerCase() !== email.toLowerCase()}
             >
-              {busy ? "Deleting…" : "Delete permanently"}
+              {busy ? t("delete.deleting") : t("delete.confirm")}
             </Action>
             <button
               onClick={() => {
@@ -110,7 +110,7 @@ export function DeleteAccount({ email }: { email: string }) {
               }}
               className="focus-ring rounded-full px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright"
             >
-              Cancel
+              {t("delete.cancel")}
             </button>
           </div>
         </div>

@@ -23,6 +23,8 @@ import { CallControls } from "./CallControls";
 import { CallStage } from "./CallStage";
 import { TranscriptPanel, type TranscriptLine } from "./TranscriptPanel";
 import { resumeAudio } from "@/lib/audio-level";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
 interface SetupState {
   company?: string;
@@ -40,11 +42,11 @@ interface SetupState {
 /** Until the session says otherwise. The round decides the real number. */
 const DEFAULT_MAX_TURNS = 7;
 
-const TIP_LABEL: Record<CoachTip["kind"], string> = {
-  structure: "Structure",
-  specificity: "Be specific",
-  vocabulary: "Word choice",
-  grammar: "Grammar",
+const TIP_LABEL: Record<CoachTip["kind"], MessageKey> = {
+  structure: "tip.structure",
+  specificity: "tip.specificity",
+  vocabulary: "tip.vocabulary",
+  grammar: "tip.grammar",
 };
 
 /**
@@ -60,6 +62,7 @@ const TIP_LABEL: Record<CoachTip["kind"], string> = {
  * is silent — a coaching outage must not be able to interrupt an interview.
  */
 export function LiveInterview() {
+  const t = useT();
   const navigate = useNavigate();
   const { state } = useLocation() as { state: SetupState | null };
   const setup = state ?? {};
@@ -278,8 +281,8 @@ export function LiveInterview() {
     : `${running?.companyName ?? company} · ${running?.interviewStage ?? stage}`;
   const status =
     busy && !turn && !streaming
-      ? "Connecting"
-      : `Turn ${turn?.turnNumber ?? "…"} of ${maxTurns}`;
+      ? t("call.connecting")
+      : t("call.turnOf", { turn: turn?.turnNumber ?? "…", total: maxTurns });
 
   /**
    * The mic button is the call's, so it owns turning voice on as well.
@@ -353,7 +356,7 @@ export function LiveInterview() {
               >
                 {turn?.text || streaming || (
                   <span className="text-cream-faint">
-                    {error ? "—" : "Connecting to your interviewer…"}
+                    {error ? "—" : t("call.connectingTo")}
                   </span>
                 )}
               </p>
@@ -364,11 +367,11 @@ export function LiveInterview() {
                     active
                     level={voice.micLevel}
                     measured={voice.micMeasured}
-                    label="Your microphone is picking you up"
+                    label={t("call.micLive")}
                     className="mt-0.5 shrink-0 text-cream-bright"
                   />
                   <p className="text-sm text-cream-dim" aria-live="polite">
-                    {voice.transcript || "Listening…"}
+                    {voice.transcript || t("call.listening")}
                   </p>
                 </div>
               )}
@@ -382,13 +385,13 @@ export function LiveInterview() {
               {voice.blocked && (
                 <div className="flex flex-wrap items-center gap-3">
                   <p role="alert" className="text-xs text-cream-bright">
-                    Your browser blocked audio until you interact with the page.
+                    {t("call.blocked")}
                   </p>
                   <button
                     onClick={() => voice.speakNow(turn?.text ?? streaming)}
                     className="focus-ring rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
                   >
-                    Play this turn
+                    {t("call.playTurn")}
                   </button>
                 </div>
               )}
@@ -401,7 +404,7 @@ export function LiveInterview() {
                     navigate("/app/feedback", { state: { sessionId } })
                   }
                 >
-                  See feedback
+                  {t("call.seeFeedback")}
                 </Action>
               )}
             </div>
@@ -419,10 +422,10 @@ export function LiveInterview() {
                 canSend={!busy && Boolean(sessionId) && !finished}
                 hint={
                   speaking
-                    ? "Speaking…"
+                    ? t("panel.speaking")
                     : busy
-                      ? "Thinking…"
-                      : "Enter to send · Shift + Enter for a new line"
+                      ? t("panel.thinking")
+                      : t("panel.enterToSend")
                 }
               />
             )}
@@ -442,7 +445,7 @@ export function LiveInterview() {
               panelOpen={panelOpen}
               onTogglePanel={() => setPanelOpen((open) => !open)}
               onLeave={leave}
-              leaveLabel={finished ? "End and see feedback" : "Leave the interview"}
+              leaveLabel={finished ? t("call.endAndSee") : t("call.leave")}
             />
           </div>
 
@@ -472,19 +475,20 @@ function CoachPanel({
   /** The coach has replied for this turn — an empty list means "nothing to flag". */
   answered: boolean;
 }) {
+  const t = useT();
   return (
     <aside
-      aria-label="Coaching notes"
+      aria-label={t("coach.label")}
       className="w-full shrink-0 lg:w-80 xl:w-96"
     >
       <div className="flex items-center gap-2 text-xs text-cream-faint">
         <Lightbulb className="h-4 w-4" aria-hidden />
-        Coaching
+        {t("coach.heading")}
       </div>
 
       <div className="mt-4 flex flex-col gap-3" aria-live="polite">
         {working && tips.length === 0 && (
-          <p className="text-sm text-cream-faint">Reading your last answer…</p>
+          <p className="text-sm text-cream-faint">{t("coach.reading")}</p>
         )}
 
         {!working && tips.length === 0 && answered && (
@@ -492,21 +496,20 @@ function CoachPanel({
           // when an answer was good. Leaving the intro copy up made a clean
           // answer look like a broken feature.
           <p className="text-sm text-cream-dim">
-            Nothing to flag on that one.
+            {t("coach.nothing")}
           </p>
         )}
 
         {!working && tips.length === 0 && !answered && (
           <p className="text-sm text-cream-faint">
-            Notes on your answers appear here after each turn. The interviewer
-            never sees them and will not react to them.
+            {t("coach.intro")}
           </p>
         )}
 
         {tips.map((tip, index) => (
           <Panel key={`${tip.kind}-${index}`} className="p-4">
             <p className="text-xs tracking-[0.14em] text-cream">
-              {TIP_LABEL[tip.kind]}
+              {t(TIP_LABEL[tip.kind])}
             </p>
             <p className="mt-2 text-sm text-cream-dim">{tip.note}</p>
           </Panel>

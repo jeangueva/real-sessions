@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Action, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
+import { useT } from "@/hooks/useLocale";
 import { ApiError, fetchHistory } from "@/lib/api";
 import { formatFiller, formatSessionDate, formatWpm } from "@/lib/format";
 import type { SessionSummary } from "@/lib/api";
@@ -11,6 +12,7 @@ import type { SessionSummary } from "@/lib/api";
  * little, four in a row is the reason to keep practising.
  */
 export function SessionHistory() {
+  const t = useT();
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,17 +38,18 @@ export function SessionHistory() {
   return (
     <>
       <PageHeader
-        title="History"
+        title={t("history.title")}
         meta={
           sessions === null
-            ? "Loading…"
+            ? t("history.loading")
             : sessions.length === 0
-              ? "No interviews yet"
-              : `${scored.length} completed${best === null ? "" : ` · best ${best}%`}`
+              ? t("history.none")
+              : t("history.completed", { count: scored.length }) +
+                (best === null ? "" : ` · ${t("history.best", { score: best })}`)
         }
         actions={
           <Link to="/app">
-            <Action tone="glass">New session</Action>
+            <Action tone="glass">{t("history.new")}</Action>
           </Link>
         }
       />
@@ -63,12 +66,11 @@ export function SessionHistory() {
         {!error && sessions?.length === 0 && (
           <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6">
             <p className="text-sm text-cream-dim">
-              Finished interviews appear here with their feedback. Your first one
-              takes about ten minutes.
+              {t("history.emptyBody")}
             </p>
             <Link to="/app">
               <Action withArrow className="self-start">
-                Start an interview
+                {t("cta.startInterview")}
               </Action>
             </Link>
           </Panel>
@@ -83,7 +85,7 @@ export function SessionHistory() {
                     {session.company}
                     {session.mode === "real" && (
                       <span className="ml-2 text-xs font-normal text-cream-faint">
-                        real
+                        {t("history.real")}
                       </span>
                     )}
                   </p>
@@ -91,7 +93,7 @@ export function SessionHistory() {
                     {session.role} · {session.stage}
                     {session.completedAt
                       ? ` · ${formatSessionDate(session.completedAt)}`
-                      : " · not finished"}
+                      : ` · ${t("history.notFinished")}`}
                   </p>
                   {/* The measured half, shown next to the score so the two are
                       read together — the score moves for reasons these explain. */}
@@ -99,7 +101,9 @@ export function SessionHistory() {
                     <p className="mt-2 text-xs text-cream-faint">
                       {session.metrics.fromSpeech &&
                         `${formatWpm(session.metrics.wpm)} · `}
-                      fillers {formatFiller(session.metrics.fillerPer100)}
+                      {t("history.fillers", {
+                        rate: formatFiller(session.metrics.fillerPer100),
+                      })}
                     </p>
                   )}
                 </div>
@@ -120,7 +124,7 @@ export function SessionHistory() {
                       state={{ historyId: session.id }}
                       className="focus-ring rounded px-1 py-1 text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
                     >
-                      View feedback
+                      {t("history.view")}
                     </Link>
                   )}
                 </div>

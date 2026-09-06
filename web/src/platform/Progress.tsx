@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Action, Eyebrow, FadeRise, Meter, Panel, TrendChart } from "@/design-system";
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 import {
   ApiError,
   fetchLeaderboard,
@@ -18,18 +20,18 @@ import type {
 } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 
-const AXIS_LABEL: Record<Axis, string> = {
-  fluency: "Fluency",
-  vocabulary: "Vocabulary",
-  structure: "Structure",
-  confidence: "Confidence",
+const AXIS_LABEL: Record<Axis, MessageKey> = {
+  fluency: "axis.fluency",
+  vocabulary: "axis.vocabulary",
+  structure: "axis.structure",
+  confidence: "axis.confidence",
 };
 
-const AXIS_CAPTION: Record<Axis, string> = {
-  fluency: "Pace, against a 140 wpm target",
-  vocabulary: "Range of words you actually reach for",
-  structure: "Whether an answer has a shape",
-  confidence: "Fewer fillers reads as steadier",
+const AXIS_CAPTION: Record<Axis, MessageKey> = {
+  fluency: "axis.fluencyNote",
+  vocabulary: "axis.vocabularyNote",
+  structure: "axis.structureNote",
+  confidence: "axis.confidenceNote",
 };
 
 interface Profile {
@@ -49,6 +51,7 @@ interface Profile {
  * moving and which is stuck.
  */
 export function Progress() {
+  const t = useT();
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [axes, setAxes] = useState<AxisPoint[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -92,7 +95,7 @@ export function Progress() {
   if (error) {
     return (
       <>
-        <PageHeader title="Progress" />
+        <PageHeader title={t("progress.title")} />
         <PageBody>
           <Panel variant="glass" className="max-w-2xl p-6">
             <p role="alert" className="text-sm text-cream-bright">
@@ -107,15 +110,14 @@ export function Progress() {
   if (sessions !== null && sessions.length === 0) {
     return (
       <>
-        <PageHeader title="Progress" meta="Nothing to plot yet" />
+        <PageHeader title={t("progress.title")} meta={t("progress.nothing")} />
         <PageBody>
           <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6">
             <p className="text-sm text-cream-dim">
-              Finish an interview and this fills in. One session gives you a
-              baseline; the shape starts meaning something around the third.
+              {t("progress.empty")}
             </p>
             <Link to="/app" className="self-start">
-              <Action withArrow>Start an interview</Action>
+              <Action withArrow>{t("cta.startInterview")}</Action>
             </Link>
           </Panel>
         </PageBody>
@@ -126,7 +128,7 @@ export function Progress() {
   return (
     <>
       <PageHeader
-        title="Progress"
+        title={t("progress.title")}
         meta={
           sessions === null
             ? "Loading…"
@@ -139,29 +141,31 @@ export function Progress() {
           <FadeRise>
             <Panel variant="raised" className="flex flex-wrap items-center gap-8 p-6">
               <div>
-                <Eyebrow>Level</Eyebrow>
+                <Eyebrow>{t("progress.level")}</Eyebrow>
                 <p className="mt-2 text-title text-cream-bright">{profile.level}</p>
               </div>
               <div className="min-w-[12rem] flex-1">
                 <Meter
-                  label={`${profile.xp} XP total`}
+                  label={t("progress.xpTotal", { xp: profile.xp })}
                   value={profile.xpIntoLevel}
                   max={profile.xpForNextLevel}
                   suffix=""
                 />
                 <p className="mt-2 text-xs text-cream-faint">
-                  {profile.xpForNextLevel - profile.xpIntoLevel} XP to level{" "}
-                  {profile.level + 1}
+                  {t("progress.xpToLevel", {
+                    xp: profile.xpForNextLevel - profile.xpIntoLevel,
+                    level: profile.level + 1,
+                  })}
                 </p>
               </div>
               {league?.you && (
                 <div>
-                  <Eyebrow>This week</Eyebrow>
+                  <Eyebrow>{t("progress.thisWeek")}</Eyebrow>
                   <p className="mt-2 text-title text-cream-bright">
                     #{league.you}
                   </p>
                   <p className="mt-1 text-xs text-cream-faint">
-                    of {league.rows.length} in your league
+                    {t("progress.ofLeague", { total: league.rows.length })}
                   </p>
                 </div>
               )}
@@ -172,32 +176,28 @@ export function Progress() {
         <div className="grid gap-4 xl:grid-cols-3">
           <FadeRise delay={0.05} className="xl:col-span-1">
             <Panel className="flex h-full flex-col p-6">
-              <Eyebrow>Overall score</Eyebrow>
+              <Eyebrow>{t("progress.overall")}</Eyebrow>
               <p className="mt-2 text-xs text-cream-faint">
-                The evaluator's read of each interview. The axis is fixed at
-                0–100 on purpose — a chart that rescales to its own data turns
-                three points of noise into a climb.
+                {t("progress.overallNote")}
               </p>
               <div className="mt-6">
-                <TrendChart title="Score" points={scorePoints} />
+                <TrendChart title={t("progress.score")} points={scorePoints} />
               </div>
             </Panel>
           </FadeRise>
 
           <FadeRise delay={0.1} className="xl:col-span-2">
             <Panel className="flex h-full flex-col p-6">
-              <Eyebrow>By front</Eyebrow>
+              <Eyebrow>{t("progress.byFront")}</Eyebrow>
               <p className="mt-2 max-w-3xl text-xs text-cream-faint">
-                Four separate readings rather than one number. Being fluent but
-                disorganised, or structured but hesitant, are different problems
-                with different fixes — a single score hides both.
+                {t("progress.byFrontNote")}
               </p>
               <div className="mt-6 grid gap-x-10 gap-y-8 sm:grid-cols-2">
                 {(Object.keys(AXIS_LABEL) as Axis[]).map((axis) => (
                   <TrendChart
                     key={axis}
-                    title={AXIS_LABEL[axis]}
-                    caption={AXIS_CAPTION[axis]}
+                    title={t(AXIS_LABEL[axis])}
+                    caption={t(AXIS_CAPTION[axis])}
                     points={axisPoints(axis)}
                   />
                 ))}
@@ -209,9 +209,12 @@ export function Progress() {
         {profile && (
           <FadeRise delay={0.15}>
             <Panel className="p-6">
-              <Eyebrow>Badges</Eyebrow>
+              <Eyebrow>{t("progress.badges")}</Eyebrow>
               <p className="mt-2 text-xs text-cream-faint">
-                {profile.badges.length} of {profile.catalogue.length} earned.
+                {t("progress.badgesCount", {
+                  earned: profile.badges.length,
+                  total: profile.catalogue.length,
+                })}
               </p>
               <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {profile.catalogue.map((badge) => {

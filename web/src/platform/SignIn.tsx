@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * Sign in or create an account. One screen with a mode switch rather than two
  * routes: the fields are identical and people routinely arrive at the wrong one.
  */
 export function SignIn() {
+  const t = useT();
   const navigate = useNavigate();
   const { state } = useLocation() as { state: { from?: string } | null };
   const [mode, setMode] = useState<"in" | "up">("in");
@@ -26,7 +28,7 @@ export function SignIn() {
       navigate(state?.from ?? "/app", { replace: true });
     } catch (caught) {
       setError(
-        caught instanceof ApiError ? caught.message : "Something went wrong.",
+        caught instanceof ApiError ? caught.message : t("auth.wentWrong"),
       );
     } finally {
       setBusy(false);
@@ -35,15 +37,15 @@ export function SignIn() {
 
   return (
     <AuthLayout>
-    <Eyebrow>{mode === "in" ? "Welcome back" : "Create an account"}</Eyebrow>
+    <Eyebrow>{mode === "in" ? t("auth.welcomeBack") : t("auth.createAccount")}</Eyebrow>
     <h1 className="mt-3 text-title font-normal text-cream-bright">
       {mode === "in"
-        ? "Sign in to keep your progress."
-        : "Keep your history across devices."}
+        ? t("auth.signInTitle")
+        : t("auth.signUpTitle")}
     </h1>
 
     <form onSubmit={submit} className="mt-8 flex flex-col gap-5">
-      <Field label="Email" htmlFor="email">
+      <Field label={t("auth.email")} htmlFor="email">
         <input
           id="email"
           type="email"
@@ -57,9 +59,9 @@ export function SignIn() {
       </Field>
 
       <Field
-        label="Password"
+        label={t("auth.password")}
         htmlFor="password"
-        hint={mode === "up" ? "At least 12 characters. A phrase works well." : undefined}
+        hint={mode === "up" ? t("auth.passwordHint") : undefined}
       >
         <input
           id="password"
@@ -81,7 +83,7 @@ export function SignIn() {
       )}
 
       <Action type="submit" disabled={busy} className="self-start">
-        {busy ? "…" : mode === "in" ? "Sign in" : "Create account"}
+        {busy ? "…" : mode === "in" ? t("auth.signIn") : t("auth.create")}
       </Action>
     </form>
 
@@ -90,7 +92,7 @@ export function SignIn() {
         to="/reset"
         className="focus-ring mt-6 block rounded text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
       >
-        Forgot your password?
+        {t("auth.forgot")}
       </Link>
     )}
 
@@ -102,13 +104,12 @@ export function SignIn() {
       className="focus-ring mt-3 rounded text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
     >
       {mode === "in"
-        ? "No account yet? Create one"
-        : "Already have an account? Sign in"}
+        ? t("auth.toSignUp")
+        : t("auth.toSignIn")}
     </button>
 
     <p className="mt-8 border-t border-line pt-5 text-xs text-cream-faint">
-      You can practise without an account — anything you do now carries over
-      when you sign up from this browser.
+      {t("auth.guestNote")}
     </p>
     </AuthLayout>
   );

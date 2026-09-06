@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FileText, Trash2, Upload } from "lucide-react";
 import { Action, Eyebrow, Field, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
+import { useT } from "@/hooks/useLocale";
 import {
   ApiError,
   clearProfile,
@@ -30,6 +31,7 @@ const ACCEPT = ".pdf,.docx,.txt,.md";
  * a model wrote about them before it is used.
  */
 export function Profile() {
+  const t = useT();
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [can, setCan] = useState<Capabilities | null>(null);
   const [links, setLinks] = useState("");
@@ -108,16 +110,14 @@ export function Profile() {
   if (can && !can.candidateProfile) {
     return (
       <>
-        <PageHeader title="Your context" meta="Part of the paid plan" />
+        <PageHeader title={t("profile.title")} meta={t("profile.locked")} />
         <PageBody>
           <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6">
             <p className="text-sm text-cream-dim">
-              Upload a CV or portfolio and the interviewer stops asking generic
-              questions. It opens on something you actually did, and pushes on
-              whatever your CV leaves vague — which is what a real one does.
+              {t("profile.lockedBody")}
             </p>
             <Link to="/#early-access" className="self-start">
-              <Action withArrow>Get six months free</Action>
+              <Action withArrow>{t("setup.sixMonths")}</Action>
             </Link>
           </Panel>
         </PageBody>
@@ -128,8 +128,8 @@ export function Profile() {
   return (
     <>
       <PageHeader
-        title="Your context"
-        meta="What the interviewer knows before the call"
+        title={t("profile.title")}
+        meta={t("profile.meta")}
         actions={
           profile?.brief && (
             <button
@@ -146,12 +146,9 @@ export function Profile() {
       <PageBody className="grid gap-4 lg:grid-cols-2">
         <Panel className="flex flex-col gap-5 p-6">
           <div>
-            <Eyebrow>CV or portfolio</Eyebrow>
+            <Eyebrow>{t("profile.cvTitle")}</Eyebrow>
             <p className="mt-2 text-xs text-cream-faint">
-              PDF, .docx or plain text, up to 8 MB. We read the text, write a
-              short brief from it, and hand that to the interviewer — never the
-              whole document, which would make it recite your CV instead of
-              interrogating it.
+              {t("profile.cvNote")}
             </p>
           </div>
 
@@ -171,7 +168,7 @@ export function Profile() {
             className="focus-within:ring-2 focus-within:ring-cream flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-line px-6 py-10 text-sm text-cream-dim transition-colors hover:border-cream/40 hover:text-cream-bright"
           >
             <Upload className="h-4 w-4" aria-hidden />
-            {busy === "uploading" ? "Reading it…" : "Choose a file"}
+            {busy === "uploading" ? t("profile.reading") : t("profile.choose")}
           </label>
 
           {profile?.sourceName && (
@@ -196,16 +193,13 @@ export function Profile() {
 
         <Panel className="flex flex-col gap-5 p-6">
           <div>
-            <Eyebrow>Links</Eyebrow>
+            <Eyebrow>{t("profile.links")}</Eyebrow>
             <p className="mt-2 text-xs text-cream-faint">
-              GitHub, LinkedIn, Figma, a portfolio site — one per line. We do
-              not open them: the interviewer is told they exist and what kind
-              they are, which is enough to ask about them. Fetching pages on
-              your behalf is a security decision we have not made yet.
+              {t("profile.linksNote")}
             </p>
           </div>
 
-          <Field label="One per line" htmlFor="links">
+          <Field label={t("profile.onePerLine")} htmlFor="links">
             <textarea
               id="links"
               rows={6}
@@ -221,18 +215,16 @@ export function Profile() {
             disabled={busy === "saving"}
             className="self-start"
           >
-            {busy === "saving" ? "Saving…" : "Save links"}
+            {busy === "saving" ? t("profile.saving") : t("profile.saveLinks")}
           </Action>
         </Panel>
 
         {profile?.brief && (
           <Panel variant="raised" className="flex flex-col gap-4 p-6 lg:col-span-2">
             <div>
-              <Eyebrow>What the interviewer reads</Eyebrow>
+              <Eyebrow>{t("profile.briefTitle")}</Eyebrow>
               <p className="mt-2 text-xs text-cream-faint">
-                Written from your document. Shown in full because you should be
-                able to disagree with a model's summary of you before it is used
-                — if it is wrong, upload a clearer file.
+                {t("profile.briefNote")}
               </p>
             </div>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-cream-dim">

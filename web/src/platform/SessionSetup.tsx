@@ -613,29 +613,27 @@ export function SessionSetup() {
             <button
               type="button"
               onClick={dismissBriefing}
-              aria-label="Dismiss what to expect"
+              aria-label={t("setup.dismissBriefing")}
               className="focus-ring absolute right-4 top-4 rounded-full p-1 text-cream-faint transition-colors hover:text-cream-bright"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
-            <Eyebrow>What to expect</Eyebrow>
+            <Eyebrow>{t("setup.whatToExpect")}</Eyebrow>
             <ul className="mt-4 grid gap-3 pr-8 text-sm text-cream-dim md:grid-cols-3">
               <li>
-                The interviewer stays in character. It will not translate a word
-                or correct your grammar mid-interview.
+                {t("setup.expectCharacter")}
               </li>
               <li>
-                Vague answers get challenged. Have a specific example and a
-                number ready.
+                {t("setup.expectVague")}
               </li>
               <li>
                 {/* Promising coaching to someone who will not get it is the
                     kind of small lie that makes a paywall feel like a bug. */}
                 {!can?.liveCoaching
-                  ? "Feedback comes as a report at the end. Live coaching is on the paid plan."
+                  ? t("setup.expectLocked")
                   : mode === "practice"
-                    ? "Coaching notes appear on the side. The interviewer never sees them."
-                    : "No help until the report at the end."}
+                    ? t("setup.expectPractice")
+                    : t("setup.expectReal")}
               </li>
             </ul>
           </Panel>

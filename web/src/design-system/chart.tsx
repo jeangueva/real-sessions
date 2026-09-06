@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from "react";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * The one chart in the product.
@@ -48,6 +49,7 @@ export function TrendChart({
   caption?: string;
   unit?: string;
 }) {
+  const t = useT();
   const titleId = useId();
   const [hover, setHover] = useState<number | null>(null);
   const [showTable, setShowTable] = useState(false);
@@ -85,7 +87,7 @@ export function TrendChart({
           className="flex items-center justify-center rounded-xl border border-line"
           style={{ aspectRatio: `${WIDTH} / ${HEIGHT}` }}
         >
-          <p className="text-xs text-cream-faint">Not measured yet</p>
+          <p className="text-xs text-cream-faint">{t("chart.notMeasured")}</p>
         </div>
         {caption && <p className="text-xs text-cream-faint">{caption}</p>}
       </figure>

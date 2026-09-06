@@ -10,12 +10,14 @@ import {
 } from "@/lib/api";
 import type { BillingState, Plan } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
-const STATUS_COPY: Record<string, string> = {
-  pending: "Waiting for the first payment to clear.",
-  authorized: "Active.",
-  paused: "Payment did not go through — Mercado Pago is retrying.",
-  cancelled: "Cancelled.",
+const STATUS_COPY: Record<string, MessageKey> = {
+  pending: "billing.statusPending",
+  authorized: "billing.statusAuthorized",
+  paused: "billing.statusPaused",
+  cancelled: "billing.statusCancelled",
 };
 
 /**
@@ -30,6 +32,7 @@ const STATUS_COPY: Record<string, string> = {
  * this becomes a system that has to be PCI-audited.
  */
 export function Billing() {
+  const t = useT();
   const [state, setState] = useState<BillingState | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [busy, setBusy] = useState(false);
@@ -51,7 +54,7 @@ export function Billing() {
       // through Mercado Pago's own return URL, and a popup would be blocked.
       window.location.assign(initPoint);
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Could not open checkout.");
+      setError(caught instanceof ApiError ? caught.message : t("billing.couldNotOpen"));
       setBusy(false);
     }
   };
@@ -63,7 +66,7 @@ export function Billing() {
       await cancelSubscription();
       load();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : "Could not cancel.");
+      setError(caught instanceof ApiError ? caught.message : t("billing.couldNotCancel"));
     } finally {
       setBusy(false);
     }
@@ -76,19 +79,24 @@ export function Billing() {
 
   return (
     <Panel variant="glass" className="mt-4 max-w-2xl p-6">
-      <Eyebrow>Plan</Eyebrow>
+      <Eyebrow>{t("billing.plan")}</Eyebrow>
 
       <p className="mt-3 text-sm text-cream-dim">
-        You are on the{" "}
-        <span className="text-cream-bright">{active ? "paid" : "free"}</span> plan.
-        {active && !subscription && " Granted, not billed — nothing to pay."}
+        <span className="text-cream-bright">
+          {active ? t("billing.onPaid") : t("billing.onFree")}
+        </span>
+        {active && !subscription && ` ${t("billing.granted")}`}
       </p>
 
       {subscription && (
         <p className="mt-2 text-xs text-cream-faint">
-          {STATUS_COPY[subscription.status] ?? subscription.status}
+          {STATUS_COPY[subscription.status]
+            ? t(STATUS_COPY[subscription.status]!)
+            : subscription.status}
           {subscription.periodEnd &&
-            ` Paid through ${formatSessionDate(subscription.periodEnd)}.`}
+            ` ${t("billing.paidThrough", {
+              date: formatSessionDate(subscription.periodEnd),
+            })}`}
         </p>
       )}
 
@@ -102,10 +110,13 @@ export function Billing() {
         {!active && state.configured && (
           <Action withArrow onClick={() => void upgrade()} disabled={busy}>
             {busy
-              ? "Opening checkout…"
+              ? t("billing.opening")
               : state.plan
-                ? `Upgrade — ${state.plan.amount} ${state.plan.currency} / month`
-                : "Upgrade"}
+                ? t("billing.upgradeAmount", {
+                    amount: state.plan.amount,
+                    currency: state.plan.currency,
+                  })
+                : t("billing.upgrade")}
           </Action>
         )}
 
@@ -114,10 +125,10 @@ export function Billing() {
           // is the only path to the paid plan until payments are wired up.
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-sm text-cream-dim">
-              Payments are not switched on yet.
+              {t("billing.notOn")}
             </p>
             <Link to="/#early-access">
-              <Action tone="glass">Get six months free</Action>
+              <Action tone="glass">{t("setup.sixMonths")}</Action>
             </Link>
           </div>
         )}
@@ -128,15 +139,16 @@ export function Billing() {
             disabled={busy}
             className="focus-ring rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright disabled:opacity-40"
           >
-            Cancel subscription
+            {t("billing.cancelSub")}
           </button>
         )}
       </div>
 
       {subscription?.status === "cancelled" && subscription.periodEnd && (
         <p className="mt-4 border-t border-line pt-4 text-xs text-cream-faint">
-          Cancelled, and you keep the paid plan until{" "}
-          {formatSessionDate(subscription.periodEnd)} — you already paid for it.
+          {t("billing.cancelledUntil", {
+            date: formatSessionDate(subscription.periodEnd),
+          })}
         </p>
       )}
     </Panel>

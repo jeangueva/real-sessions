@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Eyebrow } from "@/design-system";
 import { ApiError, confirmEmail } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * Lands from the confirmation email. Confirming does not sign anyone in — a
@@ -10,6 +11,7 @@ import { ApiError, confirmEmail } from "@/lib/api";
  * is at their own device.
  */
 export function ConfirmEmail() {
+  const t = useT();
   const [params] = useSearchParams();
   const token = params.get("token");
   const [state, setState] = useState<"working" | "done" | "failed">("working");
@@ -22,7 +24,7 @@ export function ConfirmEmail() {
 
     if (!token) {
       setState("failed");
-      setError("This link is missing its token.");
+      setError(t("confirm.missingToken"));
       return;
     }
     confirmEmail(token)
@@ -30,37 +32,37 @@ export function ConfirmEmail() {
       .catch((caught: unknown) => {
         setState("failed");
         setError(
-          caught instanceof ApiError ? caught.message : "Could not confirm.",
+          caught instanceof ApiError ? caught.message : t("confirm.couldNot"),
         );
       });
   }, [token]);
 
   return (
     <AuthLayout>
-    <Eyebrow>Email</Eyebrow>
+    <Eyebrow>{t("auth.email")}</Eyebrow>
     <h1 className="mt-3 text-title font-normal text-cream-bright">
       {state === "working"
-        ? "Confirming…"
+        ? t("confirm.working")
         : state === "done"
-          ? "Your email is confirmed."
-          : "That link did not work."}
+          ? t("confirm.done")
+          : t("confirm.failed")}
     </h1>
 
     {state === "failed" && (
       <p role="alert" className="mt-4 text-sm text-cream-dim">
-        {error} You can request a new one from Settings.
+        {error} {t("confirm.retry")}
       </p>
     )}
 
     {state === "done" && (
       <p className="mt-4 text-sm text-cream-dim">
-        We can reach you about your account now.
+        {t("confirm.reachYou")}
       </p>
     )}
 
     {state !== "working" && (
       <Link to="/app" className="mt-8 inline-block">
-        <Action tone="glass">Go to your sessions</Action>
+        <Action tone="glass">{t("confirm.toSessions")}</Action>
       </Link>
     )}
     </AuthLayout>

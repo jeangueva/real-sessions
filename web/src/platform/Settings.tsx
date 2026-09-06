@@ -182,10 +182,10 @@ export function Settings() {
         </Panel>
 
         <Panel className="flex max-w-2xl flex-col gap-6 p-6">
-          <Eyebrow>Practice</Eyebrow>
+          <Eyebrow>{t("settings.practice")}</Eyebrow>
 
           {!preferences && !error && (
-            <p className="text-sm text-cream-dim">Loading…</p>
+            <p className="text-sm text-cream-dim">{t("settings.loading")}</p>
           )}
 
           {error && (
@@ -212,8 +212,8 @@ export function Settings() {
               </Field>
 
               <Field
-                label="Default target role"
-                hint="Used to pre-fill new sessions."
+                label={t("settings.defaultRole")}
+                hint={t("settings.defaultRoleHint")}
                 htmlFor="role"
               >
                 <select
@@ -231,8 +231,8 @@ export function Settings() {
               </Field>
 
               <Field
-                label="Default sector"
-                hint="Sets which companies the setup screen offers, and the numbers the interviewer asks for."
+                label={t("settings.defaultSector")}
+                hint={t("settings.defaultSectorHint")}
                 htmlFor="sector"
               >
                 <select
@@ -241,7 +241,7 @@ export function Settings() {
                   onChange={(event) => update({ defaultSector: event.target.value })}
                   className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
-                  <option value="">All sectors</option>
+                  <option value="">{t("settings.allSectors")}</option>
                   {sectors.map((sector) => (
                     <option key={sector.id} value={sector.id}>
                       {sector.label}
@@ -250,7 +250,7 @@ export function Settings() {
                 </select>
               </Field>
 
-              <Field label="Default company" htmlFor="company">
+              <Field label={t("settings.defaultCompany")} htmlFor="company">
                 <select
                   id="company"
                   value={preferences.defaultCompany}
@@ -277,8 +277,8 @@ export function Settings() {
               </Field>
 
               <Field
-                label="Default mode"
-                hint="Real mode withholds coaching until the report, the way an actual interview does. It is worth more XP."
+                label={t("settings.defaultMode")}
+                hint={t("settings.defaultModeHint")}
                 htmlFor="mode"
               >
                 <select
@@ -292,14 +292,14 @@ export function Settings() {
                   }
                   className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
-                  <option value="practice">Practice — coaching as you go</option>
-                  <option value="real">Real — no coaching until the end</option>
+                  <option value="practice">{t("settings.modePractice")}</option>
+                  <option value="real">{t("settings.modeReal")}</option>
                 </select>
               </Field>
 
               <Field
-                label={`Interview length — ${preferences.interviewLength} turns`}
-                hint="Shorter sessions give the evaluator less to judge, so scores are less reliable."
+                label={t("settings.length", { turns: preferences.interviewLength })}
+                hint={t("settings.lengthHint")}
                 htmlFor="length"
               >
                 <input
@@ -321,11 +321,11 @@ export function Settings() {
                   onClick={() => void save()}
                   disabled={status === "saving"}
                 >
-                  {status === "saving" ? "Saving…" : "Save"}
+                  {status === "saving" ? t("settings.saving") : t("settings.save")}
                 </Action>
                 {status === "saved" && (
                   <span role="status" className="text-xs text-cream-dim">
-                    Saved
+                    {t("settings.saved")}
                   </span>
                 )}
               </div>
@@ -336,20 +336,18 @@ export function Settings() {
         <Billing />
 
         <Panel variant="glass" className="mt-4 max-w-2xl p-6">
-          <Eyebrow>Account</Eyebrow>
+          <Eyebrow>{t("settings.account")}</Eyebrow>
           {session?.kind === "user" ? (
             <div className="mt-3 flex flex-col gap-4">
               <p className="text-sm text-cream-dim">
-                Signed in as{" "}
-                <span className="text-cream-bright">{session.email}</span>. Your
-                history follows the account, on any device.
+                {t("settings.signedInAs")}{" "}
+                <span className="text-cream-bright">{session.email}</span>.{" "}
+                {t("settings.signedInNote")}
               </p>
               {session.emailVerified === false && (
                 <div className="flex flex-col gap-3 border-t border-line pt-4">
                   <p className="text-sm text-cream-dim">
-                    This address is not confirmed yet. Until it is, we cannot
-                    send you a password reset — so you would lose the account if
-                    you forgot the password.
+                    {t("settings.unconfirmed")}
                   </p>
                   <Action
                     tone="glass"
@@ -359,7 +357,7 @@ export function Settings() {
                       void resendVerification().then(() => setResent(true));
                     }}
                   >
-                    {resent ? "Sent — check your inbox" : "Resend confirmation"}
+                    {resent ? t("settings.sent") : t("settings.resend")}
                   </Action>
                 </div>
               )}
@@ -367,13 +365,11 @@ export function Settings() {
           ) : (
             <div className="mt-3 flex flex-col gap-4">
               <p className="text-sm text-cream-dim">
-                You are practising as a guest. Your progress, badges and
-                settings live in this browser only — clearing cookies loses
-                them. Signing up carries everything across.
+                {t("settings.guestNote")}
               </p>
               <Link to="/signin">
                 <Action tone="glass" className="self-start">
-                  Save my progress
+                  {t("settings.saveProgress")}
                 </Action>
               </Link>
             </div>
