@@ -2,8 +2,16 @@ import { useEffect, useState } from "react";
 import { Action, Eyebrow, Field, Panel, Section } from "@/design-system";
 import { ApiError, contributeQuestion, fetchCatalogue } from "@/lib/api";
 import type { CatalogueCompany, Role, Sector } from "@/lib/api";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
-const STAGES = ["Behavioral", "Technical deep dive", "System design", "Other"];
+/** The value is what the backend stores; the key is what the reader sees. */
+const STAGES: { value: string; label: MessageKey }[] = [
+  { value: "Behavioral", label: "land.stageBehavioral" },
+  { value: "Technical deep dive", label: "land.stageTechnical" },
+  { value: "System design", label: "land.stageSystem" },
+  { value: "Other", label: "land.stageOther" },
+];
 
 /**
  * Crowd-reported interview questions.
@@ -19,12 +27,13 @@ const STAGES = ["Behavioral", "Technical deep dive", "System design", "Other"];
  * rumour cannot be laundered into an authoritative question by volume alone.
  */
 export function Contribute() {
+  const t = useT();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [sector, setSector] = useState("");
   const [companyId, setCompanyId] = useState("");
-  const [stage, setStage] = useState(STAGES[0]!);
+  const [stage, setStage] = useState(STAGES[0]!.value);
   const [role, setRole] = useState("");
   const [question, setQuestion] = useState("");
   const [state, setState] = useState<"idle" | "sending">("idle");
@@ -69,7 +78,7 @@ export function Contribute() {
       if (result.stored) setQuestion("");
     } catch (caught) {
       setError(
-        caught instanceof ApiError ? caught.message : "Could not send that.",
+        caught instanceof ApiError ? caught.message : t("land.contribFailed"),
       );
     } finally {
       setState("idle");
@@ -80,39 +89,31 @@ export function Contribute() {
     <Section id="contribute" className="bg-surface-base">
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
-          <Eyebrow>Contribute</Eyebrow>
+          <Eyebrow>{t("land.contribEyebrow")}</Eyebrow>
           <h2 className="mt-4 text-headline font-normal text-cream-bright">
-            What did they actually ask you?
+            {t("land.contribTitle")}
           </h2>
           <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">
-            Our interviewers ask plausible questions. Real ones are better. If
-            you have sat an interview at one of these companies, add what you
-            were asked — anonymously. Tagged by role, so a backend candidate is
-            asked backend questions.
+            {t("land.contribBody")}
           </p>
 
           <dl className="mt-8 flex flex-col gap-5 border-t border-line pt-6">
             <div>
-              <dt className="text-sm text-cream-bright">It is actually anonymous</dt>
+              <dt className="text-sm text-cream-bright">{t("land.contribAnonTitle")}</dt>
               <dd className="mt-1 text-xs text-cream-dim">
-                What is stored alongside your question is a one-way hash, kept
-                so one person cannot flood a company with submissions. It cannot
-                be turned back into who you are.
+                {t("land.contribAnonBody")}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-cream-bright">A person checks it first</dt>
+              <dt className="text-sm text-cream-bright">{t("land.contribCheckTitle")}</dt>
               <dd className="mt-1 text-xs text-cream-dim">
-                Nothing here reaches an interview until it is reviewed. We are
-                building that review with working recruiters and hiring
-                managers — the people who can say "yes, we ask that".
+                {t("land.contribCheckBody")}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-cream-bright">Where this is going</dt>
+              <dt className="text-sm text-cream-bright">{t("land.contribNextTitle")}</dt>
               <dd className="mt-1 text-xs text-cream-dim">
-                Verified questions first. Later, sessions with those
-                interviewers themselves.
+                {t("land.contribNextBody")}
               </dd>
             </div>
           </dl>
@@ -121,14 +122,14 @@ export function Contribute() {
         <Panel className="p-6 sm:p-8">
           <form onSubmit={submit} className="flex flex-col gap-5">
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Sector" htmlFor="c-sector">
+              <Field label={t("land.contribSector")} htmlFor="c-sector">
                 <select
                   id="c-sector"
                   value={sector}
                   onChange={(event) => setSector(event.target.value)}
                   className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
-                  <option value="">All sectors</option>
+                  <option value="">{t("land.contribAllSectors")}</option>
                   {sectors.map((entry) => (
                     <option key={entry.id} value={entry.id}>
                       {entry.label}
@@ -137,7 +138,7 @@ export function Contribute() {
                 </select>
               </Field>
 
-              <Field label="Company" htmlFor="c-company">
+              <Field label={t("land.contribCompany")} htmlFor="c-company">
                 <select
                   id="c-company"
                   value={companyId}
@@ -152,7 +153,7 @@ export function Contribute() {
                 </select>
               </Field>
 
-              <Field label="Stage" htmlFor="c-stage">
+              <Field label={t("land.contribStage")} htmlFor="c-stage">
                 <select
                   id="c-stage"
                   value={stage}
@@ -160,16 +161,16 @@ export function Contribute() {
                   className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   {STAGES.map((entry) => (
-                    <option key={entry} value={entry}>
-                      {entry}
+                    <option key={entry.value} value={entry.value}>
+                      {t(entry.label)}
                     </option>
                   ))}
                 </select>
               </Field>
 
               <Field
-                label="Role"
-                hint="Leave it as any role if the question was not specific to one."
+                label={t("land.contribRole")}
+                hint={t("land.contribRoleHint")}
                 htmlFor="c-role"
               >
                 <select
@@ -181,7 +182,7 @@ export function Contribute() {
                   {/* A list rather than free text, because these are filtered
                       by role: "Backend Engineer", "backend engineer" and "BE"
                       as separate values would make that filter useless. */}
-                  <option value="">Any role</option>
+                  <option value="">{t("land.contribAnyRole")}</option>
                   {roles.map((entry) => (
                     <option key={entry.id} value={entry.id}>
                       {entry.label}
@@ -192,8 +193,8 @@ export function Contribute() {
             </div>
 
             <Field
-              label="The question, as you remember it"
-              hint="No names, no company confidential detail — just the question."
+              label={t("land.contribQuestion")}
+              hint={t("land.contribQuestionHint")}
               htmlFor="c-question"
             >
               <textarea
@@ -223,7 +224,7 @@ export function Contribute() {
               disabled={state === "sending" || question.trim().length < 12}
               className="self-start"
             >
-              {state === "sending" ? "Sending…" : "Add it anonymously"}
+              {state === "sending" ? t("land.contribSending") : t("land.contribSubmit")}
             </Action>
           </form>
         </Panel>

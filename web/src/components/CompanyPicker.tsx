@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Section, Eyebrow } from "@/design-system";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
 /**
  * Kollektiva's portrait picker, repurposed. There it introduced a team; here
@@ -10,54 +12,50 @@ import { Section, Eyebrow } from "@/design-system";
  */
 interface Company {
   name: string;
-  culture: string;
-  description: string;
+  culture: MessageKey;
+  description: MessageKey;
   tint: string;
 }
 
 const COMPANIES: Company[] = [
   {
     name: "Stripe",
-    culture: "Craft · user obsession · written communication",
-    description:
-      "Expect a hiring manager who pushes on written clarity and asks you to justify every tradeoff with a number. Vague answers get challenged, politely and immediately.",
+    culture: "land.stripeCulture",
+    description: "land.stripeBlurb",
     tint: "rgba(99,91,255,0.35)",
   },
   {
     name: "Amazon",
-    culture: "Customer obsession · data-driven · ownership",
-    description:
-      "Leadership principles run the conversation. Every story needs a situation, your specific action, and a measured result — the STAR structure is not optional here.",
+    culture: "land.amazonCulture",
+    description: "land.amazonBlurb",
     tint: "rgba(255,153,0,0.32)",
   },
   {
     name: "Airbnb",
-    culture: "Belonging · design-led · craft",
-    description:
-      "Warmer in tone, harder on taste. You will be asked why a decision felt right, not only whether the metric moved, and hand-waving on craft gets noticed.",
+    culture: "land.airbnbCulture",
+    description: "land.airbnbBlurb",
     tint: "rgba(255,90,95,0.32)",
   },
   {
     name: "Mercado Libre",
-    culture: "Scale · pragmatism · regional depth",
-    description:
-      "The interview assumes Latin American market context and tests whether you can defend decisions made under real constraints rather than ideal ones.",
+    culture: "land.meliCulture",
+    description: "land.meliBlurb",
     tint: "rgba(255,225,0,0.28)",
   },
 ];
 
 export function CompanyPicker() {
+  const t = useT();
   const [active, setActive] = useState(0);
   const company = COMPANIES[active]!;
 
   return (
     <Section id="companies" className="bg-surface-base">
-      <Eyebrow>Choose your interviewer</Eyebrow>
+      <Eyebrow>{t("land.pickerEyebrow")}</Eyebrow>
 
       <div className="mt-6 flex flex-col gap-10 md:flex-row md:items-start md:justify-between md:gap-16">
         <h2 className="max-w-xl text-headline font-normal text-cream-bright">
-          Every company interviews differently. Practice against the one you
-          are actually applying to.
+          {t("land.pickerTitle")}
         </h2>
 
         <p
@@ -65,7 +63,7 @@ export function CompanyPicker() {
           key={company.name}
           className="max-w-xs animate-fade-in text-sm font-medium leading-relaxed text-cream-dim md:pt-2"
         >
-          {company.description}
+          {t(company.description)}
         </p>
       </div>
 
@@ -74,7 +72,7 @@ export function CompanyPicker() {
           <button
             key={item.name}
             onClick={() => setActive(index)}
-            aria-label={`Practice for ${item.name}`}
+            aria-label={t("land.pickerPractiseFor", { company: item.name })}
             aria-pressed={index === active}
             className="focus-ring flex shrink-0 flex-col items-center gap-2 rounded-lg"
           >
@@ -101,10 +99,10 @@ export function CompanyPicker() {
           {company.name}
         </span>
         <span className="hidden text-cream-dim sm:inline">
-          {company.culture}
+          {t(company.culture)}
         </span>
         <span className="hidden text-cream-dim md:inline">
-          Behavioral · System design · Technical deep dive
+          {t("land.pickerStages")}
         </span>
       </div>
     </Section>

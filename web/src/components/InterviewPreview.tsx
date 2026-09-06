@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Section, Eyebrow, Panel, Typewriter, FadeRise } from "@/design-system";
+import { useT } from "@/hooks/useLocale";
 
 /**
  * Mainframe's typewriter, repurposed. There it was decoration on a landing
@@ -13,21 +14,22 @@ const TURNS = [
 ];
 
 export function InterviewPreview() {
+  const t = useT();
   const [turn, setTurn] = useState(0);
 
   return (
     <Section id="how-it-works" className="bg-surface-base">
       <div className="mx-auto max-w-3xl text-center">
-        <Eyebrow>Live simulation</Eyebrow>
+        <Eyebrow>{t("land.previewEyebrow")}</Eyebrow>
         <h2 className="mt-4 text-headline">
           <span className="font-normal text-cream-bright">
-            It asks one question,
+            {t("land.previewAsks")}
           </span>{" "}
           <span className="font-serif italic text-cream-dim">
-            waits for your answer,
+            {t("land.previewWaits")}
           </span>{" "}
           <span className="font-normal text-cream-bright">
-            and never breaks character.
+            {t("land.previewCharacter")}
           </span>
         </h2>
       </div>
@@ -36,14 +38,14 @@ export function InterviewPreview() {
         <Panel variant="raised" className="p-6 sm:p-10">
           <div className="flex items-center justify-between border-b border-line pb-4">
             <span className="text-xs text-cream-dim">
-              Behavioral · Senior Product Designer · Stripe
+              {t("land.previewMeta")}
             </span>
             <span className="flex items-center gap-2 text-xs text-cream-dim">
               <span
                 aria-hidden
                 className="h-1.5 w-1.5 rounded-full bg-cream animate-blink"
               />
-              Turn {turn + 1} of {TURNS.length}
+              {t("land.previewTurn", { turn: turn + 1, total: TURNS.length })}
             </span>
           </div>
 
@@ -58,7 +60,7 @@ export function InterviewPreview() {
             onClick={() => setTurn((current) => (current + 1) % TURNS.length)}
             className="focus-ring -ml-3 rounded-full px-3 py-2 text-sm text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
           >
-            Next turn
+            {t("land.previewNext")}
           </button>
         </Panel>
       </FadeRise>

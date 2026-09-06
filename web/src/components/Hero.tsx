@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame } from "@/design-system";
 import { scrollToSection } from "@/lib/scroll-to-section";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
 /**
  * The landing page is one scroll, so the nav is anchors into it — a plain
@@ -11,11 +13,11 @@ import { scrollToSection } from "@/lib/scroll-to-section";
  * section to point at, so it is back; For teams still does not exist and stays
  * out until it does.
  */
-const NAV = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Companies", href: "#companies" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Contribute", href: "#contribute" },
+const NAV: { label: MessageKey; href: string }[] = [
+  { label: "land.navHow", href: "#how-it-works" },
+  { label: "land.navCompanies", href: "#companies" },
+  { label: "land.navPricing", href: "#pricing" },
+  { label: "land.navContribute", href: "#contribute" },
 ];
 
 const navLink =
@@ -37,6 +39,7 @@ const navLink =
  */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero.mp4";
 export function Hero() {
+  const t = useT();
   return (
     <InsetFrame className="bg-surface-base">
       <HeroVideo src={HERO_VIDEO} />
@@ -59,13 +62,13 @@ export function Hero() {
                   if (scrollToSection(href)) event.preventDefault();
                 }}
               >
-                {label}
+                {t(label)}
               </a>
             </li>
           ))}
           <li>
             <Link to="/signin" className={navLink}>
-              Sign in
+              {t("land.signIn")}
             </Link>
           </li>
         </ul>
@@ -82,14 +85,12 @@ export function Hero() {
         <div className="col-span-1 flex flex-col gap-5 pb-2 md:col-span-4">
           <FadeRise delay={0.5}>
             <p className="text-xs leading-tight text-cream-dim sm:text-sm md:text-base">
-              Practice the interview in English before it counts. Real hiring
-              managers from Stripe, Amazon and Airbnb — simulated, patient, and
-              honest with you afterwards.
+              {t("land.heroBlurb")}
             </p>
           </FadeRise>
           <FadeRise delay={0.7}>
             <Link to="/app" className="self-start">
-              <Action withArrow>Start an interview</Action>
+              <Action withArrow>{t("cta.startInterview")}</Action>
             </Link>
           </FadeRise>
         </div>

@@ -1,36 +1,27 @@
 import { Section, Panel, CheckItem, FadeRise, WordsPullUp } from "@/design-system";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
-const CARDS = [
+const CARDS: { number: string; title: MessageKey; items: MessageKey[] }[] = [
   {
     number: "01",
-    title: "Feedback that names the error",
-    items: [
-      "Catches Spanish-L1 transfer: “depends of”, “explain me”, “I have 28 years”",
-      "Quotes what you actually said, never invented examples",
-      "Leaves correct informal English alone instead of over-correcting",
-    ],
+    title: "land.card1Title",
+    items: ["land.card1a", "land.card1b", "land.card1c"],
   },
   {
     number: "02",
-    title: "Vocabulary for your role",
-    items: [
-      "Scored against the terminology your target role expects",
-      "Flags words used in the wrong context, not just misspelled",
-      "Shows the phrase a hiring manager would have used instead",
-    ],
+    title: "land.card2Title",
+    items: ["land.card2a", "land.card2b", "land.card2c"],
   },
   {
     number: "03",
-    title: "Structure under pressure",
-    items: [
-      "Measures whether your answers hold a STAR shape",
-      "Notices rambling before an interviewer would",
-      "Tells you which story to rehearse before the real call",
-    ],
+    title: "land.card3Title",
+    items: ["land.card3a", "land.card3b", "land.card3c"],
   },
 ];
 
 export function Features() {
+  const t = useT();
   return (
     <Section id="features" className="relative bg-surface-base">
       <div
@@ -41,10 +32,10 @@ export function Features() {
       <div className="relative">
         <h2 className="max-w-3xl text-title">
           <WordsPullUp className="text-cream-bright">
-            Studio-grade feedback for people who are not native speakers.
+            {t("land.featuresTitle")}
           </WordsPullUp>
           <WordsPullUp className="text-cream-faint" delay={0.3}>
-            Built for the interview, not for a grammar class.
+            {t("land.featuresSub")}
           </WordsPullUp>
         </h2>
 
@@ -64,7 +55,7 @@ export function Features() {
                 }}
               />
               <p className="relative text-title text-cream-bright">
-                Your practice room.
+                {t("land.featuresRoom")}
               </p>
             </Panel>
           </FadeRise>
@@ -74,7 +65,7 @@ export function Features() {
               <Panel className="flex h-full min-h-[18rem] flex-col gap-4 p-6">
                 <div className="flex items-baseline justify-between">
                   <h3 className="max-w-[12rem] text-sm font-bold text-cream-bright sm:text-base">
-                    {card.title}
+                    {t(card.title)}
                   </h3>
                   <span className="text-xs text-cream-faint">
                     {card.number}
@@ -82,7 +73,7 @@ export function Features() {
                 </div>
                 <ul className="flex flex-col gap-2.5">
                   {card.items.map((item) => (
-                    <CheckItem key={item}>{item}</CheckItem>
+                    <CheckItem key={item}>{t(item)}</CheckItem>
                   ))}
                 </ul>
               </Panel>

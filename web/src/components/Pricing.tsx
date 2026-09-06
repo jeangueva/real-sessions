@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
 import { scrollToSection } from "@/lib/scroll-to-section";
+import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
 /**
  * Two plans.
@@ -14,51 +16,51 @@ import { scrollToSection } from "@/lib/scroll-to-section";
  * The line is drawn along "does this need to know you", which is why the CV,
  * the company picker and the progress chart all sit on the same side of it.
  */
-const FREE = [
-  "A full interview for your role, seven turns",
-  "Honest score and the headline feedback",
-  "Your last three sessions",
-  "Speak or type, with the interviewer's voice",
+const FREE: MessageKey[] = [
+  "land.free1",
+  "land.free2",
+  "land.free3",
+  "land.free4",
   // XP and badges are free on purpose: a progress system that only rewards
   // subscribers rewards nobody at the moment it would have earned one.
-  "XP, levels and badges",
+  "land.free5",
 ];
 
-const PREMIUM = [
-  "The company and sector you are actually targeting",
-  "Upload your CV or portfolio — questions get specific to you",
-  "Coaching notes beside the transcript, live",
-  "Pace, filler rate and thinking time, measured",
-  "Full history and four progress trends",
-  "Choose your interviewer's temperament",
+const PREMIUM: MessageKey[] = [
+  "land.prem1",
+  "land.prem2",
+  "land.prem3",
+  "land.prem4",
+  "land.prem5",
+  "land.prem6",
 ];
 
 export function Pricing() {
+  const t = useT();
   return (
     <Section id="pricing" className="bg-surface-base">
-      <Eyebrow>Pricing</Eyebrow>
+      <Eyebrow>{t("land.pricingEyebrow")}</Eyebrow>
       <h2 className="mt-4 max-w-3xl text-headline font-normal text-cream-bright">
-        Practise free. Pay when you know which company you are walking into.
+        {t("land.pricingTitle")}
       </h2>
 
       <div className="mt-12 grid gap-4 lg:grid-cols-2">
         <FadeRise>
           <Panel className="flex h-full flex-col gap-6 p-6 sm:p-8">
             <div>
-              <p className="text-sm text-cream-dim">Free</p>
+              <p className="text-sm text-cream-dim">{t("land.free")}</p>
               <p className="mt-2 text-title text-cream-bright">$0</p>
               <p className="mt-2 text-sm text-cream-dim">
-                A general round for your role. Enough to find out whether you
-                can hold a conversation under pressure in English.
+                {t("land.freeBlurb")}
               </p>
             </div>
             <ul className="flex flex-col gap-3">
               {FREE.map((item) => (
-                <CheckItem key={item}>{item}</CheckItem>
+                <CheckItem key={item}>{t(item)}</CheckItem>
               ))}
             </ul>
             <Link to="/app" className="mt-auto self-start">
-              <Action tone="glass">Start practising</Action>
+              <Action tone="glass">{t("land.startPractising")}</Action>
             </Link>
           </Panel>
         </FadeRise>
@@ -70,21 +72,21 @@ export function Pricing() {
           >
             <div>
               <div className="flex flex-wrap items-baseline gap-3">
-                <p className="text-sm text-cream-dim">Premium</p>
+                <p className="text-sm text-cream-dim">{t("land.premium")}</p>
                 <span className="rounded-full border border-cream/40 px-3 py-1 text-xs text-cream">
-                  Free for early adopters
+                  {t("land.premiumBadge")}
                 </span>
               </div>
               <p className="mt-2 text-title text-cream-bright">
-                $9<span className="text-sm text-cream-faint"> / month</span>
+                $9<span className="text-sm text-cream-faint">{t("land.perMonth")}</span>
               </p>
               <p className="mt-2 text-sm text-cream-dim">
-                The interview that knows who you are and where you are applying.
+                {t("land.premiumBlurb")}
               </p>
             </div>
             <ul className="flex flex-col gap-3">
               {PREMIUM.map((item) => (
-                <CheckItem key={item}>{item}</CheckItem>
+                <CheckItem key={item}>{t(item)}</CheckItem>
               ))}
             </ul>
             <a
@@ -94,7 +96,7 @@ export function Pricing() {
                 if (scrollToSection("#early-access")) event.preventDefault();
               }}
             >
-              <Action withArrow>Get six months free</Action>
+              <Action withArrow>{t("setup.sixMonths")}</Action>
             </a>
           </Panel>
         </FadeRise>
