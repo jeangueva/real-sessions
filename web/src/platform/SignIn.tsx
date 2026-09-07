@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
-import { useT } from "@/hooks/useLocale";
+import { privacyFor, termsFor } from "@/legal/content";
+import { useLocale, useT } from "@/hooks/useLocale";
 
 /**
  * Sign in or create an account. One screen with a mode switch rather than two
@@ -11,6 +12,7 @@ import { useT } from "@/hooks/useLocale";
  */
 export function SignIn() {
   const t = useT();
+  const { locale } = useLocale();
   const navigate = useNavigate();
   const { state } = useLocation() as { state: { from?: string } | null };
   const [mode, setMode] = useState<"in" | "up">("in");
@@ -86,6 +88,26 @@ export function SignIn() {
         {busy ? "…" : mode === "in" ? t("auth.signIn") : t("auth.create")}
       </Action>
     </form>
+
+    {mode === "up" && (
+      <p className="mt-5 text-xs leading-relaxed text-cream-faint">
+        {t("auth.acceptPre")}{" "}
+        <Link
+          to="/terms"
+          className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
+        >
+          {termsFor(locale).title}
+        </Link>{" "}
+        {t("auth.acceptAnd")}{" "}
+        <Link
+          to="/privacy"
+          className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
+        >
+          {privacyFor(locale).title}
+        </Link>
+        .
+      </p>
+    )}
 
     {mode === "in" && (
       <Link

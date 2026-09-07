@@ -2,12 +2,14 @@ import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Hero } from "@/components/Hero";
 import { LandingNav } from "@/components/LandingNav";
+import { Privacy, Terms } from "@/legal/LegalPage";
 import { InterviewPreview } from "@/components/InterviewPreview";
 import { CompanyPicker } from "@/components/CompanyPicker";
 import { Features } from "@/components/Features";
 import { Pricing } from "@/components/Pricing";
 import { EarlyAccess } from "@/components/EarlyAccess";
 import { Contribute } from "@/components/Contribute";
+import { SiteFooter } from "@/components/SiteFooter";
 import { AppShell } from "@/platform/AppShell";
 import { SessionSetup } from "@/platform/SessionSetup";
 import { LiveInterview } from "@/platform/LiveInterview";
@@ -42,6 +44,7 @@ function Landing() {
       {/* The question bank closes the page: it asks for something rather than
           offering something, so it belongs after the case has been made. */}
       <Contribute />
+      <SiteFooter />
     </main>
   );
 }
@@ -64,6 +67,10 @@ export function App() {
         {/* One route for both halves: request a link, or use one. */}
         <Route path="/reset" element={<ResetPassword />} />
         <Route path="/verify" element={<ConfirmEmail />} />
+        {/* Outside the shell: reachable without an account, and linked from
+            the footer, the sign-up screen and the payment provider. */}
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         {/* Everything signed-in lives under the shell, so a new screen is one
             route plus one component — no layout wiring. */}
         <Route path="/app" element={<AppShell />}>

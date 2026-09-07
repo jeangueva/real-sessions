@@ -7,3 +7,5 @@ Disallow: /signin
 Disallow: /reset
 Disallow: /verify
 Allow: /
+Allow: /terms
+Allow: /privacy

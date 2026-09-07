@@ -489,6 +489,8 @@ const EN = {
   "setup.lastOne": "Your last free interview this month",
   "setup.noneLeft": "You have used all {limit} free interviews this month",
   "setup.noneLeftBody": "They renew on the 1st. The paid plan is not metered — and it targets a real employer, reads your CV, and coaches you while you speak.",
+  "auth.acceptPre": "By creating an account you accept the",
+  "auth.acceptAnd": "and the",
 
   "settings.tour": "Guided tour",
   "settings.tourHint": "The walkthrough shown the first time you open a session.",
@@ -969,6 +971,8 @@ const ES: Record<MessageKey, string> = {
   "setup.lastOne": "Tu última entrevista gratis de este mes",
   "setup.noneLeft": "Usaste las {limit} entrevistas gratis de este mes",
   "setup.noneLeftBody": "Se renuevan el día 1. El plan pago no tiene tope, apunta a una empresa real, lee tu CV y te acompaña mientras hablás.",
+  "auth.acceptPre": "Al crear una cuenta aceptás los",
+  "auth.acceptAnd": "y la",
 
   "settings.tour": "Tour guiado",
   "settings.tourHint": "El recorrido que se muestra la primera vez que abrís una sesión.",
@@ -1441,6 +1445,8 @@ const PT: Record<MessageKey, string> = {
   "setup.lastOne": "Sua última entrevista gratuita deste mês",
   "setup.noneLeft": "Você usou as {limit} entrevistas gratuitas deste mês",
   "setup.noneLeftBody": "Elas renovam no dia 1º. O plano pago não tem limite, mira uma empresa real, lê seu CV e te acompanha enquanto você fala.",
+  "auth.acceptPre": "Ao criar uma conta você aceita os",
+  "auth.acceptAnd": "e a",
 
   "settings.tour": "Tour guiado",
   "settings.tourHint": "O passo a passo mostrado na primeira vez que você abre uma sessão.",
