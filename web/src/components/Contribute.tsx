@@ -96,6 +96,9 @@ export function Contribute() {
           <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">
             {t("land.contribBody")}
           </p>
+          <p className="mt-4 max-w-xl text-sm text-cream-dim">
+            {t("land.contribBank")}
+          </p>
 
           <dl className="mt-8 flex flex-col gap-5 border-t border-line pt-6">
             <div>

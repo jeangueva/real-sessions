@@ -115,6 +115,13 @@ export interface Language {
   caveat?: string;
 }
 
+/** An English level: how the interview is delivered, not how hard it is. */
+export interface Level {
+  id: string;
+  label: string;
+  summary: string;
+}
+
 export interface Role {
   id: string;
   label: string;
@@ -444,6 +451,8 @@ export function requestCoaching(sessionId: string) {
 }
 
 export interface SessionSummary {
+  /** The English level it ran at. Null for sessions predating levels. */
+  level?: string | null;
   id: string;
   company: string;
   sectorId: string | null;
@@ -466,6 +475,8 @@ export interface SessionSummary {
 }
 
 export interface Preferences {
+  /** The English level new sessions start at. Delivery, not difficulty. */
+  defaultLevel: string;
   /** What the interviewer calls you. Empty means the server guesses. */
   candidateName: string;
   defaultRole: string;
@@ -555,7 +566,12 @@ export function signOut() {
 
 export function fetchHistory() {
   return withIdentity(() =>
-    request<{ sessions: SessionSummary[]; withheld: number }>("/api/history", {
+    request<{
+      sessions: SessionSummary[];
+      withheld: number;
+      /** Set when recent scores say the current level is no longer the limit. */
+      levelUp: { from: string; to: string; label: string } | null;
+    }>("/api/history", {
       method: "GET",
     }),
   );
@@ -790,6 +806,7 @@ export function fetchCatalogue() {
       /** The most rounds one session will run. */
       maxCombinedStages: number;
       languages: Language[];
+      levels: Level[];
       roles: Role[];
     }>("/api/catalogue", { method: "GET" }),
   );

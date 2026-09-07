@@ -10,6 +10,7 @@ import type {
   Capabilities,
   CatalogueCompany,
   Language,
+  Level,
   Persona,
   Role,
   Stage,
@@ -77,8 +78,16 @@ export function SessionSetup() {
   const [languages, setLanguages] = useState<Language[]>([]);
   /** What the interviewer speaks. Not the interface language. */
   const [languageId, setLanguageId] = useState("en");
+  const [levels, setLevels] = useState<Level[]>([]);
+  /**
+   * How much English to run it in. Free on every plan — see the server's note.
+   * Seeded from preferences below, because it changes on the scale of months.
+   */
+  const [levelId, setLevelId] = useState("b2");
   const [mode, setMode] = useState<SessionMode>("practice");
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  /** Set by the server when recent scores clear the current level's bar. */
+  const [levelUp, setLevelUp] = useState<{ to: string; label: string } | null>(null);
   const [showBriefing, setShowBriefing] = useState(() => !briefingDismissed());
   /** What a free session is stored under. Never shown; used to hide it. */
   const [genericCompany, setGenericCompany] = useState("");
@@ -166,6 +175,7 @@ export function SessionSetup() {
         setStagesByRole(result.stagesByRole ?? []);
         setMaxCombined(result.maxCombinedStages ?? 3);
         setLanguages(result.languages ?? []);
+        setLevels(result.levels ?? []);
       })
       .catch(() => undefined);
     fetchPlan()
@@ -174,13 +184,19 @@ export function SessionSetup() {
     // Only for the search box. A first-time candidate has none, and the field
     // still works as a way into the form.
     fetchHistory()
-      .then((result) => setSessions(result.sessions))
+      .then((result) => {
+        setSessions(result.sessions);
+        setLevelUp(result.levelUp);
+      })
       .catch(() => undefined);
   }, []);
 
   useEffect(() => {
     fetchPreferences()
       .then(({ preferences }) => {
+        // The level is a standing answer, not a per-session choice, so the bar
+        // opens on whatever the account settled on.
+        if (preferences.defaultLevel) setLevelId(preferences.defaultLevel);
         setRole((current) =>
           preferences.defaultRole || current,
         );
@@ -315,6 +331,38 @@ export function SessionSetup() {
           </div>
         )}
 
+        {/* The nudge sits above the bar it changes, so accepting it and
+            seeing the level field move are one glance apart. Dismissing is
+            local and for this visit only: the condition that raised it is a
+            standing fact about their scores, not a notification to clear. */}
+        {levelUp && (
+          <Panel variant="raised" className="flex flex-wrap items-center justify-between gap-4 p-5">
+            <div className="max-w-xl">
+              <p className="text-sm text-cream-bright">
+                {t("level.readyTitle", { level: levelUp.label })}
+              </p>
+              <p className="mt-1 text-xs text-cream-dim">{t("level.readyBody")}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setLevelUp(null)}
+                className="focus-ring rounded-full px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+              >
+                {t("level.readyDismiss")}
+              </button>
+              <Action
+                onClick={() => {
+                  setLevelId(levelUp.to);
+                  setLevelUp(null);
+                }}
+              >
+                {t("level.readyAccept", { level: levelUp.label })}
+              </Action>
+            </div>
+          </Panel>
+        )}
+
         <div data-tour="search">
         <SetupSearch
           sessions={sessions}
@@ -420,6 +468,36 @@ export function SessionSetup() {
                           selected={languageId === entry.id}
                           onSelect={() => {
                             setLanguageId(entry.id);
+                            close();
+                          }}
+                        />
+                      ))
+                    }
+                  </FilterSegment>
+                ),
+              },
+              {
+                key: "level",
+                // Never disabled. The candidate who needs this is the one who
+                // has not paid yet.
+                enabled: true,
+                node: (
+                  <FilterSegment
+                    label={t("field.level")}
+                    value={
+                      levels.find((entry) => entry.id === levelId)?.label ?? "B2"
+                    }
+                    hint={t("field.levelHint")}
+                  >
+                    {(close) =>
+                      levels.map((entry) => (
+                        <FilterOption
+                          key={entry.id}
+                          label={entry.label}
+                          detail={entry.summary}
+                          selected={levelId === entry.id}
+                          onSelect={() => {
+                            setLevelId(entry.id);
                             close();
                           }}
                         />
@@ -588,6 +666,7 @@ export function SessionSetup() {
                   stage: chosenStages.map((entry) => entry.label).join(" + "),
                   stages: chosenStages.map((entry) => entry.id),
                   language: languageId,
+                  level: levelId,
                   bcp47:
                     languages.find((entry) => entry.id === languageId)?.bcp47 ?? "en-US",
                   mode,

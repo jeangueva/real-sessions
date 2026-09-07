@@ -30,6 +30,7 @@ function past(
     id: crypto.randomUUID(),
     company: "Stripe",
     sectorId: "fintech",
+    level: "b2",
     role: "Growth PM",
     stage: "Behavioral",
     mode: "practice",

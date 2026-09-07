@@ -72,6 +72,7 @@ describe.each(backends)("progress store (%s)", (_name, make) => {
       ownerId: owner,
       company: "Stripe",
       sectorId: "fintech",
+      level: "b2",
       role: "Growth PM",
       stage: "Behavioral",
       mode: "practice",

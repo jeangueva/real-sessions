@@ -25,11 +25,20 @@ function Landing() {
   return (
     <main className="bg-surface-base">
       <Hero />
+      {/* Early access sits second, directly under the hero.
+          It was sixth, which put the only offer on the page below four
+          sections of explanation — read by whoever was still scrolling. The
+          people this is for decide in the first screen or leave, so the ask
+          goes where they are. What it costs is the argument being made before
+          the offer; that argument is the rest of the page, and it is still
+          there for anyone who wants it before deciding. */}
+      <EarlyAccess />
       <InterviewPreview />
       <CompanyPicker />
       <Features />
       <Pricing />
-      <EarlyAccess />
+      {/* The question bank closes the page: it asks for something rather than
+          offering something, so it belongs after the case has been made. */}
       <Contribute />
     </main>
   );

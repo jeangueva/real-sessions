@@ -32,6 +32,8 @@ export interface NewSession {
   stage: string;
   mode: SessionMode;
   personaId: string;
+  /** The English level it ran at. Null on rows written before levels existed. */
+  level: string | null;
 }
 
 export interface RecordedTurn {
@@ -55,6 +57,8 @@ export interface SessionSummary {
   stage: string;
   mode: SessionMode;
   personaId: string | null;
+  /** The English level it ran at, or null for a session predating levels. */
+  level: string | null;
   startedAt: string;
   completedAt: string | null;
   score: number | null;
@@ -143,8 +147,8 @@ class PostgresProgressStore implements ProgressStore {
 
   async createSession(session: NewSession): Promise<void> {
     await this.pool.query(
-      `INSERT INTO sessions (id, owner_id, company, sector_id, role, stage, mode, persona_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO sessions (id, owner_id, company, sector_id, role, stage, mode, persona_id, level)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (id) DO NOTHING`,
       [
         session.id,
@@ -155,6 +159,7 @@ class PostgresProgressStore implements ProgressStore {
         session.stage,
         session.mode,
         session.personaId,
+        session.level,
       ],
     );
   }
@@ -439,6 +444,7 @@ function toSummary(row: Record<string, unknown>): SessionSummary {
     stage: row.stage as string,
     mode: row.mode as SessionMode,
     personaId: (row.persona_id as string | null) ?? null,
+    level: (row.level as string | null) ?? null,
     startedAt: iso(row.started_at),
     completedAt: row.completed_at ? iso(row.completed_at) : null,
     score: (row.score as number | null) ?? null,
@@ -650,6 +656,7 @@ function summarize(session: MemorySession): SessionSummary {
     stage: session.stage,
     mode: session.mode,
     personaId: session.personaId,
+    level: session.level,
     startedAt: session.startedAt,
     completedAt: session.completedAt,
     score: session.score,

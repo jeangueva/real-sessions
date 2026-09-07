@@ -158,6 +158,7 @@ import {
   findLanguage,
   voiceFor,
 } from "./languages.js";
+import { findLevel, levelCatalogue, readyToLevelUp } from "./levels.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
@@ -1463,6 +1464,20 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
      * greeted as someone else.
      */
     const preferences = await USERS.getPreferences(identity.id).catch(() => null);
+    /**
+     * How much English the candidate has.
+     *
+     * Free, deliberately, and the one axis on this screen that is. The
+     * candidate who needs it is the one who cannot yet follow a native-pace
+     * interviewer, and putting that behind the paywall would sell the product
+     * to everyone except the people it is for.
+     */
+    const level = findLevel(
+      typeof body["level"] === "string"
+        ? body["level"]
+        : (preferences?.defaultLevel ?? null),
+    );
+
     const signedUp =
       identity.kind === "user" ? await ACCOUNTS.findById(identity.id).catch(() => null) : null;
     context.candidateName =
@@ -1505,6 +1520,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const session = new InterviewSession(context, {
       stages: rounds.map((round) => round.id),
       language: language.id,
+      level: level.id,
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
       knownQuestions,
@@ -1525,6 +1541,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         stage: rounds.map((round) => round.label).join(" + "),
         mode,
         personaId: persona.id,
+        level: level.id,
       }),
     );
 
@@ -1533,6 +1550,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // Carried so the evaluator can weigh each round against its own bar.
         stages: rounds.map((round) => round.id),
         language: language.id,
+        level: level.id,
         snapshot: session.snapshot(),
         context,
         ownerId: identity.id,
@@ -1553,6 +1571,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         context: shown(context),
         maxTurns: session.maxTurnCount,
         language: language.id,
+        level: level.id,
       });
       const turn = await session.startStream((chunk) =>
         sendEvent(res, "delta", { text: chunk }),
@@ -1572,6 +1591,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       context: shown(context),
       maxTurns: session.maxTurnCount,
       language: language.id,
+      level: level.id,
     });
     return;
   }
@@ -1683,6 +1703,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         ...(PROVIDER ? { provider: PROVIDER } : {}),
         ...(stored.stages ? { stages: stored.stages } : {}),
         ...(stored.language ? { language: stored.language } : {}),
+        ...(stored.level ? { level: stored.level } : {}),
       },
     );
     const score = evaluation.overall_score_percentage;
@@ -1772,7 +1793,24 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   if (req.method === "GET" && path === "/api/history") {
     const all = await PROGRESS.listSessions(identity.id);
+    /**
+     * Whether they have outgrown the level they are practising at.
+     *
+     * Computed here rather than in the client because the rule is a product
+     * decision — three consecutive clears, most recent attempts only — and a
+     * copy of it in the browser is a second place for it to drift. The whole
+     * history is read, not the page the plan allows: a free candidate's
+     * progress is still their progress, and hiding it behind the history
+     * limit would gate the one thing that tells them they are improving.
+     */
+    const prefs = await USERS.getPreferences(identity.id).catch(() => null);
+    const current = findLevel(prefs?.defaultLevel ?? null);
+    const nudge = readyToLevelUp(
+      current.id,
+      all.map((entry) => ({ level: entry.level ?? "", score: entry.score })),
+    );
     json(res, 200, {
+      levelUp: nudge ? { from: current.label, to: nudge.id, label: nudge.label } : null,
       sessions: all
         .slice(0, can.historyLimit)
         // Each summary carries its metrics for the history rows to plot.
@@ -1886,6 +1924,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // the thing this replaces.
       stagesByRole: stageCatalogue(),
       languages: LANGUAGES,
+      levels: levelCatalogue(),
       // The most rounds one session will run. The picker caps at this.
       maxCombinedStages: MAX_COMBINED,
       // The placeholder a free session is recorded against. The client needs

@@ -16,7 +16,13 @@ import {
   resendVerification,
   savePreferences,
 } from "@/lib/api";
-import type { CatalogueCompany, Preferences, Sector, Session } from "@/lib/api";
+import type {
+  CatalogueCompany,
+  Level,
+  Preferences,
+  Sector,
+  Session,
+} from "@/lib/api";
 
 const ROLES = [
   "Senior Product Designer",
@@ -39,12 +45,14 @@ export function Settings() {
   const [resent, setResent] = useState(false);
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
+  const [levels, setLevels] = useState<Level[]>([]);
 
   useEffect(() => {
     fetchCatalogue()
       .then((result) => {
         setSectors(result.sectors);
         setCompanies(result.companies);
+        setLevels(result.levels ?? []);
       })
       .catch(() => undefined);
   }, []);
@@ -271,6 +279,25 @@ export function Settings() {
                   ).map((company) => (
                     <option key={company} value={company}>
                       {company}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field
+                label={t("settings.defaultLevel")}
+                hint={t("settings.defaultLevelHint")}
+                htmlFor="level"
+              >
+                <select
+                  id="level"
+                  value={preferences.defaultLevel}
+                  onChange={(event) => update({ defaultLevel: event.target.value })}
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                >
+                  {levels.map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.label}
                     </option>
                   ))}
                 </select>

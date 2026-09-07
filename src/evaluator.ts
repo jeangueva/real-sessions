@@ -29,6 +29,8 @@ export interface EvaluateOptions {
   stages?: readonly string[];
   /** What the interview was conducted in, so it is graded in that language. */
   language?: string;
+  /** The level the interview was conducted at, so the bar matches it. */
+  level?: string;
   /** Defaults to the vendor implied by `model`. Inject a stub in tests. */
   provider?: ModelProvider;
   model?: string;
@@ -63,7 +65,12 @@ export async function evaluateInterview(
 
   const response = await provider.json({
     model,
-    system: buildEvaluatorPrompt(context, options.stages, options.language),
+    system: buildEvaluatorPrompt(
+      context,
+      options.stages,
+      options.language,
+      options.level,
+    ),
     prompt: formatTranscript(transcript, context),
     maxTokens: options.maxTokens ?? 4096,
     schema: EvaluationSchema,

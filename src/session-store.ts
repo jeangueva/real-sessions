@@ -44,6 +44,13 @@ export interface StoredSession {
    * spoken, and nothing else on the session says which that was.
    */
   language?: string;
+  /**
+   * The English level it ran at, for the same reason the language is here:
+   * the evaluator has to grade against the bar the candidate was actually
+   * working at. Optional, so sessions in flight across a deploy read as the
+   * default rather than throwing.
+   */
+  level?: string;
 }
 
 export interface SessionStore {

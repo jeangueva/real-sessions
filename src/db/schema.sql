@@ -55,6 +55,12 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS persona_id TEXT;
+-- The English level the interview ran at. Needed on the row rather than only
+-- in the live session, because the nudge to move up reads a candidate's recent
+-- history — and a level with no record of what it produced cannot be graduated
+-- from. Null on every row written before this existed, which reads as "unknown"
+-- and is skipped rather than counted.
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS level TEXT;
 
 CREATE INDEX IF NOT EXISTS sessions_owner_idx ON sessions (owner_id, started_at DESC);
 

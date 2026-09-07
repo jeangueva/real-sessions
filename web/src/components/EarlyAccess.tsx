@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Action, Backdrop, Eyebrow, Field, Panel, Section } from "@/design-system";
+import { Action, Backdrop, CheckItem, Eyebrow, Field, Panel, Section } from "@/design-system";
 import { ApiError, joinEarlyAccess } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -50,7 +50,25 @@ export function EarlyAccess() {
           <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">
             {t("land.eaBody")}
           </p>
-          <p className="mt-4 max-w-xl text-xs text-cream-faint">
+          {/* The offer, itemised. "Six months of the paid plan" means nothing
+              to someone who has not read the pricing section — which, now that
+              this sits second, is most people who see it. */}
+          <dl className="mt-8 max-w-xl border-t border-line pt-6">
+            <dt className="text-sm text-cream-bright">{t("land.eaWhat")}</dt>
+            <dd>
+              <ul className="mt-4 flex flex-col gap-3">
+                <CheckItem>{t("land.eaInc1")}</CheckItem>
+                <CheckItem>{t("land.eaInc2")}</CheckItem>
+                <CheckItem>{t("land.eaInc3")}</CheckItem>
+                <CheckItem>{t("land.eaInc4")}</CheckItem>
+              </ul>
+            </dd>
+          </dl>
+
+          <p className="mt-6 max-w-xl text-sm text-cream-dim">
+            {t("land.eaNoCard")}
+          </p>
+          <p className="mt-3 max-w-xl text-xs text-cream-faint">
             {t("land.eaPrivacy")}
           </p>
         </div>

@@ -12,6 +12,7 @@
  * which is why Redis with a TTL is still the right home for it.
  */
 import type { RedisClientType } from "redis";
+import { findLevel } from "./levels.js";
 
 export interface Preferences {
   /**
@@ -30,12 +31,23 @@ export interface Preferences {
   defaultSector: string;
   /** Whether new sessions start with live coaching on. */
   defaultMode: "practice" | "real";
+  /**
+   * How much English to run the interview in, by default.
+   *
+   * Stored rather than asked every time because it changes on the scale of
+   * months, not sessions — and because the nudge to move up needs somewhere
+   * to write the new answer when someone takes it.
+   */
+  defaultLevel: string;
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
   candidateName: "",
   defaultRole: "Senior Product Designer",
   defaultCompany: "Stripe",
+  // The level most international roles ask for. Someone below it changes this
+  // once and every later session follows.
+  defaultLevel: "b2",
   interviewLength: 7,
   defaultSector: "",
   defaultMode: "practice",
@@ -170,5 +182,8 @@ export function readPreferences(body: Record<string, unknown>): Preferences {
     // replaced by the default the way a blank role would be.
     defaultSector: text("defaultSector", 40),
     defaultMode: body["defaultMode"] === "real" ? "real" : "practice",
+    // Resolved rather than trusted: an unknown id from a stale client would
+    // otherwise be stored and then silently fall back on every future session.
+    defaultLevel: findLevel(text("defaultLevel", 8)).id,
   };
 }

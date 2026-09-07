@@ -73,6 +73,8 @@ export interface InterviewSessionOptions {
   stages?: readonly string[];
   /** What the interview is conducted in. English unless someone chose. */
   language?: string;
+  /** How much English the candidate has. Governs delivery, not difficulty. */
+  level?: string;
   minTurns?: number;
   maxTurns?: number;
   /**
@@ -156,6 +158,7 @@ export class InterviewSession {
     this.systemPrompt = buildInterviewerPrompt(context, {
       stages: stages.map((entry) => entry.id),
       ...(options.language ? { language: options.language } : {}),
+      ...(options.level ? { level: options.level } : {}),
       minTurns,
       maxTurns,
       personaId: this.personaId,

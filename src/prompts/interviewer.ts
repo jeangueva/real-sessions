@@ -3,6 +3,7 @@ import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, resolveStages, turnBudget } from "../stages.js";
 import { findLanguage } from "../languages.js";
+import { findLevel } from "../levels.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
 /**
@@ -37,6 +38,10 @@ Your core company values and cultural focus are: {{company_culture}}. You must e
 
 ### LANGUAGE:
 Conduct this entire interview in {{language}}. Every question, every acknowledgement, every aside. The candidate may answer in another language — if they do, stay in {{language}} yourself rather than following them, and do not remark on it. Technical terms that have no natural translation stay as they are; a Spanish interview says "deploy" and "pull request", it does not invent words for them.
+
+### HOW MUCH ENGLISH THEY HAVE:
+{{level_brief}}
+This governs your delivery only. It never changes what you are willing to ask, how hard you push on a vague answer, or the standard an answer has to meet to satisfy you. A candidate who is rehearsing at a lower level is rehearsing the real round in English they can follow — softening the round instead would hand them a pass they cannot repeat on the day.
 
 ### RULES OF ENGAGEMENT:
 1. **One Question at a Time:** NEVER ask multiple questions in a single response. Wait for the candidate's answer before moving forward.
@@ -115,6 +120,12 @@ export interface InterviewerPromptOptions {
   stages?: readonly string[];
   /** What the interview is conducted in. English unless someone chose. */
   language?: string;
+  /**
+   * How much English the candidate has. Governs delivery, never difficulty —
+   * see the level briefs, which are written to make that separation hard to
+   * get wrong.
+   */
+  level?: string;
   minTurns?: number;
   /** Upper bound advertised in the structure section. Default 7. */
   maxTurns?: number;
@@ -177,6 +188,7 @@ export function buildInterviewerPrompt(
     known_questions: buildKnownQuestions(options.knownQuestions ?? []),
     persona_behaviour: persona.behaviour,
     language: findLanguage(options.language).promptLabel,
+    level_brief: findLevel(options.level).brief,
     interviewer_name: persona.name,
     interviewer_title: persona.title,
     stage_brief: composeBrief(
