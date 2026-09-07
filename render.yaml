@@ -18,7 +18,7 @@ services:
     # REALSESSIONS_SITE_URL below — that one is read at runtime and builds the
     # emailed links, this one only shapes what a shared link looks like.
     dockerBuildArgs:
-      VITE_SITE_URL: https://mockio.app
+      VITE_SITE_URL: https://getmockio.com
     # All three services share a region so Postgres and Redis are reachable on
     # the private network rather than over the internet. Virginia is the
     # closest Render region to Latin America.
