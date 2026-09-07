@@ -35,7 +35,11 @@ export function Action({
     >
       {children}
       {withArrow && (
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black transition-transform duration-300 ease-cinematic group-hover:scale-110 sm:h-10 sm:w-10">
+        <span /* The disc inverts with the button it sits inside: a solid Action is
+             ink-coloured, so the disc is the surface and the arrow is the ink.
+             It was `bg-black` with a `cream-bright` arrow, which on the light
+             theme drew a near-black arrow on a black disc. */
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-base transition-transform duration-300 ease-cinematic group-hover:scale-110 sm:h-10 sm:w-10">
           <ArrowRight className="h-4 w-4 text-cream-bright" aria-hidden />
         </span>
       )}

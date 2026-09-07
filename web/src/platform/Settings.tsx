@@ -174,7 +174,7 @@ export function Settings() {
                 resetTour();
                 setTourReset(true);
               }}
-              className="focus-ring self-start rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
+              className="focus-ring self-start rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
             >
               {tourReset ? t("settings.tourReset") : t("settings.tourAgain")}
             </button>
@@ -207,7 +207,7 @@ export function Settings() {
                   onChange={(event) => update({ candidateName: event.target.value })}
                   placeholder={t("settings.yourNamePlaceholder")}
                   maxLength={60}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
                 />
               </Field>
 
@@ -220,7 +220,7 @@ export function Settings() {
                   id="role"
                   value={preferences.defaultRole}
                   onChange={(event) => update({ defaultRole: event.target.value })}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   {ROLES.map((role) => (
                     <option key={role} value={role}>
@@ -239,7 +239,7 @@ export function Settings() {
                   id="sector"
                   value={preferences.defaultSector}
                   onChange={(event) => update({ defaultSector: event.target.value })}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   <option value="">{t("settings.allSectors")}</option>
                   {sectors.map((sector) => (
@@ -257,7 +257,7 @@ export function Settings() {
                   onChange={(event) =>
                     update({ defaultCompany: event.target.value })
                   }
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   {(companies.length === 0
                     ? FALLBACK_COMPANIES
@@ -290,7 +290,7 @@ export function Settings() {
                         event.target.value === "real" ? "real" : "practice",
                     })
                   }
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   <option value="practice">{t("settings.modePractice")}</option>
                   <option value="real">{t("settings.modeReal")}</option>

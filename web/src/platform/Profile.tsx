@@ -134,7 +134,7 @@ export function Profile() {
           profile?.brief && (
             <button
               onClick={() => void remove()}
-              className="focus-ring flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+              className="focus-ring flex items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
               Remove
@@ -206,7 +206,7 @@ export function Profile() {
               value={links}
               onChange={(event) => setLinks(event.target.value)}
               placeholder={"github.com/you\nlinkedin.com/in/you\nyour-portfolio.com"}
-              className="focus-ring resize-none rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+              className="focus-ring resize-none rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
             />
           </Field>
 

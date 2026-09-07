@@ -28,8 +28,18 @@ export default {
         cream: {
           DEFAULT: "rgb(var(--cream) / <alpha-value>)",
           bright: "rgb(var(--cream-bright) / <alpha-value>)",
-          dim: "rgb(var(--cream) / 0.7)",
-          faint: "rgb(var(--cream) / 0.45)",
+          /**
+           * The alpha steps are set by contrast, not by taste. 0.85 and 0.65
+           * are the lowest values that still clear WCAG AA (4.5:1) against
+           * every surface in both themes — `surface-lift` on the light theme
+           * is the tightest of them, and it decides these two numbers.
+           *
+           * They used to be 0.7 and 0.45, which put `cream-faint` at 2.7:1 on
+           * a light card. That is below the floor for body text, and every
+           * hint, caption and placeholder in the product wears it.
+           */
+          dim: "rgb(var(--cream) / 0.85)",
+          faint: "rgb(var(--cream) / 0.65)",
         },
         // Surfaces, named by role rather than by shade for the same reason.
         surface: {
@@ -41,6 +51,16 @@ export default {
           lift: "rgb(var(--surface-lift) / var(--surface-lift-alpha))",
         },
         line: "var(--line)",
+        /**
+         * The border of a control, as opposed to a divider between blocks.
+         *
+         * WCAG 1.4.11 asks for 3:1 on anything that identifies an interactive
+         * element, and on the light theme an input's fill is within 1.05:1 of
+         * the page — so the border is the only thing saying "this is a field".
+         * `line` stays soft, because a decorative rule carries no information
+         * and a hard grey line through every panel is a worse page.
+         */
+        "line-strong": "var(--line-strong)",
         // The dim behind a spotlight or a modal. Softer on a light ground.
         scrim: "var(--scrim)",
       },

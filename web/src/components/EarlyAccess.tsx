@@ -78,7 +78,7 @@ export function EarlyAccess() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@example.com"
-                  className="focus-ring rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                  className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
                 />
               </Field>
 
@@ -89,7 +89,7 @@ export function EarlyAccess() {
                   value={role}
                   onChange={(event) => setRole(event.target.value)}
                   placeholder="Senior Product Designer"
-                  className="focus-ring rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                  className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
                 />
               </Field>
 
@@ -103,7 +103,7 @@ export function EarlyAccess() {
                   value={company}
                   onChange={(event) => setCompany(event.target.value)}
                   placeholder="Nubank"
-                  className="focus-ring rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                  className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
                 />
               </Field>
 

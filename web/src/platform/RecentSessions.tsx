@@ -84,7 +84,7 @@ export function RecentSessions({
             <button
               type="button"
               onClick={() => onPick(session)}
-              className="focus-ring flex h-full w-56 flex-col justify-between gap-3 rounded-2xl border border-line p-4 text-left transition-colors hover:bg-surface-lift"
+              className="focus-ring flex h-full w-56 flex-col justify-between gap-3 rounded-2xl border border-line-strong p-4 text-left transition-colors hover:bg-surface-lift"
             >
               <span>
                 <span className="block truncate text-sm text-cream-bright">

@@ -41,7 +41,7 @@ const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero.mp4";
 export function Hero() {
   const t = useT();
   return (
-    <InsetFrame className="bg-surface-base">
+    <InsetFrame className="on-media bg-surface-base">
       <HeroVideo src={HERO_VIDEO} />
 
       <nav className="absolute left-1/2 top-0 z-20 -translate-x-1/2">

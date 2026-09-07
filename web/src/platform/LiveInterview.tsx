@@ -389,7 +389,7 @@ export function LiveInterview() {
                   </p>
                   <button
                     onClick={() => voice.speakNow(turn?.text ?? streaming)}
-                    className="focus-ring rounded-full border border-line px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+                    className="focus-ring rounded-full border border-line-strong px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
                   >
                     {t("call.playTurn")}
                   </button>

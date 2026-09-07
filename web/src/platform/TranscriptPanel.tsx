@@ -153,7 +153,7 @@ export function TranscriptPanel({
             disabled={!canSend}
             rows={6}
             placeholder={t("panel.placeholder")}
-            className="focus-ring min-h-0 flex-1 resize-none rounded-2xl border border-line bg-transparent p-3 text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50"
+            className="focus-ring min-h-0 flex-1 resize-none rounded-2xl border border-line-strong bg-transparent p-3 text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50"
           />
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-cream-faint">{hint}</span>

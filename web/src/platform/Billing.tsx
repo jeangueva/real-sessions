@@ -137,7 +137,7 @@ export function Billing() {
           <button
             onClick={() => void cancel()}
             disabled={busy}
-            className="focus-ring rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright disabled:opacity-40"
+            className="focus-ring rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright disabled:opacity-40"
           >
             {t("billing.cancelSub")}
           </button>

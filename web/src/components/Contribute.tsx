@@ -127,7 +127,7 @@ export function Contribute() {
                   id="c-sector"
                   value={sector}
                   onChange={(event) => setSector(event.target.value)}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   <option value="">{t("land.contribAllSectors")}</option>
                   {sectors.map((entry) => (
@@ -143,7 +143,7 @@ export function Contribute() {
                   id="c-company"
                   value={companyId}
                   onChange={(event) => setCompanyId(event.target.value)}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   {visible.map((entry) => (
                     <option key={entry.id} value={entry.id}>
@@ -158,7 +158,7 @@ export function Contribute() {
                   id="c-stage"
                   value={stage}
                   onChange={(event) => setStage(event.target.value)}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   {STAGES.map((entry) => (
                     <option key={entry.value} value={entry.value}>
@@ -177,7 +177,7 @@ export function Contribute() {
                   id="c-role"
                   value={role}
                   onChange={(event) => setRole(event.target.value)}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
                   {/* A list rather than free text, because these are filtered
                       by role: "Backend Engineer", "backend engineer" and "BE"
@@ -204,7 +204,7 @@ export function Contribute() {
                 value={question}
                 onChange={(event) => setQuestion(event.target.value)}
                 placeholder="Walk me through a time you had to ship with incomplete data."
-                className="focus-ring resize-none rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                className="focus-ring resize-none rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
               />
             </Field>
 

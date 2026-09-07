@@ -75,7 +75,7 @@ function RequestLink() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="focus-ring rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+            className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
             placeholder="you@example.com"
           />
         </Field>
@@ -126,7 +126,7 @@ function SetNewPassword({ token }: { token: string }) {
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="focus-ring rounded-xl border border-line bg-transparent px-4 py-2.5 text-sm text-cream-bright"
+            className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright"
           />
         </Field>
         {error && (

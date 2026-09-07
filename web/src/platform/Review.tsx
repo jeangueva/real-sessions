@@ -153,7 +153,7 @@ export function Review() {
                   <button
                     onClick={() => void decide(entry.id, "rejected")}
                     disabled={busy === entry.id}
-                    className="focus-ring flex items-center gap-2 rounded-full border border-line px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright disabled:opacity-40"
+                    className="focus-ring flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright disabled:opacity-40"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden />
                     {t("review.reject")}
