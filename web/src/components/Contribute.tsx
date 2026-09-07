@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Action, Eyebrow, Field, Panel, Section } from "@/design-system";
+import { Action, Eyebrow, FadeRise, Field, Panel, Section } from "@/design-system";
 import { ApiError, contributeQuestion, fetchCatalogue } from "@/lib/api";
 import type { CatalogueCompany, Role, Sector } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
@@ -88,7 +88,7 @@ export function Contribute() {
   return (
     <Section id="contribute" className="bg-surface-base">
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-        <div>
+        <FadeRise>
           <Eyebrow>{t("land.contribEyebrow")}</Eyebrow>
           <h2 className="mt-4 text-headline font-normal text-cream-bright">
             {t("land.contribTitle")}
@@ -120,8 +120,9 @@ export function Contribute() {
               </dd>
             </div>
           </dl>
-        </div>
+        </FadeRise>
 
+        <FadeRise delay={0.12}>
         <Panel className="p-6 sm:p-8">
           <form onSubmit={submit} className="flex flex-col gap-5">
             <div className="grid gap-5 sm:grid-cols-2">
@@ -231,6 +232,7 @@ export function Contribute() {
             </Action>
           </form>
         </Panel>
+        </FadeRise>
       </div>
     </Section>
   );

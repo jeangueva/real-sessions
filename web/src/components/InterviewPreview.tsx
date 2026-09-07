@@ -19,7 +19,7 @@ export function InterviewPreview() {
 
   return (
     <Section id="how-it-works" className="bg-surface-base">
-      <div className="mx-auto max-w-3xl text-center">
+      <FadeRise className="mx-auto max-w-3xl text-center">
         <Eyebrow>{t("land.previewEyebrow")}</Eyebrow>
         <h2 className="mt-4 text-headline">
           <span className="font-normal text-cream-bright">
@@ -32,7 +32,7 @@ export function InterviewPreview() {
             {t("land.previewCharacter")}
           </span>
         </h2>
-      </div>
+      </FadeRise>
 
       <FadeRise className="mx-auto mt-12 max-w-3xl">
         <Panel variant="raised" className="p-6 sm:p-10">

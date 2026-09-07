@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Action, Backdrop, CheckItem, Eyebrow, Field, Panel, Section } from "@/design-system";
+import { Action, CheckItem, Eyebrow, FadeRise, Field, Panel, Section } from "@/design-system";
 import { ApiError, joinEarlyAccess } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -38,11 +38,9 @@ export function EarlyAccess() {
   };
 
   return (
-    <Section id="early-access" className="relative overflow-hidden bg-surface-base">
-      <Backdrop variant="section" />
-
-      <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-        <div>
+    <Section id="early-access" className="bg-surface-base">
+      <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
+        <FadeRise>
           <Eyebrow>{t("land.eaEyebrow")}</Eyebrow>
           <h2 className="mt-4 text-headline font-normal text-cream-bright">
             {t("land.eaTitle")}
@@ -71,8 +69,9 @@ export function EarlyAccess() {
           <p className="mt-3 max-w-xl text-xs text-cream-faint">
             {t("land.eaPrivacy")}
           </p>
-        </div>
+        </FadeRise>
 
+        <FadeRise delay={0.12}>
         <Panel variant="raised" className="p-6 sm:p-8">
           {state === "done" ? (
             <div role="status" className="flex flex-col gap-3">
@@ -137,6 +136,7 @@ export function EarlyAccess() {
             </form>
           )}
         </Panel>
+        </FadeRise>
       </div>
     </Section>
   );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Section, Eyebrow } from "@/design-system";
+import { Section, Eyebrow, FadeRise } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -53,7 +53,7 @@ export function CompanyPicker() {
     <Section id="companies" className="bg-surface-base">
       <Eyebrow>{t("land.pickerEyebrow")}</Eyebrow>
 
-      <div className="mt-6 flex flex-col gap-10 md:flex-row md:items-start md:justify-between md:gap-16">
+      <FadeRise className="mt-6 flex flex-col gap-10 md:flex-row md:items-start md:justify-between md:gap-16">
         <h2 className="max-w-xl text-headline font-normal text-cream-bright">
           {t("land.pickerTitle")}
         </h2>
@@ -65,12 +65,12 @@ export function CompanyPicker() {
         >
           {t(company.description)}
         </p>
-      </div>
+      </FadeRise>
 
       <div className="mt-14 flex items-end gap-3 overflow-x-auto pb-1 [scrollbar-width:none] sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden">
         {COMPANIES.map((item, index) => (
+          <FadeRise key={item.name} delay={0.06 * index}>
           <button
-            key={item.name}
             onClick={() => setActive(index)}
             aria-label={t("land.pickerPractiseFor", { company: item.name })}
             aria-pressed={index === active}
@@ -83,18 +83,19 @@ export function CompanyPicker() {
               }`}
             />
             <span
-              className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold text-cream-bright transition-transform duration-300 ease-cinematic hover:scale-105 sm:h-16 sm:w-16"
+              className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold text-cream-bright ring-1 ring-line transition-transform duration-300 ease-cinematic hover:scale-105 sm:h-16 sm:w-16"
               style={{
-                background: `radial-gradient(70% 70% at 30% 25%, ${item.tint} 0%, #101010 70%)`,
+                background: `radial-gradient(70% 70% at 30% 25%, ${item.tint} 0%, rgb(var(--surface-base)) 70%)`,
               }}
             >
               {item.name.charAt(0)}
             </span>
           </button>
+          </FadeRise>
         ))}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 text-sm font-medium">
+      <FadeRise delay={0.3} className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 text-sm font-medium">
         <span key={company.name} className="animate-fade-in text-cream-bright">
           {company.name}
         </span>
@@ -104,7 +105,7 @@ export function CompanyPicker() {
         <span className="hidden text-cream-dim md:inline">
           {t("land.pickerStages")}
         </span>
-      </div>
+      </FadeRise>
     </Section>
   );
 }
