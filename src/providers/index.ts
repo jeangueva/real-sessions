@@ -94,7 +94,7 @@ function createProvider(vendor: Vendor): ModelProvider {
             "HTTP-Referer":
               // The site this traffic came from. OpenRouter lists it publicly,
               // so a wrong value attributes our usage to somebody else's domain.
-              process.env.REALSESSIONS_SITE_URL ?? "https://getmockio.com",
+              process.env.REALSESSIONS_SITE_URL ?? "https://www.getmockio.com",
             "X-Title": process.env.REALSESSIONS_APP_NAME ?? "Mockio",
           },
           supportsModelFallback: true,

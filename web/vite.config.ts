@@ -14,7 +14,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
  * build without the variable is merely pointing at the wrong host instead of
  * emitting something malformed. Render passes the real value as a build arg.
  */
-const SITE_URL = process.env.VITE_SITE_URL ?? "https://getmockio.com";
+const SITE_URL = process.env.VITE_SITE_URL ?? "https://www.getmockio.com";
 
 export default defineConfig({
   plugins: [react()],
