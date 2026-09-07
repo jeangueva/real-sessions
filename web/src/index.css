@@ -22,13 +22,6 @@
     --cream: 222 219 200;
     --cream-bright: 225 224 204;
     --surface-base: 0 0 0;
-    /**
-     * The page's own ground, as opposed to whatever surface the current
-     * element sits on. `.on-media` repoints `--surface-base` to black so the
-     * hero's ink stays light; anything that has to blend *out* of the hero and
-     * into the page needs the page's colour, which is this.
-     */
-    --page-ground: 0 0 0;
     --surface-raised: 16 16 16;
     --surface-card: 33 33 33;
     --surface-deep: 4 33 46;
@@ -61,7 +54,6 @@
     --cream: 26 30 34;
     --cream-bright: 12 15 18;
     --surface-base: 250 249 245;
-    --page-ground: 250 249 245;
     --surface-raised: 255 255 255;
     --surface-card: 242 240 233;
     --surface-deep: 255 255 255;
@@ -109,34 +101,6 @@
 
 @layer components {
   /**
-   * A dark island inside a light page.
-   *
-   * The hero's ground is not a surface token. It is video, under scrims that
-   * are black in both themes because the footage is graded dark — so the ink
-   * over it has to follow the ground it actually sits on rather than the
-   * page's. Without this the light theme flipped the headline, the nav and
-   * the blurb to near-black over near-black footage: the one place in the
-   * product where the theme could make text disappear entirely.
-   *
-   * Pinning the variables rather than overriding each class is the same trick
-   * the theme itself uses, so every child — including primitives that know
-   * nothing about the hero — comes out right.
-   */
-  .hero-seam {
-    /* Short and late. An earlier version ramped over 16rem and reached the
-       headline, turning cream type on a near-white wash — the exact contrast
-       failure the rest of this file exists to prevent. The copy sits at the
-       bottom of the frame, so the fade has to stay under it. */
-    background: linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgb(var(--page-ground) / 0.25) 55%,
-      rgb(var(--page-ground) / 0.75) 82%,
-      rgb(var(--page-ground)) 100%
-    );
-  }
-
-  /**
    * The landing nav, which follows the reader down the page.
    *
    * Over the hero it is transparent — the footage is the background and a bar
@@ -167,6 +131,20 @@
     :root:not([data-theme="dark"]) .backdrop-field { opacity: 0.28; }
   }
 
+  /**
+   * A dark island inside a light page.
+   *
+   * The hero's ground is not a surface token. It is video, under scrims that
+   * are black in both themes because the footage is graded dark — so the ink
+   * over it has to follow the ground it actually sits on rather than the
+   * page's. Without this the light theme flipped the headline, the nav and
+   * the blurb to near-black over near-black footage: the one place in the
+   * product where the theme could make text disappear entirely.
+   *
+   * Pinning the variables rather than overriding each class is the same trick
+   * the theme itself uses, so every child — including primitives that know
+   * nothing about the hero — comes out right.
+   */
   .on-media {
     --cream: 222 219 200;
     --cream-bright: 225 224 204;
