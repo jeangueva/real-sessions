@@ -302,6 +302,24 @@ export function SessionSetup() {
 
   const activeSector = sectors.find((entry) => entry.id === sector);
 
+  /**
+   * How much of the free allowance is left.
+   *
+   * Counted from the history this screen already has rather than asked for
+   * separately. It is advisory — the server does the check that matters, on
+   * the whole record rather than the three sessions a free plan can see — so
+   * the worst a stale count does is show an encouraging number and then get a
+   * refusal, which is the right way round.
+   */
+  const limit = can?.monthlySessions ?? null;
+  const usedThisMonth = (() => {
+    if (limit === null) return 0;
+    const now = new Date();
+    const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+    return sessions.filter((entry) => Date.parse(entry.startedAt) >= start).length;
+  })();
+  const left = limit === null ? null : Math.max(0, limit - usedThisMonth);
+
   return (
     <>
       <PageHeader
@@ -316,6 +334,37 @@ export function SessionSetup() {
             inside it — so a gap set there never reaches them, and the search
             box ended up flush against the panel below it. */}
         <div className="flex flex-col gap-6">
+        {left !== null && limit !== null && (
+          <div
+            className={`flex flex-col items-start gap-2 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+              left === 0 ? "border-line-strong" : "border-line"
+            }`}
+          >
+            <p className="flex min-w-0 items-center gap-2 text-xs text-cream-dim">
+              <Lock className="h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                {left === 0 ? (
+                  <>
+                    <span className="text-cream-bright">
+                      {t("setup.noneLeft", { limit })}
+                    </span>{" "}
+                    {t("setup.noneLeftBody")}
+                  </>
+                ) : left === 1 ? (
+                  <span className="text-cream-bright">{t("setup.lastOne")}</span>
+                ) : (
+                  t("setup.left", { left, limit })
+                )}
+              </span>
+            </p>
+            {left === 0 && (
+              <Link to="/#early-access" className="shrink-0">
+                <Action tone="glass">{t("setup.sixMonths")}</Action>
+              </Link>
+            )}
+          </div>
+        )}
+
         {can && !can.targetCompany && (
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
             <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cream-dim">
@@ -658,6 +707,9 @@ export function SessionSetup() {
             withArrow
             data-tour="begin"
             className="self-start"
+            /* The server refuses this anyway. Saying so before the click is
+               the difference between a paywall and a failure. */
+            disabled={left === 0}
             onClick={() =>
               navigate("/app/session", {
                 state: {

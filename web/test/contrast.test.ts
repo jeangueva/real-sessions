@@ -177,7 +177,9 @@ describe("the tokens themselves", () => {
   it("pins the dark palette on anything sitting over video", () => {
     // The hero's ground is black scrims in both themes. Without this block
     // the light theme flips its ink to near-black over near-black footage.
-    const island = css.slice(css.indexOf(".on-media"));
+    // The rule, not the first mention of the name: a comment elsewhere that
+    // explains what `.on-media` does would otherwise be what this reads.
+    const island = css.slice(css.indexOf(".on-media {"));
     expect(island).toContain("--cream:");
     expect(island).toContain("--cream-bright:");
     expect(channels(island, "cream")).toEqual(THEMES.dark.ink);

@@ -116,6 +116,16 @@ export interface ProgressStore {
   addXp(ownerId: string, sessionId: string | null, events: XpEvent[]): Promise<void>;
   /** XP already granted on the given UTC day, for the daily cap. */
   xpOnDay(ownerId: string, dayIso: string): Promise<number>;
+  /**
+   * Interviews started at or after `sinceIso`. Drives the free plan's monthly
+   * cap.
+   *
+   * Counts starts, not completions, on purpose: an abandoned interview still
+   * cost a prompt, a voice stream and an evaluator call, and counting only
+   * finished ones would let someone quit at turn six forever and never spend
+   * an allowance.
+   */
+  sessionsSince(ownerId: string, sinceIso: string): Promise<number>;
   /** Inserts only badges not already held; returns the ones newly earned. */
   awardBadges(ownerId: string, badgeIds: string[], sessionId: string | null): Promise<string[]>;
   profile(ownerId: string): Promise<Profile>;
@@ -321,6 +331,17 @@ class PostgresProgressStore implements ProgressStore {
       values,
     );
     return inserted.map((row) => row.badge_id as string);
+  }
+
+  async sessionsSince(ownerId: string, sinceIso: string): Promise<number> {
+    const { rows } = await this.pool.query(
+      `SELECT COUNT(*)::int AS n
+         FROM sessions
+        WHERE owner_id = $1
+          AND started_at >= $2::timestamptz`,
+      [ownerId, sinceIso],
+    );
+    return (rows[0]?.n as number | undefined) ?? 0;
   }
 
   async xpOnDay(ownerId: string, dayIso: string): Promise<number> {
@@ -569,6 +590,15 @@ class MemoryProgressStore implements ProgressStore {
       earned.push(badgeId);
     }
     return earned;
+  }
+
+  async sessionsSince(ownerId: string, sinceIso: string): Promise<number> {
+    const since = Date.parse(sinceIso);
+    let n = 0;
+    for (const row of this.sessions.values()) {
+      if (row.ownerId === ownerId && Date.parse(row.startedAt) >= since) n += 1;
+    }
+    return n;
   }
 
   async xpOnDay(ownerId: string, dayIso: string): Promise<number> {

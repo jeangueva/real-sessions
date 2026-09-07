@@ -22,6 +22,13 @@
     --cream: 222 219 200;
     --cream-bright: 225 224 204;
     --surface-base: 0 0 0;
+    /**
+     * The page's own ground, as opposed to whatever surface the current
+     * element sits on. `.on-media` repoints `--surface-base` to black so the
+     * hero's ink stays light; anything that has to blend *out* of the hero and
+     * into the page needs the page's colour, which is this.
+     */
+    --page-ground: 0 0 0;
     --surface-raised: 16 16 16;
     --surface-card: 33 33 33;
     --surface-deep: 4 33 46;
@@ -54,6 +61,7 @@
     --cream: 26 30 34;
     --cream-bright: 12 15 18;
     --surface-base: 250 249 245;
+    --page-ground: 250 249 245;
     --surface-raised: 255 255 255;
     --surface-card: 242 240 233;
     --surface-deep: 255 255 255;
@@ -114,6 +122,51 @@
    * the theme itself uses, so every child — including primitives that know
    * nothing about the hero — comes out right.
    */
+  .hero-seam {
+    /* Short and late. An earlier version ramped over 16rem and reached the
+       headline, turning cream type on a near-white wash — the exact contrast
+       failure the rest of this file exists to prevent. The copy sits at the
+       bottom of the frame, so the fade has to stay under it. */
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgb(var(--page-ground) / 0.25) 55%,
+      rgb(var(--page-ground) / 0.75) 82%,
+      rgb(var(--page-ground)) 100%
+    );
+  }
+
+  /**
+   * The landing nav, which follows the reader down the page.
+   *
+   * Over the hero it is transparent — the footage is the background and a bar
+   * on top of it would cover the thing it is sitting on. Past the hero there
+   * is no footage to sit on, so it takes a surface and a blur, because text
+   * scrolling underneath a transparent bar is unreadable.
+   */
+  .nav-lifted {
+    background: rgb(var(--surface-raised) / 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /**
+   * Atmosphere, dimmed for a light page.
+   *
+   * The drifting blobs are a dark-ground effect: cream light lifting off
+   * black. There is no light-ground equivalent at the same strength — the
+   * warm half disappears into the paper and the cool half reads as dirt — so
+   * on the light theme the whole field drops to a hint of itself rather than
+   * being redrawn in colours that would not mean the same thing.
+   */
+  /* Full strength is the default, so only the light cases are declared. */
+  :root[data-theme="light"] .backdrop-field { opacity: 0.28; }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .backdrop-field { opacity: 0.28; }
+  }
+
   .on-media {
     --cream: 222 219 200;
     --cream-bright: 225 224 204;

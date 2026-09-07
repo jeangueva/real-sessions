@@ -1426,6 +1426,44 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   if (req.method === "POST" && path === "/api/sessions") {
     if (await limited(res, `start:${identity.id}`, RULES.startSession)) return;
+
+    /**
+     * The free plan's monthly allowance.
+     *
+     * Checked before anything is read or generated, so a candidate who is out
+     * of interviews is told so rather than being charged the cost of finding
+     * out. The window is the calendar month in UTC, which is a decision and
+     * not a neutral one: someone in UTC-5 sees their allowance renew at 7pm on
+     * the last day of the month. Doing it in their own timezone needs the
+     * client to say what that is, and a cap that resets a few hours early is a
+     * much smaller problem than one that resets late.
+     *
+     * A store that cannot answer does not block the interview. Failing open
+     * costs a few cents; failing closed tells a paying-adjacent candidate the
+     * product is broken because a count timed out.
+     */
+    if (can.monthlySessions !== null) {
+      const now = new Date();
+      const monthStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+      ).toISOString();
+      const used = await PROGRESS.sessionsSince(identity.id, monthStart).catch(
+        () => 0,
+      );
+      if (used >= can.monthlySessions) {
+        return json(res, 402, {
+          error: `You have used all ${can.monthlySessions} free interviews this month.`,
+          code: "monthly_limit",
+          used,
+          limit: can.monthlySessions,
+          // So the client can say when, rather than "later".
+          resetsAt: new Date(
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+          ).toISOString(),
+        });
+      }
+    }
+
     const body = await readJson(req);
     /**
      * One session can cover several rounds, because real ones do — a screen

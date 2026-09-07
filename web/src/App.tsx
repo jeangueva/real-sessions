@@ -1,6 +1,7 @@
 import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Hero } from "@/components/Hero";
+import { LandingNav } from "@/components/LandingNav";
 import { InterviewPreview } from "@/components/InterviewPreview";
 import { CompanyPicker } from "@/components/CompanyPicker";
 import { Features } from "@/components/Features";
@@ -24,6 +25,7 @@ import { LocaleProvider } from "@/hooks/useLocale";
 function Landing() {
   return (
     <main className="bg-surface-base">
+      <LandingNav />
       <Hero />
       {/* Early access sits second, directly under the hero.
           It was sixth, which put the only offer on the page below four

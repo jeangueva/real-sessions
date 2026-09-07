@@ -46,6 +46,20 @@ export interface Capabilities {
    * rehearses the English interview the product is named for.
    */
   interviewLanguage: boolean;
+  /**
+   * Interviews a calendar month, or null for no limit.
+   *
+   * The free plan had no cap at all — only a rate limit of twelve starts an
+   * hour, which is 288 a day and about $14 of vendor spend per account. That
+   * is not a paywall, it is an unbounded liability with a paywall next to it.
+   *
+   * Three is chosen to be enough rather than generous: one session proves the
+   * product works, and the progress chart needs a third before its shape means
+   * anything. A fourth generic round teaches nobody anything the first three
+   * did not — what makes someone upgrade is targeting a real employer and
+   * putting their CV in the interviewer's hands, not more of the same.
+   */
+  monthlySessions: number | null;
 }
 
 const FREE: Capabilities = {
@@ -59,6 +73,7 @@ const FREE: Capabilities = {
   // upgrade; zero is just a broken screen.
   historyLimit: 3,
   interviewLanguage: false,
+  monthlySessions: 3,
 };
 
 const PREMIUM: Capabilities = {
@@ -69,6 +84,10 @@ const PREMIUM: Capabilities = {
   liveCoaching: true,
   advancedFeedback: true,
   historyLimit: 50,
+  // Uncapped on purpose. Even a candidate running six a week costs about five
+  // dollars across their whole subscription, so metering them would buy
+  // nothing and would punish exactly the people getting the most out of it.
+  monthlySessions: null,
   interviewLanguage: true,
 };
 

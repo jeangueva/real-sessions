@@ -28,7 +28,15 @@ export function Backdrop({
   const hero = variant === "hero";
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      aria-hidden
+      /* `backdrop-field` dims the whole layer on the light theme. The blobs
+         below are cream and navy at fixed alpha — atmosphere written for a
+         dark ground, where a warm lift reads as light in the room. Over
+         off-white the cream vanishes and only the navy survives, which is why
+         this section rendered as a grey wash with text sitting in it. */
+      className="backdrop-field pointer-events-none absolute inset-0 overflow-hidden"
+    >
       {/* The warm lift from below — the one that makes the wordmark sit in
           light rather than on flat black. */}
       <div

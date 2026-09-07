@@ -1,28 +1,6 @@
 import { Link } from "react-router-dom";
 import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame } from "@/design-system";
-import { scrollToSection } from "@/lib/scroll-to-section";
 import { useT } from "@/hooks/useLocale";
-import type { MessageKey } from "@/lib/i18n";
-
-/**
- * The landing page is one scroll, so the nav is anchors into it — a plain
- * `<a href="#id">` and not a `<Link>`, because React Router does not scroll to
- * a hash on its own. "Sign in" is the one item that leaves the page.
- *
- * Pricing and For teams used to sit here as dead `href="#"`. Pricing now has a
- * section to point at, so it is back; For teams still does not exist and stays
- * out until it does.
- */
-const NAV: { label: MessageKey; href: string }[] = [
-  { label: "land.navEarly", href: "#early-access" },
-  { label: "land.navHow", href: "#how-it-works" },
-  { label: "land.navCompanies", href: "#companies" },
-  { label: "land.navPricing", href: "#pricing" },
-  { label: "land.navContribute", href: "#contribute" },
-];
-
-const navLink =
-  "focus-ring whitespace-nowrap rounded-lg px-2 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm";
 
 /**
  * The showreel the reference decks all opened on.
@@ -45,35 +23,12 @@ export function Hero() {
     <InsetFrame className="on-media bg-surface-base">
       <HeroVideo src={HERO_VIDEO} />
 
-      <nav className="absolute left-1/2 top-0 z-20 -translate-x-1/2">
-        <ul className="flex items-center gap-1 rounded-b-2xl bg-black px-3 py-1.5 sm:gap-4 md:gap-10 md:rounded-b-3xl md:px-8">
-          {/* The section anchors are hidden on a phone, where the labels at a
-              readable size cannot fit across the frame and every one of them
-              is reachable by scrolling anyway. Sign in stays: it is the only
-              destination scrolling does not reach. */}
-          {NAV.map(({ label, href }) => (
-            <li key={label} className="hidden sm:block">
-              {/* Still a real href, so it opens in a new tab, copies as a
-                  link, and works before the JS lands. The handler only takes
-                  over when it actually finds the section. */}
-              <a
-                href={href}
-                className={navLink}
-                onClick={(event) => {
-                  if (scrollToSection(href)) event.preventDefault();
-                }}
-              >
-                {t(label)}
-              </a>
-            </li>
-          ))}
-          <li>
-            <Link to="/signin" className={navLink}>
-              {t("land.signIn")}
-            </Link>
-          </li>
-        </ul>
-      </nav>
+      {/* The hero dissolves into the page rather than stopping at a line.
+          Sits under the copy (z-10) so it fades the footage, not the words. */}
+      <div
+        aria-hidden
+        className="hero-seam pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-16 md:h-20"
+      />
 
       <div className="absolute bottom-0 left-0 right-0 z-10 grid grid-cols-1 gap-6 p-6 md:grid-cols-12 md:items-end md:gap-4 md:p-10">
         <h1 className="relative col-span-1 text-display font-medium text-cream-bright md:col-span-8">
