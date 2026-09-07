@@ -30,15 +30,31 @@ describe("the draft guard", () => {
     expect(isDraft()).toBe(unfilled.length > 0);
   });
 
-  it("names every detail that still needs an answer", () => {
-    // Each one appears in the documents, so a missed field ships as a visible
-    // "[COMPLETAR" in the middle of a sentence rather than as a silent gap.
-    expect(Object.keys(OPERATOR).sort()).toEqual([
-      "country",
-      "email",
-      "entity",
-      "retention",
-    ]);
+  it("holds the values that read the same in every language", () => {
+    // The country and the retention period moved out: they are part of the
+    // sentence around them, so they are per-locale. A company name and an
+    // address are not, and stay here.
+    expect(Object.keys(OPERATOR).sort()).toEqual(["email", "entity"]);
+  });
+
+  it("has no placeholder left anywhere in either document", () => {
+    // The check that actually matters. `isDraft` reads the config; this reads
+    // the rendered prose, so a placeholder written straight into a sentence
+    // is caught too.
+    for (const locale of LOCALES) {
+      for (const doc of [privacyFor(locale), termsFor(locale)]) {
+        expect(JSON.stringify(doc), `${locale}/${doc.title}`).not.toContain(PLACEHOLDER);
+      }
+    }
+  });
+
+  it("keeps the country and the duration in the reader's language", () => {
+    // The failure this guards: one string for all three documents, which puts
+    // "Perú" and "24 meses" in the middle of the English policy.
+    expect(JSON.stringify(privacyFor("en"))).toContain("24 months");
+    expect(JSON.stringify(privacyFor("es"))).toContain("24 meses");
+    expect(JSON.stringify(termsFor("en"))).toContain("Peru");
+    expect(JSON.stringify(termsFor("es"))).toContain("Perú");
   });
 });
 

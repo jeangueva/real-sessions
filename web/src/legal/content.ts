@@ -32,19 +32,40 @@ export type Locale = "en" | "es" | "pt";
  */
 export const OPERATOR = {
   /** The legal entity: a registered company, or a person trading under a name. */
-  entity: "[COMPLETAR: razón social o nombre]",
-  /** Where that entity is registered. Decides which law governs. */
-  country: "[COMPLETAR: país]",
+  entity: "Mockio",
   /** Where a person writes to exercise their rights. */
-  email: "[COMPLETAR: correo de contacto]",
-  /** How long a finished interview is kept. See the retention section. */
-  retention: "[COMPLETAR: p. ej. 24 meses]",
+  email: "hola@getmockio.com",
 } as const;
+
+/**
+ * The two values that are facts in one language and translations in another.
+ *
+ * A country and a duration read as part of the sentence around them, so
+ * holding them as one string would put "Perú" and "24 meses" in the middle of
+ * the English document. Everything else about the operator — a company name,
+ * an address — is the same word everywhere and stays in `OPERATOR`.
+ */
+const COUNTRY: Record<Locale, string> = {
+  en: "Peru",
+  es: "Perú",
+  pt: "Peru",
+};
+
+const RETENTION: Record<Locale, string> = {
+  en: "24 months",
+  es: "24 meses",
+  pt: "24 meses",
+};
 
 export const PLACEHOLDER = "[COMPLETAR";
 
 export function isDraft(): boolean {
-  return Object.values(OPERATOR).some((value) => value.includes(PLACEHOLDER));
+  const values = [
+    ...Object.values(OPERATOR),
+    ...Object.values(COUNTRY),
+    ...Object.values(RETENTION),
+  ];
+  return values.some((value) => value.includes(PLACEHOLDER));
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
@@ -89,7 +110,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
   en: {
     title: "Privacy",
     updated: UPDATED,
-    intro: `Mockio is operated by ${OPERATOR.entity}, in ${OPERATOR.country}. This describes what we hold, why, and how to get rid of it. It is written to be read rather than to be defensible.`,
+    intro: `Mockio is operated by ${OPERATOR.entity}, in ${COUNTRY.en}. This describes what we hold, why, and how to get rid of it. It is written to be read rather than to be defensible.`,
     sections: [
       {
         heading: "What we collect",
@@ -132,7 +153,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       {
         heading: "How long we keep it",
         body: [
-          `Interviews and their feedback are kept for ${OPERATOR.retention} from the day they finish, unless you delete them sooner. Your account details are kept while the account exists.`,
+          `Interviews and their feedback are kept for ${RETENTION.en} from the day they finish, unless you delete them sooner. Your account details are kept while the account exists.`,
           "In-flight interview state and rate-limit counters live in a cache that expires on its own within hours.",
         ],
       },
@@ -168,7 +189,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
   es: {
     title: "Privacidad",
     updated: UPDATED,
-    intro: `Mockio es operado por ${OPERATOR.entity}, en ${OPERATOR.country}. Acá está qué guardamos, para qué, y cómo borrarlo. Está escrito para que se lea, no para defenderse.`,
+    intro: `Mockio es operado por ${OPERATOR.entity}, en ${COUNTRY.es}. Acá está qué guardamos, para qué, y cómo borrarlo. Está escrito para que se lea, no para defenderse.`,
     sections: [
       {
         heading: "Qué recolectamos",
@@ -211,7 +232,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       {
         heading: "Cuánto tiempo lo guardamos",
         body: [
-          `Las entrevistas y sus devoluciones se guardan por ${OPERATOR.retention} desde el día en que terminan, salvo que las borres antes. Los datos de tu cuenta se guardan mientras la cuenta exista.`,
+          `Las entrevistas y sus devoluciones se guardan por ${RETENTION.es} desde el día en que terminan, salvo que las borres antes. Los datos de tu cuenta se guardan mientras la cuenta exista.`,
           "El estado de las entrevistas en curso y los contadores de límite viven en un caché que expira solo en cuestión de horas.",
         ],
       },
@@ -247,7 +268,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
   pt: {
     title: "Privacidade",
     updated: UPDATED,
-    intro: `O Mockio é operado por ${OPERATOR.entity}, em ${OPERATOR.country}. Aqui está o que guardamos, para quê, e como apagar. Foi escrito para ser lido, não para se defender.`,
+    intro: `O Mockio é operado por ${OPERATOR.entity}, em ${COUNTRY.pt}. Aqui está o que guardamos, para quê, e como apagar. Foi escrito para ser lido, não para se defender.`,
     sections: [
       {
         heading: "O que coletamos",
@@ -290,7 +311,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       {
         heading: "Por quanto tempo guardamos",
         body: [
-          `As entrevistas e suas devolutivas são guardadas por ${OPERATOR.retention} a partir do dia em que terminam, a menos que você as apague antes. Os dados da sua conta ficam enquanto a conta existir.`,
+          `As entrevistas e suas devolutivas são guardadas por ${RETENTION.pt} a partir do dia em que terminam, a menos que você as apague antes. Os dados da sua conta ficam enquanto a conta existir.`,
           "O estado das entrevistas em andamento e os contadores de limite vivem em um cache que expira sozinho em questão de horas.",
         ],
       },
@@ -330,7 +351,7 @@ const TERMS: Record<Locale, LegalDocument> = {
   en: {
     title: "Terms",
     updated: UPDATED,
-    intro: `An agreement between you and ${OPERATOR.entity}, in ${OPERATOR.country}, about using Mockio. Using it means accepting these.`,
+    intro: `An agreement between you and ${OPERATOR.entity}, in ${COUNTRY.en}, about using Mockio. Using it means accepting these.`,
     sections: [
       {
         heading: "What Mockio is, and what it is not",
@@ -417,7 +438,7 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Governing law",
         body: [
-          `These terms are governed by the law of ${OPERATOR.country}, and disputes go to its courts.`,
+          `These terms are governed by the law of ${COUNTRY.en}, and disputes go to its courts.`,
           `Questions: ${OPERATOR.email}.`,
         ],
       },
@@ -427,7 +448,7 @@ const TERMS: Record<Locale, LegalDocument> = {
   es: {
     title: "Términos",
     updated: UPDATED,
-    intro: `Un acuerdo entre vos y ${OPERATOR.entity}, en ${OPERATOR.country}, sobre el uso de Mockio. Usarlo significa aceptarlos.`,
+    intro: `Un acuerdo entre vos y ${OPERATOR.entity}, en ${COUNTRY.es}, sobre el uso de Mockio. Usarlo significa aceptarlos.`,
     sections: [
       {
         heading: "Qué es Mockio, y qué no es",
@@ -514,7 +535,7 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Ley aplicable",
         body: [
-          `Estos términos se rigen por la ley de ${OPERATOR.country}, y las disputas van a sus tribunales.`,
+          `Estos términos se rigen por la ley de ${COUNTRY.es}, y las disputas van a sus tribunales.`,
           `Consultas: ${OPERATOR.email}.`,
         ],
       },
@@ -524,7 +545,7 @@ const TERMS: Record<Locale, LegalDocument> = {
   pt: {
     title: "Termos",
     updated: UPDATED,
-    intro: `Um acordo entre você e ${OPERATOR.entity}, em ${OPERATOR.country}, sobre o uso do Mockio. Usá-lo significa aceitá-los.`,
+    intro: `Um acordo entre você e ${OPERATOR.entity}, em ${COUNTRY.pt}, sobre o uso do Mockio. Usá-lo significa aceitá-los.`,
     sections: [
       {
         heading: "O que é o Mockio, e o que ele não é",
@@ -611,7 +632,7 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Lei aplicável",
         body: [
-          `Estes termos são regidos pela lei de ${OPERATOR.country}, e as disputas vão aos seus tribunais.`,
+          `Estes termos são regidos pela lei de ${COUNTRY.pt}, e as disputas vão aos seus tribunais.`,
           `Dúvidas: ${OPERATOR.email}.`,
         ],
       },
