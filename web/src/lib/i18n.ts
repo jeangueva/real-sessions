@@ -360,7 +360,7 @@ const EN = {
   "setup.expectReal": "No help until the report at the end.",
 
   "chart.notMeasured": "Not measured yet",
-  "auth.backHome": "Back to Real Sessions",
+  "auth.backHome": "Back to Mockio",
 
   "land.navHow": "How it works",
   "land.navCompanies": "Companies",
@@ -840,7 +840,7 @@ const ES: Record<MessageKey, string> = {
   "setup.expectReal": "Sin ayuda hasta el informe del final.",
 
   "chart.notMeasured": "Todavía sin medir",
-  "auth.backHome": "Volver a Real Sessions",
+  "auth.backHome": "Volver a Mockio",
 
   "land.navHow": "Cómo funciona",
   "land.navCompanies": "Empresas",
@@ -1312,7 +1312,7 @@ const PT: Record<MessageKey, string> = {
   "setup.expectReal": "Sem ajuda até o relatório do fim.",
 
   "chart.notMeasured": "Ainda sem medição",
-  "auth.backHome": "Voltar para o Real Sessions",
+  "auth.backHome": "Voltar para o Mockio",
 
   "land.navHow": "Como funciona",
   "land.navCompanies": "Empresas",

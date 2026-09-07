@@ -1,6 +1,6 @@
 /**
  * Variables injected from Supabase before a prompt is sent.
- * Mirrors the `{{...}}` placeholders in the Real Sessions spec.
+ * Mirrors the `{{...}}` placeholders in the Mockio spec.
  */
 export interface InterviewContext {
   /** User's name. */

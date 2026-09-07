@@ -1,4 +1,4 @@
-# Real Sessions
+# Mockio
 
 An AI interview simulator for Latin American tech professionals practising job
 interviews in English. A simulated hiring manager from a real company asks one
@@ -126,7 +126,7 @@ The API prints what it is actually using at startup, which is the fastest way
 to catch a missing variable:
 
 ```
-Real Sessions API on http://localhost:8787 (sessions: redis, progress: postgres, rate limits: redis, email: console)
+Mockio API on http://localhost:8787 (sessions: redis, progress: postgres, rate limits: redis, email: console)
 ```
 
 ### 5. Verify

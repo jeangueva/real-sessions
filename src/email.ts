@@ -126,7 +126,7 @@ export function createEmailSender(): EmailSender {
 export function verifyEmail(email: string, url: string): EmailMessage {
   return {
     to: email,
-    subject: "Confirm your email for Real Sessions",
+    subject: "Confirm your email for Mockio",
     text:
       `Confirm this address so we can reach you about your account.\n\n` +
       `${url}\n\n` +
@@ -138,7 +138,7 @@ export function verifyEmail(email: string, url: string): EmailMessage {
 export function resetEmail(email: string, url: string): EmailMessage {
   return {
     to: email,
-    subject: "Reset your Real Sessions password",
+    subject: "Reset your Mockio password",
     text:
       `Someone asked to reset the password for this account.\n\n` +
       `${url}\n\n` +

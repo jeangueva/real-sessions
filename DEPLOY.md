@@ -99,7 +99,7 @@ railway add --database redis
 railway variables set \
   REALSESSIONS_SESSION_SECRET="$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")" \
   RESEND_API_KEY="re_..." \
-  EMAIL_FROM="Real Sessions <no-reply@yourdomain>" \
+  EMAIL_FROM="Mockio <no-reply@yourdomain>" \
   REALSESSIONS_SITE_URL="https://yourdomain" \
   NODE_ENV=production
 

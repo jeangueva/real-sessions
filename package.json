@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Real Sessions — AI interview simulator: live interviewer, async evaluator, and the API behind them.",
+  "description": "Mockio — AI interview simulator: live interviewer, async evaluator, and the API behind them.",
   "main": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -39,7 +39,7 @@
     "node": ">=22"
   },
   "license": "MIT",
-  "author": "Real Sessions",
+  "author": "Mockio",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jeangueva/real-sessions.git"

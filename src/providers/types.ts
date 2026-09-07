@@ -89,7 +89,7 @@ export interface JsonResponse<T> {
 }
 
 /**
- * What Real Sessions needs from a model vendor: a chat turn and a schema-valid
+ * What Mockio needs from a model vendor: a chat turn and a schema-valid
  * JSON document. Everything else in this codebase is provider-neutral.
  */
 export interface ModelProvider {

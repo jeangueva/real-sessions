@@ -1192,7 +1192,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       externalReference: identity.id,
       payerEmail: account.email,
       backUrl: `${siteUrl()}/app/settings`,
-      reason: "Real Sessions — monthly",
+      reason: "Mockio — monthly",
       plan: config,
     });
 
@@ -2079,7 +2079,7 @@ attachVoiceGateway(server, {
 
 server.listen(PORT, () => {
   console.log(
-    `Real Sessions API on http://localhost:${PORT} ` +
+    `Mockio API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +
       `rate limits: ${LIMITER.kind}, email: ${MAILER.kind}, ` +
       `voice: ${deepgramConfigured() ? "deepgram" : "browser"}, ` +

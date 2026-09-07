@@ -52,7 +52,7 @@ const money = (value: number | null, errored = false): string =>
   errored || value === null ? "unknown" : `$${value.toFixed(5)}`;
 
 console.log(`\n${"=".repeat(76)}`);
-console.log("Real Sessions — full benchmark");
+console.log("Mockio — full benchmark");
 console.log(`${"=".repeat(76)}`);
 console.log(`Phase 1 candidates: ${interviewers.join(", ")}`);
 console.log(`Phase 2 candidates: ${evaluators.join(", ")}`);

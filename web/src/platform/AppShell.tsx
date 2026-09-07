@@ -62,7 +62,7 @@ export function AppShell() {
         <div className="mb-6 flex items-center gap-2 px-2">
           <Mic className="h-5 w-5 text-cream" aria-hidden />
           <span className="hidden text-sm font-bold text-cream-bright lg:inline">
-            Real Sessions
+            Mockio
           </span>
         </div>
 

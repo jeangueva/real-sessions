@@ -93,7 +93,7 @@ function createProvider(vendor: Vendor): ModelProvider {
           defaultHeaders: {
             "HTTP-Referer":
               process.env.REALSESSIONS_SITE_URL ?? "https://realsessions.app",
-            "X-Title": process.env.REALSESSIONS_APP_NAME ?? "Real Sessions",
+            "X-Title": process.env.REALSESSIONS_APP_NAME ?? "Mockio",
           },
           supportsModelFallback: true,
         }
