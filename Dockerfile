@@ -19,6 +19,12 @@ COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
 COPY web/ ./
+# The canonical origin, baked into index.html at build time. Link previews are
+# scraped without running JavaScript, so `og:url` and `og:image` have to be
+# absolute in the served HTML — a value read at runtime is too late. Render
+# passes this from the blueprint; the default keeps a local build honest.
+ARG VITE_SITE_URL=https://mockio.app
+ENV VITE_SITE_URL=$VITE_SITE_URL
 RUN npm run build
 
 # --- runtime ---------------------------------------------------------------

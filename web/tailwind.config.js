@@ -67,6 +67,9 @@ export default {
       fontFamily: {
         sans: ['"Almarai"', "system-ui", "sans-serif"],
         serif: ['"Instrument Serif"', "Georgia", "serif"],
+        /* The wordmark only. Kept out of `sans` so nothing else drifts into
+           it — a logo face used for body copy stops being a logo. */
+        mark: ['"Bricolage Grotesque"', '"Almarai"', "system-ui", "sans-serif"],
       },
       fontSize: {
         // The small end of the scale, lifted one step off Tailwind's defaults

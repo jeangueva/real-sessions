@@ -1,0 +1,9 @@
+# The app is behind a login and has nothing worth indexing — every URL under
+# it needs an identity to render, so a crawler gets a redirect or an empty
+# shell. The landing page is the only public surface.
+User-agent: *
+Disallow: /app
+Disallow: /signin
+Disallow: /reset
+Disallow: /verify
+Allow: /

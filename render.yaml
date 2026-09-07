@@ -13,6 +13,12 @@ services:
     name: real-sessions
     runtime: docker
     dockerfilePath: ./Dockerfile
+    # Baked into index.html at build time for the link-preview tags, which are
+    # scraped without running JavaScript. Set it to the same origin as
+    # REALSESSIONS_SITE_URL below — that one is read at runtime and builds the
+    # emailed links, this one only shapes what a shared link looks like.
+    dockerBuildArgs:
+      VITE_SITE_URL: https://mockio.app
     # All three services share a region so Postgres and Redis are reachable on
     # the private network rather than over the internet. Virginia is the
     # closest Render region to Latin America.

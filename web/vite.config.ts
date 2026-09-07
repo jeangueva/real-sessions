@@ -5,8 +5,22 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * The canonical origin, for the link-preview tags in index.html.
+ *
+ * Vite substitutes `%VITE_SITE_URL%` only when the variable is set, and leaves
+ * the literal placeholder in the HTML when it is not — which ships an `og:url`
+ * of "%VITE_SITE_URL%/" rather than no tag at all. A default here means a
+ * build without the variable is merely pointing at the wrong host instead of
+ * emitting something malformed. Render passes the real value as a build arg.
+ */
+const SITE_URL = process.env.VITE_SITE_URL ?? "https://mockio.app";
+
 export default defineConfig({
   plugins: [react()],
+  // `define` does not reach index.html, so the placeholder is filled here.
+  envPrefix: "VITE_",
+  define: { "import.meta.env.VITE_SITE_URL": JSON.stringify(SITE_URL) },
   resolve: { alias: { "@": path.resolve(here, "src") } },
   test: {
     /**

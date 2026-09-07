@@ -2077,7 +2077,54 @@ attachVoiceGateway(server, {
   },
 });
 
+/**
+ * The one misconfiguration that fails silently and expensively.
+ *
+ * `REALSESSIONS_SITE_URL` builds every confirmation link, every password
+ * reset, and Mercado Pago's return URL. Unset, it falls back to localhost —
+ * so a production deploy keeps working in every visible way while sending
+ * people links that only resolve on the machine that sent them. Nothing
+ * errors, nobody can confirm an address, and the first sign is a support
+ * message days later.
+ *
+ * Checked at boot rather than at send time so it is loud once, on deploy,
+ * instead of quiet on every email.
+ */
+function warnAboutSiteUrl(): void {
+  if (process.env.NODE_ENV !== "production") return;
+  const site = process.env.REALSESSIONS_SITE_URL;
+  if (!site) {
+    console.warn(
+      "[mockio] REALSESSIONS_SITE_URL is unset in production. " +
+        "Confirmation and password-reset links will point at localhost and " +
+        "will not work for anyone.",
+    );
+    return;
+  }
+  try {
+    const { protocol, hostname } = new URL(site);
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      console.warn(
+        `[mockio] REALSESSIONS_SITE_URL is ${site} in production. ` +
+          "Emailed links will not resolve for anyone but this machine.",
+      );
+    } else if (protocol !== "https:") {
+      // The identity cookie is Secure in production, so a plain-http origin
+      // cannot hold a session at all.
+      console.warn(
+        `[mockio] REALSESSIONS_SITE_URL is ${site}. The session cookie is ` +
+          "Secure in production, so sign-in will not persist over http.",
+      );
+    }
+  } catch {
+    console.warn(
+      `[mockio] REALSESSIONS_SITE_URL is not a valid URL: ${site}`,
+    );
+  }
+}
+
 server.listen(PORT, () => {
+  warnAboutSiteUrl();
   console.log(
     `Mockio API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +

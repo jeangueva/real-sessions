@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { fetchPlan, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
+import { Wordmark } from "@/design-system";
 
 /**
  * The signed-in shell. It sits on `surface-deep` rather than pure black so the
@@ -61,9 +62,7 @@ export function AppShell() {
       <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col items-center gap-2 border-r border-line py-6 md:flex lg:w-56 lg:items-stretch lg:px-4">
         <div className="mb-6 flex items-center gap-2 px-2">
           <Mic className="h-5 w-5 text-cream" aria-hidden />
-          <span className="hidden text-sm font-bold text-cream-bright lg:inline">
-            Mockio
-          </span>
+          <Wordmark className="hidden text-base font-semibold text-cream-bright lg:inline" />
         </div>
 
         <nav className="flex flex-col gap-1">
