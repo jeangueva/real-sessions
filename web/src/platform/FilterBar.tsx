@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
-import { Check } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 
 /**
  * The setup form as one bar of selectors.
@@ -161,12 +161,21 @@ export function FilterSegment({
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
+        {...(disabled && disabledReason ? { title: disabledReason } : {})}
         onClick={() => setOpen((current) => !current)}
         className={`focus-ring flex w-full flex-col gap-0.5 px-4 py-3 text-left transition-colors first:rounded-t-3xl last:rounded-b-3xl sm:first:rounded-l-3xl sm:first:rounded-tr-none sm:last:rounded-r-3xl sm:last:rounded-bl-none ${
           open ? "bg-cream/10" : "hover:bg-cream/5"
         }`}
       >
-        <span className="text-xs text-cream-faint">{label}</span>
+        <span className="flex items-center gap-1.5 text-xs text-cream-faint">
+          {/* A greyed value reads as "nothing chosen" as easily as "you cannot
+              choose". The lock is what separates the two, and it sits on the
+              label rather than the value because that is the part naming the
+              thing being withheld. Decorative: the reason is already on the
+              trigger's title and in the panel it opens. */}
+          {disabled && <Lock className="h-3 w-3 shrink-0" aria-hidden />}
+          {label}
+        </span>
         <span
           className={`truncate text-sm ${disabled ? "text-cream-faint" : "text-cream-bright"}`}
         >
