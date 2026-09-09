@@ -20,7 +20,8 @@ export type Locale =
   | "fr"
   | "it"
   | "de"
-  | "ru";
+  | "ru"
+  | "zh";
 
 /**
  * Every language is named in itself, never in English.
@@ -36,6 +37,7 @@ export const LOCALES: { id: Locale; label: string; rtl?: true }[] = [
   { id: "it", label: "Italiano" },
   { id: "de", label: "Deutsch" },
   { id: "ru", label: "Русский" },
+  { id: "zh", label: "中文" },
 ];
 
 const IDS = new Set<string>(LOCALES.map((entry) => entry.id));
@@ -562,6 +564,7 @@ const LOADERS: Record<
   it: () => import("./locales/it"),
   de: () => import("./locales/de"),
   ru: () => import("./locales/ru"),
+  zh: () => import("./locales/zh"),
 };
 
 /** What has arrived so far. English is there from the start. */
