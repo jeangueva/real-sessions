@@ -96,11 +96,13 @@ describe("localeFromNavigator", () => {
   });
 
   it("takes the first language it speaks, not the first listed", () => {
-    expect(localeFromNavigator(["de-DE", "pt-BR", "en"])).toBe("pt");
+    // Written with German once, which then became a language we do speak.
+    // Swedish is the point: any tag we have no dictionary for is skipped.
+    expect(localeFromNavigator(["sv-SE", "pt-BR", "en"])).toBe("pt");
   });
 
   it("falls back to English rather than a half-translated screen", () => {
-    expect(localeFromNavigator(["ja-JP"])).toBe("en");
+    expect(localeFromNavigator(["sv-SE"])).toBe("en");
     expect(localeFromNavigator([])).toBe("en");
   });
 });
