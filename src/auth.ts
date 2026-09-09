@@ -39,7 +39,7 @@ const SECRET = (() => {
     );
   }
   console.warn(
-    "[realsessions] REALSESSIONS_SESSION_SECRET unset — using an ephemeral dev secret. " +
+    "[mockio] REALSESSIONS_SESSION_SECRET unset — using an ephemeral dev secret. " +
       "Tokens will not survive a restart.",
   );
   return randomBytes(32).toString("hex");

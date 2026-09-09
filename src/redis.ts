@@ -31,7 +31,7 @@ export async function getRedis(): Promise<RedisClientType | null> {
       );
     }
     console.warn(
-      "[realsessions] REDIS_URL unset — sessions and rate limits are per-process " +
+      "[mockio] REDIS_URL unset — sessions and rate limits are per-process " +
         "and will not survive a restart.",
     );
     return null;
@@ -39,14 +39,14 @@ export async function getRedis(): Promise<RedisClientType | null> {
 
   const candidate: RedisClientType = createClient({ url });
   // Without a listener, a later connection drop crashes the process.
-  candidate.on("error", (error) => console.error("[realsessions] redis:", error));
+  candidate.on("error", (error) => console.error("[mockio] redis:", error));
 
   try {
     await candidate.connect();
   } catch (error) {
     if (production) throw error;
     console.warn(
-      `[realsessions] Redis unreachable at ${url} — using per-process state for local dev. ` +
+      `[mockio] Redis unreachable at ${url} — using per-process state for local dev. ` +
         `Cause: ${error instanceof Error ? error.message : String(error)}`,
     );
     return null;

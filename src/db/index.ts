@@ -39,7 +39,7 @@ export async function getDb(): Promise<DbPool | null> {
       );
     }
     console.warn(
-      "[realsessions] DATABASE_URL unset — transcripts, metrics and progress are " +
+      "[mockio] DATABASE_URL unset — transcripts, metrics and progress are " +
         "per-process and will not survive a restart.",
     );
     return null;
@@ -53,7 +53,7 @@ export async function getDb(): Promise<DbPool | null> {
     max: 10,
   });
   // Without a listener an idle-client error takes the process down.
-  candidate.on("error", (error) => console.error("[realsessions] postgres:", error));
+  candidate.on("error", (error) => console.error("[mockio] postgres:", error));
 
   try {
     await candidate.query("SELECT 1");
@@ -62,7 +62,7 @@ export async function getDb(): Promise<DbPool | null> {
     await candidate.end().catch(() => undefined);
     if (production) throw error;
     console.warn(
-      `[realsessions] Postgres unreachable at ${redact(url)} — using per-process ` +
+      `[mockio] Postgres unreachable at ${redact(url)} — using per-process ` +
         `progress for local dev. Cause: ${
           error instanceof Error ? error.message : String(error)
         }`,

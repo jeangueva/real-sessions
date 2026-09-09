@@ -123,7 +123,7 @@ class RedisRateLimiter implements RateLimiter {
       // Redis being down must not take the API down with it. Failing open
       // risks cost; failing closed locks every user out of a working product.
       // Open is the lesser harm, and it is logged rather than silent.
-      console.error("[realsessions] rate limiter unavailable, allowing:", error);
+      console.error("[mockio] rate limiter unavailable, allowing:", error);
       return {
         allowed: true,
         remaining: 0,

@@ -175,14 +175,14 @@ export function attachVoiceGateway(server: Server, deps: GatewayDeps): WebSocket
           ).searchParams.get("language") ?? undefined,
         onTranscript: (transcript) => say({ type: "transcript", ...transcript }),
         onError: (message) => {
-          console.error("[realsessions] deepgram:", message);
+          console.error("[mockio] deepgram:", message);
           say({ type: "error", message: "Live transcription dropped." });
           shutdown(CLOSE.UPSTREAM, "Upstream error.");
         },
         onClose: () => shutdown(),
       });
     } catch (error) {
-      console.error("[realsessions] deepgram open failed:", error);
+      console.error("[mockio] deepgram open failed:", error);
       shutdown(CLOSE.UPSTREAM, "Could not reach the transcription service.");
       return;
     }

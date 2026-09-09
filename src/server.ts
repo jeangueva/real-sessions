@@ -654,7 +654,7 @@ async function recordQuietly(work: Promise<unknown>): Promise<void> {
   try {
     await work;
   } catch (error) {
-    console.error("[realsessions] progress write failed:", error);
+    console.error("[mockio] progress write failed:", error);
   }
 }
 
@@ -672,7 +672,7 @@ async function readQuietly<T>(work: Promise<T>, fallback: T): Promise<T> {
   try {
     return await work;
   } catch (error) {
-    console.error("[realsessions] progress read failed:", error);
+    console.error("[mockio] progress read failed:", error);
     return fallback;
   }
 }
@@ -733,7 +733,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       await MAILER.send(message);
     } catch (error) {
-      console.error("[realsessions] email delivery failed:", error);
+      console.error("[mockio] email delivery failed:", error);
     }
   };
 
@@ -787,7 +787,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // together, so it is where the grant is claimed.
     const granted = await PLANS.redeemEarlyAccess(account.email, account.id).catch(
       (error: unknown) => {
-        console.error("[realsessions] early-access redemption failed:", error);
+        console.error("[mockio] early-access redemption failed:", error);
         return false;
       },
     );
@@ -977,7 +977,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     });
 
     if (!check.ok) {
-      console.warn(`[realsessions] rejected billing webhook: ${check.reason}`);
+      console.warn(`[mockio] rejected billing webhook: ${check.reason}`);
       // 401 rather than 400: this is an authentication failure, and Mercado
       // Pago retries on 5xx but not on this, which is what we want for a forgery.
       return json(res, 401, { error: "Invalid signature." });
@@ -987,7 +987,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       await reconcileSubscription(externalId);
     } catch (error) {
-      console.error("[realsessions] billing reconcile failed:", error);
+      console.error("[mockio] billing reconcile failed:", error);
       // 500 so Mercado Pago retries. Swallowing it would silently strand a
       // paying customer on the free plan.
       return json(res, 500, { error: "Could not reconcile." });
@@ -1129,7 +1129,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       try {
         await cancelPreapproval(subscription.externalId);
       } catch (error) {
-        console.error("[realsessions] cancel before delete failed:", error);
+        console.error("[mockio] cancel before delete failed:", error);
         return json(res, 502, {
           error:
             "We could not cancel your subscription, so nothing was deleted. " +
@@ -1172,7 +1172,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // should still serve interviews, it just must not take anyone's money.
     const blocked = checkoutBlockReason();
     if (blocked) {
-      console.error("[realsessions] checkout refused:", blocked);
+      console.error("[mockio] checkout refused:", blocked);
       return json(res, 503, { error: blocked });
     }
     if (plan === "premium") {
@@ -1273,7 +1273,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     } catch (error) {
       // 502 whatever went wrong: from the client's side a bad key, a timeout
       // and a provider outage all mean the same thing — use the browser voice.
-      console.error("[realsessions] speak failed:", error);
+      console.error("[mockio] speak failed:", error);
       // The provider's own message can carry account detail, so it is logged
       // and not returned.
       json(res, 502, { error: "Could not synthesize speech." });
@@ -2005,7 +2005,7 @@ export const server = createServer((req, res) => {
         });
         res.end();
       }
-      console.error("[realsessions] mid-stream:", error);
+      console.error("[mockio] mid-stream:", error);
       return;
     }
     // Typed failures carry a useful message; anything else could contain
@@ -2024,7 +2024,7 @@ export const server = createServer((req, res) => {
     if (/Missing or empty field|too large|empty|already/i.test(message)) {
       return json(res, 400, { error: message });
     }
-    console.error("[realsessions]", error);
+    console.error("[mockio]", error);
     json(res, 500, { error: "Internal error." });
   });
 });

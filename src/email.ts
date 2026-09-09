@@ -90,7 +90,7 @@ class ConsoleEmailSender implements EmailSender {
   readonly kind = "console";
   async send(message: EmailMessage): Promise<void> {
     console.log(
-      `\n[realsessions] email not sent — no provider configured.\n` +
+      `\n[mockio] email not sent — no provider configured.\n` +
         `  to:      ${message.to}\n` +
         `  subject: ${message.subject}\n` +
         `  ${message.text.split("\n").join("\n  ")}\n`,
@@ -116,7 +116,7 @@ export function createEmailSender(): EmailSender {
     // Half-configured is a likelier deployment mistake than deliberately
     // running without email, so it gets its own warning.
     console.warn(
-      "[realsessions] Email provider half-configured — both RESEND_API_KEY and " +
+      "[mockio] Email provider half-configured — both RESEND_API_KEY and " +
         "EMAIL_FROM are required. Falling back to console output.",
     );
   }

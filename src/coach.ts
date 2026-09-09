@@ -66,7 +66,7 @@ export async function coachTurn(
     return CoachFeedbackSchema.parse(response.value).tips;
   } catch (error) {
     // Logged, not surfaced. The candidate is mid-interview.
-    console.error("[realsessions] coach:", error);
+    console.error("[mockio] coach:", error);
     return [];
   }
 }
