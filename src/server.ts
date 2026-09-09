@@ -168,6 +168,7 @@ import {
   grantsAccess,
   mercadoPagoConfigured,
   planConfig,
+  readAmount,
   verifySignature,
 } from "./billing/mercadopago.js";
 import {
@@ -2123,8 +2124,59 @@ function warnAboutSiteUrl(): void {
   }
 }
 
+/**
+ * Says which parts of the payment configuration arrived, at boot.
+ *
+ * Every one of these failures presents identically: the API answers
+ * `configured: false`, the upgrade button does not render, and nothing
+ * anywhere says why. Finding out which of four variables was wrong took a
+ * long back-and-forth of guessing, so the process now reports it once, on
+ * start, where the operator is already looking after changing them.
+ *
+ * Names the amount and the currency because they are printed on the pricing
+ * page anyway. Never prints the access token or the webhook secret — only
+ * whether each is present, which is the part that is actually in question.
+ */
+function reportBillingConfig(): void {
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim();
+  const rawAmount = process.env.MERCADOPAGO_AMOUNT;
+  const currency = process.env.MERCADOPAGO_CURRENCY?.trim();
+  const amount = readAmount(rawAmount);
+  const plan = planConfig();
+
+  if (!token && !rawAmount && !currency) {
+    console.log("[mockio] Mercado Pago: not configured. Payments are off.");
+    return;
+  }
+
+  const parts = [
+    `token ${token ? "set" : "MISSING"}`,
+    `webhook secret ${secret ? "set" : "MISSING"}`,
+    // The raw value is echoed only when it failed to parse, so the operator
+    // can see what the process actually received — trailing spaces and
+    // smart quotes are invisible in a dashboard field.
+    amount === null
+      ? `amount UNREADABLE (received ${JSON.stringify(rawAmount ?? null)})`
+      : `amount ${amount}`,
+    currency ? `currency ${currency}` : "currency MISSING",
+  ];
+  console.log(`[mockio] Mercado Pago: ${parts.join(", ")}.`);
+
+  if (plan === null) {
+    console.warn(
+      "[mockio] Mercado Pago has no usable plan, so the upgrade button will " +
+        "not appear. Both MERCADOPAGO_AMOUNT and MERCADOPAGO_CURRENCY must be set.",
+    );
+    return;
+  }
+  const blocked = checkoutBlockReason();
+  if (blocked) console.warn(`[mockio] ${blocked}`);
+}
+
 server.listen(PORT, () => {
   warnAboutSiteUrl();
+  reportBillingConfig();
   console.log(
     `Mockio API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +
