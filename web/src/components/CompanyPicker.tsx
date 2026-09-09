@@ -1,19 +1,28 @@
-import { useState } from "react";
-import { Section, Eyebrow, FadeRise } from "@/design-system";
+import { Section, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
 /**
- * Kollektiva's portrait picker, repurposed. There it introduced a team; here
- * it answers the question a candidate actually has — "who am I about to talk
- * to, and what do they care about?" The interaction is identical: pick a
- * target, the copy crossfades. Portraits are replaced by company marks,
- * rendered from tokens rather than pulled from someone else's CDN.
+ * What changes when you pick a different employer.
+ *
+ * This was an interactive picker: four circles showing a single initial, a
+ * headline on the left, and the selected company's description floating on the
+ * right with a name and a culture line in a strip below. Reading it required
+ * noticing the circles were pressable, pressing one, and then looking in two
+ * separate places to see what had changed — and "A" was both Amazon and
+ * Airbnb, so the circles could not even say which was which.
+ *
+ * It is now four cards with everything visible at once. Nothing to discover,
+ * nothing hidden behind a state, and each card answers the only question the
+ * section exists to answer: what is this interview like. A landing page is
+ * read, not operated, and the interaction was never selecting anything anyway.
  */
+
 interface Company {
   name: string;
   culture: MessageKey;
   description: MessageKey;
+  /** The brand hue, as the one bit of colour on an otherwise quiet card. */
   tint: string;
 }
 
@@ -46,65 +55,49 @@ const COMPANIES: Company[] = [
 
 export function CompanyPicker() {
   const t = useT();
-  const [active, setActive] = useState(0);
-  const company = COMPANIES[active]!;
 
   return (
     <Section id="companies" className="bg-surface-base">
       <Eyebrow>{t("land.pickerEyebrow")}</Eyebrow>
 
-      <FadeRise className="mt-6 flex flex-col gap-10 md:flex-row md:items-start md:justify-between md:gap-16">
-        <h2 className="max-w-xl text-headline font-normal text-cream-bright">
+      <FadeRise className="mt-4 flex max-w-2xl flex-col gap-3">
+        <h2 className="text-headline font-normal text-cream-bright">
           {t("land.pickerTitle")}
         </h2>
-
-        <p
-          /* Remount so the copy crossfades instead of swapping abruptly. */
-          key={company.name}
-          className="max-w-xs animate-fade-in text-sm font-medium leading-relaxed text-cream-dim md:pt-2"
-        >
-          {t(company.description)}
-        </p>
+        <p className="text-sm text-cream-dim sm:text-base">{t("land.pickerSub")}</p>
       </FadeRise>
 
-      <div className="mt-14 flex items-end gap-3 overflow-x-auto pb-1 [scrollbar-width:none] sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden">
-        {COMPANIES.map((item, index) => (
-          <FadeRise key={item.name} delay={0.06 * index}>
-          <button
-            onClick={() => setActive(index)}
-            aria-label={t("land.pickerPractiseFor", { company: item.name })}
-            aria-pressed={index === active}
-            className="focus-ring flex shrink-0 flex-col items-center gap-2 rounded-lg"
-          >
-            <span
-              aria-hidden
-              className={`h-1 w-1 rounded-full bg-cream transition-opacity duration-300 ${
-                index === active ? "opacity-100" : "opacity-0"
-              }`}
-            />
-            <span
-              className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold text-cream-bright ring-1 ring-line transition-transform duration-300 ease-cinematic hover:scale-105 sm:h-16 sm:w-16"
-              style={{
-                background: `radial-gradient(70% 70% at 30% 25%, ${item.tint} 0%, rgb(var(--surface-base)) 70%)`,
-              }}
-            >
-              {item.name.charAt(0)}
-            </span>
-          </button>
+      <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {COMPANIES.map((company, index) => (
+          <FadeRise key={company.name} delay={0.06 * index} className="h-full">
+            <Panel className="flex h-full flex-col gap-4 p-6">
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden
+                  /* The mark carries the brand hue and nothing else — no
+                     initial, because two of these four start with an A. */
+                  className="h-8 w-8 shrink-0 rounded-full ring-1 ring-line"
+                  style={{
+                    background: `radial-gradient(70% 70% at 30% 25%, ${company.tint} 0%, rgb(var(--surface-base)) 75%)`,
+                  }}
+                />
+                <p className="text-sm font-bold text-cream-bright">{company.name}</p>
+              </div>
+
+              <p className="text-xs uppercase tracking-[0.1em] text-cream-faint">
+                {t(company.culture)}
+              </p>
+
+              <p className="text-sm leading-relaxed text-cream-dim">
+                {t(company.description)}
+              </p>
+            </Panel>
           </FadeRise>
         ))}
       </div>
 
-      <FadeRise delay={0.3} className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 text-sm font-medium">
-        <span key={company.name} className="animate-fade-in text-cream-bright">
-          {company.name}
-        </span>
-        <span className="hidden text-cream-dim sm:inline">
-          {t(company.culture)}
-        </span>
-        <span className="hidden text-cream-dim md:inline">
-          {t("land.pickerStages")}
-        </span>
+      <FadeRise delay={0.32}>
+        <p className="mt-6 text-xs text-cream-faint">{t("land.pickerStages")}</p>
       </FadeRise>
     </Section>
   );

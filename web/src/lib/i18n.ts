@@ -377,8 +377,8 @@ const EN = {
   "land.previewTurn": "Turn {turn} of {total}",
   "land.previewNext": "Next turn",
 
-  "land.pickerEyebrow": "Choose your interviewer",
-  "land.pickerTitle": "Every company interviews differently. Practise against yours.",
+  "land.pickerEyebrow": "Companies",
+  "land.pickerTitle": "Every company interviews differently.",
   "land.pickerPractiseFor": "Practice for {company}",
   "land.pickerStages": "Behavioral · System design · Technical deep dive",
   "land.stripeCulture": "Craft · user obsession · written communication",
@@ -491,6 +491,7 @@ const EN = {
   "setup.noneLeftBody": "They renew on the 1st. The paid plan is not metered — and it targets a real employer, reads your CV, and coaches you while you speak.",
   "auth.acceptPre": "By creating an account you accept the",
   "auth.acceptAnd": "and the",
+  "land.pickerSub": "Pick the one you are applying to and the interviewer changes with it — what it pushes on, and what an answer has to contain to satisfy it.",
 
   "settings.tour": "Guided tour",
   "settings.tourHint": "The walkthrough shown the first time you open a session.",
@@ -859,8 +860,8 @@ const ES: Record<MessageKey, string> = {
   "land.previewTurn": "Turno {turn} de {total}",
   "land.previewNext": "Siguiente turno",
 
-  "land.pickerEyebrow": "Elegí tu entrevistador",
-  "land.pickerTitle": "Cada empresa entrevista distinto. Practicá contra la tuya.",
+  "land.pickerEyebrow": "Empresas",
+  "land.pickerTitle": "Cada empresa entrevista distinto.",
   "land.pickerPractiseFor": "Practicar para {company}",
   "land.pickerStages": "Behavioral · System design · Technical deep dive",
   "land.stripeCulture": "Oficio · obsesión por el usuario · comunicación escrita",
@@ -973,6 +974,7 @@ const ES: Record<MessageKey, string> = {
   "setup.noneLeftBody": "Se renuevan el día 1. El plan pago no tiene tope, apunta a una empresa real, lee tu CV y te acompaña mientras hablás.",
   "auth.acceptPre": "Al crear una cuenta aceptás los",
   "auth.acceptAnd": "y la",
+  "land.pickerSub": "Elegí aquella a la que te postulás y el entrevistador cambia con ella: en qué aprieta, y qué tiene que tener una respuesta para conformarlo.",
 
   "settings.tour": "Tour guiado",
   "settings.tourHint": "El recorrido que se muestra la primera vez que abrís una sesión.",
@@ -1333,8 +1335,8 @@ const PT: Record<MessageKey, string> = {
   "land.previewTurn": "Turno {turn} de {total}",
   "land.previewNext": "Próximo turno",
 
-  "land.pickerEyebrow": "Escolha seu entrevistador",
-  "land.pickerTitle": "Cada empresa entrevista de um jeito. Pratique contra a sua.",
+  "land.pickerEyebrow": "Empresas",
+  "land.pickerTitle": "Cada empresa entrevista de um jeito.",
   "land.pickerPractiseFor": "Praticar para {company}",
   "land.pickerStages": "Behavioral · System design · Technical deep dive",
   "land.stripeCulture": "Ofício · obsessão pelo usuário · comunicação escrita",
@@ -1447,6 +1449,7 @@ const PT: Record<MessageKey, string> = {
   "setup.noneLeftBody": "Elas renovam no dia 1º. O plano pago não tem limite, mira uma empresa real, lê seu CV e te acompanha enquanto você fala.",
   "auth.acceptPre": "Ao criar uma conta você aceita os",
   "auth.acceptAnd": "e a",
+  "land.pickerSub": "Escolha aquela para a qual você se candidata e o entrevistador muda junto: no que ele aperta, e o que uma resposta precisa ter para satisfazê-lo.",
 
   "settings.tour": "Tour guiado",
   "settings.tourHint": "O passo a passo mostrado na primeira vez que você abre uma sessão.",
