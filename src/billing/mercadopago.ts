@@ -113,10 +113,31 @@ export interface PlanConfig {
  * than in São Paulo. The values are read rather than assumed, and the server
  * refuses to build a checkout without them rather than inventing a price.
  */
+/**
+ * Reads a price out of an environment variable.
+ *
+ * Accepts a decimal comma, because this product sells in Peru and "29,90" is
+ * how a price is written there. `Number("29,90")` is `NaN`, so the operator
+ * set a correct-looking price and the checkout silently reported itself
+ * unconfigured — no error anywhere, just a missing upgrade button.
+ *
+ * Only the unambiguous case converts: one comma, one or two digits after it,
+ * nothing else. "1,000" is left alone and rejected rather than guessed at,
+ * because it means one thousand in some places and one in others, and a
+ * billing amount is the last place to resolve that by preference.
+ */
+export function readAmount(raw: string | undefined): number | null {
+  const text = (raw ?? "").trim();
+  if (text === "") return null;
+  const normalised = /^\d+,\d{1,2}$/.test(text) ? text.replace(",", ".") : text;
+  const amount = Number(normalised);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
 export function planConfig(): PlanConfig | null {
-  const amount = Number(process.env.MERCADOPAGO_AMOUNT);
-  const currency = process.env.MERCADOPAGO_CURRENCY;
-  if (!Number.isFinite(amount) || amount <= 0 || !currency) return null;
+  const amount = readAmount(process.env.MERCADOPAGO_AMOUNT);
+  const currency = process.env.MERCADOPAGO_CURRENCY?.trim();
+  if (amount === null || !currency) return null;
   return { amount, currency };
 }
 

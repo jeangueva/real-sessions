@@ -379,7 +379,6 @@ const EN = {
 
   "land.pickerEyebrow": "Companies",
   "land.pickerTitle": "Every company interviews differently.",
-  "land.pickerPractiseFor": "Practice for {company}",
   "land.pickerStages": "Behavioral · System design · Technical deep dive",
   "land.stripeCulture": "Craft · user obsession · written communication",
   "land.stripeBlurb": "Pushes on written clarity. Every tradeoff needs a number.",
@@ -862,7 +861,6 @@ const ES: Record<MessageKey, string> = {
 
   "land.pickerEyebrow": "Empresas",
   "land.pickerTitle": "Cada empresa entrevista distinto.",
-  "land.pickerPractiseFor": "Practicar para {company}",
   "land.pickerStages": "Behavioral · System design · Technical deep dive",
   "land.stripeCulture": "Oficio · obsesión por el usuario · comunicación escrita",
   "land.stripeBlurb": "Aprieta en la claridad escrita. Cada tradeoff necesita un número.",
@@ -1337,7 +1335,6 @@ const PT: Record<MessageKey, string> = {
 
   "land.pickerEyebrow": "Empresas",
   "land.pickerTitle": "Cada empresa entrevista de um jeito.",
-  "land.pickerPractiseFor": "Praticar para {company}",
   "land.pickerStages": "Behavioral · System design · Technical deep dive",
   "land.stripeCulture": "Ofício · obsessão pelo usuário · comunicação escrita",
   "land.stripeBlurb": "Aperta na clareza escrita. Cada tradeoff precisa de um número.",
