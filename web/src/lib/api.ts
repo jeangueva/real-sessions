@@ -636,7 +636,24 @@ export interface BillingState {
   /** False when this deployment has no payment provider wired up. */
   configured: boolean;
   plan: { amount: number; currency: string } | null;
+  /**
+   * Mercado Pago's browser key, for the on-site card form.
+   *
+   * Null when this deployment has not been given one, and the client falls
+   * back to the redirect checkout rather than showing a form that cannot
+   * tokenise anything.
+   */
+  publicKey: string | null;
   subscription: Subscription | null;
+}
+
+export function subscribeWithCard(cardTokenId: string) {
+  return withIdentity(() =>
+    request<{ status: string }>("/api/billing/subscribe", {
+      method: "POST",
+      body: JSON.stringify({ cardTokenId }),
+    }),
+  );
 }
 
 export function fetchBilling() {

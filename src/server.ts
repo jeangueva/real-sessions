@@ -168,6 +168,8 @@ import {
   grantsAccess,
   mercadoPagoConfigured,
   planConfig,
+  createCardSubscription,
+  publicKey,
   readAmount,
   verifySignature,
 } from "./billing/mercadopago.js";
@@ -1079,6 +1081,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     json(res, 200, {
       configured,
       plan: planConfig(),
+      // Safe to serve: this key can tokenise a card and nothing else. Null
+      // when unset, and the client falls back to the redirect checkout.
+      publicKey: configured ? publicKey() : null,
       subscription: await SUBSCRIPTIONS.forOwner(identity.id),
     });
     return;
@@ -1156,6 +1161,88 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // deleting their account deserves to know what does.
       kept: "Questions you contributed stay, anonymised — they were never linked to you.",
     });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/billing/subscribe") {
+    if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
+
+    const config = planConfig();
+    if (!mercadoPagoConfigured() || !config) {
+      return json(res, 503, {
+        error: "Payments are not configured on this deployment yet.",
+      });
+    }
+    // The same guard the redirect flow answers to. Collecting the card on our
+    // own page makes it easier to forget there is real money behind it, not
+    // harder, so this is checked in exactly the same place.
+    const blockedCard = checkoutBlockReason();
+    if (blockedCard) {
+      console.error("[mockio] subscribe refused:", blockedCard);
+      return json(res, 503, { error: blockedCard });
+    }
+    if (plan === "premium") {
+      return json(res, 409, { error: "You are already on the paid plan." });
+    }
+
+    const subscriber =
+      identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
+    if (!subscriber) {
+      return json(res, 403, {
+        error: "Create an account first — a subscription has to outlive this browser.",
+      });
+    }
+
+    const body = await readJson(req);
+    const cardTokenId =
+      typeof body["cardTokenId"] === "string" ? body["cardTokenId"].trim() : "";
+    if (cardTokenId === "") {
+      return json(res, 400, { error: "cardTokenId is required." });
+    }
+
+    let opened;
+    try {
+      opened = await createCardSubscription({
+        externalReference: identity.id,
+        payerEmail: subscriber.email,
+        cardTokenId,
+        reason: "Mockio — monthly",
+        plan: config,
+      });
+    } catch (error) {
+      // A declined card arrives as a rejected request, and the candidate needs
+      // to hear that rather than a stack trace. The detail goes to the log.
+      console.error("[mockio] subscribe failed:", error);
+      return json(res, 402, {
+        error: "That card was declined. Try another one, or check with your bank.",
+      });
+    }
+
+    await SUBSCRIPTIONS.put({
+      ownerId: identity.id,
+      externalId: opened.id,
+      status: opened.status,
+      // Mercado Pago sends an ISO string; the store holds a Date. An
+      // unparseable one is dropped rather than stored as Invalid Date, the
+      // same way the webhook handles it.
+      periodEnd: (() => {
+        if (!opened.nextPaymentDate) return null;
+        const at = new Date(opened.nextPaymentDate);
+        return Number.isNaN(at.getTime()) ? null : at;
+      })(),
+    });
+
+    // Anything but authorized means Mercado Pago did not take the card, and
+    // saying "you are on the paid plan" here would be a lie the webhook would
+    // later have to contradict.
+    if (!grantsAccess(opened.status)) {
+      return json(res, 402, {
+        error: "Mercado Pago did not authorize that card.",
+        status: opened.status,
+      });
+    }
+
+    json(res, 201, { status: opened.status });
     return;
   }
 

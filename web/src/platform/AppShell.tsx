@@ -126,13 +126,18 @@ export function AppShell() {
               <p className="hidden px-3 text-xs text-cream-faint lg:block">
                 {t("nav.guest")}
               </p>
+              {/* A way out, not a way in. This used to be "Save my progress"
+                  linking to sign-up — a guest reading the bottom of a sidebar
+                  expects the exit there, and got a paywall-adjacent CTA
+                  instead. The sign-up prompt still exists in Settings, under
+                  Account, where someone goes to look for it. */}
               <Link
-                to="/signin"
-                title={t("nav.save")}
+                to="/"
+                title={t("nav.exit")}
                 className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
               >
-                <LogIn className="h-4 w-4 shrink-0" aria-hidden />
-                <span className="hidden lg:inline">{t("nav.save")}</span>
+                <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
+                <span className="hidden lg:inline">{t("nav.exit")}</span>
               </Link>
             </>
           )}

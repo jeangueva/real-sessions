@@ -248,6 +248,65 @@ function readPreapproval(raw: RawPreapproval): Preapproval {
 }
 
 /**
+ * The browser-side key that lets the card form tokenise a card.
+ *
+ * Public by design and safe to serve: it can create a single-use card token
+ * and nothing else. It is not the access token, which stays on the server and
+ * is what actually moves money.
+ */
+export function publicKey(): string | null {
+  return process.env.MERCADOPAGO_PUBLIC_KEY?.trim() || null;
+}
+
+/** Whether the on-site card form can run at all. */
+export function cardFormAvailable(): boolean {
+  return publicKey() !== null;
+}
+
+/**
+ * Opens a subscription from a card tokenised in the browser.
+ *
+ * The difference from the redirect flow is only where the card was typed. The
+ * card number never reaches this server either way: Mercado Pago's SDK sends
+ * it straight from the browser to Mercado Pago and hands back a single-use
+ * token, which is all that arrives here.
+ *
+ * Asks for `authorized` rather than `pending`, because there is nowhere left
+ * to send the payer — the card is already approved or it is not. Mercado Pago
+ * still decides; a returned status that is not `authorized` means the card was
+ * declined, and the caller has to say so rather than granting the plan.
+ */
+export async function createCardSubscription(input: {
+  externalReference: string;
+  payerEmail: string;
+  cardTokenId: string;
+  reason: string;
+  plan: PlanConfig;
+}): Promise<Preapproval> {
+  const raw = await call<RawPreapproval>("/preapproval", {
+    method: "POST",
+    body: JSON.stringify({
+      reason: input.reason,
+      external_reference: input.externalReference,
+      payer_email: input.payerEmail,
+      card_token_id: input.cardTokenId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        transaction_amount: input.plan.amount,
+        currency_id: input.plan.currency,
+      },
+      status: "authorized",
+    }),
+  });
+
+  if (!raw.id) {
+    throw new Error("Mercado Pago returned a subscription with no id.");
+  }
+  return readPreapproval(raw);
+}
+
+/**
  * Opens a subscription and returns where to send the payer.
  *
  * `externalReference` is our identity. It comes back on every notification,

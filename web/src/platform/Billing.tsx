@@ -10,7 +10,8 @@ import {
 } from "@/lib/api";
 import type { BillingState, Plan } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
+import { CardForm } from "./CardForm";
 import type { MessageKey } from "@/lib/i18n";
 
 const STATUS_COPY: Record<string, MessageKey> = {
@@ -33,9 +34,12 @@ const STATUS_COPY: Record<string, MessageKey> = {
  */
 export function Billing() {
   const t = useT();
+  const { locale } = useLocale();
   const [state, setState] = useState<BillingState | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [busy, setBusy] = useState(false);
+  /** Opens the on-site card form. Only reachable when a public key exists. */
+  const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
@@ -107,7 +111,22 @@ export function Billing() {
       )}
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        {!active && state.configured && (
+        {/* With a public key the card is taken here; without one the payer is
+            sent to Mercado Pago's own page. Both end in the same subscription,
+            and the redirect stays because a deployment that has not been given
+            a public key must still be able to sell. */}
+        {!active && state.configured && state.publicKey && !paying && (
+          <Action withArrow onClick={() => setPaying(true)} disabled={busy}>
+            {state.plan
+              ? t("billing.upgradeAmount", {
+                  amount: state.plan.amount,
+                  currency: state.plan.currency,
+                })
+              : t("billing.upgrade")}
+          </Action>
+        )}
+
+        {!active && state.configured && !state.publicKey && (
           <Action withArrow onClick={() => void upgrade()} disabled={busy}>
             {busy
               ? t("billing.opening")
@@ -143,6 +162,21 @@ export function Billing() {
           </button>
         )}
       </div>
+
+      {paying && state.publicKey && state.plan && (
+        <div className="mt-6 border-t border-line pt-6">
+          <CardForm
+            publicKey={state.publicKey}
+            amount={state.plan.amount}
+            currency={state.plan.currency}
+            locale={locale === "pt" ? "pt-BR" : locale === "es" ? "es-PE" : "en-US"}
+            onSubscribed={() => {
+              setPaying(false);
+              load();
+            }}
+          />
+        </div>
+      )}
 
       {subscription?.status === "cancelled" && subscription.periodEnd && (
         <p className="mt-4 border-t border-line pt-4 text-xs text-cream-faint">
