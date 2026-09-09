@@ -19,18 +19,26 @@ import {
 import type {
   CatalogueCompany,
   Level,
+  Role,
   Preferences,
   Sector,
   Session,
 } from "@/lib/api";
 
-const ROLES = [
+/**
+ * Shown until the catalogue arrives, so a select is never empty.
+ *
+ * These are fallbacks, not the list. This screen used to hard-code four roles
+ * while the server offered six, which made Frontend Engineer and Engineering
+ * Manager unreachable from here — the same bug the setup screen already fixed
+ * by reading the catalogue, and the reason both now do.
+ */
+const FALLBACK_ROLES = [
   "Senior Product Designer",
   "Backend Engineer",
   "Growth PM",
   "Data Analyst",
 ];
-/** Shown until the catalogue arrives, so the select is never empty. */
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Preferences, stored per identity and used to pre-fill a new session. */
@@ -46,6 +54,7 @@ export function Settings() {
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
 
   useEffect(() => {
     fetchCatalogue()
@@ -53,6 +62,7 @@ export function Settings() {
         setSectors(result.sectors);
         setCompanies(result.companies);
         setLevels(result.levels ?? []);
+        setRoles(result.roles ?? []);
       })
       .catch(() => undefined);
   }, []);
@@ -230,7 +240,10 @@ export function Settings() {
                   onChange={(event) => update({ defaultRole: event.target.value })}
                   className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
-                  {ROLES.map((role) => (
+                  {(roles.length > 0
+                    ? roles.map((entry) => entry.label)
+                    : FALLBACK_ROLES
+                  ).map((role) => (
                     <option key={role} value={role}>
                       {role}
                     </option>
