@@ -1,12 +1,30 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
-  DICTIONARIES,
   EN_MESSAGES,
   LOCALES,
+  dictionaryFor,
+  loadDictionary,
   localeFromNavigator,
   storedLocale,
   translate,
 } from "../src/lib/i18n";
+
+/**
+ * Dictionaries load on demand now, so the suite has to fetch them before it
+ * can compare them. Doing it once here is also the check that every locale
+ * the picker offers actually has a module behind it — a missing one would
+ * leave `dictionaryFor` null and fail every assertion below.
+ */
+let DICTIONARIES: Record<string, Record<string, string>>;
+
+beforeAll(async () => {
+  await Promise.all(LOCALES.map((entry) => loadDictionary(entry.id)));
+  // Populated here, not at module scope: nothing is loaded until the await
+  // above resolves, and a map built earlier would hold nulls.
+  DICTIONARIES = Object.fromEntries(
+    LOCALES.map((entry) => [entry.id, dictionaryFor(entry.id)!]),
+  ) as Record<string, Record<string, string>>;
+});
 
 /**
  * The interface language.

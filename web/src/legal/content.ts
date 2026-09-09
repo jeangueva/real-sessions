@@ -21,7 +21,23 @@
  * wrong law is worse than an obviously unfinished one.
  */
 
+/**
+ * The languages the terms and the privacy policy exist in.
+ *
+ * Deliberately fewer than the interface has. A legal document is a set of
+ * binding claims about who is responsible and what happens to someone's data,
+ * and a machine translation of one is eleven documents nobody has read making
+ * claims nobody has checked. The interface can afford a rough translation;
+ * this cannot.
+ *
+ * Everything else falls back to English, which is what `legalLocale` is for.
+ */
 export type Locale = "en" | "es" | "pt";
+
+/** Maps any interface language onto a language these documents exist in. */
+export function legalLocale(locale: string): Locale {
+  return locale === "es" || locale === "pt" ? locale : "en";
+}
 
 /**
  * The facts only the operator can supply.

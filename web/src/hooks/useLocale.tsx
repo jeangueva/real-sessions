@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
+  directionOf,
+  loadDictionary,
   readLocale,
   saveLocale,
   translate,
@@ -26,12 +28,35 @@ const LocaleContext = createContext<LocaleValue | null>(null);
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setStored] = useState<Locale>(() => readLocale());
+  /**
+   * Bumped when a dictionary finishes loading.
+   *
+   * Dictionaries are fetched rather than bundled, so the first render after a
+   * language change still has the old one — English on a first visit. Nothing
+   * in the returned value changes when the fetch resolves, so without this the
+   * screen would keep the previous language until some other state happened to
+   * re-render it.
+   */
+  const [loadedAt, setLoadedAt] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    void loadDictionary(locale).then(() => {
+      if (live) setLoadedAt((n) => n + 1);
+    });
+    return () => {
+      live = false;
+    };
+  }, [locale]);
 
   // Screen readers and the browser's own spellcheck read this, and it is what
   // tells Safari not to offer to translate a page that is already in the
   // reader's language.
   useEffect(() => {
     document.documentElement.lang = locale;
+    // Arabic and Hebrew read right to left. Setting it on the root is what
+    // flips the whole layout, including anything using logical properties.
+    document.documentElement.dir = directionOf(locale);
   }, [locale]);
 
   const setLocale = useCallback((next: Locale) => {
@@ -45,7 +70,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       setLocale,
       t: (key, values) => translate(locale, key, values),
     }),
-    [locale, setLocale],
+    // `loadedAt` is not read here, and that is the point: it changes identity
+    // so every consumer re-runs `t` against the dictionary that just arrived.
+    [locale, setLocale, loadedAt],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

@@ -7,6 +7,7 @@ import {
   privacyFor,
   termsFor,
   updatedLabel,
+  legalLocale,
   type LegalDocument,
 } from "./content";
 
@@ -32,7 +33,7 @@ function Body({ document: doc }: { document: LegalDocument }) {
         <h1 className="text-title font-normal text-cream-bright">{doc.title}</h1>
         <p className="text-sm leading-relaxed text-cream-dim">{doc.intro}</p>
         <p className="text-xs text-cream-faint">
-          {updatedLabel(locale)}: {doc.updated}
+          {updatedLabel(legalLocale(locale))}: {doc.updated}
         </p>
       </header>
 
@@ -84,7 +85,7 @@ function Shell({ document: doc }: { document: LegalDocument }) {
             role="alert"
             className="rounded-2xl border border-line-strong p-4 text-sm text-cream-bright"
           >
-            {draftNotice(locale)}
+            {draftNotice(legalLocale(locale))}
           </p>
         )}
 
@@ -92,10 +93,10 @@ function Shell({ document: doc }: { document: LegalDocument }) {
 
         <p className="border-t border-line pt-6 text-xs text-cream-faint">
           <Link
-            to={doc === privacyFor(locale) ? "/terms" : "/privacy"}
+            to={doc === privacyFor(legalLocale(locale)) ? "/terms" : "/privacy"}
             className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
           >
-            {doc === privacyFor(locale) ? termsFor(locale).title : privacyFor(locale).title}
+            {doc === privacyFor(legalLocale(locale)) ? termsFor(legalLocale(locale)).title : privacyFor(legalLocale(locale)).title}
           </Link>
         </p>
       </div>
@@ -105,10 +106,10 @@ function Shell({ document: doc }: { document: LegalDocument }) {
 
 export function Privacy() {
   const { locale } = useLocale();
-  return <Shell document={privacyFor(locale)} />;
+  return <Shell document={privacyFor(legalLocale(locale))} />;
 }
 
 export function Terms() {
   const { locale } = useLocale();
-  return <Shell document={termsFor(locale)} />;
+  return <Shell document={termsFor(legalLocale(locale))} />;
 }

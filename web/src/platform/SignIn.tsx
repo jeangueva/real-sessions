@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
-import { privacyFor, termsFor } from "@/legal/content";
+import { privacyFor, termsFor, legalLocale } from "@/legal/content";
 import { useLocale, useT } from "@/hooks/useLocale";
 
 /**
@@ -96,14 +96,14 @@ export function SignIn() {
           to="/terms"
           className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
         >
-          {termsFor(locale).title}
+          {termsFor(legalLocale(locale)).title}
         </Link>{" "}
         {t("auth.acceptAnd")}{" "}
         <Link
           to="/privacy"
           className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
         >
-          {privacyFor(locale).title}
+          {privacyFor(legalLocale(locale)).title}
         </Link>
         .
       </p>
