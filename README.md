@@ -203,7 +203,7 @@ itself needs a Deepgram account.
 
 ## The hero video
 
-The app serves its own `web/public/hero.mp4`, transcoded from a 19 MB, 16 Mbit/s
+The app serves its own `web/public/hero-2.mp4`, transcoded from a 19 MB, 16 Mbit/s
 master down to 1.9 MB. A background loop sits behind a scrim and is never the
 thing being read, so the bitrate a master was graded at buys nothing and costs
 ten times the weight of the rest of the page.
@@ -223,7 +223,7 @@ If you replace it, check what it weighs first. Transcoding is a one-liner:
 
 ```bash
 ffmpeg -i master.mp4 -an -c:v libx264 -crf 30 -preset slow \
-  -vf scale=1920:-2 -movflags +faststart web/public/hero.mp4
+  -vf scale=1920:-2 -movflags +faststart web/public/hero-2.mp4
 ```
 
 `-an` because it is muted anyway, and `+faststart` so playback begins before

@@ -5,7 +5,7 @@ import { useT } from "@/hooks/useLocale";
 /**
  * The showreel the reference decks all opened on.
  *
- * Served from this app rather than hotlinked: `public/hero.mp4`, transcoded
+ * Served from this app rather than hotlinked: `public/hero-2.mp4`, transcoded
  * from the original 16 Mbit/s master down to a tenth of its size. A background
  * loop sits behind a scrim and is never the thing being read, so the bitrate
  * that master was graded at buys nothing and costs 19 MB before anyone reaches
@@ -16,7 +16,7 @@ import { useT } from "@/hooks/useLocale";
  * field for `prefers-reduced-motion` and for a file that fails to load, so the
  * layout below never depends on the video being there.
  */
-const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero.mp4";
+const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
 export function Hero() {
   const t = useT();
   return (

@@ -109,7 +109,7 @@ const WEEK_SECONDS = 604800;
  * names the current fingerprints, so caching it means a deploy never reaches
  * anyone holding an old copy.
  *
- * Everything else is unfingerprinted but static: `hero.mp4` and `robots.txt`.
+ * Everything else is unfingerprinted but static: `hero-2.mp4` and `robots.txt`.
  * These used to fall in with `index.html` and be re-fetched every visit, which
  * for a two-megabyte video meant every visitor downloaded it again. A week is
  * the trade that buys: replacing the video means up to seven days of returning

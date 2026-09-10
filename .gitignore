@@ -17,5 +17,5 @@ dist
 *.tsbuildinfo
 
 # The original hero footage: 19 MB at 16 Mbit/s, kept locally as the master.
-# What ships is web/public/hero.mp4, transcoded from it at a tenth the size.
+# What ships is web/public/hero-2.mp4, transcoded from it at a tenth the size.
 assets/

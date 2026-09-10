@@ -219,7 +219,7 @@ describe("how long a response may be reused", () => {
   });
 
   it("gives unfingerprinted static files a week", () => {
-    expect(cacheControl("/hero.mp4", "/d/hero.mp4")).toBe("public, max-age=604800");
+    expect(cacheControl("/hero-2.mp4", "/d/hero-2.mp4")).toBe("public, max-age=604800");
     expect(cacheControl("/robots.txt", "/d/robots.txt")).toBe("public, max-age=604800");
   });
 });
