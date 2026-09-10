@@ -151,9 +151,24 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
         poster={poster}
         src={src}
         style={{ opacity: 0 }}
-        /* Shifted down so the top of the frame is cropped — the composition
-           worth seeing is in the lower portion, and the wordmark sits over it. */
-        className="absolute inset-0 h-full w-full translate-y-[17%] object-cover"
+        /**
+         * The lower portion of the frame is the composition worth seeing: the
+         * subject, the laptop, and the hands actually typing.
+         *
+         * `object-position` rather than the `translate-y-[17%]` this had
+         * before. A translate moves the element, not the picture inside it —
+         * so it pushed the box down out of the frame, clipping the bottom 97px
+         * of footage against the hero's overflow and leaving a dead band at
+         * the top where only the CSS field showed. It cropped away exactly the
+         * part the comment said it was there to reveal.
+         *
+         * `object-cover` scales 1920×1074 to the hero's width and spills about
+         * 208px of height; this keeps the bottom of that spill instead of
+         * splitting it evenly. Only vertical, and only on a wide viewport — on
+         * a phone the hero is taller than the footage, so the cover crop runs
+         * horizontally and this has nothing to do.
+         */
+        className="absolute inset-0 h-full w-full object-cover object-[50%_82%]"
       />
 
       <div className="noise-overlay absolute inset-0 opacity-[0.35] mix-blend-overlay" />
