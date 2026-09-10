@@ -80,9 +80,14 @@ import {
   type AccountStore,
 } from "./accounts.js";
 import {
+  accountDeletedEmail,
   createEmailSender,
+  passwordChangedEmail,
+  paymentFailedEmail,
   resetEmail,
+  subscriptionMail,
   verifyEmail,
+  type EmailMessage,
   type EmailSender,
 } from "./email.js";
 import { createRateLimiter, MemoryRateLimiter, RULES, type RateLimiter } from "./rate-limit.js";
@@ -173,6 +178,7 @@ import {
   publicKey,
   readAmount,
   verifySignature,
+  type PreapprovalStatus,
 } from "./billing/mercadopago.js";
 import {
   createSubscriptionStore,
@@ -524,6 +530,55 @@ function shapeFeedback<T extends { evaluation: Evaluation | null; metrics: unkno
  *
  * Returns the resolved plan so a caller can answer immediately.
  */
+/**
+ * Sends without letting the outcome reach the caller.
+ *
+ * The same rule as the request-scoped `deliver`, for the paths that run
+ * outside a request: a webhook that 500s because a mail bounced would have
+ * Mercado Pago retry a reconciliation that already succeeded, and each retry
+ * would try to send again.
+ */
+async function mail(message: EmailMessage): Promise<void> {
+  try {
+    await MAILER.send(message);
+  } catch (error) {
+    console.error("[mockio] email delivery failed:", error);
+  }
+}
+
+/**
+ * Tells the customer what the provider just did to their subscription.
+ *
+ * Only on a change: the status is compared against the row as it was before
+ * this notification was applied, so Mercado Pago's retries — which resend the
+ * same notification — do not resend the mail. A first authorization has no
+ * previous row and counts as a change.
+ *
+ * Every one of these was previously silent, which mattered most for `paused`:
+ * that is what the provider does when it cannot charge the card, and the
+ * customer's only signal was the paid features disappearing.
+ */
+async function notifySubscription(
+  ownerId: string,
+  previous: PreapprovalStatus | null,
+  next: PreapprovalStatus,
+  periodEnd: Date | null,
+): Promise<void> {
+  const account = await ACCOUNTS.findById(ownerId);
+  // Guests cannot subscribe, and an account erased mid-flight has nowhere to
+  // write to. Neither is an error worth failing the webhook over.
+  if (!account?.email) return;
+
+  const message = subscriptionMail({
+    email: account.email,
+    previous,
+    next,
+    accessUntil: periodEnd,
+    plan: planConfig(),
+  });
+  if (message) await mail(message);
+}
+
 async function reconcileSubscription(externalId: string): Promise<Plan | null> {
   const remote = await fetchPreapproval(externalId);
   // external_reference is our identity, round-tripped through the provider.
@@ -533,6 +588,9 @@ async function reconcileSubscription(externalId: string): Promise<Plan | null> {
   const ownerId = remote.externalReference ?? known?.ownerId ?? null;
   if (!ownerId) return null;
 
+  // Read before the row is overwritten: this is what makes the mail below fire
+  // once per real change rather than once per provider retry.
+  const previousStatus = known?.status ?? null;
   const periodEnd = remote.nextPaymentDate ? new Date(remote.nextPaymentDate) : null;
   await SUBSCRIPTIONS.put({
     ownerId,
@@ -540,6 +598,9 @@ async function reconcileSubscription(externalId: string): Promise<Plan | null> {
     status: remote.status,
     periodEnd: periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : null,
   });
+
+  const settled = periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : null;
+  await notifySubscription(ownerId, previousStatus, remote.status, settled);
 
   if (grantsAccess(remote.status)) {
     // Granted to the end of the paid period, or open-ended when the provider
@@ -869,6 +930,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       accountId,
       await hashPassword(body["password"] as string),
     );
+    /**
+     * Told after the fact, to the address on the account.
+     *
+     * The reset mail proves someone asked; this proves it worked. It is the
+     * only thing between a quiet takeover and the owner noticing, so it goes
+     * out whether or not the person who just typed a new password is the
+     * owner — which is exactly the case it exists for.
+     */
+    const changed = await ACCOUNTS.findById(accountId);
+    if (changed?.email) await deliver(passwordChangedEmail(changed.email));
     // Signing in here issues a token stamped after passwordChangedAt, so the
     // person resetting stays in while every older session is refused.
     await signIn(accountId);
@@ -1168,6 +1239,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await recordQuietly(USERS.eraseOwner(identity.id));
     // Only a signed-up identity has a row here; a guest never did.
     if (account) await ACCOUNTS.erase(identity.id);
+    /**
+     * Sent after the erase, from the address captured before it.
+     *
+     * Last rather than first, because a deletion that failed halfway would
+     * otherwise have confirmed itself to someone whose account still exists.
+     * A guest has no address and gets nothing — the interface is their
+     * confirmation, as the comment above says.
+     */
+    if (account?.email) await deliver(accountDeletedEmail(account.email));
 
     res.setHeader("Set-Cookie", clearCookieHeader(secureCookies));
     json(res, 200, {
