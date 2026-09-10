@@ -108,6 +108,38 @@
    * is no footage to sit on, so it takes a surface and a blur, because text
    * scrolling underneath a transparent bar is unreadable.
    */
+  /**
+   * The floating nav's own ground.
+   *
+   * `on-media` sets cream ink on the assumption that footage is behind it, and
+   * the top of the bar overhangs the hero frame onto the page's margin — cream
+   * on a light page, which made the labels 1.32:1 and invisible. This is the
+   * ground the ink assumes, carried by the bar instead of borrowed from
+   * whatever it happens to overlap, so the geometry of the frame below cannot
+   * make it wrong again.
+   *
+   * A pill around the labels rather than a band across the viewport. Full
+   * width was the first shape and it overhung the hero frame on both sides,
+   * laying a grey strip on the page margin and cutting the frame's rounded
+   * corners. The pill is only as wide as the labels, so it never reaches an
+   * edge it has to agree with, and it stays clear of the frame's geometry
+   * entirely — which is the property the fix needed in the first place.
+   *
+   * A flat ground, not a gradient. The first version eased top to bottom and
+   * left the underside of the text on a quarter-strength ground at 1.33:1 —
+   * the same failure it was written to fix, moved down a few pixels.
+   *
+   * Opaque enough to stand on the page's own paper, not just on the footage.
+   * At 0.55 it measured 10.8:1 over the frame and 3.0:1 over cream, which
+   * would have made the fix depend on the pill never overhanging the frame —
+   * the same coupling that caused the bug. 0.72 clears 4.5:1 against either.
+   */
+  .nav-floating {
+    background: rgb(0 0 0 / 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
   .nav-lifted {
     background: rgb(var(--surface-raised) / 0.82);
     backdrop-filter: blur(14px);

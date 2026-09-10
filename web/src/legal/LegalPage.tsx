@@ -89,6 +89,16 @@ function Shell({ document: doc }: { document: LegalDocument }) {
           </p>
         )}
 
+        {/* The footer link is in the reader's language; the document is in one
+            of three. Saying which, in the language they actually chose, is the
+            difference between a translated link that lied and one that told
+            them where they were going. */}
+        {legalLocale(locale) !== locale && (
+          <p className="text-xs leading-relaxed text-cream-faint">
+            {t("legal.languageNote")}
+          </p>
+        )}
+
         <Body document={doc} />
 
         <p className="border-t border-line pt-6 text-xs text-cream-faint">

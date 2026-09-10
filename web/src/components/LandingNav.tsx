@@ -17,6 +17,20 @@ import type { MessageKey } from "@/lib/i18n";
  * the hero would cover the footage it is sitting on. So it carries no surface
  * while the hero is behind it, and takes one only once there is text
  * underneath — where a transparent bar would be unreadable instead.
+ *
+ * While it floats it carries its own scrim. `on-media` gives the labels cream
+ * ink because it assumes a dark ground, and pinned to the top the ground was
+ * not the footage at all — it was the page's margin above the hero frame,
+ * which is cream on a light page. Cream on cream measured 1.32:1, so the whole
+ * nav was invisible in light mode while reading a correct 15:1 in dark. That is
+ * why nothing caught it: both colours are right on their own, and only the
+ * surface they landed on was wrong.
+ *
+ * The scrim rather than an offset matched to the frame's inset, which was the
+ * first attempt: the frame does not start where its padding says it does, and
+ * a bar positioned from a number copied out of another component breaks again
+ * the moment either one moves. A ground the bar brings with it cannot be wrong
+ * about what is behind it.
  */
 
 const NAV: { label: MessageKey; href: string }[] = [
@@ -60,13 +74,18 @@ export function LandingNav() {
   return (
     <div
       /* `on-media` while it floats over the footage, so the labels stay light
-         whatever the page theme is. Once lifted it drops the island and takes
-         the page's own ink, which is what makes it readable on a light page. */
-      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color] duration-300 ${
-        lifted ? "nav-lifted" : "on-media"
+         whatever the page theme is; `nav-floating` is the scrim that
+         guarantees them a dark ground to be light against. Once lifted it
+         drops both and takes the page's own ink and surface. */
+      className={`fixed inset-x-0 z-50 transition-[background-color,border-color,top] duration-300 ${
+        lifted ? "top-0 nav-lifted" : "top-2 on-media md:top-3"
       }`}
     >
-      <nav className="mx-auto flex max-w-6xl items-center justify-center px-4 py-3 md:px-8 md:py-4">
+      <nav
+        className={`mx-auto flex max-w-6xl items-center justify-center px-4 py-3 md:px-8 md:py-4 ${
+          lifted ? "" : "w-fit rounded-full nav-floating px-3 py-1.5 md:px-4 md:py-2"
+        }`}
+      >
         <ul className="flex items-center gap-1 sm:gap-4 md:gap-8">
           {/* Hidden on a phone, where five labels at a readable size do not fit
               across the screen and every one of them is reachable by

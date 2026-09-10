@@ -186,3 +186,43 @@ describe("the tokens themselves", () => {
     expect(channels(island, "cream-bright")).toEqual(THEMES.dark.bright);
   });
 });
+
+/**
+ * The floating nav, which is a composite and not a token pair.
+ *
+ * This is the case the rest of this file structurally cannot catch. The nav's
+ * ink and every surface token were individually correct; the bug was that a
+ * fixed bar carrying `on-media` ink overhung the hero frame onto the page's
+ * own paper, so cream landed on cream at 1.32:1 in light mode while measuring
+ * 15:1 in dark. Nothing here compares an ink to a surface it was never paired
+ * with in a token, so nothing here noticed.
+ *
+ * The pill's ground has to hold against whatever it overlaps — the footage,
+ * or the paper above the frame — because which one it gets depends on scroll
+ * position and on another component's padding.
+ */
+describe("the floating landing nav", () => {
+  const alpha = Number(
+    css.match(/\.nav-floating\s*\{[^}]*background:\s*rgb\(0 0 0 \/ ([\d.]+)\)/)?.[1],
+  );
+  // `on-media` fixes the ink regardless of theme, so it is read from there.
+  const onMedia = css.slice(css.indexOf(".on-media {"));
+  const ink = channels(onMedia, "cream");
+
+  it("reads a real alpha out of the stylesheet", () => {
+    expect(Number.isFinite(alpha)).toBe(true);
+    expect(alpha).toBeGreaterThan(0);
+  });
+
+  it.each(Object.entries(THEMES))(
+    "clears %s: the labels stand on the pill over either ground",
+    (_name, theme) => {
+      for (const under of [theme.surfaces["surface-base"], [0, 0, 0] as RGB]) {
+        const ground = composite([0, 0, 0], alpha, under);
+        // `text-cream-dim` is the label colour: the cream token at its own alpha.
+        const label = composite(ink, inkAlpha("dim"), ground);
+        expect(contrast(label, ground)).toBeGreaterThanOrEqual(TEXT);
+      }
+    },
+  );
+});

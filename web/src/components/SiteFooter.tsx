@@ -3,7 +3,6 @@ import { Globe } from "lucide-react";
 import { Wordmark } from "@/design-system";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { LOCALES, type Locale } from "@/lib/i18n";
-import { privacyFor, termsFor, legalLocale } from "@/legal/content";
 
 /**
  * The landing's footer.
@@ -31,11 +30,16 @@ export function SiteFooter() {
           <span>© {year}</span>
         </p>
         <nav className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          {/* The interface language, not the document's. These used to be the
+              documents' own titles, which exist in three languages — so a
+              reader in French or Japanese met two English words in an
+              otherwise translated footer. A link names where it goes; the
+              page itself says which language the text is in. */}
           <Link to="/terms" className={link}>
-            {termsFor(legalLocale(locale)).title}
+            {t("legal.terms")}
           </Link>
           <Link to="/privacy" className={link}>
-            {privacyFor(legalLocale(locale)).title}
+            {t("legal.privacy")}
           </Link>
 
           {/* The interface language, reachable before signing up.
