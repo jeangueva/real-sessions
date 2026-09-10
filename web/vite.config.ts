@@ -33,6 +33,7 @@ export default defineConfig({
      */
     environment: "happy-dom",
     environmentMatchGlobs: [
+      ["test/avatar.test.ts", "node"],
       ["test/format.test.ts", "node"],
       ["test/voice.test.ts", "node"],
       ["test/speech-input.test.ts", "node"],

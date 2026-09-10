@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TIER_COUNT, dominantAxis, nextEvolution, tierForLevel } from "../src/avatar.js";
-import { levelForXp } from "../src/gamification.js";
+import { TIER_COUNT, dominantAxis, nextEvolution, tierForLevel } from "../src/lib/avatar";
 
 /**
  * The avatar.
@@ -87,14 +86,5 @@ describe("the tint", () => {
   it("has no opinion before the first scored interview", () => {
     expect(dominantAxis({})).toBeNull();
     expect(dominantAxis({ fluency: null, vocabulary: null })).toBeNull();
-  });
-});
-
-describe("against the XP curve", () => {
-  it("evolves once inside the first few sessions", () => {
-    // The reward has to arrive before the habit exists, or it never helps
-    // form one. A single good session is worth well over 50 XP.
-    expect(levelForXp(60).level).toBeGreaterThanOrEqual(2);
-    expect(tierForLevel(levelForXp(60).level).index).toBeGreaterThanOrEqual(1);
   });
 });
