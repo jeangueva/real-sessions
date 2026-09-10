@@ -96,6 +96,31 @@ export function parseRange(
   return { start, end };
 }
 
+/** A week, which is what an unfingerprinted asset is allowed to go stale by. */
+const WEEK_SECONDS = 604800;
+
+/**
+ * How long a response may be reused.
+ *
+ * Three tiers, because this directory holds three kinds of file.
+ *
+ * Vite fingerprints everything under `/assets`, so those can never go stale:
+ * a changed file is a changed URL. `index.html` is the opposite — it is what
+ * names the current fingerprints, so caching it means a deploy never reaches
+ * anyone holding an old copy.
+ *
+ * Everything else is unfingerprinted but static: `hero.mp4` and `robots.txt`.
+ * These used to fall in with `index.html` and be re-fetched every visit, which
+ * for a two-megabyte video meant every visitor downloaded it again. A week is
+ * the trade that buys: replacing the video means up to seven days of returning
+ * visitors seeing the old one, since the URL does not change with it.
+ */
+export function cacheControl(urlPath: string, file: string): string {
+  if (urlPath.startsWith("/assets/")) return "public, max-age=31536000, immutable";
+  if (path.extname(file).toLowerCase() === ".html") return "no-cache";
+  return `public, max-age=${WEEK_SECONDS}`;
+}
+
 export interface StaticSite {
   /** Returns true when it handled the request. */
   serve(
@@ -122,7 +147,7 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
   const send = (
     res: ServerResponse,
     file: string,
-    immutable: boolean,
+    cache: string,
     size: number,
     range?: string,
     headOnly = false,
@@ -130,12 +155,7 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
     const type = TYPES[path.extname(file).toLowerCase()] ?? "application/octet-stream";
     const headers: Record<string, string> = {
       "Content-Type": type,
-      // Vite fingerprints everything under /assets, so those can be cached
-      // forever. index.html must not be, or a deploy never reaches anyone
-      // holding a stale copy.
-      "Cache-Control": immutable
-        ? "public, max-age=31536000, immutable"
-        : "no-cache",
+      "Cache-Control": cache,
       /**
        * Advertised on everything, because a media element decides whether it
        * can seek by looking for this before it asks for anything.
@@ -189,7 +209,7 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
       try {
         const found = await stat(file);
         if (found.isFile()) {
-          send(res, file, urlPath.startsWith("/assets/"), found.size, range, headOnly);
+          send(res, file, cacheControl(urlPath, file), found.size, range, headOnly);
           return true;
         }
       } catch {
@@ -199,7 +219,7 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
       // Anything else is a client-side route — /app/progress and friends exist
       // only in the browser's router, so the shell has to answer for them.
       const shell = path.join(absolute, "index.html");
-      send(res, shell, false, (await stat(shell)).size, undefined, headOnly);
+      send(res, shell, cacheControl("/index.html", shell), (await stat(shell)).size, undefined, headOnly);
       return true;
     },
   };

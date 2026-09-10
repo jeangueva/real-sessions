@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { createStaticSite, parseRange, resolveAsset } from "../src/static.js";
+import { cacheControl, createStaticSite, parseRange, resolveAsset } from "../src/static.js";
 
 const ROOT = path.resolve("/srv/web/dist");
 
@@ -198,5 +198,28 @@ describe("serving a file over the wire", () => {
     expect(res.statusCode).toBe(200);
     expect(res.headers["Content-Length"]).toBe("100");
     expect(res.body.length).toBe(0);
+  });
+});
+
+describe("how long a response may be reused", () => {
+  it("never expires a fingerprinted asset", () => {
+    // The filename changes when the bytes do, so there is nothing to go stale.
+    expect(cacheControl("/assets/index-C0Ii51ZE.js", "/d/assets/index-C0Ii51ZE.js")).toBe(
+      "public, max-age=31536000, immutable",
+    );
+  });
+
+  it("never caches the shell", () => {
+    // index.html is what names the current fingerprints. Cache it and a deploy
+    // never reaches anyone still holding the previous one.
+    expect(cacheControl("/index.html", "/d/index.html")).toBe("no-cache");
+    // Client-side routes are served the shell too, and must not be cached
+    // under their own URL either.
+    expect(cacheControl("/app/progress", "/d/index.html")).toBe("no-cache");
+  });
+
+  it("gives unfingerprinted static files a week", () => {
+    expect(cacheControl("/hero.mp4", "/d/hero.mp4")).toBe("public, max-age=604800");
+    expect(cacheControl("/robots.txt", "/d/robots.txt")).toBe("public, max-age=604800");
   });
 });
