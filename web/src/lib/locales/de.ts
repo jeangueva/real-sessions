@@ -14,7 +14,7 @@ const DE: Record<MessageKey, string> = {
   "nav.newShort": "Neu",
   "nav.contextShort": "Kontext",
   "nav.accountShort": "Konto",
-  "nav.saveShort": "Sichern",
+  "nav.settingsShort": "Optionen",
   "nav.sections": "Abschnitte",
   "setup.title": "Ein Gespräch beginnen",
   "setup.meta": "Sieben Runden, etwa zehn Minuten. Du kannst jederzeit aufhören.",

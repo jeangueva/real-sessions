@@ -175,9 +175,18 @@ export function AppShell() {
 /**
  * Bottom bar, below `md` only.
  *
- * Four destinations plus the account, because five 78px targets is already the
- * limit on a 390px screen. Settings is the one that drops: it is reached from
- * the account tab, and it is not somewhere anyone goes mid-session.
+ * Four destinations plus a fifth, because five 78px targets is already the
+ * limit on a 390px screen. Settings drops out of the list and comes back as
+ * that fifth tab, which is the only slot it fits in.
+ *
+ * The fifth tab used to send a guest to sign-in instead, which left settings
+ * unreachable on a phone for exactly the people most likely to need it — the
+ * interface language lives there. It also repeated a pattern the rail had
+ * already abandoned: a guest reading the last slot of a nav expects a way to
+ * their own settings, not a sign-up CTA. That prompt still exists inside
+ * Settings under Account, which is where the rail's own comment says people
+ * go to look for it, so this reaches it in one more tap rather than losing
+ * it.
  */
 const MOBILE_NAV = NAV.filter(({ to }) => to !== "/app/settings");
 
@@ -210,13 +219,24 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
           </li>
         ))}
         <li className="flex-1">
-          <Link
-            to={signedIn ? "/app/settings" : "/signin"}
-            className="focus-ring flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] text-cream-dim"
+          <NavLink
+            to="/app/settings"
+            className={({ isActive }) =>
+              `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] transition-colors ${
+                isActive ? "text-cream-bright" : "text-cream-dim"
+              }`
+            }
           >
-            <LogIn className={`h-5 w-5 ${signedIn ? "rotate-180" : ""}`} aria-hidden />
-            {t(signedIn ? "nav.accountShort" : "nav.saveShort")}
-          </Link>
+            {/* Signed in, this is where the account lives, so it keeps that
+                name and the sign-out mark. A guest has no account to manage
+                and gets the tab for what it is. */}
+            {signedIn ? (
+              <LogIn className="h-5 w-5 rotate-180" aria-hidden />
+            ) : (
+              <Settings className="h-5 w-5" aria-hidden />
+            )}
+            {t(signedIn ? "nav.accountShort" : "nav.settingsShort")}
+          </NavLink>
         </li>
       </ul>
     </nav>

@@ -14,7 +14,7 @@ const KO: Record<MessageKey, string> = {
   "nav.newShort": "새 세션",
   "nav.contextShort": "배경",
   "nav.accountShort": "계정",
-  "nav.saveShort": "저장",
+  "nav.settingsShort": "설정",
   "nav.sections": "섹션",
   "setup.title": "면접 시작하기",
   "setup.meta": "7턴, 약 10분. 언제든 멈출 수 있습니다.",

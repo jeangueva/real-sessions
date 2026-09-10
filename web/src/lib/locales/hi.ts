@@ -14,7 +14,7 @@ const HI: Record<MessageKey, string> = {
   "nav.newShort": "नया",
   "nav.contextShort": "संदर्भ",
   "nav.accountShort": "खाता",
-  "nav.saveShort": "सहेजें",
+  "nav.settingsShort": "सेटिंग्स",
   "nav.sections": "अनुभाग",
   "setup.title": "इंटरव्यू शुरू करें",
   "setup.meta": "सात दौर, लगभग दस मिनट। आप कभी भी रोक सकते हैं।",

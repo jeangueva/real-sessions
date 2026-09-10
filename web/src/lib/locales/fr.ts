@@ -15,7 +15,7 @@ const FR: Record<MessageKey, string> = {
   "nav.newShort": "Nouvelle",
   "nav.contextShort": "Contexte",
   "nav.accountShort": "Compte",
-  "nav.saveShort": "Sauver",
+  "nav.settingsShort": "Réglages",
   "nav.sections": "Sections",
   "setup.title": "Commencer un entretien",
   "setup.meta": "Sept tours, environ dix minutes. Vous pouvez arrêter à tout moment.",

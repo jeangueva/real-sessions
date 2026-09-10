@@ -14,7 +14,7 @@ const TH: Record<MessageKey, string> = {
   "nav.newShort": "ใหม่",
   "nav.contextShort": "บริบท",
   "nav.accountShort": "บัญชี",
-  "nav.saveShort": "บันทึก",
+  "nav.settingsShort": "ตั้งค่า",
   "nav.sections": "หัวข้อ",
   "setup.title": "เริ่มสัมภาษณ์",
   "setup.meta": "เจ็ดรอบ ประมาณสิบนาที หยุดเมื่อไรก็ได้",

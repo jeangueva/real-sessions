@@ -14,7 +14,7 @@ const ES: Record<MessageKey, string> = {
   "nav.newShort": "Nueva",
   "nav.contextShort": "Contexto",
   "nav.accountShort": "Cuenta",
-  "nav.saveShort": "Guardar",
+  "nav.settingsShort": "Ajustes",
   "nav.sections": "Secciones",
 
   "setup.title": "Empezar una entrevista",

@@ -15,7 +15,7 @@ const IT: Record<MessageKey, string> = {
   "nav.newShort": "Nuova",
   "nav.contextShort": "Contesto",
   "nav.accountShort": "Account",
-  "nav.saveShort": "Salva",
+  "nav.settingsShort": "Opzioni",
   "nav.sections": "Sezioni",
   "setup.title": "Inizia un colloquio",
   "setup.meta": "Sette turni, circa dieci minuti. Puoi fermarti quando vuoi.",

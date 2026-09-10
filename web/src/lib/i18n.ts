@@ -78,7 +78,7 @@ const EN = {
   "nav.newShort": "New",
   "nav.contextShort": "Context",
   "nav.accountShort": "Account",
-  "nav.saveShort": "Save",
+  "nav.settingsShort": "Settings",
   "nav.sections": "Sections",
 
   "setup.title": "Start an interview",

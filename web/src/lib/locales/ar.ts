@@ -14,7 +14,7 @@ const AR: Record<MessageKey, string> = {
   "nav.newShort": "جديدة",
   "nav.contextShort": "السياق",
   "nav.accountShort": "الحساب",
-  "nav.saveShort": "حفظ",
+  "nav.settingsShort": "الإعدادات",
   "nav.sections": "الأقسام",
   "setup.title": "ابدأ مقابلة",
   "setup.meta": "سبع جولات، نحو عشر دقائق. يمكنك التوقّف في أي لحظة.",

@@ -14,7 +14,7 @@ const RU: Record<MessageKey, string> = {
   "nav.newShort": "Новая",
   "nav.contextShort": "Контекст",
   "nav.accountShort": "Аккаунт",
-  "nav.saveShort": "Сохранить",
+  "nav.settingsShort": "Настройки",
   "nav.sections": "Разделы",
   "setup.title": "Начать собеседование",
   "setup.meta": "Семь ходов, около десяти минут. Остановиться можно в любой момент.",

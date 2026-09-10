@@ -14,7 +14,7 @@ const ZH: Record<MessageKey, string> = {
   "nav.newShort": "新建",
   "nav.contextShort": "背景",
   "nav.accountShort": "账户",
-  "nav.saveShort": "保存",
+  "nav.settingsShort": "设置",
   "nav.sections": "版块",
   "setup.title": "开始一场面试",
   "setup.meta": "七轮，大约十分钟。你随时可以停下。",

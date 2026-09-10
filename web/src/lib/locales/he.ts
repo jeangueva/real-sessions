@@ -14,7 +14,7 @@ const HE: Record<MessageKey, string> = {
   "nav.newShort": "חדשה",
   "nav.contextShort": "הקשר",
   "nav.accountShort": "חשבון",
-  "nav.saveShort": "שמירה",
+  "nav.settingsShort": "הגדרות",
   "nav.sections": "מדורים",
   "setup.title": "להתחיל ראיון",
   "setup.meta": "שבעה סבבים, בערך עשר דקות. אפשר לעצור בכל רגע.",
