@@ -55,9 +55,54 @@ export function resolveAsset(root: string, urlPath: string): string | null {
   return contained ? resolved : null;
 }
 
+/**
+ * Parses a `Range` header against a known file size.
+ *
+ * Only the single-range forms a media element actually sends: `bytes=start-`,
+ * `bytes=start-end`, and the suffix form `bytes=-n`. Multipart ranges are
+ * legal and nothing here needs them, so an unrecognised header is treated as
+ * absent — answering the whole file is always a correct response to a range
+ * request, where a wrong 206 is not.
+ *
+ * Returns null for "send the whole thing", or `unsatisfiable` for a range that
+ * starts past the end, which owes a 416 rather than a body.
+ */
+export function parseRange(
+  header: string | undefined,
+  size: number,
+): { start: number; end: number } | { unsatisfiable: true } | null {
+  if (!header) return null;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!match) return null;
+  const [, rawStart, rawEnd] = match;
+  if (rawStart === "" && rawEnd === "") return null;
+
+  let start: number;
+  let end: number;
+  if (rawStart === "") {
+    // `bytes=-500` is the last 500 bytes, not the first.
+    const suffix = Number(rawEnd);
+    if (suffix === 0) return { unsatisfiable: true };
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    start = Number(rawStart);
+    end = rawEnd === "" ? size - 1 : Math.min(Number(rawEnd), size - 1);
+  }
+
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+  if (start >= size) return { unsatisfiable: true };
+  if (end < start) return { unsatisfiable: true };
+  return { start, end };
+}
+
 export interface StaticSite {
   /** Returns true when it handled the request. */
-  serve(urlPath: string, res: ServerResponse): Promise<boolean>;
+  serve(
+    urlPath: string,
+    res: ServerResponse,
+    options?: { range?: string; headOnly?: boolean },
+  ): Promise<boolean>;
 }
 
 export async function createStaticSite(root: string): Promise<StaticSite | null> {
@@ -70,9 +115,20 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
     return null;
   }
 
-  const send = (res: ServerResponse, file: string, immutable: boolean) => {
+  /**
+   * @param range The request's `Range` header, if it sent one.
+   * @param size The file's size, needed to answer a range at all.
+   */
+  const send = (
+    res: ServerResponse,
+    file: string,
+    immutable: boolean,
+    size: number,
+    range?: string,
+    headOnly = false,
+  ) => {
     const type = TYPES[path.extname(file).toLowerCase()] ?? "application/octet-stream";
-    res.writeHead(200, {
+    const headers: Record<string, string> = {
       "Content-Type": type,
       // Vite fingerprints everything under /assets, so those can be cached
       // forever. index.html must not be, or a deploy never reaches anyone
@@ -80,12 +136,50 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
       "Cache-Control": immutable
         ? "public, max-age=31536000, immutable"
         : "no-cache",
-    });
+      /**
+       * Advertised on everything, because a media element decides whether it
+       * can seek by looking for this before it asks for anything.
+       *
+       * Without range support the hero video never played: Chrome opens a
+       * video with `Range: bytes=0-`, this answered 200 with the whole two
+       * megabytes, and the element stalled at `readyState` 0 without raising
+       * an error — a black hero and a silent failure. The reduced-motion path
+       * is hit hardest, since holding the first frame is a seek by definition.
+       */
+      "Accept-Ranges": "bytes",
+    };
+
+    const wanted = parseRange(range, size);
+
+    if (wanted && "unsatisfiable" in wanted) {
+      res
+        .writeHead(416, { ...headers, "Content-Range": `bytes */${size}` })
+        .end();
+      return;
+    }
+
+    if (wanted) {
+      const length = wanted.end - wanted.start + 1;
+      res.writeHead(206, {
+        ...headers,
+        "Content-Range": `bytes ${wanted.start}-${wanted.end}/${size}`,
+        "Content-Length": String(length),
+      });
+      if (headOnly) return void res.end();
+      createReadStream(file, { start: wanted.start, end: wanted.end }).pipe(res);
+      return;
+    }
+
+    res.writeHead(200, { ...headers, "Content-Length": String(size) });
+    // HEAD is the same headers with no body, which is how a caller asks how
+    // big something is before deciding to fetch it.
+    if (headOnly) return void res.end();
     createReadStream(file).pipe(res);
   };
 
   return {
-    async serve(urlPath, res) {
+    async serve(urlPath, res, options) {
+      const { range, headOnly = false } = options ?? {};
       const file = resolveAsset(absolute, urlPath);
       if (!file) {
         res.writeHead(400).end();
@@ -95,7 +189,7 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
       try {
         const found = await stat(file);
         if (found.isFile()) {
-          send(res, file, urlPath.startsWith("/assets/"));
+          send(res, file, urlPath.startsWith("/assets/"), found.size, range, headOnly);
           return true;
         }
       } catch {
@@ -104,7 +198,8 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
 
       // Anything else is a client-side route — /app/progress and friends exist
       // only in the browser's router, so the shell has to answer for them.
-      send(res, path.join(absolute, "index.html"), false);
+      const shell = path.join(absolute, "index.html");
+      send(res, shell, false, (await stat(shell)).size, undefined, headOnly);
       return true;
     },
   };

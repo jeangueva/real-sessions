@@ -1016,8 +1016,22 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * paths are excluded outright, so this cannot shadow a route below it — a
    * mistyped /api/… still answers as an API rather than returning HTML.
    */
-  if (SITE && req.method === "GET" && !path.startsWith("/api/")) {
-    if (await SITE.serve(path, res)) return;
+  if (
+    SITE &&
+    (req.method === "GET" || req.method === "HEAD") &&
+    !path.startsWith("/api/")
+  ) {
+    // HEAD used to fall past this into the authenticated API, so asking the
+    // size of a public asset answered 401 while fetching it answered 200.
+    const headOnly = req.method === "HEAD";
+    const range = req.headers["range"];
+    if (
+      await SITE.serve(path, res, {
+        ...(typeof range === "string" ? { range } : {}),
+        headOnly,
+      })
+    )
+      return;
   }
 
   // Everything past this point is authenticated.
