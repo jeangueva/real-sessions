@@ -159,6 +159,7 @@ import {
   voiceFor,
 } from "./languages.js";
 import { findLevel, levelCatalogue, readyToLevelUp } from "./levels.js";
+import { pressureRequested } from "./pressure.js";
 import { createStaticSite, type StaticSite } from "./static.js";
 import {
   cancelPreapproval,
@@ -1571,6 +1572,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         ? body["language"]
         : DEFAULT_LANGUAGE,
     );
+    /**
+     * Stress mode.
+     *
+     * Free, like the English level and for the same reason: it changes how
+     * hard the interview feels, not what the product gives away, and the
+     * candidate who most needs to rehearse being interrupted is the one who
+     * has never been interviewed in English at all.
+     */
+    const pressure = pressureRequested(body["pressure"]);
     const wantedStages = Array.isArray(body["stages"])
       ? (body["stages"] as unknown[]).filter(
           (entry): entry is string => typeof entry === "string",
@@ -1647,6 +1657,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       stages: rounds.map((round) => round.id),
       language: language.id,
       level: level.id,
+      pressure,
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
       knownQuestions,
@@ -1677,6 +1688,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         stages: rounds.map((round) => round.id),
         language: language.id,
         level: level.id,
+        pressure,
         snapshot: session.snapshot(),
         context,
         ownerId: identity.id,
@@ -1830,6 +1842,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         ...(stored.stages ? { stages: stored.stages } : {}),
         ...(stored.language ? { language: stored.language } : {}),
         ...(stored.level ? { level: stored.level } : {}),
+        ...(stored.pressure ? { pressure: true } : {}),
       },
     );
     const score = evaluation.overall_score_percentage;

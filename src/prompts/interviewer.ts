@@ -4,6 +4,7 @@ import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, resolveStages, turnBudget } from "../stages.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
+import { PRESSURE_BRIEF } from "../pressure.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
 /**
@@ -42,6 +43,9 @@ Conduct this entire interview in {{language}}. Every question, every acknowledge
 ### HOW MUCH ENGLISH THEY HAVE:
 {{level_brief}}
 This governs your delivery only. It never changes what you are willing to ask, how hard you push on a vague answer, or the standard an answer has to meet to satisfy you. A candidate who is rehearsing at a lower level is rehearsing the real round in English they can follow — softening the round instead would hand them a pass they cannot repeat on the day.
+
+### PRESSURE:
+{{pressure}}
 
 ### RULES OF ENGAGEMENT:
 1. **One Question at a Time:** NEVER ask multiple questions in a single response. Wait for the candidate's answer before moving forward.
@@ -120,6 +124,8 @@ export interface InterviewerPromptOptions {
   stages?: readonly string[];
   /** What the interview is conducted in. English unless someone chose. */
   language?: string;
+  /** Run the interview under pressure: interruptions, moved premises. */
+  pressure?: boolean;
   /**
    * How much English the candidate has. Governs delivery, never difficulty —
    * see the level briefs, which are written to make that separation hard to
@@ -189,6 +195,11 @@ export function buildInterviewerPrompt(
     persona_behaviour: persona.behaviour,
     language: findLanguage(options.language).promptLabel,
     level_brief: findLevel(options.level).brief,
+    // Absent rather than negated: telling a model not to interrupt puts the
+    // idea in front of it, and the ordinary interview is the default.
+    pressure: options.pressure
+      ? PRESSURE_BRIEF
+      : "Run this as an ordinary interview. Let them finish their answers.",
     interviewer_name: persona.name,
     interviewer_title: persona.title,
     stage_brief: composeBrief(

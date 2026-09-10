@@ -197,6 +197,58 @@ const BY_ROLE: Record<string, Stage[]> = {
 };
 
 /** Every stage that exists, deduplicated, for lookup by id or label. */
+
+/**
+ * The offer call, which is the one nobody rehearses.
+ *
+ * The gap this closes is specific to the audience: a candidate who just spent
+ * six rounds proving they are worth hiring accepts the first number said out
+ * loud, in a second language, against someone who does this weekly. The
+ * English of negotiating — declining without refusing, naming a figure without
+ * apologising for it, asking what else moves — is a different register from
+ * anything else in this product, and it is worth more per sentence than any
+ * other round here.
+ *
+ * The interviewer opens low on purpose. That is the whole exercise: an offer
+ * that is fine but not good is harder to push back on than an insulting one.
+ */
+const NEGOTIATION: Stage = {
+  id: "salary-negotiation",
+  label: "Salary negotiation",
+  summary: "The offer call. They open low, and you have to move it.",
+  brief:
+    "You are making an offer, and you open below what the role is budgeted for — a number that is defensible rather than insulting, because a candidate finds it much harder to push back on 'fine' than on 'insulting'. Say the number early and plainly, then stop talking. When they push back, do not concede immediately: ask what is driving it, mention that the band has a range, and make them name a figure rather than naming it for them. Concede on one lever if they negotiate well — a signing bonus, equity, a review at six months — and hold the base unless they give you a reason tied to market or to a competing offer. Stay warm throughout: this is the call where the company is selling too, and an interviewer who turns cold here is not what a real one does.",
+  rubric:
+    "This round is about register, not correctness. Weigh whether they declined the first number without refusing it, whether they named a figure or waited to be given one, whether they asked about levers beyond base pay, and whether any of it sounded aggressive or apologetic rather than matter-of-fact. Accepting the opening offer is the failure this round exists to catch, however politely it was done. Note the exact phrases that landed and the ones that undercut them — 'I was hoping for maybe' costs a candidate real money and they will not hear it themselves.",
+  minTurns: 5,
+  maxTurns: 7,
+  titles: RECRUITING,
+};
+
+/**
+ * The daily stand-up, in sixty seconds.
+ *
+ * The only round here that is not about getting hired. Remote work in English
+ * is mostly short async updates, and the fear of recording one is a different
+ * fear from interview nerves — lower stakes, far more often, and nobody
+ * practises it because there is no event to practise for.
+ *
+ * Deliberately short. A stand-up that runs long is the failure being trained
+ * out, so a round that allows a long answer would be teaching the wrong thing.
+ */
+const STANDUP: Stage = {
+  id: "async-standup",
+  label: "Async stand-up",
+  summary: "Sixty seconds: what you did, what you are doing, what is blocking you.",
+  brief:
+    "You are their teammate on a distributed team, reading their stand-up. Ask for it once — yesterday, today, blockers — and then react the way a colleague would: pick up on the blocker, ask who owns it, or say that is fine and move on. Keep your own turns to a sentence. Do not interview them, do not ask about their background, and do not let this become a conversation about their career. If an update runs past about sixty seconds' worth of speech, say so plainly the way a teammate would: that a stand-up this long is one people stop reading.",
+  rubric:
+    "Concision is the whole thing. Weigh whether the update could be understood by someone skimming it in Slack: did it lead with what changed, name the blocker plainly, and stop. Hedging and preamble cost more here than anywhere else in this product — 'so basically I was kind of working on' is three seconds of a sixty-second budget. Length is a finding, not a footnote: say how long the update ran and what would have been cut.",
+  minTurns: 3,
+  maxTurns: 4,
+  titles: [...SENIOR_IC, ...ENGINEERING_LEADS],
+};
+
 export const STAGES: Stage[] = [
   SCREEN,
   BEHAVIORAL,
@@ -206,6 +258,8 @@ export const STAGES: Stage[] = [
   CASE_STUDY,
   PEOPLE,
   VALUES,
+  NEGOTIATION,
+  STANDUP,
 ];
 
 const BY_ID = new Map(STAGES.map((stage) => [stage.id, stage]));

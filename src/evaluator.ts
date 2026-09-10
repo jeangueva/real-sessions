@@ -31,6 +31,8 @@ export interface EvaluateOptions {
   language?: string;
   /** The level the interview was conducted at, so the bar matches it. */
   level?: string;
+  /** Whether it ran under pressure, so recovery is judged rather than polish. */
+  pressure?: boolean;
   /** Defaults to the vendor implied by `model`. Inject a stub in tests. */
   provider?: ModelProvider;
   model?: string;
@@ -70,6 +72,7 @@ export async function evaluateInterview(
       options.stages,
       options.language,
       options.level,
+      options.pressure,
     ),
     prompt: formatTranscript(transcript, context),
     maxTokens: options.maxTokens ?? 4096,

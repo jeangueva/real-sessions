@@ -3,6 +3,7 @@ import { renderTemplate, toTemplateVariables } from "./template.js";
 import { composeRubric, resolveStages } from "../stages.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
+import { PRESSURE_RUBRIC } from "../pressure.js";
 
 /**
  * Phase 2 — the Evaluator. Sent as the `system` prompt of the async
@@ -24,6 +25,9 @@ Your task is to analyze the candidate's performance in the transcript and provid
 ### THE ENGLISH THIS CANDIDATE WAS WORKING AT:
 {{level_rubric}}
 Grade the answers they gave at the level they were speaking at. This adjusts the bar for delivery, never for substance: an answer with no concrete example in it is thin at every level, and saying otherwise would send them into a real interview believing something that is not true.
+
+### HOW THIS INTERVIEW WAS RUN:
+{{pressure_rubric}}
 
 ### EVALUATION CRITERIA:
 1. **Technical & Domain Vocabulary:** Did they use the correct terminology for their {{target_role}}? Were words used in the right context?
@@ -48,6 +52,7 @@ export function buildEvaluatorPrompt(
   stages?: readonly string[],
   language?: string,
   level?: string,
+  pressure?: boolean,
 ): string {
   return renderTemplate(EVALUATOR_TEMPLATE, {
     ...toTemplateVariables(context),
@@ -60,6 +65,9 @@ export function buildEvaluatorPrompt(
     // Judging a B1 candidate against a C1 bar produces a report that says
     // "improve everything" — true of everyone, useful to nobody.
     level_rubric: findLevel(level).rubric,
+    pressure_rubric: pressure
+      ? PRESSURE_RUBRIC
+      : "This interview was run normally, with the candidate left to finish their answers.",
     stage_rubric: composeRubric(
       resolveStages(context.targetRole, stages ?? context.interviewStage),
     ),

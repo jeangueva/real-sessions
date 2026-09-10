@@ -51,6 +51,8 @@ export interface StoredSession {
    * default rather than throwing.
    */
   level?: string;
+  /** Whether stress mode was on, so the evaluator reads the run it was. */
+  pressure?: boolean;
 }
 
 export interface SessionStore {

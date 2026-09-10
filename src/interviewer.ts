@@ -75,6 +75,8 @@ export interface InterviewSessionOptions {
   language?: string;
   /** How much English the candidate has. Governs delivery, not difficulty. */
   level?: string;
+  /** Interrupt, move the premise, push back. Manner only, never difficulty. */
+  pressure?: boolean;
   minTurns?: number;
   maxTurns?: number;
   /**
@@ -159,6 +161,7 @@ export class InterviewSession {
       stages: stages.map((entry) => entry.id),
       ...(options.language ? { language: options.language } : {}),
       ...(options.level ? { level: options.level } : {}),
+      ...(options.pressure ? { pressure: true } : {}),
       minTurns,
       maxTurns,
       personaId: this.personaId,
