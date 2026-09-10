@@ -52,6 +52,16 @@ export interface Stage {
    * wrong failure the per-role stage list already fixed once.
    */
   titles: string[];
+  /**
+   * Rounds that cannot be combined with another.
+   *
+   * The stage picker lets you sit three rounds back to back because real loops
+   * work that way. The stand-up is not a round of a loop — it is a different
+   * event on a different day — and stapling it to a recruiter screen produces
+   * an interview that could not happen, which is the one thing this product
+   * cannot afford to rehearse.
+   */
+  solo?: boolean;
 }
 
 const ENGINEERING_LEADS = ["Engineering Manager", "Director of Engineering"];
@@ -187,17 +197,6 @@ const VALUES: Stage = {
  * a manager answers for a team. Offering an engineer's system design round to
  * a designer is what this map exists to stop.
  */
-const BY_ROLE: Record<string, Stage[]> = {
-  "product-designer": [SCREEN, BEHAVIORAL, PORTFOLIO, DEEP_DIVE, VALUES],
-  "backend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES],
-  "frontend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES],
-  "growth-pm": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES],
-  "data-analyst": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES],
-  "engineering-manager": [SCREEN, BEHAVIORAL, PEOPLE, SYSTEM_DESIGN, VALUES],
-};
-
-/** Every stage that exists, deduplicated, for lookup by id or label. */
-
 /**
  * The offer call, which is the one nobody rehearses.
  *
@@ -247,7 +246,19 @@ const STANDUP: Stage = {
   minTurns: 3,
   maxTurns: 4,
   titles: [...SENIOR_IC, ...ENGINEERING_LEADS],
+  solo: true,
 };
+
+const BY_ROLE: Record<string, Stage[]> = {
+  "product-designer": [SCREEN, BEHAVIORAL, PORTFOLIO, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
+  "backend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  "frontend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  "growth-pm": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
+  "data-analyst": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
+  "engineering-manager": [SCREEN, BEHAVIORAL, PEOPLE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+};
+
+/** Every stage that exists, deduplicated, for lookup by id or label. */
 
 export const STAGES: Stage[] = [
   SCREEN,
@@ -313,6 +324,10 @@ export const MAX_COMBINED = 3;
  * ends on a screen is not a thing that happens. Anything the role does not
  * sit is dropped rather than substituted, and an empty result falls back to
  * behavioural — the round every role has.
+ *
+ * A solo round wins the whole session and everything else is dropped. The
+ * picker already enforces that, but the picker is not the boundary — this is
+ * the only place a hand-written request goes through.
  */
 export function resolveStages(
   role: string | null | undefined,
@@ -328,6 +343,8 @@ export function resolveStages(
     out.push(stage);
     if (out.length === MAX_COMBINED) break;
   }
+  const solo = out.find((entry) => entry.solo);
+  if (solo) return [solo];
   return out.length > 0 ? out : [findStage("behavioral")];
 }
 

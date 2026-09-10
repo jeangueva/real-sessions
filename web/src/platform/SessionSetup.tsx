@@ -85,6 +85,12 @@ export function SessionSetup() {
    */
   const [levelId, setLevelId] = useState("b2");
   const [mode, setMode] = useState<SessionMode>("practice");
+  /**
+   * Stress mode. Free on every plan, so it sits in the bar rather than behind
+   * a crown: it changes how hard the interview feels, not what the product
+   * gives away.
+   */
+  const [pressure, setPressure] = useState(false);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   /** Set by the server when recent scores clear the current level's bar. */
   const [levelUp, setLevelUp] = useState<{ to: string; label: string } | null>(null);
@@ -250,11 +256,20 @@ export function SessionSetup() {
         // Never leave the interview with no round at all.
         return current.length === 1 ? current : current.filter((entry) => entry !== id);
       }
+      // A solo round replaces the selection rather than joining it, and any
+      // solo round already picked gets dropped when something else is. The
+      // stand-up is not a round of a hiring loop, so it cannot share a sitting
+      // with one; swapping is quieter than refusing the click.
+      const picked = visibleStages.find((entry) => entry.id === id);
+      if (picked?.solo) return [id];
+      const withoutSolo = current.filter(
+        (entry) => !visibleStages.find((s) => s.id === entry)?.solo,
+      );
       // Past the cap, the oldest choice makes way — quieter than refusing the
       // click and leaving the reader to work out why nothing happened.
-      return current.length >= maxCombined
-        ? [...current.slice(1), id]
-        : [...current, id];
+      return withoutSolo.length >= maxCombined
+        ? [...withoutSolo.slice(1), id]
+        : [...withoutSolo, id];
     });
   };
 
@@ -589,6 +604,38 @@ export function SessionSetup() {
                 ),
               },
               {
+                key: "pressure",
+                enabled: true,
+                node: (
+                  <FilterSegment
+                    label={t("field.pressure")}
+                    value={pressure ? t("field.pressureOn") : t("field.pressureOff")}
+                    hint={t("field.pressureHint")}
+                  >
+                    {(close) => (
+                      <>
+                        <FilterOption
+                          label={t("field.pressureOff")}
+                          selected={!pressure}
+                          onSelect={() => {
+                            setPressure(false);
+                            close();
+                          }}
+                        />
+                        <FilterOption
+                          label={t("field.pressureOn")}
+                          selected={pressure}
+                          onSelect={() => {
+                            setPressure(true);
+                            close();
+                          }}
+                        />
+                      </>
+                    )}
+                  </FilterSegment>
+                ),
+              },
+              {
                 key: "interviewer",
                 enabled: can?.choosePersona ?? true,
                 node: (
@@ -723,6 +770,7 @@ export function SessionSetup() {
                     languages.find((entry) => entry.id === languageId)?.bcp47 ?? "en-US",
                   mode,
                   personaId,
+                  pressure,
                 },
               })
             }

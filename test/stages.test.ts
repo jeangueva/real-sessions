@@ -281,3 +281,35 @@ describe("who runs the round", () => {
     expect(cast.id).toBe("skeptic");
   });
 });
+
+describe("the rounds added after launch", () => {
+  it("offers salary negotiation and the stand-up to every role", () => {
+    for (const { roleId, stages } of stageCatalogue()) {
+      const ids = stages.map((entry) => entry.id);
+      expect(ids, roleId).toContain("salary-negotiation");
+      expect(ids, roleId).toContain("async-standup");
+    }
+  });
+
+  it("runs the stand-up alone, whatever else was asked for", () => {
+    const rounds = resolveStages("backend-engineer", [
+      "recruiter-screen",
+      "async-standup",
+      "values",
+    ]);
+    expect(rounds.map((entry) => entry.id)).toEqual(["async-standup"]);
+  });
+
+  it("still combines the rounds that are part of a loop", () => {
+    const rounds = resolveStages("backend-engineer", [
+      "behavioral",
+      "system-design",
+      "salary-negotiation",
+    ]);
+    expect(rounds.map((entry) => entry.id)).toEqual([
+      "behavioral",
+      "system-design",
+      "salary-negotiation",
+    ]);
+  });
+});

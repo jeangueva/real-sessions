@@ -139,6 +139,8 @@ export interface Stage {
   maxTurns: number;
   /** The job titles that run this round. Filters the interviewer picker. */
   titles: string[];
+  /** A round that cannot be combined with another. */
+  solo?: boolean;
 }
 
 export interface Sector {
@@ -379,6 +381,8 @@ export function startSessionStream(
     stages?: string[];
     /** What the interviewer speaks. English unless the plan allows a choice. */
     language?: string;
+    /** Interruptions, pushback and moved goalposts. Free on every plan. */
+    pressure?: boolean;
   },
   handlers: {
     onDelta: (text: string) => void;
