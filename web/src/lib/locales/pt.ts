@@ -482,6 +482,10 @@ const PT: Record<MessageKey, string> = {
   "card.failed": "Não deu para processar. Tente de novo, ou com outro cartão.",
   "nav.exit": "Sair",
 
+  "avatar.label": "Sua forma",
+  "avatar.evolvesAt": "Evolui no nível {level}",
+  "avatar.final": "Totalmente evoluído",
+  "avatar.formOf": "Forma {index} de {total}",
   "settings.tour": "Tour guiado",
   "settings.tourHint": "O passo a passo mostrado na primeira vez que você abre uma sessão.",
   "settings.tourAgain": "Mostrar de novo",

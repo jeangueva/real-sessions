@@ -19,6 +19,7 @@ export {
 } from "./primitives";
 
 export { Wordmark } from "./wordmark";
+export { Avatar } from "./avatar";
 export { TrendChart } from "./chart";
 export type { TrendPoint } from "./chart";
 export { Backdrop } from "./backdrop";

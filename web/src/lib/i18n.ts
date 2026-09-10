@@ -546,6 +546,10 @@ const EN = {
   "card.failed": "That did not go through. Try again, or use another card.",
   "nav.exit": "Exit",
 
+  "avatar.label": "Your form",
+  "avatar.evolvesAt": "Evolves at level {level}",
+  "avatar.final": "Fully evolved",
+  "avatar.formOf": "Form {index} of {total}",
   "settings.tour": "Guided tour",
   "settings.tourHint": "The walkthrough shown the first time you open a session.",
   "settings.tourAgain": "Show it again",

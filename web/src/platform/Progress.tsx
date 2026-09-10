@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Action, Eyebrow, FadeRise, Meter, Panel, TrendChart } from "@/design-system";
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
+import { Avatar } from "@/design-system";
+import { dominantAxis, nextEvolution } from "@/lib/avatar";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 import {
@@ -86,6 +88,20 @@ export function Progress() {
     value: session.score,
   }));
 
+  /**
+   * The most recent reading on each axis, which is what tints the avatar.
+   *
+   * The latest rather than an average: the avatar should say what someone is
+   * good at now, and a mean over every session they ever ran keeps showing
+   * them the shape of their first week.
+   */
+  const axisLatest = Object.fromEntries(
+    (["fluency", "vocabulary", "structure", "confidence"] as Axis[]).map((axis) => [
+      axis,
+      [...axes].reverse().find((point) => point.scores[axis] !== null)?.scores[axis] ?? null,
+    ]),
+  ) as Record<Axis, number | null>;
+
   const axisPoints = (axis: Axis): TrendPoint[] =>
     axes.map((point, index) => ({
       label: sessions?.[index] ? labelFor(sessions[index]!) : `Session ${index + 1}`,
@@ -140,9 +156,26 @@ export function Progress() {
         {profile && (
           <FadeRise>
             <Panel variant="raised" className="flex flex-wrap items-center gap-8 p-6">
-              <div>
-                <Eyebrow>{t("progress.level")}</Eyebrow>
-                <p className="mt-2 text-title text-cream-bright">{profile.level}</p>
+              {/* The avatar sits with the level rather than in a panel of its
+                  own: the number is what it is derived from, and separating
+                  them would make it look like a decoration instead of a
+                  reading of the same thing. */}
+              <div className="flex items-center gap-4">
+                <Avatar
+                  level={profile.level}
+                  axis={dominantAxis(axisLatest)}
+                  size={72}
+                  className="shrink-0 text-cream-bright"
+                />
+                <div>
+                  <Eyebrow>{t("progress.level")}</Eyebrow>
+                  <p className="mt-2 text-title text-cream-bright">{profile.level}</p>
+                  <p className="mt-1 text-xs text-cream-faint">
+                    {nextEvolution(profile.level) === null
+                      ? t("avatar.final")
+                      : t("avatar.evolvesAt", { level: nextEvolution(profile.level)! })}
+                  </p>
+                </div>
               </div>
               <div className="min-w-[12rem] flex-1">
                 <Meter

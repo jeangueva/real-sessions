@@ -482,6 +482,10 @@ const ES: Record<MessageKey, string> = {
   "card.failed": "No se pudo procesar. Probá de nuevo, o con otra tarjeta.",
   "nav.exit": "Salir",
 
+  "avatar.label": "Tu forma",
+  "avatar.evolvesAt": "Evoluciona en el nivel {level}",
+  "avatar.final": "Evolución completa",
+  "avatar.formOf": "Forma {index} de {total}",
   "settings.tour": "Tour guiado",
   "settings.tourHint": "El recorrido que se muestra la primera vez que abrís una sesión.",
   "settings.tourAgain": "Mostrarlo de nuevo",
