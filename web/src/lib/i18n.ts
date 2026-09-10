@@ -22,6 +22,8 @@ export type Locale =
   | "de"
   | "ru"
   | "hi"
+  | "ar"
+  | "he"
   | "zh"
   | "ja"
   | "ko"
@@ -42,6 +44,8 @@ export const LOCALES: { id: Locale; label: string; rtl?: true }[] = [
   { id: "de", label: "Deutsch" },
   { id: "ru", label: "Русский" },
   { id: "hi", label: "हिन्दी" },
+  { id: "ar", label: "العربية", rtl: true },
+  { id: "he", label: "עברית", rtl: true },
   { id: "zh", label: "中文" },
   { id: "ja", label: "日本語" },
   { id: "ko", label: "한국어" },
@@ -573,6 +577,8 @@ const LOADERS: Record<
   de: () => import("./locales/de"),
   ru: () => import("./locales/ru"),
   hi: () => import("./locales/hi"),
+  ar: () => import("./locales/ar"),
+  he: () => import("./locales/he"),
   zh: () => import("./locales/zh"),
   ja: () => import("./locales/ja"),
   ko: () => import("./locales/ko"),

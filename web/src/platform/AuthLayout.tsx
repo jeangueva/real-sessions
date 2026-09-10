@@ -22,7 +22,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           to="/"
           className="focus-ring inline-flex items-center gap-2 rounded text-xs text-cream-dim transition-colors hover:text-cream-bright"
         >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+          <ArrowLeft className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
           {t("auth.backHome")}
         </Link>
       </div>

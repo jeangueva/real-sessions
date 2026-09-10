@@ -73,7 +73,7 @@ function Shell({ document: doc }: { document: LegalDocument }) {
           to="/"
           className="focus-ring inline-flex w-fit items-center gap-2 rounded text-xs text-cream-dim transition-colors hover:text-cream-bright"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
+          <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
           {t("auth.backHome")}
         </Link>
 
