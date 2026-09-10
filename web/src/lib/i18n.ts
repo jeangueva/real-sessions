@@ -75,6 +75,10 @@ const EN = {
   "nav.guest": "Practising as a guest",
   "nav.save": "Save my progress",
   "nav.signOut": "Sign out",
+  "nav.newShort": "New",
+  "nav.contextShort": "Context",
+  "nav.accountShort": "Account",
+  "nav.saveShort": "Save",
   "nav.sections": "Sections",
 
   "setup.title": "Start an interview",

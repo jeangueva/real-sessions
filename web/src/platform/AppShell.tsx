@@ -26,12 +26,29 @@ import { Wordmark } from "@/design-system";
  * width on chrome and puts every target at the top of the reach. At `md` it is
  * an icon rail, and at `lg` it opens into labels.
  */
+/**
+ * `short` is the phone label, and it is a separate string rather than a
+ * shortening rule.
+ *
+ * This used to render `t(key).split(" ")[0]`, which assumes the first word of
+ * a label is the part worth keeping. That is true of "New session" and false
+ * of "Your context" — the tab read "Your" in English, "Tu" in Spanish, "Seu"
+ * in Portuguese, "Votre" in French and "Dein" in German: a bare possessive
+ * pronoun in five languages, naming nothing. There is no rule that shortens a
+ * phrase correctly across languages; there is only knowing the short word.
+ */
 const NAV = [
-  { to: "/app", key: "nav.new" as const, icon: Play, end: true },
-  { to: "/app/profile", key: "nav.context" as const, icon: FileUser, end: false },
-  { to: "/app/progress", key: "nav.progress" as const, icon: LineChart, end: false },
-  { to: "/app/history", key: "nav.history" as const, icon: History, end: false },
-  { to: "/app/settings", key: "nav.settings" as const, icon: Settings, end: false },
+  { to: "/app", key: "nav.new" as const, short: "nav.newShort" as const, icon: Play, end: true },
+  {
+    to: "/app/profile",
+    key: "nav.context" as const,
+    short: "nav.contextShort" as const,
+    icon: FileUser,
+    end: false,
+  },
+  { to: "/app/progress", key: "nav.progress" as const, short: "nav.progress" as const, icon: LineChart, end: false },
+  { to: "/app/history", key: "nav.history" as const, short: "nav.history" as const, icon: History, end: false },
+  { to: "/app/settings", key: "nav.settings" as const, short: "nav.settings" as const, icon: Settings, end: false },
 ];
 
 export function AppShell() {
@@ -172,7 +189,7 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface-deep/95 backdrop-blur md:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
-        {MOBILE_NAV.map(({ to, key, icon: Icon, end }) => (
+        {MOBILE_NAV.map(({ to, short, icon: Icon, end }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -188,9 +205,7 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
               }
             >
               <Icon className="h-5 w-5" aria-hidden />
-              {/* The rail's labels are longer than a fifth of a phone screen,
-                  so the two longest are shortened to their first word. */}
-              {t(key).split(" ")[0]}
+              {t(short)}
             </NavLink>
           </li>
         ))}
@@ -200,7 +215,7 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
             className="focus-ring flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] text-cream-dim"
           >
             <LogIn className={`h-5 w-5 ${signedIn ? "rotate-180" : ""}`} aria-hidden />
-            {signedIn ? "Account" : "Save"}
+            {t(signedIn ? "nav.accountShort" : "nav.saveShort")}
           </Link>
         </li>
       </ul>

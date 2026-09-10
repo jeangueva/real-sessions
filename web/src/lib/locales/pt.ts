@@ -11,6 +11,10 @@ const PT: Record<MessageKey, string> = {
   "nav.guest": "Praticando como convidado",
   "nav.save": "Salvar meu progresso",
   "nav.signOut": "Sair",
+  "nav.newShort": "Nova",
+  "nav.contextShort": "Contexto",
+  "nav.accountShort": "Conta",
+  "nav.saveShort": "Salvar",
   "nav.sections": "Seções",
 
   "setup.title": "Começar uma entrevista",

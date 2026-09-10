@@ -71,7 +71,7 @@ function Shell({ document: doc }: { document: LegalDocument }) {
       <div className="mx-auto flex max-w-2xl flex-col gap-10 px-6 py-16">
         <Link
           to="/"
-          className="focus-ring inline-flex w-fit items-center gap-2 rounded text-xs text-cream-dim transition-colors hover:text-cream-bright"
+          className="focus-ring inline-flex w-fit items-center gap-2 rounded py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
         >
           <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
           {t("auth.backHome")}
@@ -104,7 +104,7 @@ function Shell({ document: doc }: { document: LegalDocument }) {
         <p className="border-t border-line pt-6 text-xs text-cream-faint">
           <Link
             to={doc === privacyFor(legalLocale(locale)) ? "/terms" : "/privacy"}
-            className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
+            className="focus-ring inline-flex items-center rounded py-1.5 underline underline-offset-4 hover:text-cream-bright"
           >
             {doc === privacyFor(legalLocale(locale)) ? termsFor(legalLocale(locale)).title : privacyFor(legalLocale(locale)).title}
           </Link>

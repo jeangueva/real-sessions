@@ -19,8 +19,15 @@ export function SiteFooter() {
   const t = useT();
   const year = new Date().getFullYear();
 
+  /**
+   * `py-1.5` is a tap target, not spacing.
+   *
+   * At `text-xs` these links measured 21px tall on a phone, under the 24px
+   * WCAG 2.5.8 asks for. The padding is invisible — the row already has its
+   * own gap — and it buys the six pixels.
+   */
   const link =
-    "focus-ring rounded text-xs text-cream-dim transition-colors hover:text-cream-bright";
+    "focus-ring inline-flex items-center rounded py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright";
 
   return (
     <footer className="border-t border-line bg-surface-base">

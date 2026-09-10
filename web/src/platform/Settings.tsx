@@ -351,7 +351,11 @@ export function Settings() {
                   onChange={(event) =>
                     update({ interviewLength: Number(event.target.value) })
                   }
-                  className="focus-ring accent-cream"
+                  /* `h-6` is the touch target. A native range track is 16px tall,
+                     under what WCAG 2.5.8 asks of a control you have to drag;
+                     the taller box grows the hit area without thickening the
+                     track the browser draws inside it. */
+                  className="focus-ring accent-cream h-6"
                 />
               </Field>
 
