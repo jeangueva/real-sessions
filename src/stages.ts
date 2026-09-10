@@ -441,6 +441,37 @@ export function titlesFor(stages: Stage[]): string[] {
 }
 
 /** The catalogue payload: which rounds go with which role. */
-export function stageCatalogue(): { roleId: string; stages: Stage[] }[] {
-  return ROLES.map((role) => ({ roleId: role.id, stages: stagesFor(role.id) }));
+/**
+ * A round as the picker needs to see it.
+ *
+ * Deliberately not `Stage`. The brief and the rubric are the interviewer's
+ * instructions and the evaluator's scoring criteria, and for some rounds they
+ * are the round: the negotiation brief says the opening number is low on
+ * purpose, that the silence after it is a tactic, and that whoever names a
+ * figure first loses. A candidate who reads that has not rehearsed negotiating,
+ * they have sat an exam holding the answers. Shipping them to the browser to
+ * populate a dropdown that only ever renders the label and the summary is a
+ * trade with nothing on the near side.
+ */
+export interface PublicStage {
+  id: string;
+  label: string;
+  summary: string;
+  minTurns: number;
+  maxTurns: number;
+  titles: string[];
+  solo?: boolean;
+}
+
+/** Everything the browser is allowed to know about a round. */
+export function publicStage(stage: Stage): PublicStage {
+  const { brief: _brief, rubric: _rubric, ...rest } = stage;
+  return rest;
+}
+
+export function stageCatalogue(): { roleId: string; stages: PublicStage[] }[] {
+  return ROLES.map((role) => ({
+    roleId: role.id,
+    stages: stagesFor(role.id).map(publicStage),
+  }));
 }

@@ -9,6 +9,7 @@ import {
   resolveStage,
   resolveStages,
   stageCatalogue,
+  publicStage,
   stagesFor,
   titlesFor,
   turnBudget,
@@ -311,5 +312,40 @@ describe("the rounds added after launch", () => {
       "system-design",
       "salary-negotiation",
     ]);
+  });
+});
+
+
+describe("what the catalogue is allowed to say", () => {
+  /**
+   * The catalogue is served to anyone who opens the setup screen, so anything
+   * in it is public. The brief is the interviewer's playbook and the rubric is
+   * how the answer gets scored — for the negotiation round in particular, the
+   * brief gives away the whole exercise. This asserts on the serialised JSON
+   * rather than on the object's keys so that no future field, and no path that
+   * rebuilds the response by hand, can put them back without failing here.
+   */
+  it("never serialises a brief or a rubric", () => {
+    const wire = JSON.stringify(stageCatalogue());
+    for (const stage of STAGES) {
+      expect(wire, `${stage.id} brief`).not.toContain(stage.brief.slice(0, 40));
+      expect(wire, `${stage.id} rubric`).not.toContain(stage.rubric.slice(0, 40));
+    }
+  });
+
+  it("still says everything the picker renders", () => {
+    for (const { roleId, stages } of stageCatalogue()) {
+      for (const stage of stages) {
+        expect(stage.label, roleId).toBeTruthy();
+        expect(stage.summary, roleId).toBeTruthy();
+        expect(stage.titles.length, `${roleId}/${stage.id}`).toBeGreaterThan(0);
+        expect(stage.maxTurns, `${roleId}/${stage.id}`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("keeps the solo flag, which the picker needs", () => {
+    expect(publicStage(findStage("async-standup")).solo).toBe(true);
+    expect(publicStage(findStage("behavioral")).solo).toBeUndefined();
   });
 });
