@@ -3,9 +3,12 @@ import { createServer, type Server } from "node:http";
 import {
   ResendEmailSender,
   accountDeletedEmail,
+  earlyAccessEmail,
+  lastFreeInterviewEmail,
   passwordChangedEmail,
   paymentFailedEmail,
   resetEmail,
+  reviewQueueEmail,
   subscriptionEndedEmail,
   subscriptionMail,
   subscriptionStartedEmail,
@@ -278,5 +281,46 @@ describe("which subscription transitions owe a mail", () => {
     // paused → authorized is a customer who fixed their card. They get the
     // confirmation, not silence.
     expect(call("paused", "authorized")?.subject).toMatch(/active/i);
+  });
+});
+
+
+describe("the mail the product owes for its own promises", () => {
+  const WHEN = new Date("2026-12-01T00:00:00.000Z");
+
+  it("tells early access which address the offer is tied to", () => {
+    // The grant is keyed to the address. Signing up with a different one
+    // forfeits it silently, so the mail has to name the right one.
+    const mail = earlyAccessEmail("Someone@Example.com", { months: 6, until: WHEN });
+    expect(mail.to).toBe("Someone@Example.com");
+    expect(mail.text).toContain("Someone@Example.com");
+    expect(mail.subject).toContain("6");
+    expect(mail.text).toContain("2026-12-01");
+  });
+
+  it("still reads sensibly with no deadline", () => {
+    const mail = earlyAccessEmail("a@b.com", { months: 6, until: null });
+    expect(mail.text).not.toMatch(/invalid|null|undefined/i);
+  });
+
+  it("says when the free allowance comes back", () => {
+    const mail = lastFreeInterviewEmail("a@b.com", { limit: 3, resetsAt: WHEN });
+    expect(mail.text).toContain("3");
+    expect(mail.text).toContain("2026-12-01");
+    // The limit is on starting interviews, not on reading past ones, and
+    // someone who has just hit it will assume otherwise.
+    expect(mail.text).toMatch(/feedback|transcripts|progress/i);
+  });
+
+  it("falls back when the reset date is unknown", () => {
+    const mail = lastFreeInterviewEmail("a@b.com", { limit: 3, resetsAt: null });
+    expect(mail.text).toMatch(/next month/i);
+    expect(mail.text).not.toMatch(/invalid|nan/i);
+  });
+
+  it("points reviewers at the queue and promises not to nag", () => {
+    const mail = reviewQueueEmail("r@b.com", "https://www.getmockio.com/app/review");
+    expect(mail.text).toContain("https://www.getmockio.com/app/review");
+    expect(mail.text).toMatch(/not get another/i);
   });
 });

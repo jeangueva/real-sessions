@@ -82,9 +82,12 @@ import {
 import {
   accountDeletedEmail,
   createEmailSender,
+  earlyAccessEmail,
+  lastFreeInterviewEmail,
   passwordChangedEmail,
   paymentFailedEmail,
   resetEmail,
+  reviewQueueEmail,
   subscriptionMail,
   verifyEmail,
   type EmailMessage,
@@ -127,6 +130,7 @@ import { PERSONAS, castFor, defaultPersonaFor, findPersona } from "./personas.js
 import {
   capabilitiesFor,
   createEntitlementStore,
+  EARLY_ACCESS_MONTHS,
   earlyAccessUntil,
   GENERIC_COMPANY,
   GENERIC_CULTURE,
@@ -149,7 +153,7 @@ import {
 } from "./contributions.js";
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
-import { isReviewer, reviewEnabled } from "./reviewers.js";
+import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
 import { ROLES, roleIdFor } from "./roles.js";
 import {
   MAX_COMBINED,
@@ -1001,15 +1005,29 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const until = earlyAccessUntil();
     const fresh = await PLANS.recordEarlyAccess(email, role, company, until);
 
+    /**
+     * Only on the first registration of an address.
+     *
+     * This endpoint is open and unauthenticated, so mailing on every call
+     * would make it a way to send mail to anyone repeatedly. `fresh` is false
+     * the second time, which caps it at one per address — and the response
+     * stays identical either way, so this does not become the enumeration
+     * oracle the identical text exists to prevent.
+     */
+    if (fresh) {
+      await deliver(
+        earlyAccessEmail(email, { months: EARLY_ACCESS_MONTHS, until }),
+      );
+    }
+
     // Same answer whether or not the address was already on the list. A
     // distinct "already registered" would turn this open endpoint into a way
     // to test whether someone signed up.
     json(res, 202, {
       ok: true,
-      months: 6,
-      message: fresh
-        ? "You are on the list. Create an account with this address and the first six months are on us."
-        : "You are on the list. Create an account with this address and the first six months are on us.",
+      months: EARLY_ACCESS_MONTHS,
+      message:
+        "You are on the list. Create an account with this address and the first six months are on us.",
     });
     return;
   }
@@ -1556,6 +1574,26 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       role: roleIdFor(optional("role")),
     });
 
+    /**
+     * Wakes the reviewers when the queue stops being empty.
+     *
+     * Depth exactly one means this submission is the only thing waiting, so
+     * the queue just went from empty to not. That is the whole rate limit: a
+     * queue already one deep cannot become one deep again until it has been
+     * cleared, so no scheduler and no stored flag are needed, and the
+     * reviewers are not mailed once per contribution — which is how a
+     * notification gets filtered into a folder nobody opens.
+     */
+    if (stored) {
+      const depth = await CONTRIBUTIONS.queueDepth().catch(() => 0);
+      if (depth === 1) {
+        const url = `${siteUrl()}/app/review`;
+        for (const address of reviewerEmails()) {
+          await deliver(reviewQueueEmail(address, url));
+        }
+      }
+    }
+
     json(res, stored ? 201 : 200, {
       ok: true,
       stored,
@@ -1625,6 +1663,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
      * costs a few cents; failing closed tells a paying-adjacent candidate the
      * product is broken because a count timed out.
      */
+    let spendsLastFree = false;
+    let monthResetsAt: Date | null = null;
+    let freeLimit = 0;
     if (can.monthlySessions !== null) {
       const now = new Date();
       const monthStart = new Date(
@@ -1633,6 +1674,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       const used = await PROGRESS.sessionsSince(identity.id, monthStart).catch(
         () => 0,
       );
+      // The one about to start spends the last of the allowance. Captured
+      // here, sent once the durable row exists — telling someone they are out
+      // before the interview is written would be wrong if the write failed.
+      spendsLastFree = used === can.monthlySessions - 1;
+      monthResetsAt = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+      );
+      freeLimit = can.monthlySessions;
       if (used >= can.monthlySessions) {
         return json(res, 402, {
           error: `You have used all ${can.monthlySessions} free interviews this month.`,
@@ -1775,6 +1824,25 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         level: level.id,
       }),
     );
+
+    /**
+     * Told on the interview that spends the last free one.
+     *
+     * After the durable row, so this cannot announce an allowance spent by a
+     * session that failed to write. Signed-up accounts only — a guest has no
+     * address, and the interface already shows them the counter.
+     */
+    if (spendsLastFree && identity.kind === "user") {
+      const account = await ACCOUNTS.findById(identity.id);
+      if (account?.email) {
+        await deliver(
+          lastFreeInterviewEmail(account.email, {
+            limit: freeLimit,
+            resetsAt: monthResetsAt,
+          }),
+        );
+      }
+    }
 
     const persist = async (): Promise<void> => {
       await STORE.set(sessionId, {

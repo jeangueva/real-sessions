@@ -306,3 +306,82 @@ export function subscriptionMail(input: {
   // has done anything. There is nothing to report yet.
   return null;
 }
+
+/**
+ * Confirms a place on the early-access list.
+ *
+ * The landing page's second section asks for an address in exchange for six
+ * months of the paid plan, and until now gave back a line of text on a page
+ * that the reader then navigated away from. Nothing reached the address that
+ * the offer is actually attached to, which is the one thing they have to get
+ * right later — the grant is keyed to the address, so signing up with a
+ * different one silently forfeits it.
+ */
+export function earlyAccessEmail(
+  email: string,
+  detail: { months: number; until: Date | null },
+): EmailMessage {
+  const until = onDate(detail.until);
+  return {
+    to: email,
+    subject: `Your ${detail.months} free months of Mockio`,
+    text:
+      `You are on the early-access list.\n\n` +
+      `Create an account with this exact address — ${email} — and the first ` +
+      `${detail.months} months of the paid plan are free. The offer is tied ` +
+      `to the address, so signing up with a different one does not carry it ` +
+      `over.\n\n` +
+      (until ? `Claim it before ${until}.\n\n` : "") +
+      `If you did not ask for this, nothing has been created and you can ` +
+      `ignore it.`,
+  };
+}
+
+/**
+ * Sent on the interview that uses the last of the month's free allowance.
+ *
+ * On the one that spends it, not on the attempt that gets refused: the refusal
+ * happens every time they try again, and a mail on that schedule is a mail
+ * about our billing rather than about their practice. This arrives once, while
+ * they are still in the session it is describing.
+ */
+export function lastFreeInterviewEmail(
+  email: string,
+  detail: { limit: number; resetsAt: Date | null },
+): EmailMessage {
+  const resets = onDate(detail.resetsAt);
+  return {
+    to: email,
+    subject: "That was your last free interview this month",
+    text:
+      `You have now used all ${detail.limit} free interviews for this month.\n\n` +
+      (resets
+        ? `The next ${detail.limit} arrive on ${resets}.\n\n`
+        : `They renew at the start of next month.\n\n`) +
+      `Your feedback, transcripts and progress stay available in the ` +
+      `meantime — the limit is on starting new interviews, not on reading ` +
+      `the ones you have done.\n\n` +
+      `The paid plan removes the limit if you would rather not wait.`,
+  };
+}
+
+/**
+ * Tells the reviewers there is something to review.
+ *
+ * Sent when the queue goes from empty to not, and not again until it has been
+ * emptied. That is the whole rate limit, and it needs no scheduler and no
+ * stored state: a queue that is already one deep does not become one deep
+ * again. Mailing on every submission would train the recipients to filter it.
+ */
+export function reviewQueueEmail(email: string, url: string): EmailMessage {
+  return {
+    to: email,
+    subject: "A contributed question is waiting for review",
+    text:
+      `Someone reported a question they were asked, and nothing reaches an ` +
+      `interview until a human confirms it.\n\n` +
+      `${url}\n\n` +
+      `You will not get another of these until the queue has been cleared ` +
+      `and something new arrives.`,
+  };
+}
