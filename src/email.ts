@@ -385,3 +385,69 @@ export function reviewQueueEmail(email: string, url: string): EmailMessage {
       `and something new arrives.`,
   };
 }
+
+/**
+ * Lifecycle mail, which is the kind that needs a way out.
+ *
+ * Everything above answers something the recipient just did. These two arrive
+ * because time passed, which makes them the only mail here a person can
+ * reasonably not want — so both end in an unsubscribe link, and the functions
+ * require the URL rather than accepting an optional one. A signature that lets
+ * you forget it is a signature that eventually does.
+ */
+function withUnsubscribe(body: string, unsubscribeUrl: string): string {
+  return `${body}\n\n—\nStop these emails: ${unsubscribeUrl}\nThis does not affect receipts or security notices.`;
+}
+
+export function inactivityEmail(
+  email: string,
+  detail: { days: number; unsubscribeUrl: string },
+): EmailMessage {
+  return {
+    to: email,
+    subject: "Your English is still waiting",
+    text: withUnsubscribe(
+      `It has been about ${detail.days} days since your last interview.\n\n` +
+        `Nothing has expired and nothing is lost — your transcripts, feedback ` +
+        `and progress are where you left them. One interview takes around ten ` +
+        `minutes, and the hardest part of speaking English under pressure is ` +
+        `the part that goes first when you stop.\n\n` +
+        `If you are not looking for a job right now, that is a good reason to ` +
+        `practise and a fine reason to ignore this.`,
+      detail.unsubscribeUrl,
+    ),
+  };
+}
+
+/**
+ * The week in one paragraph.
+ *
+ * Only sent to someone who did something, so it never says "you did nothing
+ * this week" — a summary of an empty week is a reproach, and the nudge above
+ * already covers people who have stopped.
+ */
+export function weeklyDigestEmail(
+  email: string,
+  detail: {
+    sessions: number;
+    bestScore: number | null;
+    xp: number;
+    unsubscribeUrl: string;
+  },
+): EmailMessage {
+  const count =
+    detail.sessions === 1 ? "one interview" : `${detail.sessions} interviews`;
+  return {
+    to: email,
+    subject: `Your week: ${count}`,
+    text: withUnsubscribe(
+      `You sat ${count} in the last seven days.\n\n` +
+        (detail.bestScore !== null ? `Best score: ${detail.bestScore}/100\n` : "") +
+        (detail.xp > 0 ? `XP earned: ${detail.xp}\n` : "") +
+        `\nThe scores are only worth reading next to each other, which is what ` +
+        `the progress screen is for. Two or three interviews a week is where ` +
+        `the curve starts moving.`,
+      detail.unsubscribeUrl,
+    ),
+  };
+}

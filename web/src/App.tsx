@@ -21,6 +21,7 @@ import { Review } from "@/platform/Review";
 import { Settings } from "@/platform/Settings";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
+import { Unsubscribe } from "@/platform/Unsubscribe";
 import { ConfirmEmail } from "@/platform/ConfirmEmail";
 import { LocaleProvider } from "@/hooks/useLocale";
 
@@ -66,6 +67,7 @@ export function App() {
         <Route path="/signin" element={<SignIn />} />
         {/* One route for both halves: request a link, or use one. */}
         <Route path="/reset" element={<ResetPassword />} />
+        <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/verify" element={<ConfirmEmail />} />
         {/* Outside the shell: reachable without an account, and linked from
             the footer, the sign-up screen and the payment provider. */}

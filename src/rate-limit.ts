@@ -57,6 +57,17 @@ export const RULES = {
   verifyResend: { limit: 5, windowMs: 60 * 60 * 1000 },
   verifyByIp: { limit: 20, windowMs: 60 * 60 * 1000 },
   /**
+   * Unsubscribing, which is deliberately generous.
+   *
+   * This first reused the sign-up rule and a second click answered 429 —
+   * someone making sure their unsubscribe worked was told to try later, which
+   * is the worst possible moment to look broken. The request is idempotent and
+   * the HMAC in the link is what actually authorises it; the limit here only
+   * stops a flood, and several people behind one office NAT all unsubscribing
+   * from the same campaign is normal traffic, not a flood.
+   */
+  unsubscribe: { limit: 60, windowMs: 60 * 60 * 1000 },
+  /**
    * Live coaching. One model call per candidate turn, so the ceiling tracks
    * `answer` rather than `evaluation` — but it is a second call on the same
    * conversation, and a client that retried it in a loop would double the

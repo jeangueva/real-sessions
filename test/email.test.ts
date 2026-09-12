@@ -4,6 +4,7 @@ import {
   ResendEmailSender,
   accountDeletedEmail,
   earlyAccessEmail,
+  inactivityEmail,
   lastFreeInterviewEmail,
   passwordChangedEmail,
   paymentFailedEmail,
@@ -13,6 +14,7 @@ import {
   subscriptionMail,
   subscriptionStartedEmail,
   verifyEmail,
+  weeklyDigestEmail,
 } from "../src/email.js";
 
 /**
@@ -322,5 +324,66 @@ describe("the mail the product owes for its own promises", () => {
     const mail = reviewQueueEmail("r@b.com", "https://www.getmockio.com/app/review");
     expect(mail.text).toContain("https://www.getmockio.com/app/review");
     expect(mail.text).toMatch(/not get another/i);
+  });
+});
+
+
+/**
+ * Lifecycle mail, where the unsubscribe link is the feature.
+ *
+ * These are the only two messages a recipient can reasonably not want, so the
+ * link is not decoration — it is what separates them from the transactional
+ * mail above, and a missing one is the difference between a product and a
+ * mailing list.
+ */
+describe("the mail that arrives because time passed", () => {
+  const UNSUB = "https://www.getmockio.com/unsubscribe?e=a%40b.com&t=abc";
+
+  it("always carries a way out", () => {
+    const both = [
+      inactivityEmail("a@b.com", { days: 14, unsubscribeUrl: UNSUB }),
+      weeklyDigestEmail("a@b.com", {
+        sessions: 2,
+        bestScore: 71,
+        xp: 120,
+        unsubscribeUrl: UNSUB,
+      }),
+    ];
+    for (const mail of both) {
+      expect(mail.text).toContain(UNSUB);
+      // And says what unsubscribing does not turn off, because someone
+      // stopping reminders is not asking to stop hearing their card failed.
+      expect(mail.text).toMatch(/receipts|security/i);
+    }
+  });
+
+  it("tells a lapsed candidate nothing was lost", () => {
+    const mail = inactivityEmail("a@b.com", { days: 14, unsubscribeUrl: UNSUB });
+    expect(mail.text).toContain("14");
+    expect(mail.text).toMatch(/nothing is lost|nothing has expired/i);
+  });
+
+  it("counts one interview in the singular", () => {
+    const one = weeklyDigestEmail("a@b.com", {
+      sessions: 1,
+      bestScore: null,
+      xp: 0,
+      unsubscribeUrl: UNSUB,
+    });
+    expect(one.subject).toContain("one interview");
+    expect(one.text).not.toMatch(/1 interviews/);
+  });
+
+  it("omits a score and XP it does not have", () => {
+    // An unscored week must not render "Best score: null".
+    const mail = weeklyDigestEmail("a@b.com", {
+      sessions: 2,
+      bestScore: null,
+      xp: 0,
+      unsubscribeUrl: UNSUB,
+    });
+    expect(mail.text).not.toMatch(/null|undefined|NaN/);
+    expect(mail.text).not.toMatch(/best score/i);
+    expect(mail.text).not.toMatch(/xp earned/i);
   });
 });

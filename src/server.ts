@@ -83,6 +83,7 @@ import {
   accountDeletedEmail,
   createEmailSender,
   earlyAccessEmail,
+  inactivityEmail,
   lastFreeInterviewEmail,
   passwordChangedEmail,
   paymentFailedEmail,
@@ -90,6 +91,7 @@ import {
   reviewQueueEmail,
   subscriptionMail,
   verifyEmail,
+  weeklyDigestEmail,
   type EmailMessage,
   type EmailSender,
 } from "./email.js";
@@ -154,6 +156,15 @@ import {
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
+import {
+  INACTIVE_DAYS,
+  JOBS,
+  lifecycleEmailEnabled,
+  NUDGE_COOLDOWN_DAYS,
+  unsubscribeTokenValid,
+  unsubscribeUrl,
+} from "./lifecycle.js";
+import { createLifecycleStore, type LifecycleStore } from "./lifecycle-store.js";
 import { ROLES, roleIdFor } from "./roles.js";
 import {
   MAX_COMBINED,
@@ -219,6 +230,7 @@ let PLANS: EntitlementStore;
 let PROFILES: ProfileStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
+let LIFECYCLE: LifecycleStore;
 /**
  * The built web app, when one is present beside the server.
  *
@@ -246,6 +258,7 @@ export interface ServerDependencies {
   profiles: ProfileStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
+  lifecycle: LifecycleStore;
   accounts: AccountStore;
   mailer: EmailSender;
   limiter: RateLimiter;
@@ -267,6 +280,7 @@ export function configure(deps: ServerDependencies): void {
   PROFILES = deps.profiles;
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
+  LIFECYCLE = deps.lifecycle;
   ACCOUNTS = deps.accounts;
   MAILER = deps.mailer;
   LIMITER = deps.limiter;
@@ -583,6 +597,108 @@ async function notifySubscription(
   if (message) await mail(message);
 }
 
+
+/**
+ * The canonical origin, for links in mail.
+ *
+ * Module scope rather than the request closure it used to live in: the
+ * scheduled jobs below build unsubscribe links and run outside any request.
+ */
+const siteUrl = () => process.env.REALSESSIONS_SITE_URL ?? "http://localhost:5173";
+
+/**
+ * The scheduled mail, run from a timer in this process.
+ *
+ * No queue and no second service: the work is a handful of rows a day, and a
+ * worker that has to be deployed and watched before it has anything to do is
+ * more operations than the problem. `claim` is what makes it safe anyway — it
+ * is a conditional UPDATE, so if this ever runs on two instances exactly one
+ * of them wins each period and nobody is mailed twice.
+ *
+ * Failures are logged and swallowed per recipient. One bad address must not
+ * end the run and leave everyone after it unmailed.
+ */
+async function runLifecycleJobs(): Promise<void> {
+  // Nothing is claimed when it is off, so a deployment that is not meant to
+  // send does not silently mark the jobs as run either — turning it on later
+  // starts from a clean ledger rather than thinking it already sent today.
+  if (!lifecycleEmailEnabled()) return;
+  for (const { job, everyMs } of JOBS) {
+    let claimed = false;
+    try {
+      claimed = await LIFECYCLE.claim(job, everyMs);
+    } catch (error) {
+      console.error(`[mockio] could not claim job ${job}:`, error);
+      continue;
+    }
+    if (!claimed) continue;
+
+    try {
+      if (job === "inactivity") await runInactivityNudge();
+      if (job === "weekly-digest") await runWeeklyDigest();
+    } catch (error) {
+      console.error(`[mockio] job ${job} failed:`, error);
+    }
+  }
+}
+
+/**
+ * Resolves an owner to an address that may receive lifecycle mail.
+ *
+ * Three ways to be ineligible and all of them are quiet: a guest has no
+ * account, an address can have opted out, and one that heard from us recently
+ * is not due again. The opt-out and the cooldown are keyed by address rather
+ * than by owner, which is why they cannot be part of the query that found the
+ * owner in the first place.
+ */
+async function lifecycleAddress(
+  ownerId: string,
+  kind: "inactivity" | "weekly-digest",
+  cooldownDays: number,
+): Promise<string | null> {
+  const account = await ACCOUNTS.findById(ownerId).catch(() => null);
+  if (!account?.email) return null;
+  if (await LIFECYCLE.hasOptedOut(account.email).catch(() => true)) return null;
+  if (await LIFECYCLE.sentRecently(account.email, kind, cooldownDays).catch(() => true)) {
+    return null;
+  }
+  return account.email;
+}
+
+async function runInactivityNudge(): Promise<void> {
+  const owners = await LIFECYCLE.lapsedOwners(200);
+  for (const { ownerId } of owners) {
+    const email = await lifecycleAddress(ownerId, "inactivity", NUDGE_COOLDOWN_DAYS);
+    if (!email) continue;
+    await mail(
+      inactivityEmail(email, {
+        days: INACTIVE_DAYS,
+        unsubscribeUrl: unsubscribeUrl(siteUrl(), email),
+      }),
+    );
+    await LIFECYCLE.markSent(email, "inactivity").catch(() => undefined);
+  }
+}
+
+async function runWeeklyDigest(): Promise<void> {
+  const rows = await LIFECYCLE.activeOwners(500);
+  for (const row of rows) {
+    // Six days rather than seven: a weekly job that drifts a few minutes later
+    // each run would otherwise skip a week for everyone, every few months.
+    const email = await lifecycleAddress(row.ownerId, "weekly-digest", 6);
+    if (!email) continue;
+    await mail(
+      weeklyDigestEmail(email, {
+        sessions: row.sessions,
+        bestScore: row.bestScore,
+        xp: row.xp,
+        unsubscribeUrl: unsubscribeUrl(siteUrl(), email),
+      }),
+    );
+    await LIFECYCLE.markSent(email, "weekly-digest").catch(() => undefined);
+  }
+}
+
 async function reconcileSubscription(externalId: string): Promise<Plan | null> {
   const remote = await fetchPreapproval(externalId);
   // external_reference is our identity, round-tripped through the provider.
@@ -784,8 +900,6 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const issuedAt = candidate.expiresAt - USER_TOKEN_TTL_MS;
     return issuedAt < Date.parse(account.passwordChangedAt);
   };
-
-  const siteUrl = () => process.env.REALSESSIONS_SITE_URL ?? "http://localhost:5173";
 
   /**
    * Sends without letting the outcome reach the response.
@@ -1028,6 +1142,40 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       months: EARLY_ACCESS_MONTHS,
       message:
         "You are on the list. Create an account with this address and the first six months are on us.",
+    });
+    return;
+  }
+
+  /**
+   * Unsubscribing from lifecycle mail.
+   *
+   * POST, and public. POST because corporate mail scanners follow every link
+   * in a message before a human sees it, and an unsubscribe that happens on
+   * GET would quietly opt people out of mail they never read — the link in the
+   * mail points at a page, and the page is what sends this.
+   *
+   * Public because someone who no longer wants our mail should not have to
+   * sign in to stop it. The HMAC in the link is the authorisation: it proves
+   * the address was sent by us, and it is checked in constant time so it
+   * cannot be guessed one character at a time.
+   */
+  if (req.method === "POST" && path === "/api/email/unsubscribe") {
+    if (await limited(res, `unsub:${clientIp(req)}`, RULES.unsubscribe)) return;
+    const body = await readJson(req);
+    const email = normalizeEmail(body["email"]);
+    const token = typeof body["token"] === "string" ? body["token"] : "";
+    if (!email || !unsubscribeTokenValid(email, token)) {
+      return json(res, 400, { error: "That unsubscribe link is not valid." });
+    }
+    await LIFECYCLE.optOut(email).catch((error: unknown) => {
+      console.error("[mockio] opt-out failed:", error);
+    });
+    // Same answer whether or not the address was already opted out: repeating
+    // the request is not an error, and the second click should not look like
+    // one to someone making sure it worked.
+    json(res, 200, {
+      ok: true,
+      message: "Done. You will not get reminders or summaries at this address.",
     });
     return;
   }
@@ -2317,6 +2465,7 @@ configure({
   profiles: createProfileStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
+  lifecycle: createLifecycleStore(db),
 });
 
 // The catalogue is code (see sectors.ts) and the table is a copy of it, so
@@ -2436,9 +2585,36 @@ function reportBillingConfig(): void {
   if (blocked) console.warn(`[mockio] ${blocked}`);
 }
 
+/**
+ * The scheduler tick.
+ *
+ * Hourly, which is far more often than any job's cadence — the jobs themselves
+ * decide whether they are due, and a tick that finds nothing costs one query.
+ * Being frequent is what makes the schedule survive restarts: a deploy in the
+ * middle of a day does not push the daily run to tomorrow.
+ *
+ * `unref` so an idle timer never holds the process open during shutdown.
+ */
+const LIFECYCLE_TICK_MS = 60 * 60 * 1000;
+let lifecycleTimer: NodeJS.Timeout | null = null;
+
 server.listen(PORT, () => {
   warnAboutSiteUrl();
   reportBillingConfig();
+  if (!lifecycleEmailEnabled()) {
+    console.log(
+      "[mockio] Lifecycle email is off. Reminders and weekly summaries are " +
+        "not sent; set REALSESSIONS_LIFECYCLE_EMAIL=1 to enable them. " +
+        "Receipts and security notices are unaffected.",
+    );
+  }
+  lifecycleTimer = setInterval(() => {
+    void runLifecycleJobs();
+  }, LIFECYCLE_TICK_MS);
+  lifecycleTimer.unref();
+  // Once at boot as well, so a deployment that was down over a scheduled run
+  // catches up instead of skipping it.
+  void runLifecycleJobs();
   console.log(
     `Mockio API on http://localhost:${PORT} ` +
       `(sessions: ${store.kind}, progress: ${PROGRESS.kind}, ` +
@@ -2450,6 +2626,7 @@ server.listen(PORT, () => {
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
+    if (lifecycleTimer) clearInterval(lifecycleTimer);
     // Close the Redis connection so an in-flight write is not cut mid-command.
     server.close(() => {
       void store

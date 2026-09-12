@@ -11,6 +11,7 @@
  * Every collaborator is in-memory and every model call is stubbed, so the suite
  * needs no Redis, no Postgres, no API key and no network.
  */
+import { createLifecycleStore } from "../../src/lifecycle-store.js";
 import type { AddressInfo } from "node:net";
 import { configure, server } from "../../src/server.js";
 import { createSessionStore } from "../../src/session-store.js";
@@ -187,6 +188,8 @@ export async function startHarness(): Promise<Harness> {
     profiles: createProfileStore(null),
     contributions,
     subscriptions: createSubscriptionStore(null),
+
+    lifecycle: createLifecycleStore(null),
     accounts: createAccountStore(null),
     mailer,
     limiter: new MemoryRateLimiter(),

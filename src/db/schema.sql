@@ -256,3 +256,47 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 );
 
 CREATE INDEX IF NOT EXISTS subscriptions_external_idx ON subscriptions (external_id);
+
+/*
+ * When each scheduled job last ran.
+ *
+ * Also the lock. Claiming a job is a conditional UPDATE that only succeeds if
+ * the stored timestamp is older than the cadence, so two instances racing at
+ * the same second produce exactly one winner and one no-op. Without that, a
+ * second web instance would mean every recipient gets every lifecycle mail
+ * twice — and the service is one instance today, which is precisely when that
+ * bug gets written and not noticed.
+ */
+CREATE TABLE IF NOT EXISTS job_runs (
+  job TEXT PRIMARY KEY,
+  last_run_at TIMESTAMPTZ
+);
+
+/*
+ * Addresses that have opted out of lifecycle mail.
+ *
+ * Keyed by address rather than by account, deliberately. Unsubscribing is a
+ * statement about an inbox, and it has to outlive the account: someone who
+ * deletes their account and signs up again has not re-consented, and an
+ * address that never had an account at all can still be on the early-access
+ * list. Transactional mail — a receipt, a failed charge, a password change —
+ * ignores this table, because those are not things one opts out of.
+ */
+CREATE TABLE IF NOT EXISTS email_optouts (
+  email TEXT PRIMARY KEY,
+  opted_out_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+/*
+ * When an address was last sent each kind of lifecycle mail.
+ *
+ * Stops a nudge from repeating every day for as long as someone stays away.
+ * The job picks who is due; this is what makes "due" mean "and has not already
+ * heard from us about this recently".
+ */
+CREATE TABLE IF NOT EXISTS lifecycle_sends (
+  email TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (email, kind)
+);
