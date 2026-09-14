@@ -155,11 +155,17 @@ warm lift the wordmark sits in, which is the whole point of the composition.
 
 ## Charts
 
-One chart component, `TrendChart`, and it plots a single series. Four axes on
-one plot would need four categorical hues, and every muted palette that fits
+`TrendChart` plots a single series. Four axes on one plot would need four
+categorical hues, and every muted palette that fits
 this cream-on-dark design fails colour-blind separation — the closest pair
 measured ΔE 5.0 for deuteranopia against a floor of 8. So identity comes from
 the panel title and small multiples, not from hue.
+
+`RadarChart` is the one plot showing all four axes together. It is allowed for
+the same reason: one polygon needs no hues. It answers "am I lopsided" from
+the latest reading on each axis; the small multiples under it answer "is this
+moving". Unmeasured axes sit at the centre instead of being dropped, because a
+triangle reads as a shape, not as a gap.
 
 The y domain is fixed at 0–100 rather than fitted. A fitted axis turns three
 points of noise into a dramatic climb, which is the most flattering lie a
@@ -175,7 +181,7 @@ progress chart can tell.
 | `/app/session` | Live interview + coaching sidebar |
 | `/app/feedback` | Evaluation, measured metrics, XP and badges earned |
 | `/app/profile` | CV, portfolio links, and the brief the interviewer reads |
-| `/app/progress` | Level, score trend, four axis trends, badges |
+| `/app/progress` | Level, score trend, four-axis shape and trends, badges |
 | `/app/history` | Past sessions |
 | `/app/settings` | Preferences and account |
 

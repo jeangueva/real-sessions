@@ -241,6 +241,7 @@ const EN = {
   "progress.overallNote": "The evaluator's read of each interview. The axis is fixed at 0–100 on purpose — a chart that rescales to its own data turns three points of noise into a climb.",
   "progress.byFront": "By front",
   "progress.byFrontNote": "Four separate readings rather than one number. Being fluent but disorganised, or structured but hesitant, are different problems with different fixes — a single score hides both.",
+  "progress.shape": "Latest reading on each front",
   "progress.badges": "Badges",
   "progress.badgesCount": "{earned} of {total} earned.",
 

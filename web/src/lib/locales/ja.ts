@@ -152,6 +152,7 @@ const JA: Record<MessageKey, string> = {
   "progress.overallNote": "評価者による各面接の読みです。軸を 0〜100 に固定しているのは意図的で、自分のデータに合わせて伸縮するグラフは、3点分のノイズを上昇に見せてしまうからです。",
   "progress.byFront": "項目別",
   "progress.byFrontNote": "1つの数字ではなく、4つの独立した読みです。流暢だが散らかっている場合と、構成はよいが言いよどむ場合は別の問題で、対処も別。単一の点数は両方を隠します。",
+  "progress.shape": "項目ごとの最新の読み",
   "progress.badges": "バッジ",
   "progress.badgesCount": "{total} 個中 {earned} 個を獲得。",
   "axis.fluency": "流暢さ",

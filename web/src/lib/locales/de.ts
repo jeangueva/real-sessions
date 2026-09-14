@@ -152,6 +152,7 @@ const DE: Record<MessageKey, string> = {
   "progress.overallNote": "Die Lesart des Bewerters für jedes Gespräch. Die Achse steht absichtlich fest auf 0–100 — ein Diagramm, das sich auf die eigenen Daten skaliert, macht aus drei Punkten Rauschen einen Aufstieg.",
   "progress.byFront": "Nach Feld",
   "progress.byFrontNote": "Vier getrennte Lesarten statt einer Zahl. Flüssig aber unstrukturiert zu sein, oder strukturiert aber zögerlich, sind verschiedene Probleme mit verschiedenen Lösungen — eine einzelne Punktzahl verdeckt beide.",
+  "progress.shape": "Letzter Wert je Feld",
   "progress.badges": "Abzeichen",
   "progress.badgesCount": "{earned} von {total} erreicht.",
   "axis.fluency": "Flüssigkeit",

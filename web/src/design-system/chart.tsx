@@ -2,7 +2,7 @@ import { useId, useMemo, useState } from "react";
 import { useT } from "@/hooks/useLocale";
 
 /**
- * The one chart in the product.
+ * The trend chart.
  *
  * Deliberately a single series. Four axes on one plot would need four
  * categorical hues, and every muted palette that sits inside this cream-on-dark
@@ -231,6 +231,245 @@ export function TrendChart({
           </tbody>
         </table>
       )}
+    </figure>
+  );
+}
+
+/**
+ * The four axes at once, as a shape.
+ *
+ * This is the one plot in the product that shows all four fronts together, and
+ * it is allowed to exist for the reason the docstring at the top of this file
+ * rules out a four-line chart: a radar needs no categorical hues. There is one
+ * series — one polygon — and identity comes from which spoke a vertex sits on
+ * and the word printed beside it. Colour carries nothing, so nothing is lost
+ * to a reader who cannot separate two muted tones.
+ *
+ * It answers a different question from the small multiples below it. They say
+ * "is fluency improving"; this says "am I lopsided" — which is the question
+ * someone asks once, at a glance, before deciding what to practise.
+ */
+
+/** Clockwise from the top. Fixed, because a shape that reorders is not a shape. */
+const RADAR_AXES = ["fluency", "vocabulary", "structure", "confidence"] as const;
+export type RadarAxis = (typeof RADAR_AXES)[number];
+
+/**
+ * Room for the words, not for the plot.
+ *
+ * Each label is two lines, the axis name with its number under it, so a side
+ * label needs the width of one word — but that word is translated, and
+ * "Уверенность" or "Vocabulário" runs past seventy units at this size. The box
+ * is wider than it is tall to give the left and right labels that room. An
+ * inline svg clips whatever falls outside its viewBox, and says nothing.
+ */
+const RADAR_W = 340;
+const RADAR_H = 216;
+const RADAR_CX = RADAR_W / 2;
+const RADAR_CY = 106;
+const RADAR_R = 62;
+/** Where a label sits, measured out from the centre past the outer ring. */
+const LABEL_R = RADAR_R + 16;
+const LABEL_LINE = LABEL_SIZE + 2;
+
+/** Unit vectors for the four compass points, clockwise from the top. */
+const DIRECTION: Record<RadarAxis, { dx: number; dy: number }> = {
+  fluency: { dx: 0, dy: -1 },
+  vocabulary: { dx: 1, dy: 0 },
+  structure: { dx: 0, dy: 1 },
+  confidence: { dx: -1, dy: 0 },
+};
+
+function radarPoint(axis: RadarAxis, value: number, radius = RADAR_R) {
+  const { dx, dy } = DIRECTION[axis];
+  // The domain is fixed at 0–100, never fitted. A radar fitted to its own data
+  // is worse than a fitted line chart: every shape becomes the same shape.
+  const scaled = (Math.max(0, Math.min(100, value)) / 100) * radius;
+  return { x: RADAR_CX + dx * scaled, y: RADAR_CY + dy * scaled };
+}
+
+export function RadarChart({
+  title,
+  scores,
+  labels,
+  caption,
+}: {
+  title: string;
+  /** 0–100 per axis, or null where this candidate has no reading yet. */
+  scores: Record<RadarAxis, number | null>;
+  /** Already localised. Nothing in here may print English. */
+  labels: Record<RadarAxis, string>;
+  caption?: string;
+}) {
+  const t = useT();
+
+  /**
+   * An unmeasured axis is plotted at the centre rather than dropped.
+   *
+   * Dropping it would leave three vertices, and a triangle reads as a
+   * deliberate shape rather than as missing data — the reader has no way to
+   * tell which axis is absent, or that one is. At the centre the dent is
+   * visible, and the label beside it says why.
+   */
+  const vertices = RADAR_AXES.map((axis) =>
+    radarPoint(axis, scores[axis] ?? 0),
+  );
+  const polygon = vertices.map(({ x, y }) => `${x},${y}`).join(" ");
+
+  const measuredCount = RADAR_AXES.filter((axis) => scores[axis] !== null).length;
+
+  /** The numbers, for anyone who is not reading the shape. */
+  const spoken = RADAR_AXES.map((axis) => {
+    const value = scores[axis];
+    return `${labels[axis]}: ${value === null ? t("chart.notMeasured") : Math.round(value)}`;
+  }).join(". ");
+
+  if (measuredCount === 0) {
+    return (
+      <figure className="flex flex-col gap-2">
+        <figcaption className="text-xs text-cream-faint">{title}</figcaption>
+        <div
+          className="flex items-center justify-center rounded-xl border border-line"
+          style={{ aspectRatio: `${RADAR_W} / ${RADAR_H}` }}
+        >
+          <p className="text-xs text-cream-faint">{t("chart.notMeasured")}</p>
+        </div>
+        {caption && <p className="text-xs text-cream-faint">{caption}</p>}
+      </figure>
+    );
+  }
+
+  return (
+    <figure className="flex flex-col gap-2">
+      <figcaption className="text-xs text-cream-faint">
+        {title}
+      </figcaption>
+
+      {/* `currentColor` throughout, inherited from Tailwind text tokens on the
+          svg and on each label. No literal colours and no opacity on text,
+          because `web/test/contrast.test.ts` measures the tokens, not an
+          alpha picked here.
+
+          Labels anchor to physical plot sides: under `dir="rtl"`, `start`
+          grows left across the right vertex. Each label remains its own text,
+          so its words still shape and order correctly.
+
+          The accessible name is aria-label alone: a labelled-by reference
+          would override it and leave only the title, not the numbers; an SVG
+          title child would announce them a second time. */}
+      <svg
+        viewBox={`0 0 ${RADAR_W} ${RADAR_H}`}
+        style={{ direction: "ltr" }}
+        className="w-full text-cream-bright"
+        role="img"
+        aria-label={`${title}. ${spoken}`}
+      >
+        {/* Rings and spokes, recessive. They are the ruler, not the reading. */}
+        {[25, 50, 75, 100].map((ring) => (
+          <polygon
+            key={ring}
+            points={RADAR_AXES.map((axis) => {
+              const { x, y } = radarPoint(axis, ring);
+              return `${x},${y}`;
+            }).join(" ")}
+            fill="none"
+            stroke="currentColor"
+            strokeOpacity={ring === 100 ? 0.22 : 0.12}
+            strokeWidth={1}
+          />
+        ))}
+
+        {RADAR_AXES.map((axis) => {
+          const { x, y } = radarPoint(axis, 100);
+          return (
+            <line
+              key={axis}
+              x1={RADAR_CX}
+              y1={RADAR_CY}
+              x2={x}
+              y2={y}
+              stroke="currentColor"
+              strokeOpacity={0.12}
+              strokeWidth={1}
+            />
+          );
+        })}
+
+        <polygon
+          points={polygon}
+          fill="currentColor"
+          fillOpacity={0.16}
+          stroke="currentColor"
+          strokeOpacity={0.85}
+          strokeWidth={2}
+          strokeLinejoin="round"
+        />
+
+        {RADAR_AXES.map((axis) => {
+          const value = scores[axis];
+          const { x, y } = radarPoint(axis, value ?? 0);
+          return (
+            <circle
+              key={axis}
+              cx={x}
+              cy={y}
+              r={value === null ? 2.5 : 4}
+              fill="currentColor"
+              fillOpacity={value === null ? 0.35 : 1}
+            />
+          );
+        })}
+
+        {RADAR_AXES.map((axis) => {
+          const { dx, dy } = DIRECTION[axis];
+          const value = scores[axis];
+          const x = RADAR_CX + dx * LABEL_R;
+          const y = RADAR_CY + dy * LABEL_R;
+          // Baseline of the name; the number sits a line below it. Above the
+          // plot the pair is lifted so the number is what clears the ring,
+          // below it the pair drops so the name does, and beside it the two
+          // lines straddle the spoke.
+          const nameY =
+            dy < 0 ? y - LABEL_LINE : dy > 0 ? y + LABEL_SIZE : y - 2;
+          const anchor = dx === 0 ? "middle" : dx > 0 ? "start" : "end";
+          // Two `<text>` elements, not a `<tspan>` inside one. WebKit runs the
+          // bidi algorithm across the whole element, so "אוצר מילים" with its
+          // number on a second tspan rendered as "אוצר מיל80" over "ים".
+          return (
+            <g
+              key={axis}
+              fontSize={LABEL_SIZE}
+              fill="currentColor"
+            >
+              <text
+                x={x}
+                y={nameY}
+                textAnchor={anchor}
+                fill="currentColor"
+                // The fainter ink token when there is no reading means the
+                // dent at the centre and the faded word are the same fact
+                // said twice.
+                className={value === null ? "text-cream-faint" : "text-cream-dim"}
+              >
+                {labels[axis]}
+              </text>
+              {value !== null && (
+                <text
+                  x={x}
+                  y={nameY + LABEL_LINE}
+                  textAnchor={anchor}
+                  fill="currentColor"
+                  className="text-cream-bright"
+                >
+                  {Math.round(value)}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+
+      {caption && <p className="text-xs text-cream-faint">{caption}</p>}
     </figure>
   );
 }

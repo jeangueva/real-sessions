@@ -177,6 +177,7 @@ const PT: Record<MessageKey, string> = {
   "progress.overallNote": "A leitura do avaliador de cada entrevista. O eixo é fixo em 0–100 de propósito: um gráfico que se reescala aos próprios dados transforma três pontos de ruído em uma subida.",
   "progress.byFront": "Por frente",
   "progress.byFrontNote": "Quatro leituras separadas em vez de um número só. Ser fluente mas desorganizado, ou estruturado mas hesitante, são problemas diferentes com soluções diferentes — uma nota única esconde os dois.",
+  "progress.shape": "Última leitura em cada frente",
   "progress.badges": "Selos",
   "progress.badgesCount": "{earned} de {total} conquistados.",
 

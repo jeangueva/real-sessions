@@ -152,6 +152,7 @@ const KO: Record<MessageKey, string> = {
   "progress.overallNote": "평가자가 각 면접을 읽어낸 값입니다. 축을 0–100으로 고정한 것은 의도적입니다. 자기 데이터에 맞춰 늘어나는 그래프는 잡음 세 점을 상승으로 보이게 만듭니다.",
   "progress.byFront": "항목별",
   "progress.byFrontNote": "하나의 숫자가 아니라 네 개의 독립된 읽기입니다. 유창하지만 산만한 것과, 짜임새는 있지만 머뭇거리는 것은 다른 문제이고 해법도 다릅니다. 단일 점수는 둘 다 가립니다.",
+  "progress.shape": "항목별 최근 읽기",
   "progress.badges": "배지",
   "progress.badgesCount": "{total}개 중 {earned}개 획득.",
   "axis.fluency": "유창성",

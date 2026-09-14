@@ -153,6 +153,7 @@ const FR: Record<MessageKey, string> = {
   "progress.overallNote": "La lecture de chaque entretien par l'évaluateur. L'axe est fixé de 0 à 100 exprès — un graphique qui se remet à l'échelle de ses propres données transforme trois points de bruit en une ascension.",
   "progress.byFront": "Par axe",
   "progress.byFrontNote": "Quatre lectures distinctes plutôt qu'un seul chiffre. Être fluide mais désorganisé, ou structuré mais hésitant, sont des problèmes différents avec des solutions différentes — un score unique cache les deux.",
+  "progress.shape": "Dernière lecture sur chaque axe",
   "progress.badges": "Badges",
   "progress.badgesCount": "{earned} sur {total} obtenus.",
   "axis.fluency": "Fluidité",

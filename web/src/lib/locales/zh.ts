@@ -152,6 +152,7 @@ const ZH: Record<MessageKey, string> = {
   "progress.overallNote": "评估者对每场面试的判读。坐标轴刻意固定在 0–100——一个会按自身数据缩放的图表，会把三个点的噪音变成一段上升。",
   "progress.byFront": "分项",
   "progress.byFrontNote": "四个独立的判读，而不是一个数字。流利但缺乏条理，和条理清楚但迟疑，是不同的问题，解法也不同——单一分数会把两者都藏起来。",
+  "progress.shape": "各分项的最近读数",
   "progress.badges": "徽章",
   "progress.badgesCount": "已获得 {earned} 个，共 {total} 个。",
   "axis.fluency": "流利度",

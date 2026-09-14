@@ -152,6 +152,7 @@ const HE: Record<MessageKey, string> = {
   "progress.overallNote": "הקריאה של המעריך לכל ראיון. הציר קבוע על 0–100 בכוונה — גרף שמשנה קנה מידה לפי הנתונים של עצמו הופך שלוש נקודות רעש לעלייה.",
   "progress.byFront": "לפי חזית",
   "progress.byFrontNote": "ארבע קריאות נפרדות במקום מספר אחד. להיות שוטף אבל מבולגן, או מסודר אבל מהוסס, אלה בעיות שונות עם פתרונות שונים — וציון יחיד מסתיר את שתיהן.",
+  "progress.shape": "הקריאה האחרונה בכל חזית",
   "progress.badges": "תגים",
   "progress.badgesCount": "{earned} מתוך {total} הושגו.",
   "axis.fluency": "שטף",

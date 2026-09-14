@@ -20,8 +20,8 @@ export {
 
 export { Wordmark } from "./wordmark";
 export { Avatar } from "./avatar";
-export { TrendChart } from "./chart";
-export type { TrendPoint } from "./chart";
+export { RadarChart, TrendChart } from "./chart";
+export type { RadarAxis, TrendPoint } from "./chart";
 export { Backdrop } from "./backdrop";
 export { HeroVideo } from "./hero-video";
 export { Waveform } from "./waveform";

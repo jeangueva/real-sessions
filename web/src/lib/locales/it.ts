@@ -153,6 +153,7 @@ const IT: Record<MessageKey, string> = {
   "progress.overallNote": "La lettura di ogni colloquio da parte del valutatore. L'asse è fisso da 0 a 100 apposta — un grafico che si riscala sui propri dati trasforma tre punti di rumore in una salita.",
   "progress.byFront": "Per fronte",
   "progress.byFrontNote": "Quattro letture separate invece di un solo numero. Essere fluenti ma disordinati, o strutturati ma esitanti, sono problemi diversi con soluzioni diverse — un punteggio unico li nasconde entrambi.",
+  "progress.shape": "Ultima lettura su ogni fronte",
   "progress.badges": "Distintivi",
   "progress.badgesCount": "{earned} su {total} ottenuti.",
   "axis.fluency": "Fluidità",

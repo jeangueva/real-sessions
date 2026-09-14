@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Meter, Panel, TrendChart } from "@/design-system";
+import {
+  Action,
+  Eyebrow,
+  FadeRise,
+  Meter,
+  Panel,
+  RadarChart,
+  TrendChart,
+} from "@/design-system";
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Avatar } from "@/design-system";
@@ -107,6 +115,10 @@ export function Progress() {
       label: sessions?.[index] ? labelFor(sessions[index]!) : `Session ${index + 1}`,
       value: point.scores[axis],
     }));
+
+  const axisLabels = Object.fromEntries(
+    (Object.keys(AXIS_LABEL) as Axis[]).map((axis) => [axis, t(AXIS_LABEL[axis])]),
+  ) as Record<Axis, string>;
 
   if (error) {
     return (
@@ -242,7 +254,16 @@ export function Progress() {
               <p className="mt-2 max-w-3xl text-xs text-cream-faint">
                 {t("progress.byFrontNote")}
               </p>
-              <div className="mt-6 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+              {/* The shape answers whether someone is lopsided at a glance;
+                  the small multiples underneath answer whether it is moving. */}
+              <div className="mt-6 w-full max-w-sm">
+                <RadarChart
+                  title={t("progress.shape")}
+                  scores={axisLatest}
+                  labels={axisLabels}
+                />
+              </div>
+              <div className="mt-8 grid gap-x-10 gap-y-8 sm:grid-cols-2">
                 {(Object.keys(AXIS_LABEL) as Axis[]).map((axis) => (
                   <TrendChart
                     key={axis}
