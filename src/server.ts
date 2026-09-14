@@ -345,6 +345,26 @@ function wantsStream(req: IncomingMessage): boolean {
   return (req.headers.accept ?? "").includes("text/event-stream");
 }
 
+/**
+ * Headers every response carries, API and page alike.
+ *
+ * Deliberately short. `frame-ancestors 'none'` stops another site framing the
+ * app — clickjacking on pages that take passwords and payments — without a full
+ * Content-Security-Policy, which would have to list the hero video, the fonts
+ * and Mercado Pago's card script before it could ship without breaking one of
+ * them. HSTS is production-only: on localhost it would pin a developer's
+ * browser to https for months.
+ */
+function securityHeaders(res: ServerResponse): void {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
+  res.setHeader("X-Frame-Options", "DENY");
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=15552000");
+  }
+}
+
 function json(res: ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body);
   res.writeHead(status, {
@@ -2445,6 +2465,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 }
 
 export const server = createServer((req, res) => {
+  securityHeaders(res);
   void route(req, res).catch((error: unknown) => {
     // Once a stream is open the status line is already sent; the only way to
     // report a failure is as an event on the open stream.
@@ -2494,6 +2515,19 @@ const isEntryPoint =
   import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isEntryPoint) {
+// A rejected promise nobody awaited, or an exception outside any request,
+// would otherwise vanish or end the process without a word. Both are logged
+// with the prefix the rest of the service uses, so a log search finds them. An
+// uncaught exception exits: the process state can no longer be trusted, and
+// the platform restarts the service.
+process.on("unhandledRejection", (reason) => {
+  console.error("[mockio] unhandled rejection:", reason);
+});
+process.on("uncaughtException", (error) => {
+  console.error("[mockio] uncaught exception, exiting:", error);
+  process.exit(1);
+});
+
 const redis = await getRedis();
 const db = await getDb();
 const store = createSessionStore(redis);

@@ -38,6 +38,16 @@ describe("the authentication gate", () => {
     ).toBe(202);
   });
 
+  it("sends the protective headers on every response", async () => {
+    // Framing and MIME sniffing are cheap to rule out and easy to forget on a
+    // route added later, so this checks a public route and an unknown one.
+    for (const response of [await api.call("/api/voice/config"), await api.call("/api/nope")]) {
+      expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+      expect(response.headers.get("content-security-policy")).toBe("frame-ancestors 'none'");
+      expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    }
+  });
+
   it("issues an identity that later requests carry", async () => {
     expect((await api.call("/api/auth", post({}))).status).toBe(201);
     expect((await api.call("/api/history")).status).toBe(200);
