@@ -85,7 +85,7 @@ export function isDraft(): boolean {
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
-export const UPDATED = "2026-09-07";
+export const UPDATED = "2026-09-14";
 
 export interface LegalSection {
   heading: string;
@@ -160,6 +160,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Render — hosting and the database. Everything above is stored on their infrastructure, in the United States.",
             "OpenRouter — routes your interview to the language model that answers. It receives the interview prompt and the conversation, which includes your answers and your CV brief.",
             "Deepgram — speech. It receives your microphone audio to transcribe, and the interviewer's text to speak aloud.",
+            "Your browser — speech, when Deepgram is not in use. The browser's own speech recognition then handles your microphone, which in Chrome means Google receives the audio, and some of the voices that read the interviewer aloud are Google's too. Firefox cannot do this at all, and typing always works instead.",
             "Resend — email delivery. It receives your address and the contents of account emails.",
             "Mercado Pago — payments, if you subscribe. The card form now sits on our own page, but the card itself is not: Mercado Pago's script sends it straight from your browser to them and returns a single-use token, which is the only thing our servers ever receive. We hold a subscription status and nothing more.",
           ],
@@ -239,6 +240,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Render — hosting y base de datos. Todo lo anterior se guarda en su infraestructura, en Estados Unidos.",
             "OpenRouter — enruta tu entrevista al modelo de lenguaje que responde. Recibe el prompt y la conversación, que incluye tus respuestas y el resumen de tu CV.",
             "Deepgram — voz. Recibe el audio de tu micrófono para transcribirlo, y el texto del entrevistador para decirlo en voz alta.",
+            "Tu navegador — voz, cuando no se usa Deepgram. En ese caso el reconocimiento de voz del propio navegador procesa tu micrófono: en Chrome eso significa que Google recibe el audio, y algunas de las voces que leen al entrevistador también son de Google. Firefox no puede hacerlo, y escribir siempre funciona.",
             "Resend — envío de correo. Recibe tu dirección y el contenido de los mails de cuenta.",
             "Mercado Pago — pagos, si te suscribís. El formulario de tarjeta ahora está en nuestra propia página, pero la tarjeta no: el script de Mercado Pago la manda directo de tu navegador a ellos y devuelve un token de un solo uso, que es lo único que llega a nuestros servidores. Nosotros guardamos un estado de suscripción y nada más.",
           ],
@@ -318,6 +320,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Render — hospedagem e banco de dados. Tudo acima é guardado na infraestrutura deles, nos Estados Unidos.",
             "OpenRouter — encaminha sua entrevista ao modelo de linguagem que responde. Recebe o prompt e a conversa, que inclui suas respostas e o resumo do seu CV.",
             "Deepgram — voz. Recebe o áudio do seu microfone para transcrever, e o texto do entrevistador para falar em voz alta.",
+            "Seu navegador — voz, quando o Deepgram não está em uso. Nesse caso o reconhecimento de voz do próprio navegador processa o seu microfone: no Chrome isso significa que o Google recebe o áudio, e algumas das vozes que leem o entrevistador também são do Google. O Firefox não consegue fazer isso, e digitar sempre funciona.",
             "Resend — envio de e-mail. Recebe seu endereço e o conteúdo dos e-mails da conta.",
             "Mercado Pago — pagamentos, se você assinar. O formulário de cartão agora fica na nossa própria página, mas o cartão não: o script do Mercado Pago o envia direto do seu navegador para eles e devolve um token de uso único, que é a única coisa que chega aos nossos servidores. Guardamos um status de assinatura e nada mais.",
           ],
