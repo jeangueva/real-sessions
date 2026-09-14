@@ -4,6 +4,7 @@ import {
   ResendEmailSender,
   accountDeletedEmail,
   earlyAccessEmail,
+  earlyAccessUnlockedEmail,
   inactivityEmail,
   lastFreeInterviewEmail,
   passwordChangedEmail,
@@ -388,5 +389,28 @@ describe("the mail that arrives because time passed", () => {
     expect(mail.text).not.toMatch(/null|undefined|NaN/);
     expect(mail.text).not.toMatch(/best score/i);
     expect(mail.text).not.toMatch(/xp earned/i);
+  });
+});
+
+describe("the mail that says the free months have started", () => {
+  const APP = "https://mockio.test/app";
+
+  it("says how long they last and where to start", () => {
+    // The confirmation link is often opened on another device, so this mail is
+    // where the news actually reaches the person.
+    const mail = earlyAccessUnlockedEmail("a@b.com", {
+      months: 6,
+      until: new Date("2027-03-01T00:00:00.000Z"),
+      appUrl: APP,
+    });
+    expect(mail.to).toBe("a@b.com");
+    expect(mail.subject).toContain("6");
+    expect(mail.text).toContain("2027-03-01");
+    expect(mail.text).toContain(APP);
+  });
+
+  it("still reads sensibly without an end date", () => {
+    const mail = earlyAccessUnlockedEmail("a@b.com", { months: 6, until: null, appUrl: APP });
+    expect(mail.text).not.toMatch(/invalid|null|undefined/i);
   });
 });

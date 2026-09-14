@@ -342,6 +342,34 @@ export function earlyAccessEmail(
 }
 
 /**
+ * Confirms that the free months have started.
+ *
+ * Sent from the confirmation link, which is often opened on a phone while the
+ * account was made on a laptop — so the page that says "unlocked" is on a
+ * device nobody is looking at. Transactional: it answers something the
+ * recipient just did, and carries no unsubscribe link.
+ */
+export function earlyAccessUnlockedEmail(
+  email: string,
+  detail: { months: number; until: Date | null; appUrl: string },
+): EmailMessage {
+  const until = onDate(detail.until);
+  return {
+    to: email,
+    subject: `Your ${detail.months} free months have started`,
+    text:
+      `Your address is confirmed, and the paid plan is now on your account.\n\n` +
+      (until ? `It stays on until ${until}. ` : "") +
+      `That means interviews for the company you are actually applying to, an ` +
+      `interviewer who has read your CV, live coaching, and the measured ` +
+      `feedback behind every score.\n\n` +
+      `Start an interview: ${detail.appUrl}\n\n` +
+      `No card is on file, so nothing is charged when the months end — the ` +
+      `account simply goes back to the free plan.`,
+  };
+}
+
+/**
  * Sent on the interview that uses the last of the month's free allowance.
  *
  * On the one that spends it, not on the attempt that gets refused: the refusal

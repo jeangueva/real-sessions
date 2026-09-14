@@ -83,6 +83,7 @@ import {
   accountDeletedEmail,
   createEmailSender,
   earlyAccessEmail,
+  earlyAccessUnlockedEmail,
   inactivityEmail,
   lastFreeInterviewEmail,
   passwordChangedEmail,
@@ -1079,17 +1080,33 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // consumed from that inbox proves the address, not when someone merely
     // types it at sign-up, because typing an address proves nothing about
     // owning it.
-    const granted = account
+    const grantedUntil = account
       ? await PLANS.redeemEarlyAccess(account.email, account.id).catch(
           (error: unknown) => {
             console.error("[mockio] early-access redemption failed:", error);
-            return false;
+            return null;
           },
         )
-      : false;
+      : null;
+    if (account && grantedUntil) {
+      // The page this request answers says the months are unlocked, but the
+      // link is often opened on a different device from the one the account is
+      // used on. A failed send never undoes a confirmed address.
+      try {
+        await deliver(
+          earlyAccessUnlockedEmail(account.email, {
+            months: EARLY_ACCESS_MONTHS,
+            until: grantedUntil,
+            appUrl: `${siteUrl()}/app`,
+          }),
+        );
+      } catch (error) {
+        console.error("[mockio] early-access unlocked mail failed:", error);
+      }
+    }
     // Deliberately does not sign anyone in. A link from an inbox proves the
     // address, not that the person clicking it is at their own device.
-    json(res, 200, { ok: true, earlyAccess: granted });
+    json(res, 200, { ok: true, earlyAccess: grantedUntil !== null });
     return;
   }
 

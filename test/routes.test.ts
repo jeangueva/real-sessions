@@ -431,6 +431,24 @@ describe("early access", () => {
     ).toBe(409);
   });
 
+  it("mails the address when its free months start", async () => {
+    const address = "unlocked-mail@b.com";
+    const started = () =>
+      api.mailer.sent.some(
+        (message) => message.to === address && /free months have started/i.test(message.subject),
+      );
+    await api.call("/api/early-access", post({ email: address, role: "PM" }));
+    await api.authenticate();
+    await api.call(
+      "/api/accounts",
+      post({ email: address, password: "a long enough passphrase" }),
+    );
+    expect(started()).toBe(false);
+
+    await api.call("/api/auth/verify", post({ token: api.mailer.tokenFor(address) }));
+    expect(started()).toBe(true);
+  });
+
   describe("closing", () => {
     afterEach(() => {
       delete process.env.REALSESSIONS_EARLY_ACCESS_CLOSES_AT;

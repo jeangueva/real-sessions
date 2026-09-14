@@ -124,10 +124,11 @@ export interface EntitlementStore {
     grantedUntil: Date,
   ): Promise<boolean>;
   /**
-   * Redeems an unclaimed early-access row for an account. Called on sign-up,
-   * which is the first moment an email and an identity are known together.
+   * Redeems an unclaimed early-access row for an account, resolving to when the
+   * grant it created ends, or null when there was nothing to redeem. Called
+   * when the address is confirmed, the first moment it is proven to be theirs.
    */
-  redeemEarlyAccess(email: string, ownerId: string): Promise<boolean>;
+  redeemEarlyAccess(email: string, ownerId: string): Promise<Date | null>;
   /**
    * Ends every unexpired grant from one source.
    *
@@ -181,9 +182,10 @@ class PostgresEntitlementStore implements EntitlementStore {
       [email],
     );
     const grant = rows[0];
-    if (!grant) return false;
-    await this.grant(ownerId, "premium", "early-access", grant.granted_until as Date);
-    return true;
+    if (!grant) return null;
+    const until = new Date(grant.granted_until as Date);
+    await this.grant(ownerId, "premium", "early-access", until);
+    return until;
   }
 
   async revoke(ownerId: string, source: string) {
@@ -252,10 +254,10 @@ class MemoryEntitlementStore implements EntitlementStore {
 
   async redeemEarlyAccess(email: string, ownerId: string) {
     const held = this.early.get(email);
-    if (!held || held.redeemed || held.grantedUntil.getTime() <= Date.now()) return false;
+    if (!held || held.redeemed || held.grantedUntil.getTime() <= Date.now()) return null;
     held.redeemed = true;
     await this.grant(ownerId, "premium", "early-access", held.grantedUntil);
-    return true;
+    return held.grantedUntil;
   }
 
   async transfer(fromOwnerId: string, toOwnerId: string) {

@@ -61,10 +61,10 @@ describe("entitlement store", () => {
     const store = createEntitlementStore(null);
     await store.recordEarlyAccess("a@b.com", "PM", "Nubank", earlyAccessUntil());
 
-    expect(await store.redeemEarlyAccess("a@b.com", "account-1")).toBe(true);
+    expect(await store.redeemEarlyAccess("a@b.com", "account-1")).toBeInstanceOf(Date);
     expect(await store.planFor("account-1")).toBe("premium");
     // A shared address must not mint premium for a second account.
-    expect(await store.redeemEarlyAccess("a@b.com", "account-2")).toBe(false);
+    expect(await store.redeemEarlyAccess("a@b.com", "account-2")).toBeNull();
     expect(await store.planFor("account-2")).toBe("free");
   });
 
