@@ -371,7 +371,7 @@ const ZH: Record<MessageKey, string> = {
   "land.eaPrivacy": "用来关联这份优惠，以及问你接下来该做什么。仅此而已。",
   "land.eaDone": "你已经在名单上了。",
   "land.eaDonePre": "用这个邮箱创建账户",
-  "land.eaDonePost": "并通过我们发给你的邮件链接确认，确认后前六个月立即解锁。",
+  "land.eaDonePost": "并通过我们发给你的邮件里的链接确认邮箱，确认后前六个月立即解锁。",
   "land.eaRole": "你要投的职位",
   "land.eaCompany": "你心里想的公司",
   "land.eaCompanyHint": "可选。它告诉我们下一个该做哪家雇主。",

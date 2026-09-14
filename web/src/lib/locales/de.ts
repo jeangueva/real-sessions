@@ -371,7 +371,7 @@ const DE: Record<MessageKey, string> = {
   "land.eaPrivacy": "Wird genutzt, um die Zusage zu verknüpfen und zu fragen, was wir als Nächstes bauen sollen. Sonst nichts.",
   "land.eaDone": "Du stehst auf der Liste.",
   "land.eaDonePre": "Erstell ein Konto mit",
-  "land.eaDonePost": "und bestätige sie über den Link, den wir dir per E-Mail schicken. Die ersten sechs Monate schalten sich frei, sobald du das tust.",
+  "land.eaDonePost": "und bestätige die Adresse über den Link, den wir dir per E-Mail schicken. Die ersten sechs Monate schalten sich frei, sobald du das tust.",
   "land.eaRole": "Rolle, die du anstrebst",
   "land.eaCompany": "Unternehmen, das dir vorschwebt",
   "land.eaCompanyHint": "Optional. Es sagt uns, welchen Arbeitgeber wir als Nächstes bauen sollen.",
