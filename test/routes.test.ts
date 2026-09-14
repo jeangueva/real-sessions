@@ -374,18 +374,61 @@ describe("early access", () => {
     ).toBe(400);
   });
 
-  it("upgrades the account that signs up with that address", async () => {
-    await api.call("/api/early-access", post({ email: "grant@b.com", role: "PM" }));
+  it("does not upgrade an account whose address is unconfirmed", async () => {
+    const address = "unconfirmed-grant@b.com";
+    await api.call("/api/early-access", post({ email: address, role: "PM" }));
     await api.authenticate();
-
-    const created = await api.json<{ earlyAccess: boolean }>(
+    await api.call(
       "/api/accounts",
-      post({ email: "grant@b.com", password: "a long enough passphrase" }),
+      post({ email: address, password: "a long enough passphrase" }),
     );
-    expect(created.earlyAccess).toBe(true);
+
+    // The grant is proof of control over the inbox, not knowledge of its address.
+    const plan = await api.json<{ plan: string }>("/api/plan");
+    expect(plan.plan).toBe("free");
+  });
+
+  it("upgrades the account once its address is confirmed", async () => {
+    const address = "confirmed-grant@b.com";
+    await api.call("/api/early-access", post({ email: address, role: "PM" }));
+    await api.authenticate();
+    await api.call(
+      "/api/accounts",
+      post({ email: address, password: "a long enough passphrase" }),
+    );
+
+    const token = api.mailer.tokenFor(address);
+    expect(token).toBeTruthy();
+    const verified = await api.call("/api/auth/verify", post({ token }));
+    expect(verified.status).toBe(200);
+    expect((await verified.json()) as { earlyAccess: boolean }).toMatchObject({
+      earlyAccess: true,
+    });
 
     const plan = await api.json<{ plan: string }>("/api/plan");
     expect(plan.plan).toBe("premium");
+  });
+
+  it("does not grant the same address twice", async () => {
+    const address = "single-grant@b.com";
+    await api.call("/api/early-access", post({ email: address, role: "PM" }));
+    await api.authenticate();
+    await api.call(
+      "/api/accounts",
+      post({ email: address, password: "a long enough passphrase" }),
+    );
+    await api.call("/api/auth/verify", post({ token: api.mailer.tokenFor(address) }));
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
+
+    api.forget();
+    await api.authenticate();
+    // Accounts are unique by address, so a second identity cannot claim it.
+    expect(
+      (await api.call(
+        "/api/accounts",
+        post({ email: address, password: "another long enough passphrase" }),
+      )).status,
+    ).toBe(409);
   });
 });
 

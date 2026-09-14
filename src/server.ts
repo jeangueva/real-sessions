@@ -964,16 +964,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     await sendVerification(account.id, account.email);
     await signIn(account.id);
-    // The landing-page list is keyed by email because it is collected before
-    // anyone has an account. This is the first moment the two are known
-    // together, so it is where the grant is claimed.
-    const granted = await PLANS.redeemEarlyAccess(account.email, account.id).catch(
-      (error: unknown) => {
-        console.error("[mockio] early-access redemption failed:", error);
-        return false;
-      },
-    );
-    json(res, 201, { email: account.email, earlyAccess: granted });
+    json(res, 201, { email: account.email });
     return;
   }
 
@@ -1080,9 +1071,23 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     }
 
     await ACCOUNTS.markEmailVerified(accountId);
+    const account = await ACCOUNTS.findById(accountId);
+    // The landing-page list is keyed by email because it is collected before
+    // anyone has an account. The grant is claimed when a confirmation link
+    // consumed from that inbox proves the address, not when someone merely
+    // types it at sign-up, because typing an address proves nothing about
+    // owning it.
+    const granted = account
+      ? await PLANS.redeemEarlyAccess(account.email, account.id).catch(
+          (error: unknown) => {
+            console.error("[mockio] early-access redemption failed:", error);
+            return false;
+          },
+        )
+      : false;
     // Deliberately does not sign anyone in. A link from an inbox proves the
     // address, not that the person clicking it is at their own device.
-    json(res, 200, { ok: true });
+    json(res, 200, { ok: true, earlyAccess: granted });
     return;
   }
 
