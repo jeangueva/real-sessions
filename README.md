@@ -317,9 +317,9 @@ real preapproval needs a merchant account.
 
 The landing page collects an email, a target role, and optionally a company, and
 promises six months of premium. The grant is keyed by email because it is
-captured before anyone has an account; it is redeemed at sign-up, which is the
-first moment an address and an identity are known together. A shared address
-cannot mint premium twice.
+captured before anyone has an account; it is claimed when a confirmation link
+consumed from that inbox proves the address, because typing it at sign-up proves
+nothing about owning it. A shared address cannot mint premium twice.
 
 ---
 
@@ -339,9 +339,9 @@ Two promises, both kept in the backend rather than in the copy:
   the product asks by volume, and a rumour would be laundered into an
   authoritative question.
 
-**The review side is not built.** The pipeline is, and it is closed at the right
-end: `ContributionStore.verified()` is the only reader, and it filters on a
-status nothing currently sets.
+`ContributionStore.verified()` is still the only prompt reader. `POST
+/api/review/:id` calls `decide` to mark pending reports verified or rejected,
+and only an allowlisted account with a verified address can reach it.
 
 ### Reviewing
 
@@ -832,9 +832,9 @@ change a password.
 
 **Unverified accounts can still practise.** Blocking the product on a click in
 an inbox costs more than it protects here; what an unverified address really
-costs the user is password recovery, so Settings says exactly that. The hook to
-enforce verification is one check on `emailVerifiedAt` when something warrants
-it — billing, or emailing anyone.
+costs the user is password recovery, so Settings says exactly that. Verification
+is checked in exactly two places: claiming an early-access grant and reaching
+the review queue. Billing and outgoing mail do not require it.
 
 Verified end to end: mail sent on sign-up, `emailVerified` false then true, the
 confirmation token rejected by the reset endpoint, the link failing on reuse,
@@ -991,21 +991,24 @@ browser-scoped behaviour described above.
 
 ### Still not production-ready
 
-- **Nothing enforces verification yet.** The state is recorded and surfaced;
-  no route requires it.
-- **Voice uses the browser, not a speech vendor.** Good enough to use, and
-  swappable — but Chrome sends microphone audio to Google, which is a privacy
-  disclosure a product recording interview practice owes its users, and Firefox
-  cannot do speech recognition at all.
+- **Verification is enforced in two places.** An early-access grant is claimed
+  only after a confirmation link is consumed, and the review routes require an
+  allowlisted account with a verified address. Other routes do not require
+  verification.
+- **Voice uses Deepgram when `DEEPGRAM_API_KEY` is configured, otherwise the
+  browser's speech APIs.** In the browser fallback, Chrome sends microphone
+  audio to Google, and Firefox cannot do speech recognition at all.
 
 ## Known gaps in the spec (not implemented here)
 
-- **Voice-to-voice.** Phase 1 is text in / text out. None of the wired models
-  do native audio, so a production build needs STT before `submitAnswer` and TTS
-  after — the streaming callbacks exist for exactly that. The alternative is
-  `gemini-3.1-flash-live-preview` ($0.005/min audio in, $0.018/min out), which
-  removes the STT and TTS vendors entirely but does not fit the request/response
-  `chat()` interface — bidirectional audio needs its own session adapter.
+- **Native voice-to-voice.** None of the wired models do native audio, so voice
+  runs as a pipeline around the text interview: speech-to-text in (Deepgram
+  over the server WebSocket when `DEEPGRAM_API_KEY` is set, browser recognition
+  otherwise) and text-to-speech out (Deepgram Aura, with browser synthesis as
+  the fallback). The alternative is `gemini-3.1-flash-live-preview`
+  ($0.005/min audio in, $0.018/min out), which removes the STT and TTS vendors
+  entirely but does not fit the request/response `chat()` interface —
+  bidirectional audio needs its own session adapter.
 - **Prompt-injection surface.** The candidate's transcribed speech is
   untrusted input. "No breaking character" is a prompt-level instruction, not a
   guarantee.

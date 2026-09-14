@@ -189,10 +189,12 @@ progress chart can tell.
 
 - Every screen is wired to the API. `/app/feedback` still falls back to a
   sample report when opened with no session or history id.
-- **Voice runs on the browser's own speech APIs.** No extra vendor and no key,
-  but Chrome uploads microphone audio to Google, and Firefox has no speech
-  recognition at all — so typing stays a first-class path, not a fallback.
-  `lib/voice.ts` puts both halves behind interfaces so Deepgram, ElevenLabs, or
-  Gemini Live can replace either one without touching the screen.
-- **`lib/evaluation.ts` restates the backend zod schema by hand** — it is the
-  one place that can silently drift out of sync.
+- **Voice uses Deepgram only when the server has `DEEPGRAM_API_KEY`:**
+  speech-to-text goes through the server and Aura handles speech out. Without
+  it, voice falls back to the browser's own speech APIs, where Chrome uploads
+  microphone audio to Google and Firefox has no speech recognition — so typing
+  stays a first-class path, not a fallback. `lib/voice.ts` keeps both halves
+  behind interfaces.
+- **`lib/evaluation.ts` restates the backend zod schema by hand** —
+  `test/evaluation-contract.test.ts` makes a drift fail the root typecheck
+  rather than show up as blank panels.

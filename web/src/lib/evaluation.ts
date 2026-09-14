@@ -4,7 +4,8 @@
  * because the web app has its own tsconfig and does not depend on zod.
  *
  * If the backend schema changes, change this too — the dashboard reads these
- * fields directly and a silent drift shows up as blank panels.
+ * fields directly, so a drift would show up as blank panels. It fails the root
+ * typecheck first: `test/evaluation-contract.test.ts` compares the two types.
  */
 export interface Evaluation {
   overall_score_percentage: number;
@@ -31,7 +32,10 @@ export interface SessionSummary {
   score: number;
 }
 
-/** Stand-in until the API is wired. Shaped exactly like a real response. */
+/**
+ * Shown when `/app/feedback` opens with no session or history id. Shaped
+ * exactly like a real response.
+ */
 export const SAMPLE_EVALUATION: Evaluation = {
   overall_score_percentage: 62,
   strengths: [
