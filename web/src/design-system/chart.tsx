@@ -108,9 +108,13 @@ export function TrendChart({
         )}
       </figcaption>
 
+      {/* Every colour is a theme token reached through `currentColor`. The
+          dark palette used to be written in here as literals, and on the light
+          theme the line, the markers and the axis labels all but vanished into
+          the card. */}
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="w-full"
+        className="w-full text-cream"
         role="img"
         aria-labelledby={titleId}
         onMouseLeave={() => setHover(null)}
@@ -124,7 +128,8 @@ export function TrendChart({
               x2={WIDTH - PAD.right}
               y1={y(tick)}
               y2={y(tick)}
-              stroke="rgba(222,219,200,0.14)"
+              stroke="currentColor"
+              className="text-line"
               strokeWidth={1}
             />
             <text
@@ -132,7 +137,8 @@ export function TrendChart({
               y={y(tick) + LABEL_SIZE / 3}
               textAnchor="end"
               fontSize={LABEL_SIZE}
-              fill="rgba(222,219,200,0.45)"
+              fill="currentColor"
+              className="text-cream-faint"
             >
               {tick}
             </text>
@@ -143,7 +149,7 @@ export function TrendChart({
           <path
             d={path}
             fill="none"
-            stroke="#DEDBC8"
+            stroke="currentColor"
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -156,9 +162,10 @@ export function TrendChart({
             cx={x(point.index)}
             cy={y(point.value)}
             r={hover === point.index ? 7 : 5.5}
-            fill="#DEDBC8"
-            // A 2px ring in the surface colour keeps overlapping markers legible.
-            stroke="#04212E"
+            fill="currentColor"
+            // A 2px ring in the colour of the card the chart sits on keeps
+            // overlapping markers legible.
+            className="stroke-surface-card"
             strokeWidth={2}
           />
         ))}
@@ -169,7 +176,8 @@ export function TrendChart({
             x2={x(hover)}
             y1={PAD.top}
             y2={PAD.top + PLOT_H}
-            stroke="rgba(222,219,200,0.45)"
+            stroke="currentColor"
+            className="text-line-strong"
             strokeWidth={1}
           />
         )}
