@@ -16,6 +16,15 @@ export function ConfirmEmail() {
   const token = params.get("token");
   const [state, setState] = useState<"working" | "done" | "failed">("working");
   const [error, setError] = useState<string | null>(null);
+  /**
+   * Whether this confirmation is what unlocked an early-access grant.
+   *
+   * Said here and nowhere earlier. The grant is claimed server-side in this
+   * same request, once the link has proven the address; telling an account
+   * before that point that its address is on the list would tell anyone who
+   * typed someone else's email exactly who signed up.
+   */
+  const [earlyAccess, setEarlyAccess] = useState(false);
   const attempted = useRef(false);
 
   useEffect(() => {
@@ -28,7 +37,10 @@ export function ConfirmEmail() {
       return;
     }
     confirmEmail(token)
-      .then(() => setState("done"))
+      .then((result) => {
+        setEarlyAccess(result.earlyAccess === true);
+        setState("done");
+      })
       .catch((caught: unknown) => {
         setState("failed");
         setError(
@@ -51,6 +63,12 @@ export function ConfirmEmail() {
     {state === "failed" && (
       <p role="alert" className="mt-4 text-sm text-cream-dim">
         {error} {t("confirm.retry")}
+      </p>
+    )}
+
+    {state === "done" && earlyAccess && (
+      <p className="mt-4 text-sm text-cream-bright">
+        {t("confirm.earlyAccess")}
       </p>
     )}
 

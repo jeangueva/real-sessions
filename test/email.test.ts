@@ -298,6 +298,9 @@ describe("the mail the product owes for its own promises", () => {
     expect(mail.text).toContain("Someone@Example.com");
     expect(mail.subject).toContain("6");
     expect(mail.text).toContain("2026-12-01");
+    // The grant is only claimed once the address is confirmed, so the mail
+    // that announces it has to say that step exists.
+    expect(mail.text).toMatch(/confirm/i);
   });
 
   it("still reads sensibly with no deadline", () => {

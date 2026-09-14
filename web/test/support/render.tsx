@@ -7,10 +7,11 @@ import type { ReactElement } from "react";
  * Renders a screen the way the app does.
  *
  * Every one of these uses `Link`, so a bare `render` throws on a missing router
- * before reaching anything worth asserting.
+ * before reaching anything worth asserting. `path` is for the screens that read
+ * their own URL, such as a confirmation link's token.
  */
-export function renderScreen(ui: ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+export function renderScreen(ui: ReactElement, path = "/") {
+  return render(<MemoryRouter initialEntries={[path]}>{ui}</MemoryRouter>);
 }
 
 /**

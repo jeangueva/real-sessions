@@ -3,6 +3,7 @@ import { screen } from "@testing-library/react";
 import { renderScreen, stubApi } from "./support/render";
 import { Billing } from "@/platform/Billing";
 import { Review } from "@/platform/Review";
+import { ConfirmEmail } from "@/platform/ConfirmEmail";
 import { Pricing } from "@/components/Pricing";
 
 /**
@@ -160,5 +161,27 @@ describe("Pricing", () => {
 
     const premium = screen.getByText(/9/).closest("div")?.parentElement;
     expect(premium?.textContent).not.toContain("badges and league");
+  });
+});
+
+describe("ConfirmEmail", () => {
+  it("says the free months are unlocked when this confirmation claimed them", async () => {
+    // The grant is claimed in the same request that proves the address, which
+    // makes this the first moment it can be said without revealing the list.
+    stubApi({ "/api/auth/verify": { ok: true, earlyAccess: true } });
+    renderScreen(<ConfirmEmail />, "/verify?token=abc");
+
+    await screen.findByText(/your email is confirmed/i);
+    expect(
+      screen.getByText(/six months of the paid plan are unlocked/i),
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing about early access when there was no grant", async () => {
+    stubApi({ "/api/auth/verify": { ok: true, earlyAccess: false } });
+    renderScreen(<ConfirmEmail />, "/verify?token=abc");
+
+    await screen.findByText(/your email is confirmed/i);
+    expect(screen.queryByText(/unlocked/i)).not.toBeInTheDocument();
   });
 });

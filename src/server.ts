@@ -1146,7 +1146,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       ok: true,
       months: EARLY_ACCESS_MONTHS,
       message:
-        "You are on the list. Create an account with this address and the first six months are on us.",
+        "You are on the list. Create an account with this address and confirm it from your inbox, and the first six months are on us.",
     });
     return;
   }

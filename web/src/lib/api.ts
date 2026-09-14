@@ -539,7 +539,7 @@ export function signIn(email: string, password: string) {
 }
 
 export function confirmEmail(token: string) {
-  return request<{ ok: true }>("/api/auth/verify", {
+  return request<{ ok: true; earlyAccess?: boolean }>("/api/auth/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token }),

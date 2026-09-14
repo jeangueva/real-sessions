@@ -316,6 +316,10 @@ export function subscriptionMail(input: {
  * the offer is actually attached to, which is the one thing they have to get
  * right later — the grant is keyed to the address, so signing up with a
  * different one silently forfeits it.
+ *
+ * It also says to confirm the address. The grant is claimed only once a
+ * confirmation link proves the inbox, so an early adopter who signs up and
+ * never clicks it would otherwise wait for six months that never arrive.
  */
 export function earlyAccessEmail(
   email: string,
@@ -327,10 +331,10 @@ export function earlyAccessEmail(
     subject: `Your ${detail.months} free months of Mockio`,
     text:
       `You are on the early-access list.\n\n` +
-      `Create an account with this exact address — ${email} — and the first ` +
-      `${detail.months} months of the paid plan are free. The offer is tied ` +
-      `to the address, so signing up with a different one does not carry it ` +
-      `over.\n\n` +
+      `Create an account with this exact address — ${email} — then confirm ` +
+      `it from the link we send you. The first ${detail.months} months of the ` +
+      `paid plan unlock the moment it is confirmed. The offer is tied to the ` +
+      `address, so signing up with a different one does not carry it over.\n\n` +
       (until ? `Claim it before ${until}.\n\n` : "") +
       `If you did not ask for this, nothing has been created and you can ` +
       `ignore it.`,
