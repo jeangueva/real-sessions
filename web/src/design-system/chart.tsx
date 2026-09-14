@@ -270,12 +270,17 @@ export type RadarAxis = (typeof RADAR_AXES)[number];
  * "Уверенность" or "Vocabulário" runs past seventy units at this size. The box
  * is wider than it is tall to give the left and right labels that room. An
  * inline svg clips whatever falls outside its viewBox, and says nothing.
+ *
+ * The shape grows by radius inside a bigger box, not by scaling the chart up.
+ * An svg scales its text with its geometry, so a wider render of the old box
+ * would have grown the labels past the prose beside them. At a radius of 62
+ * the polygon read as a thumbnail next to the small multiples under it.
  */
-const RADAR_W = 340;
-const RADAR_H = 216;
+const RADAR_W = 400;
+const RADAR_H = 270;
 const RADAR_CX = RADAR_W / 2;
-const RADAR_CY = 106;
-const RADAR_R = 62;
+const RADAR_CY = 134;
+const RADAR_R = 90;
 /** Where a label sits, measured out from the centre past the outer ring. */
 const LABEL_R = RADAR_R + 16;
 const LABEL_LINE = LABEL_SIZE + 2;

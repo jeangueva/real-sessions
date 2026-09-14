@@ -256,7 +256,7 @@ export function Progress() {
               </p>
               {/* The shape answers whether someone is lopsided at a glance;
                   the small multiples underneath answer whether it is moving. */}
-              <div className="mt-6 w-full max-w-sm">
+              <div className="mt-6 w-full max-w-md">
                 <RadarChart
                   title={t("progress.shape")}
                   scores={axisLatest}
