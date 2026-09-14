@@ -34,6 +34,7 @@ Each of these degrades on its own and says so in the startup line.
 | `REALSESSIONS_REVIEWERS` | Nobody can verify contributed questions, so none reach an interview |
 | `REALSESSIONS_SITE_URL` | Links in emails point at `http://localhost:5173` |
 | `REALSESSIONS_TRUST_PROXY=1` | Set **only** behind a proxy you control. Otherwise any caller can rotate `X-Forwarded-For` and mint unlimited rate-limit identities |
+| `REALSESSIONS_EARLY_ACCESS_CLOSES_AT` | Early access never closes and the landing page shows no countdown. Set an ISO date (`2026-11-15T23:59:59-05:00`) and the page counts down to it, and the server stops recording new addresses from that moment. Addresses already on the list keep their grant |
 
 ## Render (recommended)
 

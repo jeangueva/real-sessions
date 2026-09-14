@@ -282,6 +282,45 @@ export function earlyAccessUntil(from = new Date()): Date {
   return until;
 }
 
+let warnedAboutClose: string | null = null;
+
+/**
+ * When the early-access offer stops taking new addresses, or null when it has
+ * no end.
+ *
+ * The landing page counts down to this moment, and a countdown is only honest
+ * if the server enforces the same moment: past it, `/api/early-access` refuses
+ * to record anyone. Read on every call rather than once at boot, so moving the
+ * date is a configuration change and tests can set it.
+ *
+ * An unreadable value counts as no date rather than as closed. A typo that
+ * silently shut the offer on launch day would be worse than one that leaves it
+ * open, and the warning in the log says which happened.
+ */
+export function earlyAccessClosesAt(env: NodeJS.ProcessEnv = process.env): Date | null {
+  const raw = env.REALSESSIONS_EARLY_ACCESS_CLOSES_AT?.trim();
+  if (!raw) return null;
+  const at = new Date(raw);
+  if (Number.isNaN(at.getTime())) {
+    if (warnedAboutClose !== raw) {
+      warnedAboutClose = raw;
+      console.warn(
+        `[mockio] REALSESSIONS_EARLY_ACCESS_CLOSES_AT is not a date (${JSON.stringify(raw)}); early access stays open.`,
+      );
+    }
+    return null;
+  }
+  return at;
+}
+
+/** Whether early access still takes new addresses at `now`. */
+export function earlyAccessOpen(
+  now = new Date(),
+  closesAt: Date | null = earlyAccessClosesAt(),
+): boolean {
+  return closesAt === null || now.getTime() < closesAt.getTime();
+}
+
 /**
  * A one-way identifier for a contribution.
  *

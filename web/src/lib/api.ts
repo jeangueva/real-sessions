@@ -719,6 +719,19 @@ export function decideQuestion(id: number, status: "verified" | "rejected") {
 }
 
 /** Public: no identity needed, this runs from the landing page. */
+/**
+ * Whether early access still takes addresses, and until when.
+ *
+ * `closesAt` is null when the offer has no end configured. The landing page
+ * only counts down when there is a real date to count to.
+ */
+export function fetchEarlyAccessState() {
+  return request<{ open: boolean; closesAt: string | null; months: number }>(
+    "/api/early-access",
+    { method: "GET" },
+  );
+}
+
 export function joinEarlyAccess(email: string, role: string, company: string) {
   return request<{ ok: true; months: number; message: string }>(
     "/api/early-access",

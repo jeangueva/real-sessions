@@ -4,6 +4,7 @@ import { renderScreen, stubApi } from "./support/render";
 import { Billing } from "@/platform/Billing";
 import { Review } from "@/platform/Review";
 import { ConfirmEmail } from "@/platform/ConfirmEmail";
+import { EarlyAccess } from "@/components/EarlyAccess";
 import { Pricing } from "@/components/Pricing";
 
 /**
@@ -183,5 +184,40 @@ describe("ConfirmEmail", () => {
 
     await screen.findByText(/your email is confirmed/i);
     expect(screen.queryByText(/unlocked/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("EarlyAccess", () => {
+  const SECOND = 1000;
+  const inOneDayTwoHoursThreeMinutes = () =>
+    new Date(Date.now() + (26 * 3600 + 3 * 60 + 30) * SECOND).toISOString();
+
+  it("counts down to the real closing moment and keeps the form open", async () => {
+    stubApi({
+      "/api/early-access": { open: true, closesAt: inOneDayTwoHoursThreeMinutes(), months: 6 },
+    });
+    renderScreen(<EarlyAccess />);
+
+    const timer = await screen.findByRole("timer");
+    expect(timer.getAttribute("aria-label")).toMatch(/closes in 1 days, 2 hours, 3 min/i);
+    expect(screen.getByRole("button", { name: /claim six months/i })).toBeInTheDocument();
+  });
+
+  it("replaces the form once the offer has closed", async () => {
+    stubApi({ "/api/early-access": { open: false, closesAt: "2026-01-01T00:00:00.000Z", months: 6 } });
+    renderScreen(<EarlyAccess />);
+
+    await screen.findByText(/early access has closed/i);
+    expect(screen.queryByRole("button", { name: /claim six months/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+  });
+
+  it("shows no countdown when there is no date to count to", async () => {
+    // An invented deadline would be the one thing worse than none.
+    stubApi({ "/api/early-access": { open: true, closesAt: null, months: 6 } });
+    renderScreen(<EarlyAccess />);
+
+    await screen.findByRole("button", { name: /claim six months/i });
+    expect(screen.queryByRole("timer")).not.toBeInTheDocument();
   });
 });

@@ -430,6 +430,51 @@ describe("early access", () => {
       )).status,
     ).toBe(409);
   });
+
+  describe("closing", () => {
+    afterEach(() => {
+      delete process.env.REALSESSIONS_EARLY_ACCESS_CLOSES_AT;
+    });
+
+    it("reports an offer with no end when no date is configured", async () => {
+      const state = await api.json<{ open: boolean; closesAt: string | null; months: number }>(
+        "/api/early-access",
+      );
+      expect(state).toMatchObject({ open: true, closesAt: null, months: 6 });
+    });
+
+    it("tells the landing page when it closes, and takes addresses until then", async () => {
+      const closesAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      process.env.REALSESSIONS_EARLY_ACCESS_CLOSES_AT = closesAt;
+
+      const state = await api.json<{ open: boolean; closesAt: string | null }>("/api/early-access");
+      expect(state).toMatchObject({ open: true, closesAt });
+      expect(
+        (await api.call("/api/early-access", post({ email: "before@b.com", role: "PM" }))).status,
+      ).toBe(202);
+    });
+
+    it("stops recording addresses once it has closed", async () => {
+      // The countdown is only honest if the server refuses at the same moment.
+      process.env.REALSESSIONS_EARLY_ACCESS_CLOSES_AT = new Date(Date.now() - 1000).toISOString();
+      expect((await api.json<{ open: boolean }>("/api/early-access")).open).toBe(false);
+
+      const refused = await api.call(
+        "/api/early-access",
+        post({ email: "late@b.com", role: "PM" }),
+      );
+      expect(refused.status).toBe(410);
+      expect(api.mailer.sent.some((message) => message.to === "late@b.com")).toBe(false);
+
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: "late@b.com", password: "a long enough passphrase" }),
+      );
+      await api.call("/api/auth/verify", post({ token: api.mailer.tokenFor("late@b.com") }));
+      expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("free");
+    });
+  });
 });
 
 describe("the catalogue", () => {

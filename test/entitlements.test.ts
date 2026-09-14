@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   capabilitiesFor,
   contributorHash,
   createEntitlementStore,
+  earlyAccessClosesAt,
+  earlyAccessOpen,
   earlyAccessUntil,
   EARLY_ACCESS_MONTHS,
   GENERIC_COMPANY,
@@ -174,5 +176,32 @@ describe("the free plan's fixed context", () => {
 
   it("names no real employer", () => {
     expect(COMPANIES.map((company) => company.name)).not.toContain(GENERIC_COMPANY);
+  });
+});
+
+describe("when early access closes", () => {
+  const NOW = new Date("2026-10-01T12:00:00.000Z");
+
+  it("stays open when no closing date is configured", () => {
+    expect(earlyAccessClosesAt({})).toBeNull();
+    expect(earlyAccessOpen(NOW, null)).toBe(true);
+  });
+
+  it("is open before the configured moment and closed from it on", () => {
+    const closesAt = earlyAccessClosesAt({
+      REALSESSIONS_EARLY_ACCESS_CLOSES_AT: "2026-10-31T23:59:59.000Z",
+    });
+    expect(closesAt?.toISOString()).toBe("2026-10-31T23:59:59.000Z");
+    expect(earlyAccessOpen(NOW, closesAt)).toBe(true);
+    expect(earlyAccessOpen(new Date("2026-10-31T23:59:59.000Z"), closesAt)).toBe(false);
+    expect(earlyAccessOpen(new Date("2026-11-02T00:00:00.000Z"), closesAt)).toBe(false);
+  });
+
+  it("treats an unreadable date as no date rather than as closed", () => {
+    // A typo that shut the offer on launch day would be the worse failure.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    expect(earlyAccessClosesAt({ REALSESSIONS_EARLY_ACCESS_CLOSES_AT: "next month" })).toBeNull();
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
   });
 });

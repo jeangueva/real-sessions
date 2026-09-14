@@ -133,6 +133,8 @@ import {
   capabilitiesFor,
   createEntitlementStore,
   EARLY_ACCESS_MONTHS,
+  earlyAccessClosesAt,
+  earlyAccessOpen,
   earlyAccessUntil,
   GENERIC_COMPANY,
   GENERIC_CULTURE,
@@ -1109,8 +1111,27 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "GET" && path === "/api/early-access") {
+    // In front of the authentication gate: the landing page asks before anyone
+    // has an identity. The closing moment comes from the same function the
+    // POST below enforces, so the countdown and the refusal cannot disagree.
+    const closesAt = earlyAccessClosesAt();
+    json(res, 200, {
+      open: earlyAccessOpen(new Date(), closesAt),
+      closesAt: closesAt?.toISOString() ?? null,
+      months: EARLY_ACCESS_MONTHS,
+    });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/early-access") {
     if (await limited(res, `early:${clientIp(req)}`, RULES.signup)) return;
+    // Refused before anything is recorded or mailed. The countdown on the
+    // landing page reached zero at this same moment, and taking the address
+    // anyway would turn that count into a lie.
+    if (!earlyAccessOpen()) {
+      return json(res, 410, { error: "Early access has closed." });
+    }
     const body = await readJson(req);
     const email = normalizeEmail(body["email"]);
     if (!email) return json(res, 400, { error: "Enter a valid email address." });
