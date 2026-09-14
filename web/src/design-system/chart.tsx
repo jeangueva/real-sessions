@@ -267,23 +267,41 @@ export type RadarAxis = (typeof RADAR_AXES)[number];
  *
  * Each label is two lines, the axis name with its number under it, so a side
  * label needs the width of one word — but that word is translated, and
- * "Уверенность" or "Vocabulário" runs past seventy units at this size. The box
- * is wider than it is tall to give the left and right labels that room. An
- * inline svg clips whatever falls outside its viewBox, and says nothing.
+ * "Уверенность" or "Vocabulário" runs past ninety units at the larger label
+ * size below. The box is wider than it is tall to give the left and right
+ * labels that room. An inline svg clips whatever falls outside its viewBox, and
+ * says nothing.
  *
  * The shape grows by radius inside a bigger box, not by scaling the chart up.
  * An svg scales its text with its geometry, so a wider render of the old box
  * would have grown the labels past the prose beside them. At a radius of 62
  * the polygon read as a thumbnail next to the small multiples under it.
  */
-const RADAR_W = 400;
-const RADAR_H = 270;
+const RADAR_W = 412;
+const RADAR_H = 282;
 const RADAR_CX = RADAR_W / 2;
-const RADAR_CY = 134;
+const RADAR_CY = 140;
 const RADAR_R = 90;
 /** Where a label sits, measured out from the centre past the outer ring. */
 const LABEL_R = RADAR_R + 16;
-const LABEL_LINE = LABEL_SIZE + 2;
+
+/**
+ * The radar's own label size, in two steps rather than one.
+ *
+ * The box is scaled to fit its column, so a label renders at its size in units
+ * times that scale: about 1.09 in the desktop column and about 0.75 in a
+ * phone-width panel. No single size reads at both — the trend chart's 11 units
+ * came out near 8px on a phone. Below the `sm` breakpoint, where the column is
+ * narrower than the box, labels are 14 units (about 10.5px there); from `sm`
+ * up they are 11 (about 12px, level with the captions around them).
+ *
+ * The geometry is laid out for the larger step, so neither one clips, and the
+ * `fontSize` attribute carries it too, for anything rendering without the
+ * stylesheet.
+ */
+const RADAR_LABEL_MAX = 14;
+const RADAR_LABEL_CLASS = "text-[14px] sm:text-[11px]";
+const LABEL_LINE = RADAR_LABEL_MAX + 2;
 
 /** Unit vectors for the four compass points, clockwise from the top. */
 const DIRECTION: Record<RadarAxis, { dx: number; dy: number }> = {
@@ -443,7 +461,7 @@ export function RadarChart({
           // below it the pair drops so the name does, and beside it the two
           // lines straddle the spoke.
           const nameY =
-            dy < 0 ? y - LABEL_LINE : dy > 0 ? y + LABEL_SIZE : y - 2;
+            dy < 0 ? y - LABEL_LINE : dy > 0 ? y + RADAR_LABEL_MAX : y - 2;
           const anchor = dx === 0 ? "middle" : dx > 0 ? "start" : "end";
           // Two `<text>` elements, not a `<tspan>` inside one. WebKit runs the
           // bidi algorithm across the whole element, so "אוצר מילים" with its
@@ -451,7 +469,7 @@ export function RadarChart({
           return (
             <g
               key={axis}
-              fontSize={LABEL_SIZE}
+              fontSize={RADAR_LABEL_MAX}
               fill="currentColor"
             >
               <text
@@ -462,7 +480,9 @@ export function RadarChart({
                 // The fainter ink token when there is no reading means the
                 // dent at the centre and the faded word are the same fact
                 // said twice.
-                className={value === null ? "text-cream-faint" : "text-cream-dim"}
+                className={`${RADAR_LABEL_CLASS} ${
+                  value === null ? "text-cream-faint" : "text-cream-dim"
+                }`}
               >
                 {labels[axis]}
               </text>
@@ -472,7 +492,7 @@ export function RadarChart({
                   y={nameY + LABEL_LINE}
                   textAnchor={anchor}
                   fill="currentColor"
-                  className="text-cream-bright"
+                  className={`${RADAR_LABEL_CLASS} text-cream-bright`}
                 >
                   {Math.round(value)}
                 </text>
