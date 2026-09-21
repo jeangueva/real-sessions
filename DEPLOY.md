@@ -73,7 +73,12 @@ dashboard.
    | `OPENROUTER_API_KEY` | **Required.** No model, no interview |
    | `REALSESSIONS_SITE_URL` | Your Render URL. Unset, every emailed link points at localhost |
 
-   The rest are optional and each degrades on its own.
+   The rest are optional and each degrades on its own. Mercado Pago wants
+   `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_PUBLIC_KEY`, `MERCADOPAGO_AMOUNT`
+   and `MERCADOPAGO_CURRENCY` together: without the public key the card form is
+   skipped and payers are redirected to Mercado Pago's own checkout, and
+   without an amount and currency the server refuses to build one at all. A
+   production token also needs `MERCADOPAGO_LIVE=1`, or checkout answers 503.
 4. Apply. `DATABASE_URL`, `REDIS_URL` and the cookie secret are filled in by
    Render itself.
 

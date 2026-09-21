@@ -90,6 +90,12 @@ services:
       # the app says payments are off rather than offering a broken button.
       - key: MERCADOPAGO_ACCESS_TOKEN
         sync: false
+      # The browser half of the same application. Safe to serve — it can
+      # tokenise a card and nothing else. Unset, the card form cannot run and
+      # payers are redirected to Mercado Pago's hosted checkout instead, which
+      # works but leaves the site.
+      - key: MERCADOPAGO_PUBLIC_KEY
+        sync: false
       - key: MERCADOPAGO_WEBHOOK_SECRET
         sync: false
       - key: MERCADOPAGO_AMOUNT
