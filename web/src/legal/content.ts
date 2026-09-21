@@ -213,13 +213,13 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         body: [
           "Solo lo que el producto necesita para funcionar. No hay analítica, no hay publicidad y no hay ningún rastreador de terceros en este sitio: nada te sigue por la web, porque no hay nada instalado que pueda hacerlo.",
           [
-            "Tu correo y un hash de tu contraseña, si creás una cuenta. Nunca guardamos la contraseña.",
+            "Tu correo y un hash de tu contraseña, si creas una cuenta. Nunca guardamos la contraseña.",
             "Tus entrevistas: las preguntas, tus respuestas en texto, el puntaje y la devolución escrita, y mediciones tomadas de tu habla como el ritmo y las muletillas.",
             "Lo que le dijiste al entrevistador: tu rol objetivo, sector, empresa e idioma de la entrevista.",
             "El CV o portfolio que decidas subir, y el resumen corto escrito a partir de él. Guardamos los dos.",
             "Los enlaces de portfolio que ingreses. Los guardamos como texto y no los visitamos.",
             "Tu XP, nivel e insignias.",
-            "El estado de tu suscripción, si pagás. Los datos de tu tarjeta nunca llegan a nosotros: ver Pagos.",
+            "El estado de tu suscripción, si pagas. Los datos de tu tarjeta nunca llegan a nosotros: ver Pagos.",
           ],
           "Practicar como invitado guarda los mismos datos de entrevista contra un identificador anónimo en una cookie, sin ningún correo asociado.",
         ],
@@ -242,7 +242,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — voz. Recibe el audio de tu micrófono para transcribirlo, y el texto del entrevistador para decirlo en voz alta.",
             "Tu navegador — voz, cuando no se usa Deepgram. En ese caso el reconocimiento de voz del propio navegador procesa tu micrófono: en Chrome eso significa que Google recibe el audio, y algunas de las voces que leen al entrevistador también son de Google. Firefox no puede hacerlo, y escribir siempre funciona.",
             "Resend — envío de correo. Recibe tu dirección y el contenido de los mails de cuenta.",
-            "Mercado Pago — pagos, si te suscribís. El formulario de tarjeta ahora está en nuestra propia página, pero la tarjeta no: el script de Mercado Pago la manda directo de tu navegador a ellos y devuelve un token de un solo uso, que es lo único que llega a nuestros servidores. Nosotros guardamos un estado de suscripción y nada más.",
+            "Mercado Pago — pagos, si te suscribes. El formulario de tarjeta ahora está en nuestra propia página, pero la tarjeta no: el script de Mercado Pago la manda directo de tu navegador a ellos y devuelve un token de un solo uso, que es lo único que llega a nuestros servidores. Nosotros guardamos un estado de suscripción y nada más.",
           ],
           "No vendemos tus datos, y no los compartimos con nadie fuera de esta lista.",
         ],
@@ -258,13 +258,13 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "Borrar todo",
         body: [
           "Ajustes → Eliminar cuenta. Es inmediato y no se puede deshacer. Borra tus entrevistas, transcripciones y evaluaciones; tu progreso, XP, nivel e insignias; tu CV, tus enlaces y el resumen escrito a partir de ellos; tus preferencias; y cancela primero cualquier suscripción.",
-          "Una cosa sobrevive, y conviene que sepas por qué. Las preguntas que aportaste al banco compartido no están ligadas a vos: lo que se guarda al lado es un hash de una sola vía que no se puede revertir para saber quién sos, así que no queda nada tuyo en ellas para borrar, y eliminarlas le quitaría a otros candidatos algo en lo que se apoyan.",
+          "Una cosa sobrevive, y conviene que sepas por qué. Las preguntas que aportaste al banco compartido no están ligadas a ti: lo que se guarda al lado es un hash de una sola vía que no se puede revertir para saber quién eres, así que no queda nada tuyo en ellas para borrar, y eliminarlas le quitaría a otros candidatos algo en lo que se apoyan.",
         ],
       },
       {
         heading: "Tus derechos",
         body: [
-          `Escribí a ${OPERATOR.email} y te respondemos. Podés pedir una copia de lo que tenemos, pedir que lo corrijamos, o pedir que lo borremos, aunque eliminar tu cuenta ya hace lo último, en el momento y sin pedirle permiso a nadie.`,
+          `Escribe a ${OPERATOR.email} y te respondemos. Puedes pedir una copia de lo que tenemos, pedir que lo corrijamos, o pedir que lo borremos, aunque eliminar tu cuenta ya hace lo último, en el momento y sin pedirle permiso a nadie.`,
         ],
       },
       {
@@ -467,13 +467,13 @@ const TERMS: Record<Locale, LegalDocument> = {
   es: {
     title: "Términos",
     updated: UPDATED,
-    intro: `Un acuerdo entre vos y ${OPERATOR.entity}, en ${COUNTRY.es}, sobre el uso de Mockio. Usarlo significa aceptarlos.`,
+    intro: `Un acuerdo entre tú y ${OPERATOR.entity}, en ${COUNTRY.es}, sobre el uso de Mockio. Usarlo significa aceptarlos.`,
     sections: [
       {
         heading: "Qué es Mockio, y qué no es",
         body: [
           "Mockio es una herramienta de práctica de idioma. Su propósito es que ensayes hablar inglés en un contexto profesional, en voz alta y bajo una presión moderada, y que después te digamos cómo se sostuvo ese inglés.",
-          "Todo lo que hay acá es una simulación. El entrevistador es un personaje ficticio, el contexto de la empresa es una descripción y no una relación, y las preguntas las genera un modelo de lenguaje. Nada de esto es una entrevista real ni puede tratarse como tal.",
+          "Todo lo que hay aquí es una simulación. El entrevistador es un personaje ficticio, el contexto de la empresa es una descripción y no una relación, y las preguntas las genera un modelo de lenguaje. Nada de esto es una entrevista real ni puede tratarse como tal.",
           "En particular:",
           [
             "Una sesión no es comparable con una entrevista real. No puede decirte cómo saldría una de verdad, y una buena sesión no predice ningún resultado real.",
@@ -481,15 +481,15 @@ const TERMS: Record<Locale, LegalDocument> = {
             "El puntaje y la devolución miden cómo te expresaste en inglés. No son una evaluación de tu capacidad profesional, tu seniority, ni tu idoneidad para ningún puesto.",
             "Nada de esto es asesoramiento de carrera, y nada de esto es un proceso de selección.",
           ],
-          "No somos un reclutador, ni un empleador, ni una vía para conseguir trabajo. No estamos afiliados a ninguna empresa nombrada en el producto, ni respaldados por ellas, ni actuamos en su nombre. Stripe, Amazon, Airbnb, Mercado Libre y cualquier otro empleador que aparezca acá se nombran solo para describir el registro y los temas de la práctica: ningún empleador real participa, y ninguno ve nada de lo que hacés acá.",
-          "La devolución la produce un modelo de lenguaje. Suele ser útil y a veces se equivoca. Tomala como una segunda opinión sobre tu inglés, no como un veredicto sobre vos.",
+          "No somos un reclutador, ni un empleador, ni una vía para conseguir trabajo. No estamos afiliados a ninguna empresa nombrada en el producto, ni respaldados por ellas, ni actuamos en su nombre. Stripe, Amazon, Airbnb, Mercado Libre y cualquier otro empleador que aparezca aquí se nombran solo para describir el registro y los temas de la práctica: ningún empleador real participa, y ninguno ve nada de lo que haces aquí.",
+          "La devolución la produce un modelo de lenguaje. Suele ser útil y a veces se equivoca. Tómala como una segunda opinión sobre tu inglés, no como un veredicto sobre ti.",
         ],
       },
       {
         heading: "Tu cuenta",
         body: [
-          "Tenés que ser mayor de 18. Una cuenta por persona. Guardate la contraseña: todo lo que se haga desde tu cuenta se considera hecho por vos.",
-          "Podés practicar como invitado sin cuenta. El progreso de invitado vive en un solo navegador y se pierde si borrás su almacenamiento; eso es una consecuencia de no tener cuenta, no una falla.",
+          "Tienes que ser mayor de 18. Una cuenta por persona. Guarda la contraseña: todo lo que se haga desde tu cuenta se considera hecho por ti.",
+          "Puedes practicar como invitado sin cuenta. El progreso de invitado vive en un solo navegador y se pierde si borras su almacenamiento; eso es una consecuencia de no tener cuenta, no una falla.",
         ],
       },
       {
@@ -502,27 +502,27 @@ const TERMS: Record<Locale, LegalDocument> = {
         heading: "Pagar",
         body: [
           "El plan pago se cobra mensualmente a través de Mercado Pago. Nunca vemos ni guardamos los datos de tu tarjeta; Mercado Pago maneja el pago y solo nos dice si salió bien.",
-          "Podés cancelar cuando quieras desde Ajustes. Cancelar detiene el próximo cobro y conservás el plan pago hasta el final del período que ya pagaste. No devolvemos meses parciales, porque conservás el acceso que compraste.",
+          "Puedes cancelar cuando quieras desde Ajustes. Cancelar detiene el próximo cobro y conservas el plan pago hasta el final del período que ya pagaste. No devolvemos meses parciales, porque conservas el acceso que compraste.",
           "Si un pago falla, Mercado Pago reintenta. Si sigue fallando, el plan vuelve a gratuito: tu historial queda, pero las funciones pagas se detienen.",
-          "Los beneficios de acceso anticipado son exactamente lo que dicen: un período gratis del plan pago, atado a la dirección que nos diste y activado cuando creás una cuenta con ella. No son transferibles y no tienen valor en efectivo.",
+          "Los beneficios de acceso anticipado son exactamente lo que dicen: un período gratis del plan pago, atado a la dirección que nos diste y activado cuando confirmas esa dirección desde el enlace que te enviamos. No son transferibles y no tienen valor en efectivo.",
         ],
       },
       {
         heading: "Precios",
         body: [
-          "Podemos cambiar el precio. Si lo hacemos, te avisamos por correo al menos 30 días antes de que te aplique, y podés cancelar antes. Un cambio de precio nunca se aplica retroactivamente a un período que ya pagaste.",
+          "Podemos cambiar el precio. Si lo hacemos, te avisamos por correo al menos 30 días antes de que te aplique, y puedes cancelar antes. Un cambio de precio nunca se aplica retroactivamente a un período que ya pagaste.",
         ],
       },
       {
         heading: "Preguntas aportadas",
         body: [
-          "Si reportás una pregunta que te hicieron en una entrevista real, nos estás diciendo que es genuina, que sos libre de compartirla, y que no contiene información confidencial ni nombra a ninguna persona.",
+          "Si reportas una pregunta que te hicieron en una entrevista real, nos estás diciendo que es genuina, que eres libre de compartirla, y que no contiene información confidencial ni nombra a ninguna persona.",
           "Nos das permiso para mostrarla a otros candidatos y usarla como material para entrevistas generadas. Las contribuciones las revisa una persona antes de usarse, y podemos rechazar o eliminar cualquiera.",
           "No mandes nada sobre lo que firmaste un NDA. No mandes nada que contenga el nombre de una persona.",
         ],
       },
       {
-        heading: "Qué no podés hacer",
+        heading: "Qué no puedes hacer",
         body: [
           [
             "Revender, redistribuir o republicar las entrevistas, preguntas o devoluciones como producto propio.",
@@ -542,13 +542,13 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Responsabilidad",
         body: [
-          "En la medida en que la ley lo permita, nuestra responsabilidad total hacia vos se limita a lo que nos pagaste en los doce meses anteriores al reclamo. No somos responsables por un trabajo que no conseguiste.",
+          "En la medida en que la ley lo permita, nuestra responsabilidad total hacia ti se limita a lo que nos pagaste en los doce meses anteriores al reclamo. No somos responsables por un trabajo que no conseguiste.",
         ],
       },
       {
         heading: "Terminar",
         body: [
-          "Podés eliminar tu cuenta cuando quieras desde Ajustes, lo que borra tus datos como se describe en la política de privacidad. Podemos cerrar una cuenta que incumpla estos términos, y devolvemos el período pago sin usar si lo hacemos por una razón que no fue culpa tuya.",
+          "Puedes eliminar tu cuenta cuando quieras desde Ajustes, lo que borra tus datos como se describe en la política de privacidad. Podemos cerrar una cuenta que incumpla estos términos, y devolvemos el período pago sin usar si lo hacemos por una razón que no fue culpa tuya.",
         ],
       },
       {
