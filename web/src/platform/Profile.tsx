@@ -116,8 +116,8 @@ export function Profile() {
             <p className="text-sm text-cream-dim">
               {t("profile.lockedBody")}
             </p>
-            <Link to="/#early-access" className="self-start">
-              <Action withArrow>{t("setup.sixMonths")}</Action>
+            <Link to="/app/settings" className="self-start">
+              <Action withArrow>{t("cta.seePlans")}</Action>
             </Link>
           </Panel>
         </PageBody>

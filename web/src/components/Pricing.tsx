@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
-import { scrollToSection } from "@/lib/scroll-to-section";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -71,12 +70,7 @@ export function Pricing() {
             className="flex h-full flex-col gap-6 border border-cream/25 p-6 sm:p-8"
           >
             <div>
-              <div className="flex flex-wrap items-baseline gap-3">
-                <p className="text-sm text-cream-dim">{t("land.premium")}</p>
-                <span className="rounded-full border border-cream/40 px-3 py-1 text-xs text-cream">
-                  {t("land.premiumBadge")}
-                </span>
-              </div>
+              <p className="text-sm text-cream-dim">{t("land.premium")}</p>
               <p className="mt-2 text-title text-cream-bright">
                 $9<span className="text-sm text-cream-faint">{t("land.perMonth")}</span>
               </p>
@@ -89,15 +83,11 @@ export function Pricing() {
                 <CheckItem key={item}>{t(item)}</CheckItem>
               ))}
             </ul>
-            <a
-              href="#early-access"
-              className="mt-auto self-start"
-              onClick={(event) => {
-                if (scrollToSection("#early-access")) event.preventDefault();
-              }}
-            >
-              <Action withArrow>{t("setup.sixMonths")}</Action>
-            </a>
+            {/* Settings is where billing lives, and where the card form and
+                the hosted checkout both start. */}
+            <Link to="/app/settings" className="mt-auto self-start">
+              <Action withArrow>{t("cta.subscribe")}</Action>
+            </Link>
           </Panel>
         </FadeRise>
       </div>

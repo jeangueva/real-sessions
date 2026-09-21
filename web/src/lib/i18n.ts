@@ -88,7 +88,8 @@ const EN = {
   "setup.freePlan": "You are on the free plan.",
   "setup.freePlanBody":
     "A general interview for your role, scored honestly. Targeting a company, your CV and live coaching are on the paid plan.",
-  "setup.sixMonths": "Six months free",
+  "cta.seePlans": "See the plans",
+  "cta.subscribe": "Subscribe",
   "setup.search": "Search a company, a role, or a past session to run again",
   "setup.clearSearch": "Clear search",
 
@@ -291,7 +292,7 @@ const EN = {
 
   "feedback.earned": "Earned",
   "feedback.nextStepsLocked": "The evaluator wrote you a set of specific things to practise this week. They are part of the paid plan —",
-  "feedback.nextStepsLink": "six months are free for early adopters",
+  "feedback.nextStepsLink": "see the paid plan",
 
   "coach.label": "Coaching notes",
   "coach.heading": "Coaching",
@@ -352,6 +353,7 @@ const EN = {
   "billing.upgradeAmount": "Upgrade — {amount} {currency} / month",
   "billing.upgrade": "Upgrade",
   "billing.notOn": "Payments are not switched on yet.",
+  "billing.needsAccount": "Subscribing needs an account — a subscription has to outlive a browser.",
   "billing.cancelSub": "Cancel subscription",
   "billing.cancelledUntil": "Cancelled, and you keep the paid plan until {date} — you already paid for it.",
   "billing.couldNotOpen": "Could not open checkout.",
@@ -463,7 +465,6 @@ const EN = {
   "land.free5": "XP, levels and badges",
   "land.startPractising": "Start practising",
   "land.premium": "Premium",
-  "land.premiumBadge": "Free for early adopters",
   "land.perMonth": " / month",
   "land.premiumBlurb": "The interview that knows who you are and where you are applying.",
   "land.prem1": "The company and sector you are targeting",
@@ -513,7 +514,6 @@ const EN = {
   "land.stageSystem": "System design",
   "land.stageOther": "Other",
 
-  "land.navEarly": "Early access",
   "land.eaWhat": "What you get",
   "land.eaInc1": "The company you are actually applying to",
   "land.eaInc2": "Your CV in the interviewer's hands",

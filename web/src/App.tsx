@@ -7,7 +7,6 @@ import { InterviewPreview } from "@/components/InterviewPreview";
 import { CompanyPicker } from "@/components/CompanyPicker";
 import { Features } from "@/components/Features";
 import { Pricing } from "@/components/Pricing";
-import { EarlyAccess } from "@/components/EarlyAccess";
 import { Contribute } from "@/components/Contribute";
 import { SiteFooter } from "@/components/SiteFooter";
 import { AppShell } from "@/platform/AppShell";
@@ -30,18 +29,20 @@ function Landing() {
     <main className="bg-surface-base">
       <LandingNav />
       <Hero />
-      {/* Early access sits second, directly under the hero.
-          It was sixth, which put the only offer on the page below four
-          sections of explanation — read by whoever was still scrolling. The
-          people this is for decide in the first screen or leave, so the ask
-          goes where they are. What it costs is the argument being made before
-          the offer; that argument is the rest of the page, and it is still
-          there for anyone who wants it before deciding. */}
-      <EarlyAccess />
+      {/* Pricing sits second, directly under the hero, where early access
+          used to be. The people this is for decide in the first screen or
+          leave, so the ask goes where they are — and the ask is now the plan
+          itself rather than a list to join. What it costs is the argument
+          being made before the offer; that argument is the rest of the page,
+          and it is still there for anyone who wants it before deciding.
+
+          `EarlyAccess` is not gone, only unmounted: the endpoint, the grants
+          and the countdown all still work, so putting the section back is one
+          line. */}
+      <Pricing />
       <InterviewPreview />
       <CompanyPicker />
       <Features />
-      <Pricing />
       {/* The question bank closes the page: it asks for something rather than
           offering something, so it belongs after the case has been made. */}
       <Contribute />

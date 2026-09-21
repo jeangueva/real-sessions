@@ -271,8 +271,8 @@ function FeedbackBody({
                   {t("feedback.measuredLocked")}
                 </p>
               </div>
-              <Link to="/#early-access" className="shrink-0">
-                <Action withArrow>{t("setup.sixMonths")}</Action>
+              <Link to="/app/settings" className="shrink-0">
+                <Action withArrow>{t("cta.seePlans")}</Action>
               </Link>
             </Panel>
           </FadeRise>
@@ -347,7 +347,7 @@ function FeedbackBody({
               <p className="text-sm text-cream-dim">
                 {t("feedback.nextStepsLocked")}{" "}
                 <Link
-                  to="/#early-access"
+                  to="/app/settings"
                   className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
                 >
                   {t("feedback.nextStepsLink")}

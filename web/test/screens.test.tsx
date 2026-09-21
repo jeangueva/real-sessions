@@ -17,16 +17,35 @@ import { Pricing } from "@/components/Pricing";
  */
 
 describe("Billing", () => {
-  it("offers early access rather than a button that cannot work", async () => {
+  it("says payments are off rather than showing a button that cannot work", async () => {
     stubApi({
       "/api/billing": { configured: false, plan: null, subscription: null },
       "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
+      "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
     });
     renderScreen(<Billing />);
 
     await screen.findByText(/payments are not switched on/i);
-    expect(screen.getByRole("link", { name: /six months free/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /upgrade/i })).not.toBeInTheDocument();
+  });
+
+  it("offers an account to a guest instead of a checkout that would be refused", async () => {
+    // Mercado Pago needs a payer email; a guest has none and the server says
+    // so. Finding that out after clicking would be the worse way to learn it.
+    stubApi({
+      "/api/billing": {
+        configured: true,
+        plan: { amount: 9000, currency: "ARS" },
+        subscription: null,
+        publicKey: "TEST-key",
+      },
+      "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
+      "/api/auth/me": { kind: "guest", email: null },
+    });
+    renderScreen(<Billing />);
+
+    await screen.findByText(/subscribing needs an account/i);
+    expect(screen.queryByRole("button", { name: /9000 ARS/i })).not.toBeInTheDocument();
   });
 
   it("shows the price it will actually charge", async () => {
@@ -37,6 +56,7 @@ describe("Billing", () => {
         subscription: null,
       },
       "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
+      "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
     });
     renderScreen(<Billing />);
 
@@ -58,6 +78,7 @@ describe("Billing", () => {
         },
       },
       "/api/plan": { plan: "premium", capabilities: {}, reviewer: false },
+      "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
     });
     renderScreen(<Billing />);
 
@@ -80,6 +101,7 @@ describe("Billing", () => {
         },
       },
       "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
+      "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
     });
     renderScreen(<Billing />);
 
@@ -151,6 +173,15 @@ describe("Review", () => {
 });
 
 describe("Pricing", () => {
+  it("sends someone who wants the paid plan to where they can pay", () => {
+    // The landing page no longer carries the early-access form, so this is the
+    // only way off it and onto the paid plan.
+    renderScreen(<Pricing />);
+
+    const subscribe = screen.getByRole("link", { name: /subscribe/i });
+    expect(subscribe).toHaveAttribute("href", "/app/settings");
+  });
+
   it("does not sell as paid what the free plan actually includes", () => {
     // The copy and the entitlements drifted apart once already: the page
     // advertised measured metrics and badges as premium while the server gave

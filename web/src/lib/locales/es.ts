@@ -24,7 +24,8 @@ const ES: Record<MessageKey, string> = {
   "setup.freePlan": "Estás en el plan gratuito.",
   "setup.freePlanBody":
     "Una entrevista general para tu rol, puntuada con honestidad. Apuntar a una empresa, subir tu CV y el coaching en vivo son del plan pago.",
-  "setup.sixMonths": "Seis meses gratis",
+  "cta.seePlans": "Ver los planes",
+  "cta.subscribe": "Suscribirme",
   "setup.search": "Buscá una empresa, un rol, o una sesión pasada para repetir",
   "setup.clearSearch": "Limpiar búsqueda",
 
@@ -227,7 +228,7 @@ const ES: Record<MessageKey, string> = {
 
   "feedback.earned": "Ganado",
   "feedback.nextStepsLocked": "El evaluador te escribió un conjunto de cosas concretas para practicar esta semana. Son parte del plan pago:",
-  "feedback.nextStepsLink": "seis meses gratis para quienes llegan temprano",
+  "feedback.nextStepsLink": "mirá el plan pago",
 
   "coach.label": "Notas de coaching",
   "coach.heading": "Coaching",
@@ -288,6 +289,7 @@ const ES: Record<MessageKey, string> = {
   "billing.upgradeAmount": "Pasar a pago — {amount} {currency} / mes",
   "billing.upgrade": "Pasar a pago",
   "billing.notOn": "Los pagos todavía no están activos.",
+  "billing.needsAccount": "Para suscribirte necesitás una cuenta: una suscripción tiene que durar más que un navegador.",
   "billing.cancelSub": "Cancelar suscripción",
   "billing.cancelledUntil": "Cancelado, y conservás el plan pago hasta el {date}: ya lo pagaste.",
   "billing.couldNotOpen": "No se pudo abrir el checkout.",
@@ -399,7 +401,6 @@ const ES: Record<MessageKey, string> = {
   "land.free5": "XP, niveles e insignias",
   "land.startPractising": "Empezar a practicar",
   "land.premium": "Premium",
-  "land.premiumBadge": "Gratis para quienes llegan temprano",
   "land.perMonth": " / mes",
   "land.premiumBlurb": "La entrevista que sabe quién sos y dónde te postulás.",
   "land.prem1": "La empresa y el sector a los que apuntás",
@@ -449,7 +450,6 @@ const ES: Record<MessageKey, string> = {
   "land.stageSystem": "System design",
   "land.stageOther": "Otra",
 
-  "land.navEarly": "Acceso anticipado",
   "land.eaWhat": "Qué incluye",
   "land.eaInc1": "La empresa a la que de verdad te postulás",
   "land.eaInc2": "Tu CV en manos del entrevistador",

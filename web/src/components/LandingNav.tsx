@@ -34,7 +34,6 @@ import type { MessageKey } from "@/lib/i18n";
  */
 
 const NAV: { label: MessageKey; href: string }[] = [
-  { label: "land.navEarly", href: "#early-access" },
   { label: "land.navHow", href: "#how-it-works" },
   { label: "land.navCompanies", href: "#companies" },
   { label: "land.navPricing", href: "#pricing" },

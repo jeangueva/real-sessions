@@ -6,9 +6,10 @@ import {
   cancelSubscription,
   fetchBilling,
   fetchPlan,
+  fetchSession,
   startCheckout,
 } from "@/lib/api";
-import type { BillingState, Plan } from "@/lib/api";
+import type { BillingState, Plan, Session } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { CardForm } from "./CardForm";
@@ -37,6 +38,14 @@ export function Billing() {
   const { locale } = useLocale();
   const [state, setState] = useState<BillingState | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
+  /**
+   * Who is asking.
+   *
+   * Mercado Pago needs a payer email and a guest has none, so the server
+   * refuses their checkout. Knowing that here means offering an account
+   * instead of a button that fails at the last step.
+   */
+  const [session, setSession] = useState<Session | null>(null);
   const [busy, setBusy] = useState(false);
   /** Opens the on-site card form. Only reachable when a public key exists. */
   const [paying, setPaying] = useState(false);
@@ -45,6 +54,7 @@ export function Billing() {
   const load = () => {
     fetchBilling().then(setState).catch(() => setState(null));
     fetchPlan().then((result) => setPlan(result.plan)).catch(() => undefined);
+    fetchSession().then(setSession).catch(() => undefined);
   };
 
   useEffect(load, []);
@@ -80,6 +90,7 @@ export function Billing() {
 
   const subscription = state.subscription;
   const active = plan === "premium";
+  const canBeBilled = session?.kind === "user";
 
   return (
     <Panel variant="glass" className="mt-4 max-w-2xl p-6">
@@ -115,7 +126,16 @@ export function Billing() {
             sent to Mercado Pago's own page. Both end in the same subscription,
             and the redirect stays because a deployment that has not been given
             a public key must still be able to sell. */}
-        {!active && state.configured && state.publicKey && !paying && (
+        {!active && state.configured && !canBeBilled && (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm text-cream-dim">{t("billing.needsAccount")}</p>
+            <Link to="/signin">
+              <Action withArrow>{t("settings.saveProgress")}</Action>
+            </Link>
+          </div>
+        )}
+
+        {!active && state.configured && canBeBilled && state.publicKey && !paying && (
           <Action withArrow onClick={() => setPaying(true)} disabled={busy}>
             {state.plan
               ? t("billing.upgradeAmount", {
@@ -126,7 +146,7 @@ export function Billing() {
           </Action>
         )}
 
-        {!active && state.configured && !state.publicKey && (
+        {!active && state.configured && canBeBilled && !state.publicKey && (
           <Action withArrow onClick={() => void upgrade()} disabled={busy}>
             {busy
               ? t("billing.opening")
@@ -140,16 +160,11 @@ export function Billing() {
         )}
 
         {!active && !state.configured && (
-          // Said plainly rather than showing a button that 503s. Early access
-          // is the only path to the paid plan until payments are wired up.
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-cream-dim">
-              {t("billing.notOn")}
-            </p>
-            <Link to="/#early-access">
-              <Action tone="glass">{t("setup.sixMonths")}</Action>
-            </Link>
-          </div>
+          // Said plainly rather than showing a button that 503s. Nothing to
+          // offer beside it: with payments off, an existing early-access grant
+          // is the only way onto the paid plan and the people who have one
+          // already do.
+          <p className="text-sm text-cream-dim">{t("billing.notOn")}</p>
         )}
 
         {subscription && subscription.status !== "cancelled" && (

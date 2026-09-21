@@ -373,8 +373,8 @@ export function SessionSetup() {
               </span>
             </p>
             {left === 0 && (
-              <Link to="/#early-access" className="shrink-0">
-                <Action tone="glass">{t("setup.sixMonths")}</Action>
+              <Link to="/app/settings" className="shrink-0">
+                <Action tone="glass">{t("cta.seePlans")}</Action>
               </Link>
             )}
           </div>
@@ -389,8 +389,8 @@ export function SessionSetup() {
                 {t("setup.freePlanBody")}
               </span>
             </p>
-            <Link to="/#early-access" className="shrink-0">
-              <Action tone="glass">{t("setup.sixMonths")}</Action>
+            <Link to="/app/settings" className="shrink-0">
+              <Action tone="glass">{t("cta.seePlans")}</Action>
             </Link>
           </div>
         )}
