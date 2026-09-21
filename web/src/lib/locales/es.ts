@@ -330,7 +330,7 @@ const ES: Record<MessageKey, string> = {
   "settings.account": "Cuenta",
   "settings.signedInAs": "Sesión iniciada como",
   "settings.signedInNote": "Tu historial sigue a la cuenta, en cualquier dispositivo.",
-  "settings.unconfirmed": "Esta dirección todavía no está confirmada. Hasta que lo esté no podemos mandarte un restablecimiento de contraseña, así que perderías la cuenta si te la olvidás. Si te anotaste en el acceso anticipado, confirmarla es también lo que desbloquea tus seis meses gratis.",
+  "settings.unconfirmed": "Esta dirección todavía no está confirmada. Hasta que lo esté no podemos mandarte un restablecimiento de contraseña, así que perderías la cuenta si te la olvidás. Si te uniste en el acceso anticipado, confirma tu correo para desbloquear tus seis meses gratis.",
   "settings.sent": "Enviado: revisá tu bandeja",
   "settings.resend": "Reenviar confirmación",
   "settings.guestNote": "Estás practicando como invitado. Tu progreso, tus insignias y tus ajustes viven solo en este navegador: si borrás las cookies, se pierden. Registrarte se lleva todo con vos.",
