@@ -248,7 +248,7 @@ export function passwordChangedEmail(email: string): EmailMessage {
       `If that was you, there is nothing to do.\n\n` +
       `If it was not, someone else has access to this address or had your ` +
       `password. Reset it again from the sign-in page to take the account ` +
-      `back, and write to hola@getmockio.com.`,
+      `back, and write to hello@getmockio.com.`,
   };
 }
 
@@ -262,7 +262,7 @@ export function accountDeletedEmail(email: string): EmailMessage {
       `This cannot be undone, and we cannot restore it — that is what makes ` +
       `it a deletion rather than a hidden account. Signing up again starts ` +
       `from nothing.\n\n` +
-      `If you did not do this, write to hola@getmockio.com.`,
+      `If you did not do this, write to hello@getmockio.com.`,
   };
 }
 

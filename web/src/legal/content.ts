@@ -50,7 +50,7 @@ export const OPERATOR = {
   /** The legal entity: a registered company, or a person trading under a name. */
   entity: "Mockio",
   /** Where a person writes to exercise their rights. */
-  email: "hola@getmockio.com",
+  email: "hello@getmockio.com",
 } as const;
 
 /**
@@ -85,7 +85,7 @@ export function isDraft(): boolean {
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
-export const UPDATED = "2026-09-14";
+export const UPDATED = "2026-09-21";
 
 export interface LegalSection {
   heading: string;

@@ -194,13 +194,13 @@ describe("the money and security mail", () => {
     const mail = passwordChangedEmail("a@b.com");
     expect(mail.text).toMatch(/signed out/i);
     // The whole point: a recipient who did not do this needs a next step.
-    expect(mail.text).toContain("hola@getmockio.com");
+    expect(mail.text).toContain("hello@getmockio.com");
   });
 
   it("says a deletion cannot be undone", () => {
     const mail = accountDeletedEmail("a@b.com");
     expect(mail.text).toMatch(/cannot be undone/i);
-    expect(mail.text).toContain("hola@getmockio.com");
+    expect(mail.text).toContain("hello@getmockio.com");
   });
 
   it("addresses every one of them to the account", () => {
