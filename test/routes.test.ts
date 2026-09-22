@@ -595,6 +595,60 @@ describe("billing", () => {
     expect((await api.call("/api/billing/cancel", post({}))).status).toBe(404);
   });
 
+  it("puts the payer on the paid plan without waiting for a webhook", async () => {
+    /**
+     * The card is authorized, the money is taken, and the entitlement used to
+     * be granted only when Mercado Pago's notification arrived. A webhook
+     * signed with the wrong secret, or one that never reached the service,
+     * left a paying customer on the free plan with nothing to point at.
+     */
+    const before = { ...process.env };
+    const realFetch = globalThis.fetch;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+
+    // Mercado Pago echoes back the external_reference it was given, which is
+    // how a notification finds its way to an owner. The stub does the same.
+    let reference = "";
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const url = String(input);
+      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
+      if (init?.method === "POST" && typeof init.body === "string") {
+        reference = String(JSON.parse(init.body).external_reference ?? "");
+      }
+      const body = {
+        id: "mp-live-1",
+        status: "authorized",
+        external_reference: reference,
+        next_payment_date: "2027-01-01T00:00:00.000Z",
+      };
+      return {
+        ok: true,
+        status: 200,
+        json: async () => body,
+        text: async () => JSON.stringify(body),
+      } as unknown as Response;
+    }) as typeof fetch;
+
+    try {
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: "payer@b.com", password: "a long enough passphrase" }),
+      );
+
+      const paid = await api.call("/api/billing/subscribe", post({ cardTokenId: "tok-1" }));
+      expect(paid.status).toBe(201);
+
+      // No webhook has been delivered at this point.
+      expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
+    } finally {
+      globalThis.fetch = realFetch;
+      process.env = before;
+    }
+  });
+
   describe("the webhook", () => {
     const url = "/api/billing/webhook?data.id=mp-123&type=preapproval";
 

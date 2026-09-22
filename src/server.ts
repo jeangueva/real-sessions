@@ -1575,6 +1575,27 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       });
     }
 
+    /**
+     * The entitlement, now rather than when the webhook arrives.
+     *
+     * This route wrote the subscription row and stopped, and the grant that
+     * actually moves someone onto the paid plan lives in `reconcileSubscription`
+     * — which only the webhook called. So an authorized card left the payer on
+     * the free plan until a notification arrived, and if the webhook was
+     * misconfigured, unreachable, or signed with the wrong secret, it never
+     * did: money taken, nothing unlocked, and no way to tell which half broke.
+     *
+     * Reconciling here keeps the single path from a payment to an entitlement
+     * — the provider is still the authority, it is just asked immediately. A
+     * failure is logged and left to the webhook, which remains the backstop
+     * rather than the only route.
+     */
+    try {
+      await reconcileSubscription(opened.id);
+    } catch (error) {
+      console.error("[mockio] subscribe reconcile failed:", error);
+    }
+
     json(res, 201, { status: opened.status });
     return;
   }
