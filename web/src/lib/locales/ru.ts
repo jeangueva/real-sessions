@@ -19,7 +19,7 @@ const RU: Record<MessageKey, string> = {
   "nav.onPaidPlan": "В платном тарифе",
   "setup.title": "Начать собеседование",
   "setup.meta": "Семь ходов, около десяти минут. Остановиться можно в любой момент.",
-  "setup.eyebrow": "Настройка собеседования",
+  "setup.eyebrow": "Провести интервью",
   "setup.begin": "Начать",
   "cta.seePlans": "Посмотреть тарифы",
   "cta.subscribe": "Оформить подписку",

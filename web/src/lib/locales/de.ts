@@ -19,7 +19,7 @@ const DE: Record<MessageKey, string> = {
   "nav.onPaidPlan": "Im Bezahltarif",
   "setup.title": "Ein Gespräch beginnen",
   "setup.meta": "Sieben Runden, etwa zehn Minuten. Du kannst jederzeit aufhören.",
-  "setup.eyebrow": "Gesprächs-Setup",
+  "setup.eyebrow": "Ein Interview führen",
   "setup.begin": "Los",
   "cta.seePlans": "Tarife ansehen",
   "cta.subscribe": "Abonnieren",

@@ -19,7 +19,7 @@ const JA: Record<MessageKey, string> = {
   "nav.onPaidPlan": "有料プランの機能",
   "setup.title": "面接を始める",
   "setup.meta": "7ターン、約10分。いつでも中断できます。",
-  "setup.eyebrow": "面接の設定",
+  "setup.eyebrow": "面接を実施する",
   "setup.begin": "開始",
   "cta.seePlans": "プランを見る",
   "cta.subscribe": "登録する",

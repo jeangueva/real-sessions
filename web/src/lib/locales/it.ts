@@ -20,7 +20,7 @@ const IT: Record<MessageKey, string> = {
   "nav.onPaidPlan": "Nel piano a pagamento",
   "setup.title": "Inizia un colloquio",
   "setup.meta": "Sette turni, circa dieci minuti. Puoi fermarti quando vuoi.",
-  "setup.eyebrow": "Configurazione del colloquio",
+  "setup.eyebrow": "Sostieni un colloquio",
   "setup.begin": "Inizia",
   "cta.seePlans": "Vedi i piani",
   "cta.subscribe": "Abbonati",

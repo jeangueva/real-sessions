@@ -19,7 +19,7 @@ const AR: Record<MessageKey, string> = {
   "nav.onPaidPlan": "في الخطة المدفوعة",
   "setup.title": "ابدأ مقابلة",
   "setup.meta": "سبع جولات، نحو عشر دقائق. يمكنك التوقّف في أي لحظة.",
-  "setup.eyebrow": "إعداد المقابلة",
+  "setup.eyebrow": "إجراء مقابلة",
   "setup.begin": "ابدأ",
   "cta.seePlans": "اطّلع على الخطط",
   "cta.subscribe": "اشترك",

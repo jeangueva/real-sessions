@@ -19,7 +19,7 @@ const HE: Record<MessageKey, string> = {
   "nav.onPaidPlan": "בתוכנית בתשלום",
   "setup.title": "להתחיל ראיון",
   "setup.meta": "שבעה סבבים, בערך עשר דקות. אפשר לעצור בכל רגע.",
-  "setup.eyebrow": "הגדרת הראיון",
+  "setup.eyebrow": "לערוך ראיון",
   "setup.begin": "התחלה",
   "cta.seePlans": "לצפייה בתוכניות",
   "cta.subscribe": "להרשמה",

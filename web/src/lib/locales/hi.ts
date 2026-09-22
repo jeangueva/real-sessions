@@ -19,7 +19,7 @@ const HI: Record<MessageKey, string> = {
   "nav.onPaidPlan": "सशुल्क प्लान में",
   "setup.title": "इंटरव्यू शुरू करें",
   "setup.meta": "सात दौर, लगभग दस मिनट। आप कभी भी रोक सकते हैं।",
-  "setup.eyebrow": "इंटरव्यू सेटअप",
+  "setup.eyebrow": "इंटरव्यू करें",
   "setup.begin": "शुरू करें",
   "cta.seePlans": "प्लान देखें",
   "cta.subscribe": "सदस्यता लें",

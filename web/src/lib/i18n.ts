@@ -84,7 +84,7 @@ const EN = {
 
   "setup.title": "Start an interview",
   "setup.meta": "Seven turns, about ten minutes. You can stop at any point.",
-  "setup.eyebrow": "Interview setup",
+  "setup.eyebrow": "Run an interview",
   "setup.begin": "Begin",
   "cta.seePlans": "See the plans",
   "cta.subscribe": "Subscribe",

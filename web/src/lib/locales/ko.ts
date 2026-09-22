@@ -19,7 +19,7 @@ const KO: Record<MessageKey, string> = {
   "nav.onPaidPlan": "유료 플랜 기능",
   "setup.title": "면접 시작하기",
   "setup.meta": "7턴, 약 10분. 언제든 멈출 수 있습니다.",
-  "setup.eyebrow": "면접 설정",
+  "setup.eyebrow": "면접 진행하기",
   "setup.begin": "시작",
   "cta.seePlans": "요금제 보기",
   "cta.subscribe": "구독하기",

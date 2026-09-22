@@ -20,7 +20,7 @@ const PT: Record<MessageKey, string> = {
 
   "setup.title": "Começar uma entrevista",
   "setup.meta": "Sete turnos, cerca de dez minutos. Você pode parar quando quiser.",
-  "setup.eyebrow": "Configuração",
+  "setup.eyebrow": "Realizar uma entrevista",
   "setup.begin": "Começar",
   "cta.seePlans": "Ver os planos",
   "cta.subscribe": "Assinar",

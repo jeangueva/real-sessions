@@ -19,7 +19,7 @@ const TH: Record<MessageKey, string> = {
   "nav.onPaidPlan": "อยู่ในแพ็กเกจเสียเงิน",
   "setup.title": "เริ่มสัมภาษณ์",
   "setup.meta": "เจ็ดรอบ ประมาณสิบนาที หยุดเมื่อไรก็ได้",
-  "setup.eyebrow": "ตั้งค่าการสัมภาษณ์",
+  "setup.eyebrow": "ทำการสัมภาษณ์",
   "setup.begin": "เริ่ม",
   "cta.seePlans": "ดูแพ็กเกจ",
   "cta.subscribe": "สมัครสมาชิก",

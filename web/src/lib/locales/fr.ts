@@ -20,7 +20,7 @@ const FR: Record<MessageKey, string> = {
   "nav.onPaidPlan": "Sur le plan payant",
   "setup.title": "Commencer un entretien",
   "setup.meta": "Sept tours, environ dix minutes. Vous pouvez arrêter à tout moment.",
-  "setup.eyebrow": "Configuration de l'entretien",
+  "setup.eyebrow": "Passer un entretien",
   "setup.begin": "Commencer",
   "cta.seePlans": "Voir les formules",
   "cta.subscribe": "S'abonner",

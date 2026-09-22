@@ -19,7 +19,7 @@ const ZH: Record<MessageKey, string> = {
   "nav.onPaidPlan": "属于付费方案",
   "setup.title": "开始一场面试",
   "setup.meta": "七轮，大约十分钟。你随时可以停下。",
-  "setup.eyebrow": "面试设置",
+  "setup.eyebrow": "进行一次面试",
   "setup.begin": "开始",
   "cta.seePlans": "查看方案",
   "cta.subscribe": "订阅",

@@ -78,7 +78,15 @@ export function FilterRow({
           </button>
         )}
 
-        <div className="shrink-0">{begin}</div>
+        {/* On a phone the button leaves the row and sits above the nav bar,
+            where a thumb is, rather than below whatever the page happens to
+            be showing. `bottom-16` is the height of that bar; `z-20` keeps it
+            under it, and the setup screen reserves the space so nothing ends
+            up hidden behind it. From `md` it is back in the row, where the
+            nav bar itself disappears. */}
+        <div className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-surface-deep/95 px-4 py-3 backdrop-blur [&>*]:w-full [&_button]:w-full [&_button]:justify-center md:static md:z-auto md:w-auto md:shrink-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none md:[&>*]:w-auto md:[&_button]:w-auto">
+          {begin}
+        </div>
       </div>
 
       {/* A second bar rather than a longer one: the row above stays the width

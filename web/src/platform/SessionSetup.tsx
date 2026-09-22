@@ -376,7 +376,9 @@ export function SessionSetup() {
             on the outer padding element, and the children sit in a plain block
             inside it — so a gap set there never reaches them, and the search
             box ended up flush against the panel below it. */}
-        <div className="flex flex-col gap-6">
+        {/* `pb-20 md:pb-0` clears the fixed Begin bar, the same way the shell
+            reserves the height of the mobile nav under it. */}
+        <div className="flex flex-col gap-6 pb-20 md:pb-0">
         {/* The nudge sits above the bar it changes, so accepting it and
             seeing the level field move are one glance apart. Dismissing is
             local and for this visit only: the condition that raised it is a
@@ -409,10 +411,13 @@ export function SessionSetup() {
           </Panel>
         )}
 
-        {/* Full width. Everything inside scrolls sideways rather than
-            wrapping, so a longer list costs lateral space, never a new row
-            that pushes Begin below the fold. */}
-        <Panel variant="glass" className="flex min-w-0 flex-col gap-5 p-6">
+        {/* No card around it.
+            A panel put a border and 24px of padding around the one row that
+            matters, and pinned it to the panel's width — so the selectors had
+            less room than the page had, and on a narrow screen the padding
+            was competing with the fields for it. Out of the card, the row
+            reflows against the page itself. */}
+        <div className="flex min-w-0 flex-col gap-4">
           <Eyebrow>{t("setup.eyebrow")}</Eyebrow>
 
           {/* One bar of selectors rather than six rows of pills. The bar
@@ -744,7 +749,7 @@ export function SessionSetup() {
               </Action>
             }
           />
-        </Panel>
+        </div>
 
         {/* The search and the past sessions are one thing: searching is
             mostly how you find a session to run again, and it used to sit
