@@ -86,6 +86,14 @@ export function CardForm({
             cardholderName: { id: "mp-cardholder" },
             identificationType: { id: "mp-doc-type" },
             identificationNumber: { id: "mp-doc-number" },
+            // Required by the SDK, which refuses to mount without them:
+            // 'Required field "installments" is missing' and the same for
+            // "issuer". Neither is a choice worth offering on a monthly
+            // subscription — it is always one instalment, and the issuer
+            // follows from the card — so they exist for the SDK to fill and
+            // are hidden from the reader.
+            installments: { id: "mp-installments" },
+            issuer: { id: "mp-issuer" },
           },
           callbacks: {
             onFormMounted: (mountError: unknown) => {
@@ -192,6 +200,12 @@ export function CardForm({
           <input id="mp-doc-number" className={field} />
         </div>
       </div>
+
+      {/* Present for the SDK, not for the reader: see the form config above.
+          `aria-hidden` with no tab stop, so a screen reader is not handed two
+          unlabelled selects it cannot act on. */}
+      <select id="mp-installments" className="sr-only" aria-hidden tabIndex={-1} />
+      <select id="mp-issuer" className="sr-only" aria-hidden tabIndex={-1} />
 
       {error && (
         <p role="alert" className="text-sm text-cream-bright">
