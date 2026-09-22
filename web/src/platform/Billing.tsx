@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
   ApiError,
@@ -36,6 +36,8 @@ const STATUS_COPY: Record<string, MessageKey> = {
 export function Billing() {
   const t = useT();
   const { locale } = useLocale();
+  const { hash } = useLocation();
+  const panel = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<BillingState | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   /**
@@ -58,6 +60,19 @@ export function Billing() {
   };
 
   useEffect(load, []);
+
+  /**
+   * Arrived from the pricing card, which links to `#plan`.
+   *
+   * Settings is a long page and billing sits near the bottom, so landing at
+   * the top of it after clicking "Subscribe" reads as a link that did
+   * nothing. Waits for `state`, because the panel renders nothing until the
+   * first response and there would be no element to scroll to.
+   */
+  useEffect(() => {
+    if (hash !== "#plan" || !state) return;
+    panel.current?.scrollIntoView({ block: "center" });
+  }, [hash, state]);
 
   const upgrade = async () => {
     setBusy(true);
@@ -93,6 +108,7 @@ export function Billing() {
   const canBeBilled = session?.kind === "user";
 
   return (
+    <div ref={panel} id="plan">
     <Panel variant="glass" className="mt-4 max-w-2xl p-6">
       <Eyebrow>{t("billing.plan")}</Eyebrow>
 
@@ -201,5 +217,6 @@ export function Billing() {
         </p>
       )}
     </Panel>
+    </div>
   );
 }

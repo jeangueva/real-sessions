@@ -180,7 +180,7 @@ describe("Pricing", () => {
     renderScreen(<Pricing />);
 
     const subscribe = screen.getByRole("link", { name: /subscribe/i });
-    expect(subscribe).toHaveAttribute("href", "/app/settings");
+    expect(subscribe).toHaveAttribute("href", "/app/settings#plan");
   });
 
   it("shows the price the checkout will actually charge", async () => {

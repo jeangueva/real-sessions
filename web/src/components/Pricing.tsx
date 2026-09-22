@@ -116,8 +116,10 @@ export function Pricing() {
               ))}
             </ul>
             {/* Settings is where billing lives, and where the card form and
-                the hosted checkout both start. */}
-            <Link to="/app/settings" className="mt-auto self-start">
+                the hosted checkout both start. The hash matters: the panel is
+                near the bottom of a long page, and it scrolls itself into
+                view. */}
+            <Link to="/app/settings#plan" className="mt-auto self-start">
               <Action withArrow>{t("cta.subscribe")}</Action>
             </Link>
           </Panel>
