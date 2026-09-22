@@ -652,6 +652,48 @@ describe("billing", () => {
   describe("the webhook", () => {
     const url = "/api/billing/webhook?data.id=mp-123&type=preapproval";
 
+    it("acknowledges a notification for a subscription that does not exist", async () => {
+      /**
+       * Mercado Pago's own "test this URL" button sends id 123456. Answering
+       * 500 told it to try again — forever, for an id that can never resolve.
+       */
+      const before = { ...process.env };
+      const realFetch = globalThis.fetch;
+      process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+      process.env.MERCADOPAGO_WEBHOOK_SECRET = "hook-secret";
+      globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const target = String(input);
+        if (!target.includes("api.mercadopago.com")) return realFetch(input, init);
+        return {
+          ok: false,
+          status: 404,
+          json: async () => ({ message: "Preapproval not found" }),
+          text: async () => "not found",
+        } as unknown as Response;
+      }) as typeof fetch;
+
+      try {
+        const ts = Math.floor(Date.now() / 1000);
+        const manifest = `id:123456;request-id:req-1;ts:${ts};`;
+        const v1 = createHmac("sha256", "hook-secret").update(manifest).digest("hex");
+        const response = await api.call(
+          "/api/billing/webhook?data.id=123456&type=subscription_preapproval",
+          {
+            ...post({ type: "subscription_preapproval", data: { id: "123456" } }),
+            headers: {
+              "content-type": "application/json",
+              "x-request-id": "req-1",
+              "x-signature": `ts=${ts},v1=${v1}`,
+            },
+          },
+        );
+        expect(response.status).toBe(200);
+      } finally {
+        globalThis.fetch = realFetch;
+        process.env = before;
+      }
+    });
+
     it("rejects a notification with no signature", async () => {
       // It is public by necessity — Mercado Pago has no cookie — so the
       // signature is the whole authentication.

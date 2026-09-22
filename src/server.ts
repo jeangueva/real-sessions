@@ -190,6 +190,7 @@ import {
   createPreapproval,
   fetchPreapproval,
   grantsAccess,
+  MercadoPagoError,
   mercadoPagoConfigured,
   planConfig,
   createCardSubscription,
@@ -1299,9 +1300,27 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       await reconcileSubscription(externalId);
     } catch (error) {
+      /**
+       * A notification about a subscription that does not exist is answered,
+       * not retried.
+       *
+       * Mercado Pago's own "test this URL" button sends id 123456, and every
+       * other id it invents is equally unresolvable — a 500 told it to try
+       * again, forever, for something that can never resolve. A 404 from the
+       * provider is a final answer, so this acknowledges it and says so in
+       * the log.
+       *
+       * Everything else still retries: a timeout or a 5xx is the case the
+       * retry exists for, and swallowing it would strand a paying customer on
+       * the free plan.
+       */
+      if (error instanceof MercadoPagoError && error.status === 404) {
+        console.warn(
+          `[mockio] billing webhook for unknown subscription ${externalId}; nothing to reconcile`,
+        );
+        return json(res, 200, { ok: true, reconciled: false });
+      }
       console.error("[mockio] billing reconcile failed:", error);
-      // 500 so Mercado Pago retries. Swallowing it would silently strand a
-      // paying customer on the free plan.
       return json(res, 500, { error: "Could not reconcile." });
     }
     return json(res, 200, { ok: true });

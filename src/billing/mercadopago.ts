@@ -193,6 +193,25 @@ export function verifySignature(input: {
   return { ok: true };
 }
 
+/**
+ * A refusal from Mercado Pago, with the status it refused under.
+ *
+ * The status is the part a caller needs: a 404 means the thing being asked
+ * about does not exist and never will, while a 500 or a timeout means ask
+ * again. Both arrived as the same bare Error before, so the webhook could
+ * only treat them alike — and treating "no such subscription" as retryable
+ * is how a notification for an id we cannot resolve becomes an endless retry.
+ */
+export class MercadoPagoError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "MercadoPagoError";
+  }
+}
+
 async function call<T>(
   path: string,
   init: RequestInit & { method: string },
@@ -213,10 +232,11 @@ async function call<T>(
   if (!response.ok) {
     // The provider's own message, not ours: "invalid payer email" is worth
     // seeing in a log, and inventing a generic string would hide it.
-    throw new Error(
+    throw new MercadoPagoError(
       `Mercado Pago ${init.method} ${path} failed (${response.status}): ${
         typeof body["message"] === "string" ? body["message"] : "unknown error"
       }`,
+      response.status,
     );
   }
   return body as T;
