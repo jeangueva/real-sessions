@@ -57,9 +57,15 @@ export function Action({
 }
 
 /** Small uppercase-ish section marker. Sets context above a headline. */
-export function Eyebrow({ children }: { children: ReactNode }) {
+export function Eyebrow({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <p className="text-xs tracking-[0.14em] text-cream">
+    <p className={`text-xs tracking-[0.14em] text-cream ${className}`}>
       {children}
     </p>
   );
@@ -73,10 +79,17 @@ export function Panel({
   children,
   variant = "card",
   className = "",
+  id,
+  role,
+  "aria-labelledby": labelledBy,
 }: {
   children: ReactNode;
   variant?: "card" | "raised" | "glass";
   className?: string;
+  /** For a panel a link or a tab has to be able to name. */
+  id?: string;
+  role?: string;
+  "aria-labelledby"?: string;
 }) {
   const surface =
     variant === "glass"
@@ -85,7 +98,12 @@ export function Panel({
         ? "bg-surface-raised"
         : "bg-surface-card";
   return (
-    <div className={`overflow-hidden rounded-2xl ${surface} ${className}`}>
+    <div
+      id={id}
+      role={role}
+      aria-labelledby={labelledBy}
+      className={`overflow-hidden rounded-2xl ${surface} ${className}`}
+    >
       {children}
     </div>
   );
@@ -215,14 +233,17 @@ export function Field({
   hint,
   children,
   htmlFor,
+  className = "",
 }: {
   label: string;
   hint?: string;
   children: ReactNode;
   htmlFor?: string;
+  /** For a field that spans more than its cell in a grid. */
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       <label htmlFor={htmlFor} className="text-xs text-cream-dim">
         {label}
       </label>

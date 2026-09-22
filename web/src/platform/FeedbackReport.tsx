@@ -271,7 +271,7 @@ function FeedbackBody({
                   {t("feedback.measuredLocked")}
                 </p>
               </div>
-              <Link to="/app/settings" className="shrink-0">
+              <Link to="/app/settings#plan" className="shrink-0">
                 <Action withArrow>{t("cta.seePlans")}</Action>
               </Link>
             </Panel>
@@ -347,7 +347,7 @@ function FeedbackBody({
               <p className="text-sm text-cream-dim">
                 {t("feedback.nextStepsLocked")}{" "}
                 <Link
-                  to="/app/settings"
+                  to="/app/settings#plan"
                   className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
                 >
                   {t("feedback.nextStepsLink")}

@@ -4,6 +4,7 @@ import {
   FileUser,
   History,
   LineChart,
+  Lock,
   LogIn,
   Mic,
   Play,
@@ -59,10 +60,21 @@ export function AppShell() {
    * hides a link, and the route itself is 404 for anyone not on the allowlist.
    */
   const [reviewer, setReviewer] = useState(false);
+  /**
+   * Whether the CV screen is reachable on this plan.
+   *
+   * The nav listed "Your context" beside four screens that all work, and it
+   * opened on a page that only sells. The padlock says which it is before the
+   * click, the way the locked fields in the setup bar already do.
+   */
+  const [locked, setLocked] = useState<string[]>([]);
 
   useEffect(() => {
     fetchPlan()
-      .then((result) => setReviewer(result.reviewer))
+      .then((result) => {
+        setReviewer(result.reviewer);
+        setLocked(result.capabilities.candidateProfile ? [] : ["/app/profile"]);
+      })
       .catch(() => setReviewer(false));
   }, []);
 
@@ -113,6 +125,12 @@ export function AppShell() {
               }
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden />
+              {locked.includes(to) && (
+                <Lock
+                  className="hidden h-3 w-3 shrink-0 text-cream-faint lg:inline"
+                  aria-label={t("nav.onPaidPlan")}
+                />
+              )}
               <span className="hidden lg:inline">{t(key)}</span>
             </NavLink>
           ))}

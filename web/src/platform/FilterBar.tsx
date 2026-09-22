@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { Check, Lock } from "lucide-react";
@@ -21,6 +21,75 @@ export function FilterBar({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col divide-y divide-line rounded-3xl border border-line sm:flex-row sm:divide-x sm:divide-y-0">
       {children}
+    </div>
+  );
+}
+
+/**
+ * The bar, the way out to the rest of it, and the button, on one line.
+ *
+ * Nine selectors across a wide row asked someone to read the whole
+ * configuration before they could start, when the answer for most people is
+ * the defaults. Three are in the row — the ones a person actually changes,
+ * which is why the caller orders them by what the plan can move — and the
+ * others wait behind one control.
+ *
+ * The state lives here rather than in the screen: nothing outside this row
+ * depends on whether the rest is open.
+ */
+export function FilterRow({
+  entries,
+  begin,
+  moreLabel,
+  fewerLabel,
+  visible = 3,
+}: {
+  entries: { key: string; node: ReactNode }[];
+  /** The button that starts the interview. */
+  begin: ReactNode;
+  /** Called with how many are hidden. */
+  moreLabel: (count: number) => string;
+  fewerLabel: string;
+  visible?: number;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const shown = entries.slice(0, visible);
+  const hidden = entries.slice(visible);
+
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
+        <div data-tour="setup" className="min-w-0 flex-1">
+          <FilterBar>
+            {shown.map((entry) => (
+              <Fragment key={entry.key}>{entry.node}</Fragment>
+            ))}
+          </FilterBar>
+        </div>
+
+        {hidden.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAll((current) => !current)}
+            aria-expanded={showAll}
+            className="focus-ring shrink-0 self-start rounded-full border border-line px-4 py-2.5 text-xs text-cream-dim transition-colors hover:text-cream-bright lg:self-auto sm:text-sm"
+          >
+            {showAll ? fewerLabel : moreLabel(hidden.length)}
+          </button>
+        )}
+
+        <div className="shrink-0">{begin}</div>
+      </div>
+
+      {/* A second bar rather than a longer one: the row above stays the width
+          of one decision. */}
+      {showAll && hidden.length > 0 && (
+        <FilterBar>
+          {hidden.map((entry) => (
+            <Fragment key={entry.key}>{entry.node}</Fragment>
+          ))}
+        </FilterBar>
+      )}
     </div>
   );
 }

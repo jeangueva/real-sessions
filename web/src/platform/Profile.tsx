@@ -112,11 +112,14 @@ export function Profile() {
       <>
         <PageHeader title={t("profile.title")} meta={t("profile.locked")} />
         <PageBody>
-          <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6">
-            <p className="text-sm text-cream-dim">
+          {/* Full width, with the prose held to a readable measure inside it:
+              a narrow card adrift on the left of a wide page reads as a
+              rendering fault rather than as a decision. */}
+          <Panel variant="raised" className="flex flex-col gap-4 p-6 sm:p-8">
+            <p className="max-w-prose text-sm text-cream-dim">
               {t("profile.lockedBody")}
             </p>
-            <Link to="/app/settings" className="self-start">
+            <Link to="/app/settings#plan" className="self-start">
               <Action withArrow>{t("cta.seePlans")}</Action>
             </Link>
           </Panel>

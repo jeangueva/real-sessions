@@ -80,6 +80,7 @@ const EN = {
   "nav.accountShort": "Account",
   "nav.settingsShort": "Settings",
   "nav.sections": "Sections",
+  "nav.onPaidPlan": "On the paid plan",
 
   "setup.title": "Start an interview",
   "setup.meta": "Seven turns, about ten minutes. You can stop at any point.",
@@ -90,6 +91,8 @@ const EN = {
     "A general interview for your role, scored honestly. Targeting a company, your CV and live coaching are on the paid plan.",
   "cta.seePlans": "See the plans",
   "cta.subscribe": "Subscribe",
+  "setup.moreFilters": "{count} more filters",
+  "setup.fewerFilters": "Fewer filters",
   "setup.search": "Search a company, a role, or a past session to run again",
   "setup.clearSearch": "Clear search",
 
@@ -173,6 +176,7 @@ const EN = {
 
   "settings.title": "Settings",
   "settings.meta": "Account and practice preferences",
+  "settings.sections": "Settings sections",
   "settings.appearance": "Appearance",
   "settings.theme": "Theme",
   "settings.themeSystem": "System",

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Eyebrow, Field, Panel, Action } from "@/design-system";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { LOCALES } from "@/lib/i18n";
+import type { MessageKey } from "@/lib/i18n";
 import { resetTour } from "@/lib/tour";
 import { PageBody, PageHeader } from "./AppShell";
 import { Billing } from "./Billing";
@@ -42,6 +44,21 @@ const FALLBACK_ROLES = [
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Preferences, stored per identity and used to pre-fill a new session. */
+type TabId = "appearance" | "practice" | "plan" | "account";
+
+const TABS: { id: TabId; key: MessageKey }[] = [
+  { id: "appearance", key: "settings.appearance" },
+  { id: "practice", key: "settings.practice" },
+  { id: "plan", key: "billing.plan" },
+  { id: "account", key: "settings.account" },
+];
+
+/** The section a link asked for, defaulting to the first. */
+function tabFromHash(hash: string): TabId {
+  const id = hash.replace("#", "");
+  return TABS.some((entry) => entry.id === id) ? (id as TabId) : "appearance";
+}
+
 export function Settings() {
   const { choice, theme, setChoice } = useTheme();
   const { locale, setLocale, t } = useLocale();
@@ -51,6 +68,7 @@ export function Settings() {
   const [error, setError] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [resent, setResent] = useState(false);
+  const { hash } = useLocation();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
@@ -101,6 +119,21 @@ export function Settings() {
     }
   };
 
+  /**
+   * One section at a time.
+   *
+   * Everything used to be stacked in one narrow column: four panels, a page
+   * and a half of scrolling, and the right two-thirds of a wide screen empty.
+   * Nothing here is read in sequence — theme, then practice defaults, then
+   * billing — so the page is four destinations rather than one long one, and
+   * each gets the full width it was already being given.
+   *
+   * The hash names the section, which is what makes the pricing card's
+   * `#plan` link land on billing rather than at the top of the page.
+   */
+  const [tab, setTab] = useState<TabId>(() => tabFromHash(hash));
+  useEffect(() => setTab(tabFromHash(hash)), [hash]);
+
   const update = (patch: Partial<Preferences>) => {
     setStatus("idle");
     setPreferences((current) => (current ? { ...current, ...patch } : current));
@@ -110,8 +143,43 @@ export function Settings() {
     <>
       <PageHeader title={t("settings.title")} meta={t("settings.meta")} />
       <PageBody>
-        <Panel className="mb-4 flex max-w-2xl flex-col gap-4 p-6">
-          <Eyebrow>{t("settings.appearance")}</Eyebrow>
+        <div
+          role="tablist"
+          aria-label={t("settings.sections")}
+          className="mb-6 flex flex-wrap gap-2 border-b border-line pb-4"
+        >
+          {TABS.map(({ id, key }) => (
+            <button
+              key={id}
+              role="tab"
+              id={`settings-tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls={`settings-panel-${id}`}
+              onClick={() => {
+                setTab(id);
+                // The section becomes linkable and the back button steps
+                // through the four rather than leaving the page.
+                history.pushState(null, "", `#${id}`);
+              }}
+              className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
+                tab === id
+                  ? "border-cream bg-cream text-surface-base"
+                  : "border-line text-cream-dim hover:text-cream-bright"
+              }`}
+            >
+              {t(key)}
+            </button>
+          ))}
+        </div>
+
+        {tab === "appearance" && (
+        <Panel
+          role="tabpanel"
+          id="settings-panel-appearance"
+          aria-labelledby="settings-tab-appearance"
+          className="grid gap-6 p-6 sm:p-8 lg:grid-cols-2"
+        >
+          <Eyebrow className="lg:col-span-2">{t("settings.appearance")}</Eyebrow>
           <Field
             label={t("settings.theme")}
             hint={
@@ -157,8 +225,23 @@ export function Settings() {
               not a thing to charge for — what costs is the interviewer
               speaking their language, and that is chosen per interview. */}
           <Field
+            label={t("settings.tour")}
+            hint={t("settings.tourHint")}
+          >
+            <button
+              onClick={() => {
+                resetTour();
+                setTourReset(true);
+              }}
+              className="focus-ring self-start rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
+            >
+              {tourReset ? t("settings.tourReset") : t("settings.tourAgain")}
+            </button>
+          </Field>
+          <Field
             label={t("settings.interfaceLanguage")}
             hint={t("settings.interfaceLanguageHint")}
+            className="lg:col-span-2"
           >
             <div
               role="radiogroup"
@@ -183,24 +266,17 @@ export function Settings() {
             </div>
           </Field>
 
-          <Field
-            label={t("settings.tour")}
-            hint={t("settings.tourHint")}
-          >
-            <button
-              onClick={() => {
-                resetTour();
-                setTourReset(true);
-              }}
-              className="focus-ring self-start rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
-            >
-              {tourReset ? t("settings.tourReset") : t("settings.tourAgain")}
-            </button>
-          </Field>
         </Panel>
+        )}
 
-        <Panel className="flex max-w-2xl flex-col gap-6 p-6">
-          <Eyebrow>{t("settings.practice")}</Eyebrow>
+        {tab === "practice" && (
+        <Panel
+          role="tabpanel"
+          id="settings-panel-practice"
+          aria-labelledby="settings-tab-practice"
+          className="grid gap-6 p-6 sm:p-8 lg:grid-cols-2"
+        >
+          <Eyebrow className="lg:col-span-2">{t("settings.practice")}</Eyebrow>
 
           {!preferences && !error && (
             <p className="text-sm text-cream-dim">{t("settings.loading")}</p>
@@ -376,13 +452,22 @@ export function Settings() {
             </>
           )}
         </Panel>
+        )}
 
-        <Billing />
+        {tab === "plan" && <Billing />}
 
-        <Panel variant="glass" className="mt-4 max-w-2xl p-6">
+        {tab === "account" && (
+        <>
+        <Panel
+          role="tabpanel"
+          id="settings-panel-account"
+          aria-labelledby="settings-tab-account"
+          variant="glass"
+          className="p-6 sm:p-8"
+        >
           <Eyebrow>{t("settings.account")}</Eyebrow>
           {session?.kind === "user" ? (
-            <div className="mt-3 flex flex-col gap-4">
+            <div className="mt-3 flex max-w-prose flex-col gap-4">
               <p className="text-sm text-cream-dim">
                 {t("settings.signedInAs")}{" "}
                 <span className="text-cream-bright">{session.email}</span>.{" "}
@@ -407,7 +492,7 @@ export function Settings() {
               )}
             </div>
           ) : (
-            <div className="mt-3 flex flex-col gap-4">
+            <div className="mt-3 flex max-w-prose flex-col gap-4">
               <p className="text-sm text-cream-dim">
                 {t("settings.guestNote")}
               </p>
@@ -424,6 +509,8 @@ export function Settings() {
             says so rather than pretending otherwise. */}
         {session?.kind === "user" && session.email && (
           <DeleteAccount email={session.email} />
+        )}
+        </>
         )}
       </PageBody>
     </>

@@ -16,6 +16,7 @@ const ES: Record<MessageKey, string> = {
   "nav.accountShort": "Cuenta",
   "nav.settingsShort": "Ajustes",
   "nav.sections": "Secciones",
+  "nav.onPaidPlan": "Del plan pago",
 
   "setup.title": "Empezar una entrevista",
   "setup.meta": "Siete turnos, unos diez minutos. Puedes parar cuando quieras.",
@@ -26,6 +27,8 @@ const ES: Record<MessageKey, string> = {
     "Una entrevista general para tu rol, puntuada con honestidad. Apuntar a una empresa, subir tu CV y el coaching en vivo son del plan pago.",
   "cta.seePlans": "Ver los planes",
   "cta.subscribe": "Suscribirme",
+  "setup.moreFilters": "{count} filtros más",
+  "setup.fewerFilters": "Menos filtros",
   "setup.search": "Busca una empresa, un rol, o una sesión pasada para repetir",
   "setup.clearSearch": "Limpiar búsqueda",
 
@@ -109,6 +112,7 @@ const ES: Record<MessageKey, string> = {
 
   "settings.title": "Ajustes",
   "settings.meta": "Cuenta y preferencias de práctica",
+  "settings.sections": "Secciones de ajustes",
   "settings.appearance": "Apariencia",
   "settings.theme": "Tema",
   "settings.themeSystem": "Sistema",

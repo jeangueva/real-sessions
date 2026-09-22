@@ -16,6 +16,7 @@ const PT: Record<MessageKey, string> = {
   "nav.accountShort": "Conta",
   "nav.settingsShort": "Ajustes",
   "nav.sections": "Seções",
+  "nav.onPaidPlan": "No plano pago",
 
   "setup.title": "Começar uma entrevista",
   "setup.meta": "Sete turnos, cerca de dez minutos. Você pode parar quando quiser.",
@@ -26,6 +27,8 @@ const PT: Record<MessageKey, string> = {
     "Uma entrevista geral para o seu cargo, avaliada com honestidade. Mirar uma empresa, enviar seu currículo e o coaching ao vivo são do plano pago.",
   "cta.seePlans": "Ver os planos",
   "cta.subscribe": "Assinar",
+  "setup.moreFilters": "Mais {count} filtros",
+  "setup.fewerFilters": "Menos filtros",
   "setup.search": "Busque uma empresa, um cargo, ou uma sessão anterior para repetir",
   "setup.clearSearch": "Limpar busca",
 
@@ -109,6 +112,7 @@ const PT: Record<MessageKey, string> = {
 
   "settings.title": "Ajustes",
   "settings.meta": "Conta e preferências de prática",
+  "settings.sections": "Seções das configurações",
   "settings.appearance": "Aparência",
   "settings.theme": "Tema",
   "settings.themeSystem": "Sistema",

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Action, Panel, Eyebrow } from "@/design-system";
@@ -19,7 +19,7 @@ import type {
   Sector,
 } from "@/lib/api";
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
-import { FilterBar, FilterOption, FilterSegment } from "./FilterBar";
+import { FilterOption, FilterRow, FilterSegment } from "./FilterBar";
 import { Tour } from "./Tour";
 import { useT } from "@/hooks/useLocale";
 import { RecentSessions } from "./RecentSessions";
@@ -349,7 +349,16 @@ export function SessionSetup() {
             inside it — so a gap set there never reaches them, and the search
             box ended up flush against the panel below it. */}
         <div className="flex flex-col gap-6">
-        {left !== null && limit !== null && (
+        {/* One notice, not two.
+            The allowance and the free plan were separate rows making the same
+            argument with the same button, and they stacked: someone out of
+            interviews read "you have used your three" and, directly under it,
+            "you are on the free plan" — twice the space for one fact and two
+            buttons to the same place.
+            The headline is whichever is most pressing — none left, one left,
+            how many left — and the body is the pitch that belongs with it.
+            Premium sees none of it: no cap, so nothing to say. */}
+        {can && (!can.targetCompany || left !== null) && (
           <div
             className={`flex flex-col items-start gap-2 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
               left === 0 ? "border-line-strong" : "border-line"
@@ -358,38 +367,19 @@ export function SessionSetup() {
             <p className="flex min-w-0 items-center gap-2 text-xs text-cream-dim">
               <Lock className="h-4 w-4 shrink-0" aria-hidden />
               <span>
-                {left === 0 ? (
-                  <>
-                    <span className="text-cream-bright">
-                      {t("setup.noneLeft", { limit })}
-                    </span>{" "}
-                    {t("setup.noneLeftBody")}
-                  </>
-                ) : left === 1 ? (
-                  <span className="text-cream-bright">{t("setup.lastOne")}</span>
-                ) : (
-                  t("setup.left", { left, limit })
-                )}
+                <span className="text-cream-bright">
+                  {left === 0 && limit !== null
+                    ? t("setup.noneLeft", { limit })
+                    : left === 1
+                      ? t("setup.lastOne")
+                      : left !== null && limit !== null
+                        ? t("setup.left", { left, limit })
+                        : t("setup.freePlan")}
+                </span>{" "}
+                {left === 0 ? t("setup.noneLeftBody") : t("setup.freePlanBody")}
               </span>
             </p>
-            {left === 0 && (
-              <Link to="/app/settings" className="shrink-0">
-                <Action tone="glass">{t("cta.seePlans")}</Action>
-              </Link>
-            )}
-          </div>
-        )}
-
-        {can && !can.targetCompany && (
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <p className="flex min-w-0 flex-1 items-center gap-2 text-xs text-cream-dim">
-              <Lock className="h-4 w-4 shrink-0" aria-hidden />
-              <span>
-                <span className="text-cream-bright">{t("setup.freePlan")}</span>{" "}
-                {t("setup.freePlanBody")}
-              </span>
-            </p>
-            <Link to="/app/settings" className="shrink-0">
+            <Link to="/app/settings#plan" className="shrink-0">
               <Action tone="glass">{t("cta.seePlans")}</Action>
             </Link>
           </div>
@@ -427,19 +417,6 @@ export function SessionSetup() {
           </Panel>
         )}
 
-        <div data-tour="search">
-        <SetupSearch
-          sessions={sessions}
-          companies={visibleCompanies}
-          roles={roleLabels}
-          stages={visibleStages.map((entry) => entry.label)}
-          sectors={sectors}
-          personas={personas}
-          genericCompany={genericCompany}
-          onChoose={applyChoice}
-        />
-        </div>
-
         {/* Full width. Everything inside scrolls sideways rather than
             wrapping, so a longer list costs lateral space, never a new row
             that pushes Begin below the fold. */}
@@ -452,9 +429,10 @@ export function SessionSetup() {
               changed. Ordered by what this plan can actually change: on free,
               leading with two controls that refuse to move reads as a broken
               form rather than as a paywall. */}
-          <div data-tour="setup">
-          <FilterBar>
-            {orderByEnabled([
+          <FilterRow
+            moreLabel={(count) => t("setup.moreFilters", { count })}
+            fewerLabel={t("setup.fewerFilters")}
+            entries={orderByEnabled([
               {
                 key: "role",
                 enabled: true,
@@ -744,19 +722,14 @@ export function SessionSetup() {
                   </FilterSegment>
                 ),
               },
-            ]).map((entry) => (
-              <Fragment key={entry.key}>{entry.node}</Fragment>
-            ))}
-          </FilterBar>
-          </div>
-
-          <Action
-            withArrow
-            data-tour="begin"
-            className="self-start"
-            /* The server refuses this anyway. Saying so before the click is
-               the difference between a paywall and a failure. */
-            disabled={left === 0}
+            ])}
+            begin={
+              <Action
+                withArrow
+                data-tour="begin"
+                /* The server refuses this anyway. Saying so before the click
+                   is the difference between a paywall and a failure. */
+                disabled={left === 0}
             onClick={() =>
               navigate("/app/session", {
                 state: {
@@ -774,16 +747,37 @@ export function SessionSetup() {
                 },
               })
             }
-          >
-            {t("setup.begin")}
-          </Action>
+              >
+                {t("setup.begin")}
+              </Action>
+            }
+          />
         </Panel>
 
-        <RecentSessions
-          sessions={sessions}
-          genericCompany={genericCompany}
-          onPick={loadSession}
-        />
+        {/* The search and the past sessions are one thing: searching is
+            mostly how you find a session to run again, and it used to sit
+            above the configuration bar, where it read as the first step of
+            starting from scratch. */}
+        <div className="flex flex-col gap-4">
+          <div data-tour="search">
+            <SetupSearch
+              sessions={sessions}
+              companies={visibleCompanies}
+              roles={roleLabels}
+              stages={visibleStages.map((entry) => entry.label)}
+              sectors={sectors}
+              personas={personas}
+              genericCompany={genericCompany}
+              onChoose={applyChoice}
+            />
+          </div>
+
+          <RecentSessions
+            sessions={sessions}
+            genericCompany={genericCompany}
+            onPick={loadSession}
+          />
+        </div>
 
         {/* Dismissible: it is a briefing, and a briefing stops being useful on
             the fourth interview. Closing it is remembered per device. */}
