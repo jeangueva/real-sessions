@@ -554,19 +554,22 @@ describe("billing", () => {
     expect(response.status).toBe(503);
   });
 
-  it("refuses a checkout that would charge real money without an opt-in", async () => {
-    // Fully configured, priced, and still refused: the token is not a test one
-    // and nobody has said this deployment may take money.
+  it("refuses a checkout until the deployment says which credentials it holds", async () => {
+    // Fully configured, priced, and still refused: Mercado Pago issues
+    // APP_USR- credentials for the sandbox and for production alike, so
+    // nobody — including this server — can tell from the token whether a
+    // click would take money.
     const before = { ...process.env };
     process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
     process.env.MERCADOPAGO_AMOUNT = "9";
     process.env.MERCADOPAGO_CURRENCY = "ARS";
+    delete process.env.MERCADOPAGO_MODE;
     delete process.env.MERCADOPAGO_LIVE;
     try {
       const response = await api.call("/api/billing/checkout", post({}));
       expect(response.status).toBe(503);
       expect(((await response.json()) as { error: string }).error).toContain(
-        "MERCADOPAGO_LIVE",
+        "MERCADOPAGO_MODE",
       );
 
       // And the UI is told, so it hides the button rather than offering one
@@ -578,14 +581,18 @@ describe("billing", () => {
     }
   });
 
-  it("reports itself configured once a test token is in place", async () => {
+  it("reports itself configured, and says it is a sandbox, once the mode is set", async () => {
     const before = { ...process.env };
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
     process.env.MERCADOPAGO_AMOUNT = "9";
     process.env.MERCADOPAGO_CURRENCY = "ARS";
+    process.env.MERCADOPAGO_MODE = "test";
     try {
-      const state = await api.json<{ configured: boolean }>("/api/billing");
+      const state = await api.json<{ configured: boolean; mode: string }>("/api/billing");
       expect(state.configured).toBe(true);
+      // The page needs this: a sandbox and the real thing are otherwise
+      // indistinguishable to whoever is looking at the screen.
+      expect(state.mode).toBe("test");
     } finally {
       process.env = before;
     }
@@ -605,6 +612,7 @@ describe("billing", () => {
     const before = { ...process.env };
     const realFetch = globalThis.fetch;
     process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_MODE = "test";
     process.env.MERCADOPAGO_AMOUNT = "9";
     process.env.MERCADOPAGO_CURRENCY = "ARS";
 
@@ -660,6 +668,7 @@ describe("billing", () => {
       const before = { ...process.env };
       const realFetch = globalThis.fetch;
       process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+      process.env.MERCADOPAGO_MODE = "test";
       process.env.MERCADOPAGO_WEBHOOK_SECRET = "hook-secret";
       globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
         const target = String(input);

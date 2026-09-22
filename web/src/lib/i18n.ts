@@ -353,6 +353,7 @@ const EN = {
   "billing.opening": "Opening checkout…",
   "billing.upgradeAmount": "Upgrade — {amount} {currency} / month",
   "billing.upgrade": "Upgrade",
+  "billing.sandbox": "Sandbox — no real money moves.",
   "billing.notOn": "Payments are not switched on yet.",
   "billing.needsAccount": "Subscribing needs an account — a subscription has to outlive a browser.",
   "billing.cancelSub": "Cancel subscription",

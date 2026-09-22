@@ -289,6 +289,7 @@ const ES: Record<MessageKey, string> = {
   "billing.opening": "Abriendo el checkout…",
   "billing.upgradeAmount": "Pasar a pago — {amount} {currency} / mes",
   "billing.upgrade": "Pasar a pago",
+  "billing.sandbox": "Entorno de prueba: no se cobra dinero real.",
   "billing.notOn": "Los pagos todavía no están activos.",
   "billing.needsAccount": "Para suscribirte necesitas una cuenta: una suscripción tiene que durar más que un navegador.",
   "billing.cancelSub": "Cancelar suscripción",

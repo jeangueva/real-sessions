@@ -257,6 +257,7 @@ const IT: Record<MessageKey, string> = {
   "billing.opening": "Apertura del pagamento…",
   "billing.upgradeAmount": "Passa al piano a pagamento — {amount} {currency} / mese",
   "billing.upgrade": "Passa al piano a pagamento",
+  "billing.sandbox": "Ambiente di test: non viene addebitato denaro reale.",
   "billing.notOn": "I pagamenti non sono ancora attivi.",
   "billing.needsAccount": "Per abbonarti serve un account: un abbonamento deve durare più di un browser.",
   "billing.cancelSub": "Annulla l'abbonamento",

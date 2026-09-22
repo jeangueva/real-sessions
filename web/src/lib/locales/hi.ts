@@ -256,6 +256,7 @@ const HI: Record<MessageKey, string> = {
   "billing.opening": "भुगतान खोल रहे हैं…",
   "billing.upgradeAmount": "सशुल्क पर जाएँ — {amount} {currency} / माह",
   "billing.upgrade": "सशुल्क पर जाएँ",
+  "billing.sandbox": "परीक्षण परिवेश — असली पैसा नहीं कटता।",
   "billing.notOn": "भुगतान अभी चालू नहीं हैं।",
   "billing.needsAccount": "सदस्यता के लिए खाता चाहिए — सदस्यता ब्राउज़र से ज़्यादा टिकनी चाहिए।",
   "billing.cancelSub": "सदस्यता रद्द करें",

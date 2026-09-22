@@ -256,6 +256,7 @@ const JA: Record<MessageKey, string> = {
   "billing.opening": "決済画面を開いています…",
   "billing.upgradeAmount": "有料プランへ — {amount} {currency} / 月",
   "billing.upgrade": "有料プランへ",
+  "billing.sandbox": "テスト環境です。実際の請求は発生しません。",
   "billing.notOn": "支払いはまだ有効になっていません。",
   "billing.needsAccount": "登録にはアカウントが必要です。サブスクリプションはブラウザより長く続くものだからです。",
   "billing.cancelSub": "サブスクリプションを解約",

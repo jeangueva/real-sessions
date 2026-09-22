@@ -56,18 +56,33 @@ export function mercadoPagoConfigured(): boolean {
  * "not obviously test" as "assume real money" and asks for an explicit answer
  * rather than guessing.
  */
-export const TEST_TOKEN_PREFIX = "TEST-";
+export type BillingMode = "test" | "live";
 
-/** True when the configured token demonstrably cannot charge anyone. */
-export function usesTestCredentials(
-  token = process.env.MERCADOPAGO_ACCESS_TOKEN,
-): boolean {
-  return Boolean(token?.startsWith(TEST_TOKEN_PREFIX));
+/**
+ * Which set of Mercado Pago credentials this deployment is carrying.
+ *
+ * It has to be declared, because it can no longer be read. This used to infer
+ * it from the token: `TEST-` meant a sandbox that could not charge anyone,
+ * anything else was assumed to be real money. Mercado Pago now issues
+ * `APP_USR-` credentials for both — the test ones and the production ones are
+ * identical in shape, and the only thing separating them is which panel they
+ * were copied from. A prefix check reads test credentials as production and,
+ * worse, would read production credentials as production only by luck.
+ *
+ * So the operator says which it is. `MERCADOPAGO_LIVE=1` still means live,
+ * because it is already set in deployments and documented as the opt-in for
+ * charging real money.
+ */
+export function billingMode(env: NodeJS.ProcessEnv = process.env): BillingMode | null {
+  const declared = env.MERCADOPAGO_MODE?.trim().toLowerCase();
+  if (declared === "test" || declared === "live") return declared;
+  if (env.MERCADOPAGO_LIVE === "1") return "live";
+  return null;
 }
 
 /** The operator's explicit "yes, this deployment charges real money". */
 export function liveBillingEnabled(): boolean {
-  return process.env.MERCADOPAGO_LIVE === "1";
+  return billingMode() === "live";
 }
 
 /**
@@ -89,12 +104,11 @@ export function liveBillingEnabled(): boolean {
  * paying — the opposite of the harm being prevented.
  */
 export function checkoutBlockReason(): string | null {
-  if (usesTestCredentials()) return null;
-  if (liveBillingEnabled()) return null;
+  if (billingMode() !== null) return null;
   return (
-    "Live billing is not enabled on this deployment. The configured Mercado " +
-    "Pago token is not a test token, so a checkout here would charge real " +
-    "money. Set MERCADOPAGO_LIVE=1 to allow it, or use test credentials."
+    "Mercado Pago credentials are set but MERCADOPAGO_MODE is not. Set it to " +
+    "\"test\" for the sandbox or \"live\" to charge real money — Mercado Pago " +
+    "issues APP_USR- credentials for both, so nothing else can tell them apart."
   );
 }
 

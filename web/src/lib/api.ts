@@ -640,6 +640,8 @@ export interface BillingState {
   /** False when this deployment has no payment provider wired up. */
   configured: boolean;
   plan: { amount: number; currency: string } | null;
+  /** "test" while pointed at Mercado Pago's sandbox, "live" when it charges. */
+  mode?: "test" | "live" | null;
   /**
    * Mercado Pago's browser key, for the on-site card form.
    *

@@ -131,6 +131,15 @@ export function Billing() {
         </p>
       )}
 
+      {/* Mercado Pago's sandbox and production credentials look identical, so
+          a deployment pointed at the wrong one is invisible until money does
+          or does not move. This is the only thing that tells them apart. */}
+      {state.mode === "test" && (
+        <p className="mt-3 inline-flex rounded-full border border-line-strong px-3 py-1 text-xs text-cream-dim">
+          {t("billing.sandbox")}
+        </p>
+      )}
+
       {error && (
         <p role="alert" className="mt-3 text-sm text-cream-bright">
           {error}

@@ -256,6 +256,7 @@ const TH: Record<MessageKey, string> = {
   "billing.opening": "กำลังเปิดหน้าชำระเงิน…",
   "billing.upgradeAmount": "อัปเกรด — {amount} {currency} / เดือน",
   "billing.upgrade": "อัปเกรด",
+  "billing.sandbox": "โหมดทดสอบ ไม่มีการตัดเงินจริง",
   "billing.notOn": "ยังไม่ได้เปิดใช้การชำระเงิน",
   "billing.needsAccount": "การสมัครสมาชิกต้องมีบัญชี เพราะการสมัครต้องอยู่ได้นานกว่าเบราว์เซอร์",
   "billing.cancelSub": "ยกเลิกการสมัครสมาชิก",

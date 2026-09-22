@@ -77,8 +77,11 @@ dashboard.
    `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_PUBLIC_KEY`, `MERCADOPAGO_AMOUNT`
    and `MERCADOPAGO_CURRENCY` together: without the public key the card form is
    skipped and payers are redirected to Mercado Pago's own checkout, and
-   without an amount and currency the server refuses to build one at all. A
-   production token also needs `MERCADOPAGO_LIVE=1`, or checkout answers 503.
+   without an amount and currency the server refuses to build one at all.
+   `MERCADOPAGO_MODE` is required either way — `test` for the sandbox, `live`
+   to charge real money. Mercado Pago issues `APP_USR-` credentials for both,
+   so the server cannot tell which it was given and refuses to charge until
+   it is told. A sandbox says so in the billing panel and in the startup line.
 4. Apply. `DATABASE_URL`, `REDIS_URL` and the cookie secret are filled in by
    Render itself.
 

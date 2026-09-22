@@ -256,6 +256,7 @@ const AR: Record<MessageKey, string> = {
   "billing.opening": "جارٍ فتح صفحة الدفع…",
   "billing.upgradeAmount": "الترقية — {amount} {currency} / شهريًا",
   "billing.upgrade": "الترقية",
+  "billing.sandbox": "بيئة اختبار: لا يُخصم مال حقيقي.",
   "billing.notOn": "المدفوعات ليست مفعّلة بعد.",
   "billing.needsAccount": "الاشتراك يحتاج حسابًا — فالاشتراك يجب أن يبقى بعد المتصفّح.",
   "billing.cancelSub": "إلغاء الاشتراك",

@@ -189,6 +189,7 @@ import {
   checkoutBlockReason,
   createPreapproval,
   fetchPreapproval,
+  billingMode,
   grantsAccess,
   MercadoPagoError,
   mercadoPagoConfigured,
@@ -1427,6 +1428,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // Safe to serve: this key can tokenise a card and nothing else. Null
       // when unset, and the client falls back to the redirect checkout.
       publicKey: configured ? publicKey() : null,
+      // Said out loud, because Mercado Pago's sandbox and production
+      // credentials are indistinguishable: a deployment left in the wrong one
+      // looks exactly like the right one until money does or does not move.
+      mode: billingMode(),
       subscription: await SUBSCRIPTIONS.forOwner(identity.id),
     });
     return;
@@ -2688,6 +2693,7 @@ function reportBillingConfig(): void {
   }
 
   const parts = [
+    `mode ${billingMode() ?? "UNSET (checkout refused)"}`,
     `token ${token ? "set" : "MISSING"}`,
     `webhook secret ${secret ? "set" : "MISSING"}`,
     // The raw value is echoed only when it failed to parse, so the operator

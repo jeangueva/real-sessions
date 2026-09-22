@@ -256,6 +256,7 @@ const ZH: Record<MessageKey, string> = {
   "billing.opening": "正在打开付款页…",
   "billing.upgradeAmount": "升级为付费 — {amount} {currency} / 月",
   "billing.upgrade": "升级为付费",
+  "billing.sandbox": "测试环境：不会扣真实款项。",
   "billing.notOn": "付款功能尚未开启。",
   "billing.needsAccount": "订阅需要账户：订阅要比浏览器活得久。",
   "billing.cancelSub": "取消订阅",

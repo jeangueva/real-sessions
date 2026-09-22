@@ -6,7 +6,7 @@ import {
   liveBillingEnabled,
   planConfig,
   SIGNATURE_TOLERANCE_MS,
-  usesTestCredentials,
+  billingMode,
   verifySignature,
 } from "../src/billing/mercadopago.js";
 import { createSubscriptionStore } from "../src/billing/store.js";
@@ -136,45 +136,57 @@ describe("the live-money guard", () => {
     process.env = { ...before };
   });
 
-  it("lets a test token through without any opt-in", () => {
-    // A TEST- token cannot charge anyone, and making the sandbox harder to run
-    // than production is how people end up testing against production.
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+  it("refuses to charge anyone until the mode is declared", () => {
+    /**
+     * Mercado Pago issues APP_USR- credentials for the sandbox and for
+     * production alike, so nothing about a token says which it is. This used
+     * to infer it from a TEST- prefix that no longer exists, which read real
+     * test credentials as production and blocked them.
+     */
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
+    delete process.env.MERCADOPAGO_MODE;
     delete process.env.MERCADOPAGO_LIVE;
-    expect(usesTestCredentials()).toBe(true);
+    expect(billingMode()).toBeNull();
+    expect(checkoutBlockReason()).toContain("MERCADOPAGO_MODE");
+  });
+
+  it("lets the sandbox run once it says it is the sandbox", () => {
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
+    process.env.MERCADOPAGO_MODE = "test";
+    delete process.env.MERCADOPAGO_LIVE;
+    expect(billingMode()).toBe("test");
+    expect(liveBillingEnabled()).toBe(false);
     expect(checkoutBlockReason()).toBeNull();
   });
 
-  it("refuses a token that could be real without an explicit opt-in", () => {
-    // The failure this prevents: production credentials left in a staging
-    // deployment, and the first candidate to click Upgrade is charged for
-    // real. Nothing about that looks like a bug from the outside.
+  it("charges real money only when someone declares live", () => {
     process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
-    delete process.env.MERCADOPAGO_LIVE;
-    expect(usesTestCredentials()).toBe(false);
-    expect(checkoutBlockReason()).toContain("MERCADOPAGO_LIVE");
+    process.env.MERCADOPAGO_MODE = "live";
+    expect(liveBillingEnabled()).toBe(true);
+    expect(checkoutBlockReason()).toBeNull();
   });
 
-  it("allows real money once someone says so", () => {
+  it("still honours MERCADOPAGO_LIVE=1, which deployments already carry", () => {
     process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
+    delete process.env.MERCADOPAGO_MODE;
     process.env.MERCADOPAGO_LIVE = "1";
-    expect(checkoutBlockReason()).toBeNull();
+    expect(billingMode()).toBe("live");
   });
 
-  it("takes only an exact opt-in, not anything truthy", () => {
-    // "true", "yes" and "0" are all things someone types while guessing. None
-    // of them should turn on real charges.
+  it("takes only the two words, not anything typed while guessing", () => {
     process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
-    for (const value of ["true", "yes", "0", "", "LIVE"]) {
-      process.env.MERCADOPAGO_LIVE = value;
-      expect(liveBillingEnabled(), value).toBe(false);
+    delete process.env.MERCADOPAGO_LIVE;
+    for (const value of ["true", "yes", "0", "", "sandbox", "production"]) {
+      process.env.MERCADOPAGO_MODE = value;
+      expect(billingMode(), value).toBeNull();
       expect(checkoutBlockReason(), value).not.toBeNull();
     }
   });
 
-  it("treats a missing token as not-test, so an empty config cannot slip past", () => {
-    delete process.env.MERCADOPAGO_ACCESS_TOKEN;
-    expect(usesTestCredentials()).toBe(false);
+  it("reads the two words whatever the case and spacing", () => {
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
+    process.env.MERCADOPAGO_MODE = "  Test ";
+    expect(billingMode()).toBe("test");
   });
 });
 

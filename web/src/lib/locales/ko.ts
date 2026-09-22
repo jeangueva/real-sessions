@@ -256,6 +256,7 @@ const KO: Record<MessageKey, string> = {
   "billing.opening": "결제 화면을 여는 중…",
   "billing.upgradeAmount": "유료 전환 — {amount} {currency} / 월",
   "billing.upgrade": "유료 전환",
+  "billing.sandbox": "테스트 환경입니다. 실제 결제는 발생하지 않습니다.",
   "billing.notOn": "결제가 아직 활성화되지 않았습니다.",
   "billing.needsAccount": "구독하려면 계정이 필요합니다. 구독은 브라우저보다 오래 유지되어야 합니다.",
   "billing.cancelSub": "구독 해지",
