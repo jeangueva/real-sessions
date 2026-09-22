@@ -90,8 +90,14 @@ export function CardForm({
           callbacks: {
             onFormMounted: (mountError: unknown) => {
               if (!live) return;
-              if (mountError) setError(t("card.unavailable"));
-              else setReady(true);
+              if (mountError) {
+                // Mercado Pago says why it could not mount; the reader gets a
+                // sentence they can act on, and the reason goes to the console
+                // rather than being dropped. Without this a failed card form
+                // is indistinguishable from a blocked script.
+                console.error("[mockio] card form did not mount:", mountError);
+                setError(t("card.unavailable"));
+              } else setReady(true);
             },
             onSubmit: (event: Event) => {
               event.preventDefault();
@@ -120,7 +126,14 @@ export function CardForm({
           },
         });
       })
-      .catch(() => live && setError(t("card.unavailable")));
+      .catch((caught: unknown) => {
+        if (!live) return;
+        // Either the SDK script never loaded — an extension, a network rule —
+        // or constructing it threw. Both reach the reader as the same
+        // sentence, so the distinction has to be in the log.
+        console.error("[mockio] card form unavailable:", caught);
+        setError(t("card.unavailable"));
+      });
 
     return () => {
       live = false;
