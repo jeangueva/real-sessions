@@ -725,6 +725,18 @@ export function decideQuestion(id: number, status: "verified" | "rejected") {
  * `closesAt` is null when the offer has no end configured. The landing page
  * only counts down when there is a real date to count to.
  */
+/**
+ * The price the checkout will actually charge, or null when payments are off.
+ *
+ * Public, because the landing page asks before anyone has an identity.
+ */
+export function fetchPricing() {
+  return request<{ plan: { amount: number; currency: string } | null }>(
+    "/api/pricing",
+    { method: "GET" },
+  );
+}
+
 export function fetchEarlyAccessState() {
   return request<{ open: boolean; closesAt: string | null; months: number }>(
     "/api/early-access",

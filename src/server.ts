@@ -1148,6 +1148,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  if (req.method === "GET" && path === "/api/pricing") {
+    // In front of the authentication gate: the landing page asks before anyone
+    // has an identity, and it is the same `planConfig()` the checkout charges
+    // from. A price written into the page instead would be a second source of
+    // truth, and the one people read before deciding.
+    json(res, 200, { plan: planConfig() });
+    return;
+  }
+
   if (req.method === "GET" && path === "/api/early-access") {
     // In front of the authentication gate: the landing page asks before anyone
     // has an identity. The closing moment comes from the same function the

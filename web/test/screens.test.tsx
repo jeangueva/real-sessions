@@ -176,13 +176,34 @@ describe("Pricing", () => {
   it("sends someone who wants the paid plan to where they can pay", () => {
     // The landing page no longer carries the early-access form, so this is the
     // only way off it and onto the paid plan.
+    stubApi({ "/api/pricing": { plan: null } });
     renderScreen(<Pricing />);
 
     const subscribe = screen.getByRole("link", { name: /subscribe/i });
     expect(subscribe).toHaveAttribute("href", "/app/settings");
   });
 
+  it("shows the price the checkout will actually charge", async () => {
+    // "$9" was written into the page while Mercado Pago billed 29.90 soles.
+    // The number a reader decides on has to be the one they are asked for.
+    stubApi({ "/api/pricing": { plan: { amount: 29.9, currency: "PEN" } } });
+    renderScreen(<Pricing />);
+
+    await screen.findByText(/29[.,]90/);
+    expect(screen.queryByText(/\$9(?!\d)/)).not.toBeInTheDocument();
+  });
+
+  it("shows no price at all rather than a wrong one when payments are off", async () => {
+    stubApi({ "/api/pricing": { plan: null } });
+    renderScreen(<Pricing />);
+
+    await screen.findByRole("link", { name: /subscribe/i });
+    expect(screen.queryByText(/\$9(?!\d)/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/29[.,]90/)).not.toBeInTheDocument();
+  });
+
   it("does not sell as paid what the free plan actually includes", () => {
+    stubApi({ "/api/pricing": { plan: null } });
     // The copy and the entitlements drifted apart once already: the page
     // advertised measured metrics and badges as premium while the server gave
     // both to everyone.
@@ -191,7 +212,7 @@ describe("Pricing", () => {
     const free = screen.getByText("Free").closest("div")?.parentElement;
     expect(free?.textContent).toContain("XP, levels and badges");
 
-    const premium = screen.getByText(/9/).closest("div")?.parentElement;
+    const premium = screen.getByText(/Premium|Pagado|paid/i).closest("div")?.parentElement;
     expect(premium?.textContent).not.toContain("badges and league");
   });
 });

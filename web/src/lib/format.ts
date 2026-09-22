@@ -40,6 +40,22 @@ export function formatSessionDate(iso: string | null): string {
  */
 const ABSENT = "—";
 
+/**
+ * A price, in the currency the seller's Mercado Pago account charges in.
+ *
+ * `Intl` knows each currency's own conventions — two decimals and "S/" for
+ * PEN, none at all for CLP — which is what stops 29.9 reaching a reader as
+ * "29.9". Falls back to "<amount> <code>" where the runtime has no data for
+ * the currency rather than throwing on the page that announces the price.
+ */
+export function formatPrice(amount: number, currency: string, locale: string): string {
+  try {
+    return new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount);
+  } catch {
+    return `${amount} ${currency}`;
+  }
+}
+
 export function formatWpm(value: number | null): string {
   return value === null ? ABSENT : `${Math.round(value)} wpm`;
 }

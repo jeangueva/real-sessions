@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
-import { useT } from "@/hooks/useLocale";
+import { fetchPricing } from "@/lib/api";
+import { formatPrice } from "@/lib/format";
+import { useLocale, useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
 /**
@@ -36,6 +39,28 @@ const PREMIUM: MessageKey[] = [
 
 export function Pricing() {
   const t = useT();
+  const { locale } = useLocale();
+  /**
+   * The price comes from the server, which is what the checkout charges.
+   *
+   * It used to be "$9" written into this file, while Mercado Pago billed
+   * whatever MERCADOPAGO_AMOUNT said — a promise on the landing page that the
+   * checkout did not keep. Undefined means not answered yet and null means
+   * payments are off; neither shows a number, because no number is better
+   * than the wrong one.
+   */
+  const [price, setPrice] = useState<{ amount: number; currency: string } | null | undefined>();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPricing()
+      .then((result) => !cancelled && setPrice(result.plan))
+      .catch(() => !cancelled && setPrice(null));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <Section id="pricing" className="bg-surface-base">
       <Eyebrow>{t("land.pricingEyebrow")}</Eyebrow>
@@ -71,8 +96,15 @@ export function Pricing() {
           >
             <div>
               <p className="text-sm text-cream-dim">{t("land.premium")}</p>
-              <p className="mt-2 text-title text-cream-bright">
-                $9<span className="text-sm text-cream-faint">{t("land.perMonth")}</span>
+              {/* Reserves its line whether or not the price has arrived, so
+                  the card does not jump when it does. */}
+              <p className="mt-2 min-h-[1.6em] text-title text-cream-bright">
+                {price ? (
+                  <>
+                    {formatPrice(price.amount, price.currency, locale)}
+                    <span className="text-sm text-cream-faint">{t("land.perMonth")}</span>
+                  </>
+                ) : null}
               </p>
               <p className="mt-2 text-sm text-cream-dim">
                 {t("land.premiumBlurb")}
