@@ -340,6 +340,34 @@ export function SessionSetup() {
       <PageHeader
         title={t("setup.title")}
         meta={t("setup.meta")}
+        /**
+         * The plan, in the row with the title.
+         *
+         * It was a full-width notice — twice over, once for the allowance and
+         * once for the plan — carrying a paragraph of sales copy above the
+         * thing someone came to do. What is worth saying at a glance is how
+         * many interviews are left; the argument for paying belongs on the
+         * page that sells, which is where the button goes.
+         */
+        actions={
+          can && (!can.targetCompany || left !== null) ? (
+            <div className="flex min-w-0 items-center gap-3">
+              <p className="flex items-center gap-1.5 text-xs text-cream-dim">
+                <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className={left === 0 ? "text-cream-bright" : undefined}>
+                  {left === 0
+                    ? t("setup.quotaNone")
+                    : left !== null && limit !== null
+                      ? t("setup.quotaLeft", { left, limit })
+                      : t("setup.quotaFree")}
+                </span>
+              </p>
+              <Link to="/app/settings#plan" className="shrink-0">
+                <Action tone="glass">{t("cta.seePlans")}</Action>
+              </Link>
+            </div>
+          ) : undefined
+        }
       />
 
       <Tour />
@@ -349,42 +377,6 @@ export function SessionSetup() {
             inside it — so a gap set there never reaches them, and the search
             box ended up flush against the panel below it. */}
         <div className="flex flex-col gap-6">
-        {/* One notice, not two.
-            The allowance and the free plan were separate rows making the same
-            argument with the same button, and they stacked: someone out of
-            interviews read "you have used your three" and, directly under it,
-            "you are on the free plan" — twice the space for one fact and two
-            buttons to the same place.
-            The headline is whichever is most pressing — none left, one left,
-            how many left — and the body is the pitch that belongs with it.
-            Premium sees none of it: no cap, so nothing to say. */}
-        {can && (!can.targetCompany || left !== null) && (
-          <div
-            className={`flex flex-col items-start gap-2 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
-              left === 0 ? "border-line-strong" : "border-line"
-            }`}
-          >
-            <p className="flex min-w-0 items-center gap-2 text-xs text-cream-dim">
-              <Lock className="h-4 w-4 shrink-0" aria-hidden />
-              <span>
-                <span className="text-cream-bright">
-                  {left === 0 && limit !== null
-                    ? t("setup.noneLeft", { limit })
-                    : left === 1
-                      ? t("setup.lastOne")
-                      : left !== null && limit !== null
-                        ? t("setup.left", { left, limit })
-                        : t("setup.freePlan")}
-                </span>{" "}
-                {left === 0 ? t("setup.noneLeftBody") : t("setup.freePlanBody")}
-              </span>
-            </p>
-            <Link to="/app/settings#plan" className="shrink-0">
-              <Action tone="glass">{t("cta.seePlans")}</Action>
-            </Link>
-          </div>
-        )}
-
         {/* The nudge sits above the bar it changes, so accepting it and
             seeing the level field move are one glance apart. Dismissing is
             local and for this visit only: the condition that raised it is a
