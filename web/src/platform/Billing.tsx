@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
-  ApiError,
   cancelSubscription,
   fetchBilling,
   fetchPlan,
@@ -12,7 +11,7 @@ import {
 import type { BillingState, Plan, Session } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 import { useLocale, useT } from "@/hooks/useLocale";
-import { CardForm } from "./CardForm";
+import { CardForm, refusalMessage } from "./CardForm";
 import type { MessageKey } from "@/lib/i18n";
 
 const STATUS_COPY: Record<string, MessageKey> = {
@@ -83,7 +82,7 @@ export function Billing() {
       // through Mercado Pago's own return URL, and a popup would be blocked.
       window.location.assign(initPoint);
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : t("billing.couldNotOpen"));
+      setError(refusalMessage(caught, t, "billing.couldNotOpen"));
       setBusy(false);
     }
   };
@@ -95,7 +94,7 @@ export function Billing() {
       await cancelSubscription();
       load();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : t("billing.couldNotCancel"));
+      setError(refusalMessage(caught, t, "billing.couldNotCancel"));
     } finally {
       setBusy(false);
     }

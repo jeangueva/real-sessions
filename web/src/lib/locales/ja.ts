@@ -448,6 +448,7 @@ const JA: Record<MessageKey, string> = {
   "card.unavailable": "カード入力欄を読み込めませんでした。もう一度試すか、リダイレクト決済をお使いください。",
   "card.checkDetails": "カード情報を確認して、もう一度お試しください。",
   "card.failed": "処理できませんでした。もう一度試すか、別のカードをお使いください。",
+  "card.tooMany": "試行回数が多すぎます。{minutes} 分後にもう一度お試しください。",
   "nav.exit": "終了",
   "avatar.label": "あなたの姿",
   "avatar.evolvesAt": "レベル {level} で進化",

@@ -494,6 +494,7 @@ const ES: Record<MessageKey, string> = {
   "card.unavailable": "No se pudo cargar el formulario de tarjeta. Prueba de nuevo, o usa el checkout con redirección.",
   "card.checkDetails": "Revisa los datos de la tarjeta y prueba de nuevo.",
   "card.failed": "No se pudo procesar. Prueba de nuevo, o con otra tarjeta.",
+  "card.tooMany": "Demasiados intentos. Prueba de nuevo en {minutes} min.",
   "nav.exit": "Salir",
 
   "avatar.label": "Tu forma",

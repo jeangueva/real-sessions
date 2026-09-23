@@ -449,6 +449,7 @@ const IT: Record<MessageKey, string> = {
   "card.unavailable": "Non è stato possibile caricare il modulo della carta. Riprova, o usa il pagamento con reindirizzamento.",
   "card.checkDetails": "Controlla i dati della carta e riprova.",
   "card.failed": "Non è andata a buon fine. Riprova, o con un'altra carta.",
+  "card.tooMany": "Troppi tentativi. Riprova tra {minutes} min.",
   "nav.exit": "Esci",
   "avatar.label": "La tua forma",
   "avatar.evolvesAt": "Evolve al livello {level}",

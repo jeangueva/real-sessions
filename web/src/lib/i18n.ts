@@ -558,6 +558,7 @@ const EN = {
   "card.unavailable": "The card form could not load. Try again, or use the redirect checkout.",
   "card.checkDetails": "Check the card details and try again.",
   "card.failed": "That did not go through. Try again, or use another card.",
+  "card.tooMany": "Too many attempts. Try again in {minutes} min.",
   "nav.exit": "Exit",
 
   "avatar.label": "Your form",

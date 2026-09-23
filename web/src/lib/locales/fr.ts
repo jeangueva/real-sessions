@@ -449,6 +449,7 @@ const FR: Record<MessageKey, string> = {
   "card.unavailable": "Le formulaire de carte n'a pas pu se charger. Réessayez, ou utilisez le paiement par redirection.",
   "card.checkDetails": "Vérifiez les informations de la carte et réessayez.",
   "card.failed": "Cela n'est pas passé. Réessayez, ou avec une autre carte.",
+  "card.tooMany": "Trop de tentatives. Réessayez dans {minutes} min.",
   "nav.exit": "Quitter",
   "avatar.label": "Votre forme",
   "avatar.evolvesAt": "Évolue au niveau {level}",

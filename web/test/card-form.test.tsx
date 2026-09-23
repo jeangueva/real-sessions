@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
-import { CardForm } from "../src/platform/CardForm";
+import { CardForm, refusalMessage } from "../src/platform/CardForm";
+import { ApiError } from "../src/lib/api";
 
 /**
  * The card fields have to be typeable.
@@ -86,5 +87,42 @@ describe("the card form", () => {
     }
     expect(Object.keys(form)).toContain("installments");
     expect(Object.keys(form)).toContain("issuer");
+  });
+});
+
+describe("a refusal", () => {
+  const t = ((key: string, values?: Record<string, string | number>) =>
+    key === "card.tooMany" ? `wait ${values?.["minutes"]}` : `t:${key}`) as never;
+
+  it("says how long the wait is when the server dated it", () => {
+    expect(refusalMessage(new ApiError("Too many requests.", 429, 2_580), t, "card.failed")).toBe(
+      "wait 43",
+    );
+  });
+
+  // Rounded up: a wait announced as "0 min" reads as a broken screen, and the
+  // call really is still refused for those last few seconds.
+  it("never announces a wait of zero", () => {
+    expect(refusalMessage(new ApiError("Too many requests.", 429, 4), t, "card.failed")).toBe(
+      "wait 1",
+    );
+  });
+
+  it("keeps the provider's own wording for everything else", () => {
+    expect(
+      refusalMessage(new ApiError("That card was declined.", 402), t, "card.failed"),
+    ).toBe("That card was declined.");
+  });
+
+  // A 429 from somewhere that did not send the number still has to say
+  // something, and the server's sentence is better than a blank.
+  it("falls back to the message when no wait came with it", () => {
+    expect(refusalMessage(new ApiError("Too many requests.", 429), t, "card.failed")).toBe(
+      "Too many requests.",
+    );
+  });
+
+  it("uses our own sentence when the failure was not the API's", () => {
+    expect(refusalMessage(new TypeError("boom"), t, "card.failed")).toBe("t:card.failed");
   });
 });

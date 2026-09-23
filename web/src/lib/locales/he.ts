@@ -448,6 +448,7 @@ const HE: Record<MessageKey, string> = {
   "card.unavailable": "לא הצלחנו לטעון את טופס הכרטיס. נסה שוב, או השתמש בתשלום עם הפניה.",
   "card.checkDetails": "בדוק את פרטי הכרטיס ונסה שוב.",
   "card.failed": "זה לא עבר. נסה שוב, או עם כרטיס אחר.",
+  "card.tooMany": "יותר מדי ניסיונות. נסה שוב בעוד {minutes} דק׳.",
   "nav.exit": "יציאה",
   "avatar.label": "הצורה שלך",
   "avatar.evolvesAt": "מתפתח ברמה {level}",

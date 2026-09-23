@@ -448,6 +448,7 @@ const TH: Record<MessageKey, string> = {
   "card.unavailable": "โหลดแบบฟอร์มบัตรไม่สำเร็จ ลองอีกครั้ง หรือใช้การชำระเงินแบบเปลี่ยนหน้า",
   "card.checkDetails": "ตรวจข้อมูลบัตรแล้วลองอีกครั้ง",
   "card.failed": "ทำรายการไม่สำเร็จ ลองอีกครั้ง หรือใช้บัตรใบอื่น",
+  "card.tooMany": "ลองมากเกินไป ลองอีกครั้งในอีก {minutes} นาที",
   "nav.exit": "ออก",
   "avatar.label": "รูปร่างของคุณ",
   "avatar.evolvesAt": "วิวัฒนาการที่ระดับ {level}",

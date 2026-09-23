@@ -188,6 +188,15 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    /**
+     * How long until the same call is allowed again, on a 429.
+     *
+     * The server sends it in the body and in `Retry-After`, and it was being
+     * dropped on the floor — leaving "Too many requests. Try again later." as
+     * the whole of what a rate-limited person was told, with no way to know
+     * whether later meant a minute or an hour.
+     */
+    readonly retryAfterSeconds?: number,
   ) {
     super(message);
     this.name = "ApiError";
@@ -502,11 +511,17 @@ async function request<T>(
   } catch {
     throw new ApiError("Could not reach the interview service.", 0);
   }
-  const payload = (await response.json().catch(() => ({}))) as { error?: string } & T;
+  const payload = (await response.json().catch(() => ({}))) as {
+    error?: string;
+    retryAfterSeconds?: number;
+  } & T;
   if (!response.ok) {
     throw new ApiError(
       payload.error ?? `Request failed (${response.status}).`,
       response.status,
+      typeof payload.retryAfterSeconds === "number"
+        ? payload.retryAfterSeconds
+        : undefined,
     );
   }
   return payload;

@@ -448,6 +448,7 @@ const KO: Record<MessageKey, string> = {
   "card.unavailable": "카드 입력란을 불러오지 못했습니다. 다시 시도하거나 리디렉션 결제를 이용하세요.",
   "card.checkDetails": "카드 정보를 확인하고 다시 시도하세요.",
   "card.failed": "처리되지 않았습니다. 다시 시도하거나 다른 카드를 사용하세요.",
+  "card.tooMany": "시도가 너무 많습니다. {minutes}분 후에 다시 시도해 주세요.",
   "nav.exit": "나가기",
   "avatar.label": "당신의 형태",
   "avatar.evolvesAt": "레벨 {level}에서 진화",

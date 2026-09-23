@@ -448,6 +448,7 @@ const DE: Record<MessageKey, string> = {
   "card.unavailable": "Das Kartenformular konnte nicht geladen werden. Versuch es erneut oder nutze die Kasse mit Weiterleitung.",
   "card.checkDetails": "Prüf die Kartendaten und versuch es erneut.",
   "card.failed": "Das ist nicht durchgegangen. Versuch es erneut oder mit einer anderen Karte.",
+  "card.tooMany": "Zu viele Versuche. Versuch es in {minutes} Min. erneut.",
   "nav.exit": "Verlassen",
   "avatar.label": "Deine Form",
   "avatar.evolvesAt": "Entwickelt sich auf Stufe {level}",

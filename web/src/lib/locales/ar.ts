@@ -448,6 +448,7 @@ const AR: Record<MessageKey, string> = {
   "card.unavailable": "تعذّر تحميل نموذج البطاقة. حاول مجددًا، أو استخدم الدفع بإعادة التوجيه.",
   "card.checkDetails": "راجع بيانات البطاقة وحاول مجددًا.",
   "card.failed": "لم تتمّ العملية. حاول مجددًا، أو ببطاقة أخرى.",
+  "card.tooMany": "محاولات كثيرة جدًا. حاول مجددًا بعد {minutes} دقيقة.",
   "nav.exit": "خروج",
   "avatar.label": "شكلك",
   "avatar.evolvesAt": "يتطوّر عند المستوى {level}",

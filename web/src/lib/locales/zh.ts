@@ -448,6 +448,7 @@ const ZH: Record<MessageKey, string> = {
   "card.unavailable": "卡片表单加载失败。请重试，或改用跳转付款。",
   "card.checkDetails": "检查卡片信息后重试。",
   "card.failed": "没有成功。请重试，或换一张卡。",
+  "card.tooMany": "尝试次数过多。请在 {minutes} 分钟后重试。",
   "nav.exit": "退出",
   "avatar.label": "你的形态",
   "avatar.evolvesAt": "在等级 {level} 进化",

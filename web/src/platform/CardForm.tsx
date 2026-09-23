@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Action } from "@/design-system";
 import { ApiError, subscribeWithCard } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 
 /**
  * The card form, on our own page.
@@ -46,6 +47,31 @@ function loadSdk(): Promise<void> {
     script.onerror = () => reject(new Error("sdk"));
     document.head.appendChild(script);
   });
+}
+
+/**
+ * What to show when a call comes back refused.
+ *
+ * A 429 is the one refusal the server can date: it sends back how long the
+ * wait is, and "Try again later" without that number leaves someone guessing
+ * between a minute and an hour — which is exactly what happened the first time
+ * a run of declined test cards tripped the checkout limit. Rounded up, because
+ * a wait reported as zero minutes is a wait that looks like a bug.
+ */
+export function refusalMessage(
+  caught: unknown,
+  t: (key: MessageKey, values?: Record<string, string | number>) => string,
+  fallback: MessageKey,
+): string {
+  if (!(caught instanceof ApiError)) return t(fallback);
+  if (caught.status === 429 && typeof caught.retryAfterSeconds === "number") {
+    return t("card.tooMany", {
+      minutes: Math.max(1, Math.ceil(caught.retryAfterSeconds / 60)),
+    });
+  }
+  // Anything else is the provider's own wording, which says more than ours
+  // would: "that card was declined" beats "something went wrong".
+  return caught.message;
 }
 
 /**
@@ -179,9 +205,7 @@ export function CardForm({
                 .then(() => live && onDone.current())
                 .catch((caught: unknown) => {
                   if (!live) return;
-                  setError(
-                    caught instanceof ApiError ? caught.message : say.current("card.failed"),
-                  );
+                  setError(refusalMessage(caught, say.current, "card.failed"));
                 })
                 .finally(() => live && setBusy(false));
             },
