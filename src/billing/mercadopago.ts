@@ -226,6 +226,33 @@ export class MercadoPagoError extends Error {
   }
 }
 
+/**
+ * The `cause` array Mercado Pago attaches to a refusal, as one readable clause.
+ *
+ * Shapes vary by endpoint — sometimes `description`, sometimes `message`, and
+ * the code is occasionally the only thing filled in — so each entry is reduced
+ * to whatever it actually carries rather than to a field that might be
+ * missing. An empty or unexpected `cause` adds nothing, which keeps the line
+ * unchanged for the errors that never had one.
+ */
+export function describeCause(cause: unknown): string {
+  if (!Array.isArray(cause)) return "";
+  const said = cause
+    .map((entry) => {
+      if (typeof entry === "string") return entry;
+      if (!entry || typeof entry !== "object") return "";
+      const it = entry as Record<string, unknown>;
+      const text = [it["description"], it["message"]].find(
+        (value) => typeof value === "string" && value.trim() !== "",
+      );
+      const code = it["code"];
+      const label = code === undefined || code === null ? "" : `[${String(code)}] `;
+      return text ? `${label}${String(text)}` : label.trim();
+    })
+    .filter((line) => line !== "");
+  return said.length === 0 ? "" : ` — ${said.join("; ")}`;
+}
+
 async function call<T>(
   path: string,
   init: RequestInit & { method: string },
@@ -244,12 +271,19 @@ async function call<T>(
 
   const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
-    // The provider's own message, not ours: "invalid payer email" is worth
+    // The provider's own words, not ours: "invalid payer email" is worth
     // seeing in a log, and inventing a generic string would hide it.
+    //
+    // `message` alone is not enough. Mercado Pago answers a refused
+    // subscription with a flat "Invalid request" or a bare status name and
+    // puts the reason a person can act on in `cause` — which collector and
+    // payer being the same account, or a currency the account cannot take,
+    // both land in. Dropping it turned every refusal into the same
+    // unactionable line.
     throw new MercadoPagoError(
       `Mercado Pago ${init.method} ${path} failed (${response.status}): ${
         typeof body["message"] === "string" ? body["message"] : "unknown error"
-      }`,
+      }${describeCause(body["cause"])}`,
       response.status,
     );
   }

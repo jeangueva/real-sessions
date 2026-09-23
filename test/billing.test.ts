@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createHmac } from "node:crypto";
 import {
   checkoutBlockReason,
+  describeCause,
   grantsAccess,
   liveBillingEnabled,
   planConfig,
@@ -239,5 +240,53 @@ describe("revoking a grant", () => {
 
     await plans.revoke("owner", "subscription");
     expect(await plans.planFor("owner")).toBe("premium");
+  });
+});
+
+/**
+ * Why a card was refused, in the log.
+ *
+ * Mercado Pago answers a refused subscription with a flat `message` — "Invalid
+ * request", or the status name — and puts the part a person can act on in
+ * `cause`: the collector and the payer being the same account, a currency the
+ * account cannot take. Logging only `message` made every refusal read the same
+ * and left nothing to act on, which is exactly the position the first declined
+ * test card left us in.
+ */
+describe("describeCause", () => {
+  it("reads the description Mercado Pago actually sends", () => {
+    expect(
+      describeCause([{ code: 2034, description: "payer and collector must be different" }]),
+    ).toBe(" — [2034] payer and collector must be different");
+  });
+
+  it("joins every reason rather than keeping the first", () => {
+    expect(
+      describeCause([
+        { code: 1, description: "first" },
+        { code: 2, description: "second" },
+      ]),
+    ).toBe(" — [1] first; [2] second");
+  });
+
+  it("takes the wording from whichever field carries it", () => {
+    expect(describeCause([{ code: "E01", message: "invalid payer email" }])).toBe(
+      " — [E01] invalid payer email",
+    );
+    expect(describeCause(["cannot operate between countries"])).toBe(
+      " — cannot operate between countries",
+    );
+  });
+
+  it("keeps a bare code rather than dropping the entry", () => {
+    expect(describeCause([{ code: 2067 }])).toBe(" — [2067]");
+  });
+
+  // The errors that never carried a cause must read exactly as they did
+  // before, so nothing gains a trailing dash for an absent reason.
+  it("adds nothing when there is no cause to add", () => {
+    for (const empty of [undefined, null, [], "not an array", {}, [{}], [""]]) {
+      expect(describeCause(empty)).toBe("");
+    }
   });
 });
