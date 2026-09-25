@@ -70,8 +70,10 @@ export function refusalMessage(
     });
   }
   // Anything else is the provider's own wording, which says more than ours
-  // would: "that card was declined" beats "something went wrong".
-  return caught.message;
+  // would: "that card was declined" beats "something went wrong". In the
+  // sandbox it arrives with the reason attached, which is the whole
+  // difference between a message worth reading and one worth ignoring.
+  return caught.detail ? `${caught.message} — ${caught.detail}` : caught.message;
 }
 
 /**

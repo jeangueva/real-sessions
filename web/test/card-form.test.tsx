@@ -108,6 +108,18 @@ describe("a refusal", () => {
     );
   });
 
+  // The sandbox sends the reason along; live never does, and the assertion
+  // below that one is what says a refusal without it reads unchanged.
+  it("attaches the provider's reason when the sandbox sent one", () => {
+    expect(
+      refusalMessage(
+        new ApiError("That card was declined.", 402, undefined, "[2034] invalid card_token_id"),
+        t,
+        "card.failed",
+      ),
+    ).toBe("That card was declined. — [2034] invalid card_token_id");
+  });
+
   it("keeps the provider's own wording for everything else", () => {
     expect(
       refusalMessage(new ApiError("That card was declined.", 402), t, "card.failed"),

@@ -197,6 +197,13 @@ export class ApiError extends Error {
      * whether later meant a minute or an hour.
      */
     readonly retryAfterSeconds?: number,
+    /**
+     * The provider's own account of a refusal, sent only in the sandbox.
+     *
+     * Never present in live, where the reader is a candidate rather than
+     * whoever is wiring the integration up.
+     */
+    readonly detail?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -514,6 +521,7 @@ async function request<T>(
   const payload = (await response.json().catch(() => ({}))) as {
     error?: string;
     retryAfterSeconds?: number;
+    detail?: string;
   } & T;
   if (!response.ok) {
     throw new ApiError(
@@ -522,6 +530,7 @@ async function request<T>(
       typeof payload.retryAfterSeconds === "number"
         ? payload.retryAfterSeconds
         : undefined,
+      typeof payload.detail === "string" ? payload.detail : undefined,
     );
   }
   return payload;

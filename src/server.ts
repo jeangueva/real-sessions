@@ -1572,6 +1572,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       console.error("[mockio] subscribe failed:", error);
       return json(res, 402, {
         error: "That card was declined. Try another one, or check with your bank.",
+        // In the sandbox the only person who ever sees this is the one
+        // testing the integration, and "declined" is useless to them: the
+        // reason is the difference between a wrong test card, a currency the
+        // account cannot take, and credentials from two different
+        // applications. Withheld in live, where the reader is a candidate and
+        // the provider's wording would tell an attacker which cards to stop
+        // trying.
+        ...(billingMode() === "test" && error instanceof MercadoPagoError
+          ? { detail: error.message }
+          : {}),
       });
     }
 
