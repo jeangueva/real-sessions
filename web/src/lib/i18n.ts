@@ -311,7 +311,7 @@ const EN = {
   "auth.signUpTitle": "Keep your history across devices.",
   "auth.email": "Email",
   "auth.password": "Password",
-  "auth.passwordHint": "At least 12 characters. A phrase works well.",
+  "auth.passwordHint": "At least 8 characters. A phrase works well.",
   "auth.signIn": "Sign in",
   "auth.create": "Create account",
   "auth.forgot": "Forgot your password?",

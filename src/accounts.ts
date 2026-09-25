@@ -151,6 +151,24 @@ export function normalizeEmail(value: unknown): string | null {
   return email;
 }
 
+/**
+ * The shortest password accepted, in characters.
+ *
+ * Length is still the only rule — no composition requirements, because a
+ * symbol bolted onto a short word buys less than another word does, and the
+ * rules mostly teach people to write `Password1!`.
+ *
+ * Eight is the floor NIST settles on, and what stands behind it here is the
+ * rest of the arrangement rather than the number: scrypt on every hash, and a
+ * login limited per address and per IP, so an online guessing run is slow
+ * enough to be useless. It is a deliberate trade — twelve resists an offline
+ * crack of a stolen hash better — made because a minimum people cannot meet is
+ * paid for at every sign-up.
+ *
+ * Exported so the interface hint and this check cannot drift apart.
+ */
+export const MIN_PASSWORD_LENGTH = 8;
+
 export interface PasswordProblem {
   ok: false;
   reason: string;
@@ -160,10 +178,11 @@ export function checkPassword(value: unknown): { ok: true } | PasswordProblem {
   if (typeof value !== "string") {
     return { ok: false, reason: "Password is required." };
   }
-  // Length beats composition rules: a 12-character passphrase resists guessing
-  // better than an 8-character one with a symbol bolted on.
-  if (value.length < 12) {
-    return { ok: false, reason: "Use at least 12 characters." };
+  if (value.length < MIN_PASSWORD_LENGTH) {
+    return {
+      ok: false,
+      reason: `Use at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
   }
   if (value.length > 200) {
     return { ok: false, reason: "That password is too long." };

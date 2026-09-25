@@ -216,7 +216,7 @@ const JA: Record<MessageKey, string> = {
   "auth.signUpTitle": "どの端末でも履歴を残せます。",
   "auth.email": "メールアドレス",
   "auth.password": "パスワード",
-  "auth.passwordHint": "12文字以上。フレーズにすると覚えやすいです。",
+  "auth.passwordHint": "8文字以上。フレーズにすると覚えやすいです。",
   "auth.signIn": "ログイン",
   "auth.create": "アカウント作成",
   "auth.forgot": "パスワードをお忘れですか？",

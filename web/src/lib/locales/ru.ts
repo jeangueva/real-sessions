@@ -216,7 +216,7 @@ const RU: Record<MessageKey, string> = {
   "auth.signUpTitle": "Держите историю на всех устройствах.",
   "auth.email": "Эл. почта",
   "auth.password": "Пароль",
-  "auth.passwordHint": "Не меньше 12 символов. Фраза работает хорошо.",
+  "auth.passwordHint": "Не меньше 8 символов. Фраза работает хорошо.",
   "auth.signIn": "Войти",
   "auth.create": "Создать аккаунт",
   "auth.forgot": "Забыли пароль?",

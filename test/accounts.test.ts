@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import {
   checkPassword,
+  MIN_PASSWORD_LENGTH,
   createAccountStore,
   hashPassword,
   hashResetToken,
@@ -59,9 +60,23 @@ describe("input rules", () => {
 
   it("requires length over composition", () => {
     expect(checkPassword("short").ok).toBe(false);
-    expect(checkPassword("Pa$$w0rd!").ok).toBe(false); // 9 chars, still weak
+    // Nothing is asked of the characters themselves: this one is all letters
+    // and passes, while the punctuation-and-digits password below does not,
+    // purely on length.
     expect(checkPassword("a passphrase that is long").ok).toBe(true);
+    expect(checkPassword("Pa$$w0!").ok).toBe(false);
     expect(checkPassword("x".repeat(300)).ok).toBe(false);
+  });
+
+  // The boundary itself, so lowering or raising it is a deliberate edit to a
+  // test rather than something that slips through.
+  it("accepts exactly the minimum and refuses one short of it", () => {
+    expect(MIN_PASSWORD_LENGTH).toBe(8);
+    expect(checkPassword("x".repeat(MIN_PASSWORD_LENGTH)).ok).toBe(true);
+    expect(checkPassword("x".repeat(MIN_PASSWORD_LENGTH - 1))).toEqual({
+      ok: false,
+      reason: "Use at least 8 characters.",
+    });
   });
 });
 

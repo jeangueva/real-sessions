@@ -216,7 +216,7 @@ const HE: Record<MessageKey, string> = {
   "auth.signUpTitle": "שמור את ההיסטוריה שלך בכל המכשירים.",
   "auth.email": "אימייל",
   "auth.password": "סיסמה",
-  "auth.passwordHint": "לפחות 12 תווים. משפט עובד טוב.",
+  "auth.passwordHint": "לפחות 8 תווים. משפט עובד טוב.",
   "auth.signIn": "התחברות",
   "auth.create": "יצירת חשבון",
   "auth.forgot": "שכחת את הסיסמה?",

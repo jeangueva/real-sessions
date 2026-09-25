@@ -216,7 +216,7 @@ const HI: Record<MessageKey, string> = {
   "auth.signUpTitle": "अपना इतिहास हर डिवाइस पर रखें।",
   "auth.email": "ईमेल",
   "auth.password": "पासवर्ड",
-  "auth.passwordHint": "कम से कम 12 अक्षर। एक वाक्य अच्छा काम करता है।",
+  "auth.passwordHint": "कम से कम 8 अक्षर। एक वाक्य अच्छा काम करता है।",
   "auth.signIn": "साइन इन",
   "auth.create": "खाता बनाएँ",
   "auth.forgot": "पासवर्ड भूल गए?",

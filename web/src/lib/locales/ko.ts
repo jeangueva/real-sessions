@@ -216,7 +216,7 @@ const KO: Record<MessageKey, string> = {
   "auth.signUpTitle": "어느 기기에서든 기록을 유지하세요.",
   "auth.email": "이메일",
   "auth.password": "비밀번호",
-  "auth.passwordHint": "12자 이상. 문장으로 만들면 좋습니다.",
+  "auth.passwordHint": "8자 이상. 문장으로 만들면 좋습니다.",
   "auth.signIn": "로그인",
   "auth.create": "계정 만들기",
   "auth.forgot": "비밀번호를 잊으셨나요?",

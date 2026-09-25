@@ -216,7 +216,7 @@ const ZH: Record<MessageKey, string> = {
   "auth.signUpTitle": "在所有设备上保留你的历史记录。",
   "auth.email": "邮箱",
   "auth.password": "密码",
-  "auth.passwordHint": "至少 12 个字符。一句话就很合适。",
+  "auth.passwordHint": "至少 8 个字符。一句话就很合适。",
   "auth.signIn": "登录",
   "auth.create": "创建账户",
   "auth.forgot": "忘记密码？",

@@ -247,7 +247,7 @@ const PT: Record<MessageKey, string> = {
   "auth.signUpTitle": "Guarde seu histórico em todos os dispositivos.",
   "auth.email": "E-mail",
   "auth.password": "Senha",
-  "auth.passwordHint": "Pelo menos 12 caracteres. Uma frase funciona bem.",
+  "auth.passwordHint": "Pelo menos 8 caracteres. Uma frase funciona bem.",
   "auth.signIn": "Entrar",
   "auth.create": "Criar conta",
   "auth.forgot": "Esqueceu a senha?",

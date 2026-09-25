@@ -216,7 +216,7 @@ const AR: Record<MessageKey, string> = {
   "auth.signUpTitle": "احتفظ بسجلّك على كل أجهزتك.",
   "auth.email": "البريد الإلكتروني",
   "auth.password": "كلمة المرور",
-  "auth.passwordHint": "12 حرفًا على الأقل. الجملة تعمل جيدًا.",
+  "auth.passwordHint": "8 أحرف على الأقل. الجملة تعمل جيدًا.",
   "auth.signIn": "تسجيل الدخول",
   "auth.create": "إنشاء حساب",
   "auth.forgot": "نسيت كلمة المرور؟",

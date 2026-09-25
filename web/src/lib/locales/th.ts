@@ -216,7 +216,7 @@ const TH: Record<MessageKey, string> = {
   "auth.signUpTitle": "เก็บประวัติไว้บนทุกอุปกรณ์",
   "auth.email": "อีเมล",
   "auth.password": "รหัสผ่าน",
-  "auth.passwordHint": "อย่างน้อย 12 ตัวอักษร ใช้เป็นวลีก็ได้ผลดี",
+  "auth.passwordHint": "อย่างน้อย 8 ตัวอักษร ใช้เป็นวลีก็ได้ผลดี",
   "auth.signIn": "เข้าสู่ระบบ",
   "auth.create": "สร้างบัญชี",
   "auth.forgot": "ลืมรหัสผ่าน?",
