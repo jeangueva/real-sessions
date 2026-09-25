@@ -348,6 +348,16 @@ export async function createCardSubscription(input: {
   externalReference: string;
   payerEmail: string;
   cardTokenId: string;
+  /**
+   * Where Mercado Pago would send the payer back to.
+   *
+   * Nobody is ever sent anywhere on this path — the card is taken on our own
+   * page and the payer never leaves it — but `/preapproval` rejects a request
+   * without one, `400: back_url is required`, whether or not it has anywhere
+   * to use it. It reached us as "that card was declined", which is what a
+   * missing field looks like from the far side of a generic error message.
+   */
+  backUrl: string;
   reason: string;
   plan: PlanConfig;
 }): Promise<Preapproval> {
@@ -358,6 +368,7 @@ export async function createCardSubscription(input: {
       external_reference: input.externalReference,
       payer_email: input.payerEmail,
       card_token_id: input.cardTokenId,
+      back_url: input.backUrl,
       auto_recurring: {
         frequency: 1,
         frequency_type: "months",

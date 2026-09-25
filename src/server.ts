@@ -1563,6 +1563,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         externalReference: identity.id,
         payerEmail: subscriber.email,
         cardTokenId,
+        // Required even though this flow never redirects: see the field's
+        // comment. The same page the payer is already standing on.
+        backUrl: `${siteUrl()}/app/settings`,
         reason: "Mockio — monthly",
         plan: config,
       });

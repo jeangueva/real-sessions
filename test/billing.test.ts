@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHmac } from "node:crypto";
 import {
   checkoutBlockReason,
+  createCardSubscription,
   describeCause,
   grantsAccess,
   liveBillingEnabled,
@@ -288,5 +289,65 @@ describe("describeCause", () => {
     for (const empty of [undefined, null, [], "not an array", {}, [{}], [""]]) {
       expect(describeCause(empty)).toBe("");
     }
+  });
+});
+
+/**
+ * The body sent to `/preapproval`.
+ *
+ * A subscription refused for a missing field comes back as a 400 that the
+ * route turns into "that card was declined", which points at the payer's bank
+ * rather than at us. `back_url` was absent for exactly that reason — this flow
+ * never redirects, so it read as a field that did not apply — and Mercado Pago
+ * requires it regardless. Pinning the shape here is cheaper than finding the
+ * next one the same way.
+ */
+describe("createCardSubscription", () => {
+  const sent = async () => {
+    let body: Record<string, unknown> = {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: { body: string }) => {
+        body = JSON.parse(init.body) as Record<string, unknown>;
+        return {
+          ok: true,
+          json: async () => ({ id: "2c93", status: "authorized" }),
+        };
+      }),
+    );
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-test";
+    await createCardSubscription({
+      externalReference: "owner-1",
+      payerEmail: "payer@testuser.com",
+      cardTokenId: "tok-1",
+      backUrl: "https://getmockio.com/app/settings",
+      reason: "Mockio — monthly",
+      plan: { amount: 29.9, currency: "PEN" },
+    });
+    return body;
+  };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.MERCADOPAGO_ACCESS_TOKEN;
+  });
+
+  it("sends every field Mercado Pago requires", async () => {
+    const body = await sent();
+    expect(body["back_url"]).toBe("https://getmockio.com/app/settings");
+    expect(body["card_token_id"]).toBe("tok-1");
+    expect(body["payer_email"]).toBe("payer@testuser.com");
+    // The identity, which is what a later notification is matched back to.
+    expect(body["external_reference"]).toBe("owner-1");
+    expect(body["status"]).toBe("authorized");
+  });
+
+  it("charges the configured plan, monthly", async () => {
+    expect((await sent())["auto_recurring"]).toEqual({
+      frequency: 1,
+      frequency_type: "months",
+      transaction_amount: 29.9,
+      currency_id: "PEN",
+    });
   });
 });
