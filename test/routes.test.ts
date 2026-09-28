@@ -537,7 +537,29 @@ describe("the two profiles", () => {
 });
 
 describe("billing", () => {
-  beforeEach(() => api.authenticate());
+  /**
+   * A clean slate, because `env.ts` loads the developer's own `.env`.
+   *
+   * The two tests below assert what an unconfigured deployment answers, and
+   * they were passing by accident: nobody's `.env` happened to set
+   * `MERCADOPAGO_MODE`. The moment one did, they failed on that machine and
+   * stayed green in CI — a test that reports the state of the person running
+   * it rather than the state of the code. Every test that wants credentials
+   * sets its own below.
+   */
+  beforeEach(() => {
+    for (const key of [
+      "MERCADOPAGO_ACCESS_TOKEN",
+      "MERCADOPAGO_PUBLIC_KEY",
+      "MERCADOPAGO_MODE",
+      "MERCADOPAGO_LIVE",
+      "MERCADOPAGO_AMOUNT",
+      "MERCADOPAGO_CURRENCY",
+    ]) {
+      delete process.env[key];
+    }
+    return api.authenticate();
+  });
 
   it("reports itself unconfigured rather than half-working", async () => {
     // No access token and no price on this deployment. The client uses this to
