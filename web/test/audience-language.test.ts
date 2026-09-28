@@ -21,6 +21,7 @@ import { describe, expect, it } from "vitest";
  */
 const here = dirname(fileURLToPath(import.meta.url));
 const spanish = readFileSync(join(here, "../src/lib/locales/es.ts"), "utf8");
+const portuguese = readFileSync(join(here, "../src/lib/locales/pt.ts"), "utf8");
 
 /** Second-person forms that exist only in voseo. */
 const VOSEO = [
@@ -73,6 +74,57 @@ describe("the Spanish interface", () => {
   // without one everywhere else.
   it("spells solo without the old accent", () => {
     const found = entries.filter(({ text }) => /\bsólo\b/i.test(text)).map((e) => e.key);
+    expect(found).toEqual([]);
+  });
+});
+
+/**
+ * The Portuguese interface is Brazilian.
+ *
+ * The audience is Latin America, and Brazil is most of it. Nothing here was
+ * wrong when this was written — 52 uses of `você`, none of `tu` — which is the
+ * moment to pin it, while there is nothing to argue about. A later edit that
+ * reaches for `ficheiro` or `está a fazer` reads as Lisbon, and the reader it
+ * loses is in São Paulo.
+ */
+const EUROPEAN = [
+  "ecrã", "telemóvel", "utilizador", "utilizadores", "ficheiro", "ficheiros",
+  "aceder", "descarregar", "autocarro", "comboio", "casa de banho",
+];
+
+/** `você` takes third-person agreement; `tu` and its possessives mix registers. */
+const SECOND_PERSON = ["tu", "teu", "tua", "teus", "tuas"];
+
+describe("the Portuguese interface", () => {
+  const entradas = values(portuguese);
+
+  it("has entries to check", () => {
+    expect(entradas.length).toBeGreaterThan(400);
+  });
+
+  it("uses Brazilian vocabulary", () => {
+    const found = entradas.flatMap(({ key, text }) =>
+      EUROPEAN.filter((word) => new RegExp(`\\b${word}\\b`, "i").test(text)).map(
+        (word) => `${key}: "${word}"`,
+      ),
+    );
+    expect(found).toEqual([]);
+  });
+
+  it("addresses the reader as você throughout", () => {
+    const found = entradas.flatMap(({ key, text }) =>
+      SECOND_PERSON.filter((word) => new RegExp(`\\b${word}\\b`, "i").test(text)).map(
+        (word) => `${key}: "${word}"`,
+      ),
+    );
+    expect(found).toEqual([]);
+  });
+
+  // "está a fazer" is the European continuous; Brazil says "está fazendo".
+  it("forms the continuous the Brazilian way", () => {
+    const found = entradas
+      .filter(({ text }) => /\b(estou|está|estão|estamos) a [a-zçãéêíóôõú]+r\b/i.test(text))
+      .map((entry) => entry.key);
     expect(found).toEqual([]);
   });
 });
