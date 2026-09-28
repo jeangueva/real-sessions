@@ -1,6 +1,16 @@
 import type { MessageKey } from "../i18n";
 
-/** Spanish, as spoken in the River Plate — the product's first audience. */
+/**
+ * Spanish for Latin America as a whole, not for one country.
+ *
+ * It began as River Plate Spanish and was converted to tuteo: the audience is
+ * the region, and a Peruvian or a Colombian reading `tenés` hears an accent
+ * that is not theirs on a product asking to be trusted with their interview.
+ * Neutral here means no voseo and no peninsular forms — `tú`, never `vos` or
+ * `vosotros` — and vocabulary that does not belong to one capital.
+ *
+ * `language-neutral-spanish.test.ts` holds that line.
+ */
 const ES: Record<MessageKey, string> = {
   "nav.new": "Nueva sesión",
   "nav.context": "Tu contexto",
@@ -35,7 +45,7 @@ const ES: Record<MessageKey, string> = {
   "field.mode": "Modo",
   "field.interviewer": "Entrevistador",
   "field.interviewerHint":
-    "Sólo quienes realmente hacen estas rondas. Un reclutador no toma una entrevista de diseño de sistemas.",
+    "Solo quienes realmente hacen estas rondas. Un reclutador no toma una entrevista de diseño de sistemas.",
   "field.interviewerLocked":
     "Cada empresa manda al entrevistador que su cultura implica. Elegir el tuyo es del plan pago.",
   "field.sector": "Sector",
@@ -64,10 +74,10 @@ const ES: Record<MessageKey, string> = {
   "call.unmute": "Activar micrófono",
   "call.cameraOn": "Encender cámara",
   "call.cameraOff": "Apagar cámara",
-  "call.cameraNote": "Sólo tú la ves. No se envía ni se graba.",
+  "call.cameraNote": "Solo tú la ves. No se envía ni se graba.",
   "call.share": "Compartir pantalla",
   "call.stopShare": "Dejar de compartir",
-  "call.shareNote": "Sólo tú la ves. No se envía ni se graba.",
+  "call.shareNote": "Solo tú la ves. No se envía ni se graba.",
   "call.showPanel": "Mostrar transcripción",
   "call.hidePanel": "Ocultar transcripción",
   "call.leave": "Salir de la entrevista",
@@ -83,8 +93,8 @@ const ES: Record<MessageKey, string> = {
   "call.playTurn": "Reproducir este turno",
   "call.seeFeedback": "Ver el informe",
   "call.interviewer": "Entrevistador",
-  "call.you": "Vos",
-  "call.selfView": "Tu cámara, visible sólo para ti",
+  "call.you": "Tú",
+  "call.selfView": "Tu cámara, visible solo para ti",
   "call.sharedScreen": "La pantalla que estás compartiendo",
 
   "panel.transcript": "transcripción",
@@ -92,7 +102,7 @@ const ES: Record<MessageKey, string> = {
   "panel.label": "Panel de la sesión",
   "panel.empty": "Lo que digan los dos aparece aquí, a medida que se dice.",
   "panel.typingNote":
-    "Escribir es la misma entrevista, sólo que sin micrófono. Sirve para una palabra que todavía no te sale en voz alta.",
+    "Escribir es la misma entrevista, solo que sin micrófono. Sirve para una palabra que todavía no te sale en voz alta.",
   "panel.placeholder": "Escribe tu respuesta…",
   "panel.send": "Enviar",
   "panel.enterToSend": "Enter para enviar · Shift + Enter para otra línea",
