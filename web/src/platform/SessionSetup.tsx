@@ -22,6 +22,7 @@ import { SetupSearch, type SetupChoice } from "./SetupSearch";
 import { FilterOption, FilterRow, FilterSegment } from "./FilterBar";
 import { Tour } from "./Tour";
 import { useT } from "@/hooks/useLocale";
+import { track } from "@/lib/analytics";
 import { RecentSessions } from "./RecentSessions";
 
 /**
@@ -727,7 +728,15 @@ export function SessionSetup() {
                 /* The server refuses this anyway. Saying so before the click
                    is the difference between a paywall and a failure. */
                 disabled={left === 0}
-            onClick={() =>
+            onClick={() => {
+              // The shape of the interview, never what was typed into the
+              // company box: that is a name a person chose to tell us.
+              track("interview started", {
+                round: chosenStages.map((entry) => entry.id).join("+"),
+                language: languageId,
+                level: levelId,
+                targeted: company !== "",
+              });
               navigate("/app/session", {
                 state: {
                   company,
@@ -742,8 +751,8 @@ export function SessionSetup() {
                   personaId,
                   pressure,
                 },
-              })
-            }
+              });
+            }}
               >
                 {t("setup.begin")}
               </Action>

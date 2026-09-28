@@ -10,6 +10,7 @@ import {
 } from "@/lib/api";
 import type { BillingState, Plan, Session } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
+import { track } from "@/lib/analytics";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { CardForm, refusalMessage } from "./CardForm";
 import type { MessageKey } from "@/lib/i18n";
@@ -59,6 +60,16 @@ export function Billing() {
   };
 
   useEffect(load, []);
+
+  // Reaching the plan panel at all, which is the step before any decision
+  // about paying. Sent once per mount, and only once the first answer is in,
+  // so it counts people rather than renders.
+  const seen = useRef(false);
+  useEffect(() => {
+    if (!state || seen.current) return;
+    seen.current = true;
+    track("plan viewed", { plan: plan ?? "unknown", configured: state.configured });
+  }, [state, plan]);
 
   /**
    * Arrived from the pricing card, which links to `#plan`.
@@ -210,6 +221,10 @@ export function Billing() {
             currency={state.plan.currency}
             locale={locale === "pt" ? "pt-BR" : locale === "es" ? "es-PE" : "en-US"}
             onSubscribed={() => {
+              track("subscription started", {
+                amount: state.plan!.amount,
+                currency: state.plan!.currency,
+              });
               setPaying(false);
               load();
             }}

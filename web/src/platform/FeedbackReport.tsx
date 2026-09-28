@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Action, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
+import { track } from "@/lib/analytics";
 import { SAMPLE_EVALUATION } from "@/lib/evaluation";
 import type { Evaluation } from "@/lib/evaluation";
 import { ApiError, fetchHistoryEntry, requestEvaluation } from "@/lib/api";
@@ -80,6 +81,10 @@ export function FeedbackReport() {
       requested.current = true;
       requestEvaluation(sessionId)
         .then((result) => {
+          track("interview finished", {
+            score: result.evaluation.overall_score_percentage,
+            spoken: result.metrics?.fromSpeech ?? false,
+          });
           setEvaluation(result.evaluation);
           setMetrics(result.metrics);
           setWithheld(result.withheld);

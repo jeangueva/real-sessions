@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { MotionConfig } from "framer-motion";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Hero } from "@/components/Hero";
 import { LandingNav } from "@/components/LandingNav";
 import { Privacy, Terms } from "@/legal/LegalPage";
@@ -23,6 +24,24 @@ import { ResetPassword } from "@/platform/ResetPassword";
 import { Unsubscribe } from "@/platform/Unsubscribe";
 import { ConfirmEmail } from "@/platform/ConfirmEmail";
 import { LocaleProvider } from "@/hooks/useLocale";
+import { pageView, startAnalytics } from "@/lib/analytics";
+
+/**
+ * One page view per route change.
+ *
+ * Inside the router because that is the only place that knows a route actually
+ * changed: PostHog's own listener fires on the history events this app uses
+ * for its own state too — the settings tabs and the `#plan` anchor among
+ * them — and would count those as visits.
+ */
+function RouteViews() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    startAnalytics();
+    pageView(pathname);
+  }, [pathname]);
+  return null;
+}
 
 function Landing() {
   return (
@@ -63,6 +82,7 @@ export function App() {
     <MotionConfig reducedMotion="user">
     <LocaleProvider>
     <BrowserRouter>
+      <RouteViews />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signin" element={<SignIn />} />

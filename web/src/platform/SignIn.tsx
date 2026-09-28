@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
+import { track } from "@/lib/analytics";
 import { privacyFor, termsFor, legalLocale } from "@/legal/content";
 import { useLocale, useT } from "@/hooks/useLocale";
 
@@ -27,6 +28,7 @@ export function SignIn() {
     setError(null);
     try {
       await (mode === "in" ? signIn : signUp)(email, password);
+      if (mode !== "in") track("account created");
       navigate(state?.from ?? "/app", { replace: true });
     } catch (caught) {
       setError(
