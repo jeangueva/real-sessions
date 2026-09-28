@@ -257,6 +257,7 @@ const RU: Record<MessageKey, string> = {
   "billing.opening": "Открываем оплату…",
   "billing.upgradeAmount": "Перейти на платный — {amount} {currency} / месяц",
   "billing.upgrade": "Перейти на платный",
+  "billing.resume": "Возобновить платный план",
   "billing.sandbox": "Тестовая среда: реальные деньги не списываются.",
   "billing.notOn": "Платежи ещё не включены.",
   "billing.needsAccount": "Для подписки нужен аккаунт: подписка должна жить дольше браузера.",

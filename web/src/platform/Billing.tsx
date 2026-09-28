@@ -116,6 +116,16 @@ export function Billing() {
   const subscription = state.subscription;
   const active = plan === "premium";
   const canBeBilled = session?.kind === "user";
+  /**
+   * Cancelled, with time still on the clock.
+   *
+   * The state the panel handled worst: the plan is `premium`, so every offer
+   * to subscribe was hidden behind `!active`, and the cancel button is gone
+   * because there is nothing left to cancel. It left the card with no action
+   * at all, at exactly the moment someone who cancelled by mistake — or
+   * changed their mind the next day — is easiest to win back.
+   */
+  const lapsing = subscription?.status === "cancelled";
 
   return (
     <div ref={panel} id="plan">
@@ -129,7 +139,11 @@ export function Billing() {
         {active && !subscription && ` ${t("billing.granted")}`}
       </p>
 
-      {subscription && (
+      {/* Not while `lapsing`: the note at the foot of the card already gives
+          this status and this date, and says why the plan is still running.
+          Two paragraphs repeating "Cancelled" and the same date read as a
+          screen nobody proofread. */}
+      {subscription && !lapsing && (
         <p className="mt-2 text-xs text-cream-faint">
           {STATUS_COPY[subscription.status]
             ? t(STATUS_COPY[subscription.status]!)
@@ -170,22 +184,26 @@ export function Billing() {
           </div>
         )}
 
-        {!active && state.configured && canBeBilled && state.publicKey && !paying && (
+        {(!active || lapsing) && state.configured && canBeBilled && state.publicKey && !paying && (
           <Action withArrow onClick={() => setPaying(true)} disabled={busy}>
-            {state.plan
-              ? t("billing.upgradeAmount", {
-                  amount: state.plan.amount,
-                  currency: state.plan.currency,
-                })
-              : t("billing.upgrade")}
+            {lapsing
+              ? t("billing.resume")
+              : state.plan
+                ? t("billing.upgradeAmount", {
+                    amount: state.plan.amount,
+                    currency: state.plan.currency,
+                  })
+                : t("billing.upgrade")}
           </Action>
         )}
 
-        {!active && state.configured && canBeBilled && !state.publicKey && (
+        {(!active || lapsing) && state.configured && canBeBilled && !state.publicKey && (
           <Action withArrow onClick={() => void upgrade()} disabled={busy}>
             {busy
               ? t("billing.opening")
-              : state.plan
+              : lapsing
+                ? t("billing.resume")
+                : state.plan
                 ? t("billing.upgradeAmount", {
                     amount: state.plan.amount,
                     currency: state.plan.currency,
@@ -232,7 +250,7 @@ export function Billing() {
         </div>
       )}
 
-      {subscription?.status === "cancelled" && subscription.periodEnd && (
+      {lapsing && subscription.periodEnd && (
         <p className="mt-4 border-t border-line pt-4 text-xs text-cream-faint">
           {t("billing.cancelledUntil", {
             date: formatSessionDate(subscription.periodEnd),

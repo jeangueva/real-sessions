@@ -257,6 +257,7 @@ const DE: Record<MessageKey, string> = {
   "billing.opening": "Öffne die Kasse…",
   "billing.upgradeAmount": "Auf Bezahltarif wechseln — {amount} {currency} / Monat",
   "billing.upgrade": "Auf Bezahltarif wechseln",
+  "billing.resume": "Bezahlten Plan reaktivieren",
   "billing.sandbox": "Testumgebung — es wird kein echtes Geld abgebucht.",
   "billing.notOn": "Zahlungen sind noch nicht aktiviert.",
   "billing.needsAccount": "Für ein Abo brauchst du ein Konto — ein Abo muss einen Browser überdauern.",

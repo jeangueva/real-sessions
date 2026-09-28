@@ -257,6 +257,7 @@ const HE: Record<MessageKey, string> = {
   "billing.opening": "פותחים את התשלום…",
   "billing.upgradeAmount": "שדרוג — {amount} {currency} / חודש",
   "billing.upgrade": "שדרוג",
+  "billing.resume": "חידוש המנוי בתשלום",
   "billing.sandbox": "סביבת בדיקה — לא נגבה כסף אמיתי.",
   "billing.notOn": "התשלומים עדיין לא הופעלו.",
   "billing.needsAccount": "כדי להירשם צריך חשבון — מנוי צריך לשרוד מעבר לדפדפן.",
