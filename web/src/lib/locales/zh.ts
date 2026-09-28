@@ -116,6 +116,7 @@ const ZH: Record<MessageKey, string> = {
   "feedback.reading": "正在读你的转写。通常不到一分钟。",
   "feedback.again": "再练一次",
   "feedback.overall": "总体",
+  "feedback.sample": "示例报告",
   "feedback.vocabulary": "词汇",
   "feedback.structure": "结构",
   "feedback.againstBar": "分数把你和这个职位、这一轮的标准做比较，而不是和其他候选人比较。",

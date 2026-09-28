@@ -117,6 +117,7 @@ const FR: Record<MessageKey, string> = {
   "feedback.reading": "Lecture de votre transcription. Cela prend généralement moins d'une minute.",
   "feedback.again": "S'entraîner à nouveau",
   "feedback.overall": "Global",
+  "feedback.sample": "Rapport d'exemple",
   "feedback.vocabulary": "Vocabulaire",
   "feedback.structure": "Structure",
   "feedback.againstBar": "Les scores vous comparent au niveau attendu pour ce poste et ce tour, pas aux autres candidats.",

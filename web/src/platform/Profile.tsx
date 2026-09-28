@@ -146,7 +146,7 @@ export function Profile() {
         }
       />
 
-      <PageBody className="grid gap-4 lg:grid-cols-2">
+      <PageBody className="grid items-start gap-6 lg:grid-cols-2">
         <Panel className="flex flex-col gap-5 p-6">
           <div>
             <Eyebrow>{t("profile.cvTitle")}</Eyebrow>

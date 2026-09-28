@@ -41,7 +41,7 @@ export function FeedbackReport() {
   const [meta, setMeta] = useState(
     state?.company
       ? `${state.company} · ${state.role} · ${state.stage}`
-      : "Sample report",
+      : t("feedback.sample"),
   );
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
@@ -263,7 +263,7 @@ function FeedbackBody({
         </FadeRise>
 
         {withheld.metrics && (
-          <FadeRise delay={0.25} className="lg:col-span-3">
+          <FadeRise delay={0.25} className="lg:col-span-3 lg:order-2">
             <Panel variant="glass" className="flex flex-wrap items-center justify-between gap-4 p-6">
               <div className="max-w-xl">
                 <Eyebrow>{t("feedback.measured")}</Eyebrow>
@@ -279,7 +279,7 @@ function FeedbackBody({
         )}
 
         {metrics && (
-          <FadeRise delay={0.25} className="lg:col-span-3">
+          <FadeRise delay={0.25} className="lg:col-span-3 lg:order-2">
             <Panel className="flex flex-col gap-5 p-6">
               <div>
                 <Eyebrow>{t("feedback.measured")}</Eyebrow>
@@ -308,8 +308,8 @@ function FeedbackBody({
         )}
 
         {(xp !== null || earned.length > 0) && (
-          <FadeRise delay={0.28} className="lg:col-span-3">
-            <Panel variant="raised" className="flex flex-wrap items-center gap-6 p-6">
+          <FadeRise delay={0.28} className="lg:col-span-1 lg:order-1">
+            <Panel variant="raised" className="flex flex-col gap-5 p-6">
               {xp && (
                 <div>
                   <Eyebrow>{t("feedback.earned")}</Eyebrow>
@@ -340,7 +340,7 @@ function FeedbackBody({
           </FadeRise>
         )}
 
-        <FadeRise delay={0.3} className="lg:col-span-3">
+        <FadeRise delay={0.3} className="lg:col-span-3 lg:order-3">
           <Panel variant="raised" className="flex h-full flex-col gap-4 p-6">
             <Eyebrow>{t("feedback.nextTime")}</Eyebrow>
             {withheld.nextSteps && (

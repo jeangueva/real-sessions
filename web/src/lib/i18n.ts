@@ -195,6 +195,7 @@ const EN = {
   "feedback.reading": "Reading your transcript. This usually takes under a minute.",
   "feedback.again": "Practice again",
   "feedback.overall": "Overall",
+  "feedback.sample": "Sample report",
   "feedback.vocabulary": "Vocabulary",
   "feedback.structure": "Structure",
   "feedback.againstBar":

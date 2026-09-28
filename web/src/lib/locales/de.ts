@@ -116,6 +116,7 @@ const DE: Record<MessageKey, string> = {
   "feedback.reading": "Lese dein Transkript. Das dauert meist unter einer Minute.",
   "feedback.again": "Nochmal üben",
   "feedback.overall": "Gesamt",
+  "feedback.sample": "Beispielbericht",
   "feedback.vocabulary": "Wortschatz",
   "feedback.structure": "Struktur",
   "feedback.againstBar": "Die Bewertung vergleicht dich mit der Messlatte für diese Rolle und Runde, nicht mit anderen Bewerbern.",

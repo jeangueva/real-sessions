@@ -116,6 +116,7 @@ const HI: Record<MessageKey, string> = {
   "feedback.reading": "आपका ट्रांसक्रिप्ट पढ़ रहे हैं। आम तौर पर एक मिनट से कम लगता है।",
   "feedback.again": "फिर से अभ्यास करें",
   "feedback.overall": "कुल मिलाकर",
+  "feedback.sample": "नमूना रिपोर्ट",
   "feedback.vocabulary": "शब्दावली",
   "feedback.structure": "संरचना",
   "feedback.againstBar": "अंक आपकी तुलना इस भूमिका और दौर के मानक से करते हैं, दूसरे उम्मीदवारों से नहीं।",

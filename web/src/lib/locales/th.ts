@@ -116,6 +116,7 @@ const TH: Record<MessageKey, string> = {
   "feedback.reading": "กำลังอ่านบทถอดความของคุณ ปกติใช้เวลาไม่ถึงหนึ่งนาที",
   "feedback.again": "ฝึกอีกครั้ง",
   "feedback.overall": "ภาพรวม",
+  "feedback.sample": "รายงานตัวอย่าง",
   "feedback.vocabulary": "คำศัพท์",
   "feedback.structure": "โครงสร้าง",
   "feedback.againstBar": "คะแนนเทียบคุณกับมาตรฐานของตำแหน่งและรอบนี้ ไม่ใช่กับผู้สมัครคนอื่น",

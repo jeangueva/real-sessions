@@ -278,8 +278,17 @@ export function PageBody({
   className?: string;
 }) {
   return (
-    <div className={`w-full px-4 py-8 sm:px-6 lg:px-10 lg:py-10 ${className}`}>
-      <div className="mx-auto w-full max-w-[110rem]">{children}</div>
+    /* One element, not two. The gutters, the ceiling and whatever layout the
+       screen asks for all have to land on the element that actually holds the
+       children: with the className on an outer wrapper, a screen asking for
+       `lg:grid-cols-2` laid out the wrapper's single child — so the columns
+       were the wrapper's, the content stacked inside the first one, and every
+       screen that asked for a grid sat squashed against the left edge with
+       half the window empty. */
+    <div
+      className={`mx-auto w-full max-w-[110rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10 ${className}`}
+    >
+      {children}
     </div>
   );
 }

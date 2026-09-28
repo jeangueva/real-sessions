@@ -116,6 +116,7 @@ const HE: Record<MessageKey, string> = {
   "feedback.reading": "קוראים את התמלול שלך. בדרך כלל זה לוקח פחות מדקה.",
   "feedback.again": "לתרגל שוב",
   "feedback.overall": "כללי",
+  "feedback.sample": "דוח לדוגמה",
   "feedback.vocabulary": "אוצר מילים",
   "feedback.structure": "מבנה",
   "feedback.againstBar": "הציונים משווים אותך לרף של התפקיד והסבב הזה, לא למועמדים אחרים.",

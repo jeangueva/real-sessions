@@ -116,6 +116,7 @@ const KO: Record<MessageKey, string> = {
   "feedback.reading": "전사를 읽는 중입니다. 보통 1분이 걸리지 않습니다.",
   "feedback.again": "다시 연습하기",
   "feedback.overall": "종합",
+  "feedback.sample": "예시 리포트",
   "feedback.vocabulary": "어휘",
   "feedback.structure": "구조",
   "feedback.againstBar": "점수는 다른 지원자가 아니라 이 직무와 라운드의 기준과 비교한 값입니다.",

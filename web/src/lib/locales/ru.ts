@@ -116,6 +116,7 @@ const RU: Record<MessageKey, string> = {
   "feedback.reading": "Читаем вашу расшифровку. Обычно это занимает меньше минуты.",
   "feedback.again": "Позаниматься ещё",
   "feedback.overall": "Общее",
+  "feedback.sample": "Пример отчёта",
   "feedback.vocabulary": "Лексика",
   "feedback.structure": "Структура",
   "feedback.againstBar": "Баллы сравнивают вас с планкой для этой роли и этого раунда, а не с другими кандидатами.",

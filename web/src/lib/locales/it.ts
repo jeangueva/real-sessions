@@ -117,6 +117,7 @@ const IT: Record<MessageKey, string> = {
   "feedback.reading": "Sto leggendo la tua trascrizione. Di solito ci vuole meno di un minuto.",
   "feedback.again": "Esercitati di nuovo",
   "feedback.overall": "Complessivo",
+  "feedback.sample": "Report di esempio",
   "feedback.vocabulary": "Lessico",
   "feedback.structure": "Struttura",
   "feedback.againstBar": "I punteggi ti confrontano con l'asticella per questo ruolo e questo round, non con altri candidati.",

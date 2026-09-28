@@ -116,6 +116,7 @@ const JA: Record<MessageKey, string> = {
   "feedback.reading": "文字起こしを読んでいます。たいてい1分もかかりません。",
   "feedback.again": "もう一度練習する",
   "feedback.overall": "総合",
+  "feedback.sample": "サンプルレポート",
   "feedback.vocabulary": "語彙",
   "feedback.structure": "構成",
   "feedback.againstBar": "点数は他の候補者ではなく、この職種とラウンドの基準と比べたものです。",

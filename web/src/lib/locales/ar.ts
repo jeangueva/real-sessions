@@ -116,6 +116,7 @@ const AR: Record<MessageKey, string> = {
   "feedback.reading": "نقرأ نصّ جلستك. عادةً يستغرق أقلّ من دقيقة.",
   "feedback.again": "تدرّب مجددًا",
   "feedback.overall": "الإجمالي",
+  "feedback.sample": "تقرير نموذجي",
   "feedback.vocabulary": "المفردات",
   "feedback.structure": "البنية",
   "feedback.againstBar": "الدرجات تقارنك بمستوى هذا الدور وهذه الجولة، لا بمرشّحين آخرين.",

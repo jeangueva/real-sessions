@@ -131,6 +131,7 @@ const PT: Record<MessageKey, string> = {
   "feedback.reading": "Lendo sua transcrição. Costuma levar menos de um minuto.",
   "feedback.again": "Praticar de novo",
   "feedback.overall": "Geral",
+  "feedback.sample": "Relatório de exemplo",
   "feedback.vocabulary": "Vocabulário",
   "feedback.structure": "Estrutura",
   "feedback.againstBar":
