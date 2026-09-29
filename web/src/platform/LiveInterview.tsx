@@ -104,8 +104,20 @@ export function LiveInterview() {
    * was the only case before.
    */
   const [voiceOn, setVoiceOn] = useState(true);
-  /** Set when the candidate closes the microphone themselves. Nothing else reopens it. */
-  const [micOff, setMicOff] = useState(false);
+  /**
+   * Whether the microphone is being held shut. Starts that way.
+   *
+   * The interviewer speaks on arrival, but nobody's microphone should open
+   * because they opened a page: a candidate lands here with a room around
+   * them and no reason to expect they are already being listened to. Opening
+   * it is the one gesture worth asking for — and it doubles as the moment
+   * they choose to start.
+   *
+   * After that it behaves like a call: cleared by the first press, and every
+   * turn from then on opens by itself. Pressing it closed means closed, and
+   * nothing reopens it.
+   */
+  const [micOff, setMicOff] = useState(true);
   const [persona, setPersona] = useState<Persona | null>(null);
   /**
    * What the server is actually interviewing against. Null until the session
@@ -228,9 +240,11 @@ export function LiveInterview() {
    * the flag burned on a call that never happened and the microphone stayed
    * shut for the whole interview.
    *
-   * `micOff` is the one thing that stops it: someone who closed the
-   * microphone by hand meant it, and an effect that reopened it a frame later
-   * would be a product arguing with its user.
+   * `micOff` is the one thing that stops it, and it starts set: the
+   * interviewer introduces themselves to a closed microphone, which is the
+   * only arrangement where nobody is recorded before they have agreed to
+   * speak. Someone who later closes it by hand meant it too, and an effect
+   * that reopened it a frame later would be a product arguing with its user.
    */
   useEffect(() => {
     if (micOff || !voiceOn || busy || voice.blocked) return;

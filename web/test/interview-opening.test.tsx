@@ -43,6 +43,13 @@ describe("the opening turn", () => {
     expect(source).toContain("setMicOff(true)");
   });
 
+  it("leaves the microphone shut until the candidate opens it", () => {
+    // The interviewer introduces themselves either way. What must not happen
+    // is a microphone opening because someone opened a page — they land here
+    // with a room around them and no reason to expect they are being heard.
+    expect(source).toContain("const [micOff, setMicOff] = useState(true)");
+  });
+
   it("routes a blocked click back through startVoice", () => {
     // With voice on from the start, a browser that refused to play needs the
     // click to reach the code that speaks the pending turn. Straight to the
