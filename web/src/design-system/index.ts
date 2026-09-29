@@ -6,6 +6,8 @@ export {
   useTypewriter,
 } from "./motion";
 export type { StyledSegment } from "./motion";
+export { Accordion } from "./accordion";
+export type { AccordionEntry } from "./accordion";
 export {
   Action,
   Eyebrow,
