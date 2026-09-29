@@ -679,7 +679,7 @@ describe("billing", () => {
     }
   });
 
-  it("settles a hosted checkout on the way back, without a webhook", async () => {
+  it("settles a hosted checkout when the panel asks, without a webhook", async () => {
     /**
      * The redirect flow leaves a `pending` row and walks the payer to Mercado
      * Pago. Only the webhook turned that into a paid plan — so a notification
@@ -733,7 +733,12 @@ describe("billing", () => {
       expect(started.status).toBe(201);
       expect(opened).toBe(true);
 
-      // What the payer's browser does when Mercado Pago sends them back.
+      // What the payer's browser does when Mercado Pago sends them back: the
+      // panel settles first, then reads.
+      const settled = await api.call("/api/billing/reconcile", post({}));
+      expect(settled.status).toBe(200);
+      expect(((await settled.json()) as { plan: string }).plan).toBe("premium");
+
       const state = await api.json<{ subscription: { status: string } | null }>(
         "/api/billing",
       );
@@ -783,6 +788,12 @@ describe("billing", () => {
         post({ email: "stranded@b.com", password: "a long enough passphrase" }),
       );
       expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
+
+      // The provider is unreachable, so settling fails and says so — but the
+      // panel behind it still renders from the stored row. A billing page
+      // that fails because Mercado Pago is down is a worse answer than one a
+      // few minutes stale.
+      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(502);
 
       const response = await api.call("/api/billing");
       expect(response.status).toBe(200);

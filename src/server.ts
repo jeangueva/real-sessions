@@ -725,26 +725,6 @@ async function runWeeklyDigest(): Promise<void> {
 }
 
 /**
- * The subscription, asking the provider when our own copy cannot be trusted.
- *
- * The hosted checkout leaves a row saying `pending` and walks the payer over
- * to Mercado Pago. What turns that into a paid plan is the webhook — and a
- * webhook is a promise from someone else's server. When it is late, lost, or
- * refused, the payer comes back to a page that reads "you are on the free
- * plan" with the money already gone. That is the one failure this product
- * cannot afford: charging someone and delivering nothing.
- *
- * So a row that has not settled is reconciled against Mercado Pago, which is
- * the authority on whether they paid. `pending` is a transient state — it
- * belongs to the minutes between opening a checkout and finishing it — so
- * this costs one provider call on the panel loads that happen inside that
- * window, and none at all afterwards.
- *
- * A provider that cannot be reached leaves the stored row untouched: a
- * billing panel that fails to render because the provider is down would be a
- * worse answer than one showing a status that is a few minutes stale.
- */
-/**
  * Whether a refusal may carry the provider's own words back to the browser.
  *
  * Two conditions, not one. `MERCADOPAGO_MODE` says which credentials are in
@@ -760,18 +740,6 @@ async function runWeeklyDigest(): Promise<void> {
 function mayExplainRefusal(): boolean {
   if (billingMode() !== "test") return false;
   return !/(^|\.)getmockio\.com$/i.test(new URL(siteUrl()).hostname);
-}
-
-async function settledSubscription(ownerId: string) {
-  const held = await SUBSCRIPTIONS.forOwner(ownerId);
-  if (!held || grantsAccess(held.status)) return held;
-  try {
-    await reconcileSubscription(held.externalId);
-  } catch (error) {
-    console.warn("[mockio] could not reconcile on read:", error);
-    return held;
-  }
-  return SUBSCRIPTIONS.forOwner(ownerId);
 }
 
 async function reconcileSubscription(externalId: string): Promise<Plan | null> {
@@ -1482,9 +1450,44 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // credentials are indistinguishable: a deployment left in the wrong one
       // looks exactly like the right one until money does or does not move.
       mode: billingMode(),
-      subscription: await settledSubscription(identity.id),
+      subscription: await SUBSCRIPTIONS.forOwner(identity.id),
     });
     return;
+  }
+
+  /**
+   * Asks the provider whether a subscription of ours has settled.
+   *
+   * The hosted checkout leaves a row saying `pending` and walks the payer to
+   * Mercado Pago. What turns that into a paid plan is the webhook — and a
+   * webhook is a promise from someone else's server. Late, lost, or refused,
+   * and the payer comes back to a page reading "you are on the free plan"
+   * with the money gone.
+   *
+   * This lived inside `GET /api/billing` for a while, which meant a read that
+   * wrote: correct, and a surprise to anyone who opened the file later. It is
+   * its own POST now, called by the panel when it loads. The cost of moving
+   * it is that a client which forgets to call it brings the old bug back
+   * silently, so the test that holds this is the one on the panel, not the
+   * one here.
+   *
+   * Answers 200 with the plan in every case a caller can do anything about:
+   * nothing to reconcile, nothing changed, or settled. A provider that cannot
+   * be reached is a 502 — the panel keeps its stored status and says nothing,
+   * rather than failing to render because Mercado Pago is down.
+   */
+  if (req.method === "POST" && path === "/api/billing/reconcile") {
+    const held = await SUBSCRIPTIONS.forOwner(identity.id);
+    if (!held || grantsAccess(held.status)) {
+      return json(res, 200, { plan: await PLANS.planFor(identity.id) });
+    }
+    try {
+      const settled = await reconcileSubscription(held.externalId);
+      return json(res, 200, { plan: settled ?? (await PLANS.planFor(identity.id)) });
+    } catch (error) {
+      console.warn("[mockio] could not reconcile:", error);
+      return json(res, 502, { error: "Could not reach Mercado Pago." });
+    }
   }
 
   if (req.method === "DELETE" && path === "/api/account") {

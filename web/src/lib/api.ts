@@ -686,6 +686,19 @@ export function subscribeWithCard(cardTokenId: string) {
   );
 }
 
+/**
+ * Asks the server to check an unsettled subscription against the provider.
+ *
+ * Called when the plan panel loads, which is where someone lands after the
+ * hosted checkout sends them back. Without it a payer whose webhook was late
+ * or lost reads "you are on the free plan" with the money already gone.
+ */
+export function reconcileBilling() {
+  return withIdentity(() =>
+    request<{ plan: Plan }>("/api/billing/reconcile", { method: "POST" }),
+  );
+}
+
 export function fetchBilling() {
   return withIdentity(() =>
     request<BillingState>("/api/billing", { method: "GET" }),

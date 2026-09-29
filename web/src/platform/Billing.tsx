@@ -6,6 +6,7 @@ import {
   fetchBilling,
   fetchPlan,
   fetchSession,
+  reconcileBilling,
   startCheckout,
 } from "@/lib/api";
 import type { BillingState, Plan, Session } from "@/lib/api";
@@ -53,10 +54,23 @@ export function Billing() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Settle first, then read.
+   *
+   * Someone arriving here from the hosted checkout has a row that still says
+   * `pending`: the plan becomes theirs when the webhook lands, and a webhook
+   * can be late, lost or refused. So the panel asks the server to check with
+   * the provider before it reads anything, and reads afterwards either way —
+   * a provider that cannot be reached should leave a slightly stale panel,
+   * not an empty one.
+   */
   const load = () => {
-    fetchBilling().then(setState).catch(() => setState(null));
-    fetchPlan().then((result) => setPlan(result.plan)).catch(() => undefined);
-    fetchSession().then(setSession).catch(() => undefined);
+    const read = () => {
+      fetchBilling().then(setState).catch(() => setState(null));
+      fetchPlan().then((result) => setPlan(result.plan)).catch(() => undefined);
+      fetchSession().then(setSession).catch(() => undefined);
+    };
+    reconcileBilling().then(read, read);
   };
 
   useEffect(load, []);
