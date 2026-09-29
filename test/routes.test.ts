@@ -794,6 +794,92 @@ describe("billing", () => {
     }
   });
 
+  describe("the provider's own reason for a refusal", () => {
+    /**
+     * Two conditions guard it, and the point is that they have to agree.
+     *
+     * The reason is what makes a sandbox debuggable — a wrong test card, a
+     * currency the account cannot take, credentials from two applications all
+     * arrive as "declined" without it. It is also a list of which cards the
+     * provider refused and why, which is worth having to someone working
+     * through stolen ones. A single environment variable standing between
+     * those two readings is one typo in a dashboard.
+     */
+    const realFetch = globalThis.fetch;
+    const refuse = () => {
+      globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const url = String(input);
+        if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
+        const body = { message: "back_url is required" };
+        return {
+          ok: false, status: 400,
+          json: async () => body,
+          text: async () => JSON.stringify(body),
+        } as unknown as Response;
+      }) as typeof fetch;
+    };
+
+    const attempt = async () => {
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: `refused${Math.random().toString(36).slice(2)}@b.com`, password: "a long enough passphrase" }),
+      );
+      const response = await api.call("/api/billing/subscribe", post({ cardTokenId: "tok-1" }));
+      return (await response.json()) as { error: string; detail?: string };
+    };
+
+    it("explains itself in a sandbox that is not the public site", async () => {
+      const before = { ...process.env };
+      refuse();
+      process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+      process.env.MERCADOPAGO_MODE = "test";
+      process.env.MERCADOPAGO_AMOUNT = "9";
+      process.env.MERCADOPAGO_CURRENCY = "ARS";
+      process.env.REALSESSIONS_SITE_URL = "http://localhost:5173";
+      try {
+        expect((await attempt()).detail).toContain("back_url is required");
+      } finally {
+        globalThis.fetch = realFetch;
+        process.env = before;
+      }
+    });
+
+    it("says nothing extra once the mode is live", async () => {
+      const before = { ...process.env };
+      refuse();
+      process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
+      process.env.MERCADOPAGO_MODE = "live";
+      process.env.MERCADOPAGO_AMOUNT = "9";
+      process.env.MERCADOPAGO_CURRENCY = "ARS";
+      process.env.REALSESSIONS_SITE_URL = "http://localhost:5173";
+      try {
+        expect((await attempt()).detail).toBeUndefined();
+      } finally {
+        globalThis.fetch = realFetch;
+        process.env = before;
+      }
+    });
+
+    it("says nothing extra on the public site, whatever the mode claims", async () => {
+      // The second lock. A deployment left in test mode by mistake still
+      // must not hand the provider's wording to a real candidate.
+      const before = { ...process.env };
+      refuse();
+      process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+      process.env.MERCADOPAGO_MODE = "test";
+      process.env.MERCADOPAGO_AMOUNT = "9";
+      process.env.MERCADOPAGO_CURRENCY = "ARS";
+      process.env.REALSESSIONS_SITE_URL = "https://www.getmockio.com";
+      try {
+        expect((await attempt()).detail).toBeUndefined();
+      } finally {
+        globalThis.fetch = realFetch;
+        process.env = before;
+      }
+    });
+  });
+
   describe("the webhook", () => {
     const url = "/api/billing/webhook?data.id=mp-123&type=preapproval";
 

@@ -744,6 +744,24 @@ async function runWeeklyDigest(): Promise<void> {
  * billing panel that fails to render because the provider is down would be a
  * worse answer than one showing a status that is a few minutes stale.
  */
+/**
+ * Whether a refusal may carry the provider's own words back to the browser.
+ *
+ * Two conditions, not one. `MERCADOPAGO_MODE` says which credentials are in
+ * use, and on its own it is a single environment variable standing between a
+ * candidate and Mercado Pago's internal wording — one typo in a dashboard and
+ * a real payer reads which of their cards the provider refused and why, which
+ * is a list worth having for someone working through stolen cards.
+ *
+ * So the site has to also not be the public one. Getting this wrong now takes
+ * two mistakes that have to agree with each other, and the log keeps the
+ * detail either way.
+ */
+function mayExplainRefusal(): boolean {
+  if (billingMode() !== "test") return false;
+  return !/(^|\.)getmockio\.com$/i.test(new URL(siteUrl()).hostname);
+}
+
 async function settledSubscription(ownerId: string) {
   const held = await SUBSCRIPTIONS.forOwner(ownerId);
   if (!held || grantsAccess(held.status)) return held;
@@ -1614,7 +1632,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // applications. Withheld in live, where the reader is a candidate and
         // the provider's wording would tell an attacker which cards to stop
         // trying.
-        ...(billingMode() === "test" && error instanceof MercadoPagoError
+        ...(mayExplainRefusal() && error instanceof MercadoPagoError
           ? { detail: error.message }
           : {}),
       });
