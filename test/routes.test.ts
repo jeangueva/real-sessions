@@ -679,6 +679,121 @@ describe("billing", () => {
     }
   });
 
+  it("settles a hosted checkout on the way back, without a webhook", async () => {
+    /**
+     * The redirect flow leaves a `pending` row and walks the payer to Mercado
+     * Pago. Only the webhook turned that into a paid plan — so a notification
+     * that was late, lost or refused left someone who had paid looking at
+     * "you are on the free plan". Reading the billing panel now asks the
+     * provider whenever our own row has not settled.
+     */
+    const before = { ...process.env };
+    const realFetch = globalThis.fetch;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_MODE = "test";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+
+    let reference = "";
+    // The checkout is opened as pending, which is what the provider really
+    // answers there; every read afterwards finds it authorized, as it would
+    // be once the payer finishes paying.
+    let opened = false;
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const url = String(input);
+      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
+      if (init?.method === "POST" && typeof init.body === "string") {
+        reference = String(JSON.parse(init.body).external_reference ?? "");
+      }
+      const creating = init?.method === "POST";
+      if (creating) opened = true;
+      const body = {
+        id: "mp-hosted-1",
+        status: creating ? "pending" : "authorized",
+        external_reference: reference,
+        init_point: "https://www.mercadopago.com/checkout/mp-hosted-1",
+        next_payment_date: "2027-01-01T00:00:00.000Z",
+      };
+      return {
+        ok: true,
+        status: 200,
+        json: async () => body,
+        text: async () => JSON.stringify(body),
+      } as unknown as Response;
+    }) as typeof fetch;
+
+    try {
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: "redirected@b.com", password: "a long enough passphrase" }),
+      );
+
+      const started = await api.call("/api/billing/checkout", post({}));
+      expect(started.status).toBe(201);
+      expect(opened).toBe(true);
+
+      // What the payer's browser does when Mercado Pago sends them back.
+      const state = await api.json<{ subscription: { status: string } | null }>(
+        "/api/billing",
+      );
+      expect(state.subscription?.status).toBe("authorized");
+      expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
+    } finally {
+      globalThis.fetch = realFetch;
+      process.env = before;
+    }
+  });
+
+  it("keeps serving the billing panel when the provider is unreachable", async () => {
+    // A panel that fails to render because Mercado Pago is down is a worse
+    // answer than one showing a status a few minutes stale.
+    const before = { ...process.env };
+    const realFetch = globalThis.fetch;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_MODE = "test";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+
+    let calls = 0;
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const url = String(input);
+      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
+      calls += 1;
+      if (calls === 1) {
+        const body = {
+          id: "mp-hosted-2",
+          status: "pending",
+          external_reference: "",
+          init_point: "https://www.mercadopago.com/checkout/mp-hosted-2",
+        };
+        return {
+          ok: true, status: 200,
+          json: async () => body,
+          text: async () => JSON.stringify(body),
+        } as unknown as Response;
+      }
+      throw new Error("provider unreachable");
+    }) as typeof fetch;
+
+    try {
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: "stranded@b.com", password: "a long enough passphrase" }),
+      );
+      expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
+
+      const response = await api.call("/api/billing");
+      expect(response.status).toBe(200);
+      const state = (await response.json()) as { subscription: { status: string } | null };
+      expect(state.subscription?.status).toBe("pending");
+    } finally {
+      globalThis.fetch = realFetch;
+      process.env = before;
+    }
+  });
+
   describe("the webhook", () => {
     const url = "/api/billing/webhook?data.id=mp-123&type=preapproval";
 

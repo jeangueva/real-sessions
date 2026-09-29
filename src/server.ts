@@ -724,6 +724,38 @@ async function runWeeklyDigest(): Promise<void> {
   }
 }
 
+/**
+ * The subscription, asking the provider when our own copy cannot be trusted.
+ *
+ * The hosted checkout leaves a row saying `pending` and walks the payer over
+ * to Mercado Pago. What turns that into a paid plan is the webhook — and a
+ * webhook is a promise from someone else's server. When it is late, lost, or
+ * refused, the payer comes back to a page that reads "you are on the free
+ * plan" with the money already gone. That is the one failure this product
+ * cannot afford: charging someone and delivering nothing.
+ *
+ * So a row that has not settled is reconciled against Mercado Pago, which is
+ * the authority on whether they paid. `pending` is a transient state — it
+ * belongs to the minutes between opening a checkout and finishing it — so
+ * this costs one provider call on the panel loads that happen inside that
+ * window, and none at all afterwards.
+ *
+ * A provider that cannot be reached leaves the stored row untouched: a
+ * billing panel that fails to render because the provider is down would be a
+ * worse answer than one showing a status that is a few minutes stale.
+ */
+async function settledSubscription(ownerId: string) {
+  const held = await SUBSCRIPTIONS.forOwner(ownerId);
+  if (!held || grantsAccess(held.status)) return held;
+  try {
+    await reconcileSubscription(held.externalId);
+  } catch (error) {
+    console.warn("[mockio] could not reconcile on read:", error);
+    return held;
+  }
+  return SUBSCRIPTIONS.forOwner(ownerId);
+}
+
 async function reconcileSubscription(externalId: string): Promise<Plan | null> {
   const remote = await fetchPreapproval(externalId);
   // external_reference is our identity, round-tripped through the provider.
@@ -1432,7 +1464,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // credentials are indistinguishable: a deployment left in the wrong one
       // looks exactly like the right one until money does or does not move.
       mode: billingMode(),
-      subscription: await SUBSCRIPTIONS.forOwner(identity.id),
+      subscription: await settledSubscription(identity.id),
     });
     return;
   }
