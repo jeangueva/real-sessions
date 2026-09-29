@@ -1,5 +1,3 @@
-import posthog from "posthog-js";
-
 /**
  * Product analytics, configured to be able to answer one question: where do
  * people stop.
@@ -28,6 +26,13 @@ import posthog from "posthog-js";
  * The key is a write-only project key. It is meant to sit in the browser
  * bundle and can do nothing but send events, which is why it is written here
  * rather than passed through the build.
+ *
+ * The library itself is fetched on demand rather than bundled. It is the
+ * single largest thing this application would ship — larger than the router,
+ * the animation library and every icon together — and it is of no use to the
+ * visitor who reads the landing page and leaves, which is most of them. So
+ * the page renders first and analytics arrives after, or never, if this is
+ * not production.
  */
 const KEY = "phc_xAgvPpzfLhJpiMX9zLkjnaCkbrrJUGCEpri8uEcXRsjx";
 const HOST = "https://us.i.posthog.com";
@@ -35,7 +40,26 @@ const HOST = "https://us.i.posthog.com";
 /** The one deployment that reports. */
 const PRODUCTION = /(^|\.)getmockio\.com$/i;
 
+type Loaded = typeof import("posthog-js").default;
+
+/** The library, once it has arrived. Null until then, and on every non-production host. */
+let posthog: Loaded | null = null;
 let live = false;
+/**
+ * Calls made while the library was still downloading.
+ *
+ * The first page view is the common case and the one least worth losing: it
+ * is the visit itself. Held rather than dropped, and replayed in order once
+ * the script lands.
+ */
+const waiting: ((ready: Loaded) => void)[] = [];
+
+/** Runs now if the library is here, otherwise when it arrives. */
+function send(call: (ready: Loaded) => void): void {
+  if (!live) return;
+  if (posthog) call(posthog);
+  else waiting.push(call);
+}
 
 /**
  * Starts analytics, on production only.
@@ -49,28 +73,32 @@ export function startAnalytics(): void {
   if (live) return;
   if (typeof window === "undefined") return;
   if (!PRODUCTION.test(window.location.hostname)) return;
-
-  posthog.init(KEY, {
-    api_host: HOST,
-    defaults: "2026-05-30",
-    // No cookie, no localStorage: the identifier lives for one tab session and
-    // is gone on close. This is what makes the product answerable to people
-    // who decline tracking without a consent banner in front of the landing
-    // page, and it costs only the ability to recognise a returning visitor as
-    // the same anonymous person.
-    persistence: "memory",
-    person_profiles: "identified_only",
-    autocapture: false,
-    capture_dead_clicks: false,
-    disable_session_recording: true,
-    // Someone who asked their browser not to be tracked has asked.
-    respect_dnt: true,
-    // Page views are sent by the router, which knows when a route actually
-    // changed. The built-in one fires on history events this app also uses for
-    // its own state, and would double-count.
-    capture_pageview: false,
-  });
   live = true;
+
+  void import("posthog-js").then(({ default: loaded }) => {
+    posthog = loaded;
+    posthog.init(KEY, {
+      api_host: HOST,
+      defaults: "2026-05-30",
+      // No cookie, no localStorage: the identifier lives for one tab session and
+      // is gone on close. This is what makes the product answerable to people
+      // who decline tracking without a consent banner in front of the landing
+      // page, and it costs only the ability to recognise a returning visitor as
+      // the same anonymous person.
+      persistence: "memory",
+      person_profiles: "identified_only",
+      autocapture: false,
+      capture_dead_clicks: false,
+      disable_session_recording: true,
+      // Someone who asked their browser not to be tracked has asked.
+      respect_dnt: true,
+      // Page views are sent by the router, which knows when a route actually
+      // changed. The built-in one fires on history events this app also uses for
+      // its own state, and would double-count.
+      capture_pageview: false,
+    });
+    for (const held of waiting.splice(0)) held(loaded);
+  });
 }
 
 /**
@@ -95,8 +123,7 @@ type Event =
  * name, or an email address.
  */
 export function track(event: Event, properties?: Record<string, string | number | boolean>): void {
-  if (!live) return;
-  posthog.capture(event, properties);
+  send(function (ready) { ready.capture(event, properties); });
 }
 
 /**
@@ -108,18 +135,16 @@ export function track(event: Event, properties?: Record<string, string | number 
  * when they ask us to erase them.
  */
 export function identify(accountId: string): void {
-  if (!live) return;
-  posthog.identify(accountId);
+  send(function (ready) { ready.identify(accountId); });
 }
 
 /** Forgets the person on sign-out, so a shared machine does not merge two people. */
 export function forget(): void {
-  if (!live) return;
-  posthog.reset();
+  send(function (ready) { ready.reset(); });
 }
 
 /** One page view, sent by the router on a real route change. */
 export function pageView(path: string): void {
-  if (!live) return;
-  posthog.capture("$pageview", { $current_url: `${window.location.origin}${path}` });
+  var url = window.location.origin + path;
+  send(function (ready) { ready.capture("$pageview", { $current_url: url }); });
 }

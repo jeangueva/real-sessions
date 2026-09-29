@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Hero } from "@/components/Hero";
@@ -10,21 +10,34 @@ import { Features } from "@/components/Features";
 import { Pricing } from "@/components/Pricing";
 import { Contribute } from "@/components/Contribute";
 import { SiteFooter } from "@/components/SiteFooter";
-import { AppShell } from "@/platform/AppShell";
-import { SessionSetup } from "@/platform/SessionSetup";
-import { LiveInterview } from "@/platform/LiveInterview";
-import { FeedbackReport } from "@/platform/FeedbackReport";
-import { SessionHistory } from "@/platform/SessionHistory";
-import { Progress } from "@/platform/Progress";
-import { Profile } from "@/platform/Profile";
-import { Review } from "@/platform/Review";
-import { Settings } from "@/platform/Settings";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
 import { Unsubscribe } from "@/platform/Unsubscribe";
 import { ConfirmEmail } from "@/platform/ConfirmEmail";
 import { LocaleProvider } from "@/hooks/useLocale";
 import { pageView, startAnalytics } from "@/lib/analytics";
+
+/**
+ * The signed-in half, fetched when someone goes there.
+ *
+ * A visitor who reads the landing page and leaves — most of them — was
+ * downloading the interview screen, the charts, the settings and the review
+ * queue along with it. None of that can be reached without an account, so
+ * none of it belongs in the first request.
+ *
+ * The landing page, the legal pages and the sign-in screen stay eager: they
+ * are the first thing a stranger sees, and a spinner in front of them would
+ * trade a smaller download for a slower page.
+ */
+const AppShell = lazy(() => import("@/platform/AppShell").then((m) => ({ default: m.AppShell })));
+const SessionSetup = lazy(() => import("@/platform/SessionSetup").then((m) => ({ default: m.SessionSetup })));
+const LiveInterview = lazy(() => import("@/platform/LiveInterview").then((m) => ({ default: m.LiveInterview })));
+const FeedbackReport = lazy(() => import("@/platform/FeedbackReport").then((m) => ({ default: m.FeedbackReport })));
+const SessionHistory = lazy(() => import("@/platform/SessionHistory").then((m) => ({ default: m.SessionHistory })));
+const Progress = lazy(() => import("@/platform/Progress").then((m) => ({ default: m.Progress })));
+const Profile = lazy(() => import("@/platform/Profile").then((m) => ({ default: m.Profile })));
+const Review = lazy(() => import("@/platform/Review").then((m) => ({ default: m.Review })));
+const Settings = lazy(() => import("@/platform/Settings").then((m) => ({ default: m.Settings })));
 
 /**
  * One page view per route change.
@@ -96,15 +109,25 @@ export function App() {
         <Route path="/terms" element={<Terms />} />
         {/* Everything signed-in lives under the shell, so a new screen is one
             route plus one component — no layout wiring. */}
-        <Route path="/app" element={<AppShell />}>
-          <Route index element={<SessionSetup />} />
-          <Route path="session" element={<LiveInterview />} />
-          <Route path="feedback" element={<FeedbackReport />} />
-          <Route path="history" element={<SessionHistory />} />
-          <Route path="progress" element={<Progress />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="review" element={<Review />} />
-          <Route path="settings" element={<Settings />} />
+        <Route
+          path="/app"
+          element={
+            /* No fallback markup: the shell resolves in a few milliseconds
+               from cache, and a spinner that flashes for one frame reads as
+               a glitch rather than as loading. */
+            <Suspense fallback={null}>
+              <AppShell />
+            </Suspense>
+          }
+        >
+          <Route index element={<Suspense fallback={null}><SessionSetup /></Suspense>} />
+          <Route path="session" element={<Suspense fallback={null}><LiveInterview /></Suspense>} />
+          <Route path="feedback" element={<Suspense fallback={null}><FeedbackReport /></Suspense>} />
+          <Route path="history" element={<Suspense fallback={null}><SessionHistory /></Suspense>} />
+          <Route path="progress" element={<Suspense fallback={null}><Progress /></Suspense>} />
+          <Route path="profile" element={<Suspense fallback={null}><Profile /></Suspense>} />
+          <Route path="review" element={<Suspense fallback={null}><Review /></Suspense>} />
+          <Route path="settings" element={<Suspense fallback={null}><Settings /></Suspense>} />
         </Route>
       </Routes>
     </BrowserRouter>
