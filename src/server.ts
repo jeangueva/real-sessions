@@ -22,6 +22,8 @@
  *   GET  /api/catalogue                 → { sectors, companies, personas }
  *   GET  /api/billing                   → { configured, plan, subscription }
  *   POST /api/billing/checkout          → { initPoint } to send the payer to
+ *   POST /api/billing/subscribe         → takes a card token, starts the plan
+ *   POST /api/billing/reconcile         → asks the provider whether it settled
  *   POST /api/billing/cancel            → ends the subscription
  *   POST /api/billing/webhook           → Mercado Pago notifications (public)
  *   WS   /api/voice                     → live transcription, audio up, text down
@@ -1477,8 +1479,18 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * rather than failing to render because Mercado Pago is down.
    */
   if (req.method === "POST" && path === "/api/billing/reconcile") {
+    // One outbound call to the provider per request, on our credentials, the
+    // same as every other billing route that reaches them.
+    if (await limited(res, `reconcile:${identity.id}`, RULES.checkout)) return;
+
     const held = await SUBSCRIPTIONS.forOwner(identity.id);
-    if (!held || grantsAccess(held.status)) {
+    // `pending` only. It is the status that belongs to the minutes between
+    // opening a checkout and finishing it, and the only one the provider can
+    // still change on its own. `cancelled` and `paused` also fail
+    // `grantsAccess`, so asking about those would put a round-trip on every
+    // load of the panel, for someone who cancelled months ago, that can never
+    // change the answer.
+    if (held?.status !== "pending") {
       return json(res, 200, { plan: await PLANS.planFor(identity.id) });
     }
     try {
@@ -1618,7 +1630,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         cardTokenId,
         // Required even though this flow never redirects: see the field's
         // comment. The same page the payer is already standing on.
-        backUrl: `${siteUrl()}/app/settings`,
+        // `#plan`, not the bare page. Settings opens on Appearance without a
+        // fragment, and the panel that settles a subscription only mounts on
+        // the plan tab — so a payer returned to `/app/settings` would land on
+        // the wrong tab, never ask the provider anything, and sit on `pending`
+        // with the money gone.
+        backUrl: `${siteUrl()}/app/settings#plan`,
         reason: "Mockio — monthly",
         plan: config,
       });
@@ -1723,7 +1740,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const created = await createPreapproval({
       externalReference: identity.id,
       payerEmail: account.email,
-      backUrl: `${siteUrl()}/app/settings`,
+      // `#plan`, not the bare page. Settings opens on Appearance without a
+        // fragment, and the panel that settles a subscription only mounts on
+        // the plan tab — so a payer returned to `/app/settings` would land on
+        // the wrong tab, never ask the provider anything, and sit on `pending`
+        // with the money gone.
+        backUrl: `${siteUrl()}/app/settings#plan`,
       reason: "Mockio — monthly",
       plan: config,
     });

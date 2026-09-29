@@ -24,7 +24,9 @@ function serve(subscriptionStatus: string | null, plan: "free" | "premium") {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       asked.push(url);
-      const body = url.includes("/api/billing")
+      const body = url.includes("/api/billing/reconcile")
+        ? { plan }
+        : url.includes("/api/billing")
         ? {
             configured: true,
             mode: "live",
@@ -86,14 +88,19 @@ describe("the plan card, once cancelled", () => {
  * so it is caught here.
  */
 describe("the plan panel, on load", () => {
-  it("asks the server to settle before it reads the plan", async () => {
+  it("asks the server to settle, and reads again once it answers", async () => {
     serve("pending", "free");
-    await waitFor(() => expect(asked.some((url) => url.includes("/api/billing/reconcile"))).toBe(true));
-    // Order matters: reading first would show the stale row and never
-    // correct it, because nothing reads again afterwards.
+    await waitFor(() =>
+      expect(asked.filter((url) => url.endsWith("/api/billing"))).toHaveLength(2),
+    );
+    // One read before settling, so a provider that hangs cannot leave this
+    // panel blank, and one after, because settling is what turns a payment
+    // into a plan.
+    expect(asked.filter((url) => url.includes("/api/billing/reconcile"))).toHaveLength(1);
     const settled = asked.findIndex((url) => url.includes("/api/billing/reconcile"));
-    const read = asked.findIndex((url) => url.endsWith("/api/billing"));
-    expect(settled).toBeLessThan(read);
+    const reads = asked.flatMap((url, at) => (url.endsWith("/api/billing") ? [at] : []));
+    expect(reads[0]).toBeLessThan(settled);
+    expect(reads[1]).toBeGreaterThan(settled);
   });
 
   it("still reads the panel when the provider cannot be reached", async () => {

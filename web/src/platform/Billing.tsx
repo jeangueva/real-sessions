@@ -55,14 +55,19 @@ export function Billing() {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Settle first, then read.
+   * Read now, settle, read again.
    *
    * Someone arriving here from the hosted checkout has a row that still says
    * `pending`: the plan becomes theirs when the webhook lands, and a webhook
    * can be late, lost or refused. So the panel asks the server to check with
-   * the provider before it reads anything, and reads afterwards either way —
-   * a provider that cannot be reached should leave a slightly stale panel,
-   * not an empty one.
+   * the provider — and reads again once it answers, because that check is
+   * what turns their payment into a plan.
+   *
+   * The first read does not wait for it. Settling reaches Mercado Pago, and
+   * that call carries no timeout: waiting on it means that while the provider
+   * hangs — rather than failing, which is fast — `state` stays null and this
+   * panel renders nothing at all. Stale first and correct a moment later is
+   * the behaviour worth having; blank until a third party answers is not.
    */
   const load = () => {
     const read = () => {
@@ -70,7 +75,8 @@ export function Billing() {
       fetchPlan().then((result) => setPlan(result.plan)).catch(() => undefined);
       fetchSession().then(setSession).catch(() => undefined);
     };
-    reconcileBilling().then(read, read);
+    read();
+    reconcileBilling().then(read, () => undefined);
   };
 
   useEffect(load, []);

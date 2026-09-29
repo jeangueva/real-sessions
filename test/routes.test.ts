@@ -789,16 +789,116 @@ describe("billing", () => {
       );
       expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
 
-      // The provider is unreachable, so settling fails and says so — but the
-      // panel behind it still renders from the stored row. A billing page
-      // that fails because Mercado Pago is down is a worse answer than one a
-      // few minutes stale.
+      // Settling says plainly that it could not reach the provider…
       expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(502);
+      const attempted = calls;
 
+      // …and the read behind it is untouched by that, because it no longer
+      // talks to the provider at all. That is what lets the panel draw a
+      // stale row instead of nothing while Mercado Pago is down.
       const response = await api.call("/api/billing");
       expect(response.status).toBe(200);
       const state = (await response.json()) as { subscription: { status: string } | null };
       expect(state.subscription?.status).toBe("pending");
+      // The read cost nothing upstream. Before the refactor it would have
+      // reached the provider itself, and this number would have moved.
+      expect(calls).toBe(attempted);
+    } finally {
+      globalThis.fetch = realFetch;
+      process.env = before;
+    }
+  });
+
+  it("sends the payer back to the tab that settles their subscription", async () => {
+    /**
+     * Settings opens on Appearance without a fragment, and the panel that
+     * asks the provider whether a payment landed only mounts on the plan tab.
+     * Returned to a bare `/app/settings`, a payer would land on the wrong
+     * tab, nothing would ask anything, and they would sit on `pending` with
+     * the money gone until a webhook that may never arrive.
+     */
+    const before = { ...process.env };
+    const realFetch = globalThis.fetch;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_MODE = "test";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+    process.env.REALSESSIONS_SITE_URL = "https://www.getmockio.com";
+
+    let sent: Record<string, unknown> = {};
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const url = String(input);
+      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
+      if (typeof init?.body === "string") sent = JSON.parse(init.body);
+      const body = {
+        id: "mp-back-1",
+        status: "pending",
+        init_point: "https://www.mercadopago.com/checkout/mp-back-1",
+      };
+      return {
+        ok: true, status: 200,
+        json: async () => body,
+        text: async () => JSON.stringify(body),
+      } as unknown as Response;
+    }) as typeof fetch;
+
+    try {
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: "returning@b.com", password: "a long enough passphrase" }),
+      );
+      expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
+      expect(sent["back_url"]).toBe("https://www.getmockio.com/app/settings#plan");
+    } finally {
+      globalThis.fetch = realFetch;
+      process.env = before;
+    }
+  });
+
+  it("does not ask the provider about a subscription it cannot change", async () => {
+    // `cancelled` is terminal. Reconciling it would put a round-trip on every
+    // load of the plan panel, for someone who left months ago, that can never
+    // change the answer.
+    const before = { ...process.env };
+    const realFetch = globalThis.fetch;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
+    process.env.MERCADOPAGO_MODE = "test";
+    process.env.MERCADOPAGO_AMOUNT = "9";
+    process.env.MERCADOPAGO_CURRENCY = "ARS";
+
+    let calls = 0;
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const url = String(input);
+      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
+      calls += 1;
+      const creating = init?.method === "POST" && url.endsWith("/preapproval");
+      const body = {
+        id: "mp-gone-1",
+        status: creating ? "pending" : "cancelled",
+        init_point: "https://www.mercadopago.com/checkout/mp-gone-1",
+      };
+      return {
+        ok: true, status: 200,
+        json: async () => body,
+        text: async () => JSON.stringify(body),
+      } as unknown as Response;
+    }) as typeof fetch;
+
+    try {
+      await api.authenticate();
+      await api.call(
+        "/api/accounts",
+        post({ email: "departed@b.com", password: "a long enough passphrase" }),
+      );
+      expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
+      // Settle once: pending becomes cancelled at the provider.
+      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(200);
+      const after = calls;
+      // Every load from here on must cost nothing upstream.
+      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(200);
+      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(200);
+      expect(calls).toBe(after);
     } finally {
       globalThis.fetch = realFetch;
       process.env = before;
