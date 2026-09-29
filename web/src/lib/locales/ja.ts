@@ -38,6 +38,7 @@ const JA: Record<MessageKey, string> = {
   "field.sectorLocked": "業界を選ぶのは有料プランです。",
   "field.sectorHint": "使われる語彙と、聞かれる数字を決めます。",
   "field.company": "企業",
+  "field.anyCompany": "特定の企業なし",
   "field.companyLocked": "特定の企業を狙うのは有料プランです。",
   "field.language": "言語",
   "field.languageHint": "面接官が話す言語。レポートはいずれの場合も英語で届きます。",

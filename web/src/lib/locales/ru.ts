@@ -38,6 +38,7 @@ const RU: Record<MessageKey, string> = {
   "field.sectorLocked": "Выбор отрасли — часть платного тарифа.",
   "field.sectorHint": "Задаёт лексику и цифры, которые у вас спросят.",
   "field.company": "Компания",
+  "field.anyCompany": "Без конкретной компании",
   "field.companyLocked": "Нацеливание на конкретную компанию — часть платного тарифа.",
   "field.language": "Язык",
   "field.languageHint": "На чём говорит интервьюер. Отчёт в любом случае приходит на английском.",

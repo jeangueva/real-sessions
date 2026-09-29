@@ -310,11 +310,16 @@ export function SessionSetup() {
 
   // Narrowing the sector can strand the current pick outside the list. Moving
   // to the first visible option keeps the form and the interview agreeing.
+  //
+  // Except the generic choice, which belongs to no sector by design: someone
+  // who asked for an interview about the role rather than an employer should
+  // not be handed Nubank because they then picked Fintech.
   useEffect(() => {
+    if (company === genericCompany) return;
     if (visibleCompanies.length > 0 && !visibleCompanies.includes(company)) {
       setCompany(visibleCompanies[0]!);
     }
-  }, [visibleCompanies, company]);
+  }, [visibleCompanies, company, genericCompany]);
 
   const activeSector = sectors.find((entry) => entry.id === sector);
 
@@ -700,23 +705,45 @@ export function SessionSetup() {
                 node: (
                   <FilterSegment
                     label={t("field.company")}
-                    value={can && !can.targetCompany ? t("field.generalRole") : company}
+                    value={
+                      can && !can.targetCompany
+                        ? t("field.generalRole")
+                        : company === genericCompany
+                          ? t("field.anyCompany")
+                          : company
+                    }
                     disabled={can ? !can.targetCompany : false}
                     disabledReason={t("field.companyLocked")}
                   >
-                    {(close) =>
-                      visibleCompanies.map((option) => (
+                    {(close) => (
+                      <>
+                        {/* First, and above the sector's own companies: an
+                            interview about the work rather than about an
+                            employer is a legitimate thing to rehearse, and
+                            until now the only way to get one was to lose the
+                            paid plan. It carries no sector, so picking one
+                            does not take it away. */}
                         <FilterOption
-                          key={option}
-                          label={option}
-                          selected={company === option}
+                          label={t("field.anyCompany")}
+                          selected={company === genericCompany}
                           onSelect={() => {
-                            setCompany(option);
+                            setCompany(genericCompany);
                             close();
                           }}
                         />
-                      ))
-                    }
+                        {visibleCompanies.map((option) => (
+                          <FilterOption
+                            key={option}
+                            label={option}
+                            selected={company === option}
+                            onSelect={() => {
+                              setCompany(option);
+                              close();
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
                   </FilterSegment>
                 ),
               },

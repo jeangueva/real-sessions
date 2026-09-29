@@ -38,6 +38,7 @@ const AR: Record<MessageKey, string> = {
   "field.sectorLocked": "اختيار القطاع جزء من الخطة المدفوعة.",
   "field.sectorHint": "يحدّد المفردات والأرقام التي ستُسأل عنها.",
   "field.company": "الشركة",
+  "field.anyCompany": "بدون شركة محددة",
   "field.companyLocked": "استهداف شركة بعينها جزء من الخطة المدفوعة.",
   "field.language": "اللغة",
   "field.languageHint": "اللغة التي يتكلّمها المحاوِر. التقرير يعود بالإنجليزية في الحالتين.",

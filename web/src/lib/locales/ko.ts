@@ -38,6 +38,7 @@ const KO: Record<MessageKey, string> = {
   "field.sectorLocked": "업종을 고르는 것은 유료 플랜입니다.",
   "field.sectorHint": "어휘와, 요구받게 될 숫자를 정합니다.",
   "field.company": "회사",
+  "field.anyCompany": "특정 회사 없음",
   "field.companyLocked": "특정 회사를 겨냥하는 것은 유료 플랜입니다.",
   "field.language": "언어",
   "field.languageHint": "면접관이 쓰는 언어입니다. 보고서는 어느 쪽이든 영어로 옵니다.",

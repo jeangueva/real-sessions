@@ -39,6 +39,7 @@ const FR: Record<MessageKey, string> = {
   "field.sectorLocked": "Choisir un secteur fait partie du plan payant.",
   "field.sectorHint": "Définit le vocabulaire et les chiffres qu'on vous demandera.",
   "field.company": "Entreprise",
+  "field.anyCompany": "Aucune en particulier",
   "field.companyLocked": "Viser une entreprise précise fait partie du plan payant.",
   "field.language": "Langue",
   "field.languageHint": "Ce que parle le recruteur. Le rapport revient en anglais dans tous les cas.",

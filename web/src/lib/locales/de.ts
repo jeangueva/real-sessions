@@ -38,6 +38,7 @@ const DE: Record<MessageKey, string> = {
   "field.sectorLocked": "Eine Branche zu wählen gehört zum Bezahltarif.",
   "field.sectorHint": "Legt den Wortschatz und die Zahlen fest, nach denen gefragt wird.",
   "field.company": "Unternehmen",
+  "field.anyCompany": "Kein bestimmtes Unternehmen",
   "field.companyLocked": "Auf ein bestimmtes Unternehmen zu zielen gehört zum Bezahltarif.",
   "field.language": "Sprache",
   "field.languageHint": "Was die Interviewerin spricht. Der Bericht kommt so oder so auf Englisch.",

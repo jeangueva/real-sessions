@@ -42,6 +42,7 @@ const PT: Record<MessageKey, string> = {
   "field.sectorLocked": "Escolher um setor é do plano pago.",
   "field.sectorHint": "Define o vocabulário e os números que vão te pedir.",
   "field.company": "Empresa",
+  "field.anyCompany": "Em geral",
   "field.companyLocked": "Mirar uma empresa específica é do plano pago.",
   "field.language": "Idioma",
   "field.languageHint":

@@ -106,6 +106,7 @@ const EN = {
   "field.sectorLocked": "Choosing a sector is part of the paid plan.",
   "field.sectorHint": "Sets the vocabulary and the numbers you will be asked for.",
   "field.company": "Company",
+  "field.anyCompany": "No particular company",
   "field.companyLocked": "Targeting a specific company is part of the paid plan.",
   "field.language": "Language",
   "field.languageHint":

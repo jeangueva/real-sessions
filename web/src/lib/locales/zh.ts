@@ -38,6 +38,7 @@ const ZH: Record<MessageKey, string> = {
   "field.sectorLocked": "选择行业属于付费方案。",
   "field.sectorHint": "决定词汇，以及你会被问到的那些数字。",
   "field.company": "公司",
+  "field.anyCompany": "不限公司",
   "field.companyLocked": "针对某一家具体公司属于付费方案。",
   "field.language": "语言",
   "field.languageHint": "面试官说什么语言。无论如何，报告都用英文给出。",

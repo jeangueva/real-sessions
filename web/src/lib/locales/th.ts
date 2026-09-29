@@ -38,6 +38,7 @@ const TH: Record<MessageKey, string> = {
   "field.sectorLocked": "การเลือกอุตสาหกรรมอยู่ในแพ็กเกจเสียเงิน",
   "field.sectorHint": "กำหนดคำศัพท์และตัวเลขที่คุณจะถูกถาม",
   "field.company": "บริษัท",
+  "field.anyCompany": "ไม่เจาะจงบริษัท",
   "field.companyLocked": "การเจาะจงบริษัทใดบริษัทหนึ่งอยู่ในแพ็กเกจเสียเงิน",
   "field.language": "ภาษา",
   "field.languageHint": "ภาษาที่ผู้สัมภาษณ์พูด รายงานจะกลับมาเป็นภาษาอังกฤษไม่ว่าทางใด",

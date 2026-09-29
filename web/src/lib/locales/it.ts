@@ -39,6 +39,7 @@ const IT: Record<MessageKey, string> = {
   "field.sectorLocked": "Scegliere un settore fa parte del piano a pagamento.",
   "field.sectorHint": "Definisce il lessico e i numeri che ti verranno chiesti.",
   "field.company": "Azienda",
+  "field.anyCompany": "Nessuna in particolare",
   "field.companyLocked": "Puntare a un'azienda precisa fa parte del piano a pagamento.",
   "field.language": "Lingua",
   "field.languageHint": "Cosa parla il selezionatore. Il rapporto torna in inglese in ogni caso.",

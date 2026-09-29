@@ -38,6 +38,7 @@ const HI: Record<MessageKey, string> = {
   "field.sectorLocked": "क्षेत्र चुनना सशुल्क प्लान का हिस्सा है।",
   "field.sectorHint": "शब्दावली और वे आँकड़े तय करता है जो आपसे पूछे जाएँगे।",
   "field.company": "कंपनी",
+  "field.anyCompany": "कोई खास कंपनी नहीं",
   "field.companyLocked": "किसी खास कंपनी को लक्ष्य बनाना सशुल्क प्लान का हिस्सा है।",
   "field.language": "भाषा",
   "field.languageHint": "इंटरव्यूअर कौन-सी भाषा बोलता है। रिपोर्ट दोनों ही स्थिति में अंग्रेज़ी में आती है।",

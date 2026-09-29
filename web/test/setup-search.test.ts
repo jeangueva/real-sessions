@@ -217,3 +217,35 @@ describe("field order", () => {
     expect(ordered.map((e) => e.key)).toEqual(["b", "d", "a", "c"]);
   });
 });
+
+/**
+ * Picking a sector must not take away the generic interview.
+ *
+ * The list of companies narrows to the sector, and anything not in it gets
+ * straightened onto the first option that is — which is right for a company
+ * and wrong for the generic choice, since that one belongs to no sector by
+ * design. Without the exception, asking for "Fintech" silently turned an
+ * interview about the role into an interview about Nubank.
+ */
+function straighten(visible: string[], picked: string, generic: string): string {
+  if (picked === generic) return picked;
+  if (visible.length > 0 && !visible.includes(picked)) return visible[0]!;
+  return picked;
+}
+
+describe("narrowing by sector", () => {
+  const GENERIC = "a well-regarded technology company";
+  const FINTECH = ["Nubank", "Mercado Pago", "Stripe"];
+
+  it("keeps the generic choice when a sector is picked", () => {
+    expect(straighten(FINTECH, GENERIC, GENERIC)).toBe(GENERIC);
+  });
+
+  it("still moves a company that the sector no longer holds", () => {
+    expect(straighten(FINTECH, "Airbnb", GENERIC)).toBe("Nubank");
+  });
+
+  it("leaves a company the sector does hold", () => {
+    expect(straighten(FINTECH, "Stripe", GENERIC)).toBe("Stripe");
+  });
+});

@@ -38,6 +38,7 @@ const HE: Record<MessageKey, string> = {
   "field.sectorLocked": "בחירת תחום היא חלק מהתוכנית בתשלום.",
   "field.sectorHint": "קובע את אוצר המילים ואת המספרים שיישאלו ממך.",
   "field.company": "חברה",
+  "field.anyCompany": "ללא חברה מסוימת",
   "field.companyLocked": "מיקוד בחברה מסוימת הוא חלק מהתוכנית בתשלום.",
   "field.language": "שפה",
   "field.languageHint": "השפה שהמראיין מדבר. הדוח חוזר באנגלית בכל מקרה.",
