@@ -89,7 +89,21 @@ export function LiveInterview() {
   const [answer, setAnswer] = useState("");
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [voiceOn, setVoiceOn] = useState(false);
+  /**
+   * On from the first frame, so the interviewer introduces themselves.
+   *
+   * This used to start off, which meant the opening turn — the one that sets
+   * up the whole rehearsal — arrived in silence and waited for a button. A
+   * call does not do that: you join and the other person is already talking.
+   *
+   * It works because the click on "Begin" is the gesture Chrome asks for
+   * before audio may play, and it carries across a route change inside the
+   * same document. Someone who reloads straight onto this URL has no such
+   * gesture, the browser refuses, and `voice.blocked` already puts the
+   * unmute control in front of them — so the failing case is the one that
+   * was the only case before.
+   */
+  const [voiceOn, setVoiceOn] = useState(true);
   const [persona, setPersona] = useState<Persona | null>(null);
   /**
    * What the server is actually interviewing against. Null until the session
@@ -147,6 +161,11 @@ export function LiveInterview() {
     bcp47,
   });
 
+  // The analyser is suspended until something resumes it, and nothing here
+  // will be clicked. Harmless when the browser refuses: the waveform stays
+  // flat and the interview is unaffected.
+  useEffect(() => resumeAudio(), []);
+
   useEffect(() => {
     // StrictMode double-invokes effects in dev; without this guard that bills
     // two interviews for every one the candidate starts.
@@ -193,6 +212,22 @@ export function LiveInterview() {
   useEffect(() => {
     if (turn && !turn.isComplete && !busy) inputRef.current?.focus();
   }, [turn, busy]);
+
+  /**
+   * Opens the microphone once the interviewer has finished the first turn.
+   *
+   * Not before: recognition started while they are still talking hears the
+   * interviewer through the speakers and answers on the candidate's behalf.
+   * And only once — every turn after this is opened by the silence that ended
+   * the last one, so re-arming here would fight that.
+   */
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || !voiceOn || busy || !turn || voice.speaking) return;
+    if (voice.blocked) return;
+    opened.current = true;
+    voice.startListening();
+  }, [voiceOn, busy, turn, voice.speaking, voice.blocked, voice.startListening]);
 
   const speaking = busy && streaming !== "";
 
@@ -297,7 +332,12 @@ export function LiveInterview() {
       voice.stopListening();
       return;
     }
-    if (!voiceOn) {
+    // `blocked` as well as `!voiceOn`: voice is on from the first frame now,
+    // so a browser that refused to play needs this click routed through
+    // `startVoice` — that is where the pending turn gets spoken with the
+    // gesture attached. Going straight to the microphone would open it and
+    // leave the interviewer mute.
+    if (!voiceOn || voice.blocked) {
       startVoice();
       return;
     }
