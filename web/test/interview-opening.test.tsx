@@ -57,3 +57,32 @@ describe("the opening turn", () => {
     expect(source).toContain("if (!voiceOn || voice.blocked)");
   });
 });
+
+/**
+ * Which voice says the opening turn.
+ *
+ * The server picks the interviewer when none was chosen and announces it in
+ * the session event — but that arrives as React state, while the first words
+ * stream in a moment later against a speech output still built from the empty
+ * id. Spoken then, the opening came out in the default voice and everything
+ * after it in the assigned one: the interviewer changed person after their
+ * first sentence.
+ */
+describe("the opening voice", () => {
+  it("holds the first turn's audio rather than speaking it in the wrong voice", () => {
+    expect(source).toContain("held.current.push(chunk)");
+    // Released only once a render knows who is speaking.
+    expect(source).toContain("if ((!persona && !releaseHeld) || held.current.length === 0) return;");
+  });
+
+  it("speaks anyway if the interviewer is never announced", () => {
+    // A turn in the wrong voice is a smaller failure than a turn nobody
+    // hears, so the wait has an end.
+    expect(source).toContain("setReleaseHeld(true)");
+  });
+
+  it("shows the words while the audio waits", () => {
+    // Only the sound is held. Holding the text too would look like a stall.
+    expect(source).toContain("setStreaming((current) => current + chunk);");
+  });
+});

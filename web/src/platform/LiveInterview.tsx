@@ -160,6 +160,32 @@ export function LiveInterview() {
     ]);
   };
 
+  /**
+   * The opening turn's text, waiting for a voice to say it in.
+   *
+   * The server picks the interviewer when none was chosen, and announces it
+   * in the session event — but that arrives as React state, so the speech
+   * output is still the one built from the empty id when the first words
+   * stream in a moment later. Spoken then, the opening turn came out in the
+   * default voice and every turn after it in Sofía's: the interview changed
+   * person after its first sentence.
+   *
+   * So the chunks are held until a render knows who is speaking, which is the
+   * very next one. The text is on screen throughout — only the audio waits.
+   */
+  const held = useRef<string[]>([]);
+  const heldComplete = useRef(false);
+  /**
+   * Gives up waiting and speaks anyway.
+   *
+   * Holding the opening turn assumes the session event arrives. If it does
+   * not — an older session restored without one, a server that changes what
+   * it announces — the words would sit in the buffer and the interview would
+   * open in silence. A turn in the wrong voice is a smaller failure than a
+   * turn nobody hears, so the wait has an end.
+   */
+  const [releaseHeld, setReleaseHeld] = useState(false);
+
   const camera = useCamera();
   const screen = useScreenShare();
 
@@ -210,18 +236,37 @@ export function LiveInterview() {
         },
         onDelta: (chunk) => {
           setStreaming((current) => current + chunk);
-          voice.speakStreamed(chunk);
+          // Held, not spoken. See `held` below: the voice is chosen from the
+          // interviewer this session assigned, and that has not reached a
+          // render yet.
+          held.current.push(chunk);
         },
       },
     )
       .then((result) => {
-        voice.flushSpeech();
+        heldComplete.current = true;
+        // The turn is complete. If the interviewer still has not been
+        // announced by the time it settles, stop waiting for one.
+        window.setTimeout(() => {
+          if (held.current.length > 0) setReleaseHeld(true);
+        }, 1500);
         setTurn(result);
         addLine("interviewer", result.text);
       })
       .catch((caught: unknown) => setError(describe(caught)))
       .finally(() => setBusy(false));
   }, [company, role, stage, mode, personaId, pressure, stages.join(",")]);
+
+  // Released once the assigned interviewer has reached a render, so the
+  // output speaking these words is the one built from their voice.
+  useEffect(() => {
+    if ((!persona && !releaseHeld) || held.current.length === 0) return;
+    for (const chunk of held.current.splice(0)) voice.speakStreamed(chunk);
+    if (heldComplete.current) {
+      heldComplete.current = false;
+      voice.flushSpeech();
+    }
+  }, [persona, releaseHeld, voice.speakStreamed, voice.flushSpeech]);
 
   useEffect(() => {
     if (turn && !turn.isComplete && !busy) inputRef.current?.focus();
