@@ -104,6 +104,8 @@ export function LiveInterview() {
    * was the only case before.
    */
   const [voiceOn, setVoiceOn] = useState(true);
+  /** Set when the candidate closes the microphone themselves. Nothing else reopens it. */
+  const [micOff, setMicOff] = useState(false);
   const [persona, setPersona] = useState<Persona | null>(null);
   /**
    * What the server is actually interviewing against. Null until the session
@@ -214,20 +216,37 @@ export function LiveInterview() {
   }, [turn, busy]);
 
   /**
-   * Opens the microphone once the interviewer has finished the first turn.
+   * Holds the microphone open across the whole call, the way one stays open.
    *
-   * Not before: recognition started while they are still talking hears the
+   * It opens each time the interviewer stops talking, which covers both the
+   * greeting and every turn after it — the candidate never presses anything.
+   *
+   * Not while they are still speaking: recognition started then hears the
    * interviewer through the speakers and answers on the candidate's behalf.
-   * And only once — every turn after this is opened by the silence that ended
-   * the last one, so re-arming here would fight that.
+   * This was a one-shot flag first, set before `startListening` had a chance
+   * to refuse, and `startListening` refuses while audio is still playing — so
+   * the flag burned on a call that never happened and the microphone stayed
+   * shut for the whole interview.
+   *
+   * `micOff` is the one thing that stops it: someone who closed the
+   * microphone by hand meant it, and an effect that reopened it a frame later
+   * would be a product arguing with its user.
    */
-  const opened = useRef(false);
   useEffect(() => {
-    if (opened.current || !voiceOn || busy || !turn || voice.speaking) return;
-    if (voice.blocked) return;
-    opened.current = true;
+    if (micOff || !voiceOn || busy || voice.blocked) return;
+    if (!turn || turn.isComplete) return;
+    if (voice.speaking || voice.listening) return;
     voice.startListening();
-  }, [voiceOn, busy, turn, voice.speaking, voice.blocked, voice.startListening]);
+  }, [
+    micOff,
+    voiceOn,
+    busy,
+    turn,
+    voice.speaking,
+    voice.listening,
+    voice.blocked,
+    voice.startListening,
+  ]);
 
   const speaking = busy && streaming !== "";
 
@@ -329,9 +348,11 @@ export function LiveInterview() {
    */
   const toggleMic = () => {
     if (voice.listening) {
+      setMicOff(true);
       voice.stopListening();
       return;
     }
+    setMicOff(false);
     // `blocked` as well as `!voiceOn`: voice is on from the first frame now,
     // so a browser that refused to play needs this click routed through
     // `startVoice` — that is where the pending turn gets spoken with the
@@ -381,7 +402,12 @@ export function LiveInterview() {
       />
 
       <PageBody className="flex flex-1 flex-col">
-        <div className="flex min-h-[70vh] flex-1 flex-col gap-4">
+        {/* A bounded height, not a floor. `min-h` let the stage grow with the
+            transcript, so a long interview scrolled the whole page and the
+            interviewer's face drifted off the top — while the panel's own
+            `overflow-y-auto` never engaged, because its parent always had room
+            for one more line. Capped, the scroll happens where the words are. */}
+        <div className="flex h-[70vh] flex-1 flex-col gap-4 lg:h-[calc(100vh-13rem)]">
           <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
             <div className="flex min-h-0 flex-1 flex-col gap-3">
               <CallStage
@@ -395,6 +421,8 @@ export function LiveInterview() {
                 cameraError={camera.error}
                 screenStream={screen.stream}
                 status={status}
+                caption={voice.transcript}
+                listening={voice.listening}
               />
 
               {/* What the interviewer just asked, under the tile — the one

@@ -24,7 +24,23 @@ describe("the opening turn", () => {
   it("waits for the interviewer to stop before opening the microphone", () => {
     // Recognition started while they are still talking hears the interviewer
     // through the speakers and answers for the candidate.
-    expect(source).toContain("voice.speaking) return");
+    expect(source).toContain("if (voice.speaking || voice.listening) return;");
+  });
+
+  it("keeps the microphone open for the rest of the call", () => {
+    // Not a one-shot: it reopens after every turn, which is what makes the
+    // interview a conversation rather than a sequence of button presses. The
+    // first attempt burned a flag before `startListening` had refused, and
+    // the microphone stayed shut for the whole interview.
+    expect(source).not.toContain("opened.current");
+    expect(source).toContain("if (!turn || turn.isComplete) return;");
+  });
+
+  it("does not reopen a microphone the candidate closed", () => {
+    // An effect that reopened it a frame later is a product arguing with the
+    // person using it.
+    expect(source).toContain("if (micOff ||");
+    expect(source).toContain("setMicOff(true)");
   });
 
   it("routes a blocked click back through startVoice", () => {

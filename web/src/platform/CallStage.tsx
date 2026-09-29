@@ -26,6 +26,8 @@ export function CallStage({
   cameraError,
   screenStream,
   status,
+  caption,
+  listening,
 }: {
   initials: string;
   name: string;
@@ -37,6 +39,17 @@ export function CallStage({
   cameraError: string | null;
   /** When sharing, this takes the stage and the interviewer steps aside. */
   screenStream: MediaStream | null;
+  /**
+   * What the candidate is saying, as it is being said.
+   *
+   * Drawn here rather than only in the transcript panel, which fills in whole
+   * turns after they close. Someone speaking looks at the person they are
+   * speaking to, so the words have to appear under the face — the same place
+   * a video call puts its captions, for the same reason.
+   */
+  caption?: string;
+  /** Whether the microphone is open, which is what makes the caption line appear. */
+  listening?: boolean;
   /** "Connecting", "Turn 3 of 7" — whatever the header would have said. */
   status: string;
 }) {
@@ -112,6 +125,16 @@ export function CallStage({
           className="text-cream-bright"
         />
       </div>
+
+      {listening && (
+        /* Reserved height, so the stage does not jump the moment the first
+           word lands. `aria-live` is deliberately absent: a screen reader
+           announcing every revision of an interim transcript would talk over
+           the person it belongs to. */
+        <p className="pointer-events-none absolute inset-x-6 bottom-6 min-h-[1.5rem] text-center text-sm text-cream-dim">
+          {caption}
+        </p>
+      )}
 
       <span className="absolute left-4 top-4 rounded-full border border-line px-3 py-1 text-xs text-cream-dim">
         {status}
