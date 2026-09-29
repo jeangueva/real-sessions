@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
+import { Action, DotMatrix, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
@@ -124,9 +124,11 @@ export function FeedbackReport() {
         <PageHeader title={t("feedback.title")} meta={meta} />
         <PageBody>
           <Panel variant="raised" className="max-w-2xl p-6">
-            <p className="text-sm text-cream-dim">
-              {t("feedback.reading")}
-            </p>
+            {/* The longest wait in the product, with nothing honest to put on
+                a progress bar: a model is reading the whole transcript. The
+                sentence stays — it is what actually says what is happening —
+                and the grid says the wait is still moving. */}
+            <DotMatrix size={5} dotSize={4} speed={1.2} bloom label={t("feedback.reading")} />
           </Panel>
         </PageBody>
       </>

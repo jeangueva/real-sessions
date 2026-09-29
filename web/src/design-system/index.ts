@@ -7,6 +7,7 @@ export {
 } from "./motion";
 export type { StyledSegment } from "./motion";
 export { Accordion } from "./accordion";
+export { DotMatrix } from "./dot-matrix";
 export type { AccordionEntry } from "./accordion";
 export {
   Action,
