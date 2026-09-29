@@ -31,6 +31,16 @@ export interface SpeechTimings {
   answerEndedMs: number | null;
 }
 
+/**
+ * Silence that ends a turn, in milliseconds.
+ *
+ * Long on purpose. Someone rehearsing an interview in a language they are
+ * still learning pauses to find a word, and being answered mid-thought is
+ * worse than waiting another beat — a beat costs a moment, a cut-off costs
+ * them the sentence they were building.
+ */
+const SILENCE_MS = 2000;
+
 export function useVoice({
   enabled,
   onFinalAnswer,
@@ -135,6 +145,9 @@ export function useVoice({
     answerStartedMs: null,
     answerEndedMs: null,
   });
+  /** The pending end-of-turn timer, so every path can cancel it. */
+  const silence = useRef(0);
+
   const since = useCallback(
     () => Math.max(0, Date.now() - sessionStartedAt),
     [sessionStartedAt],
@@ -142,6 +155,7 @@ export function useVoice({
 
   useEffect(() => {
     return () => {
+      window.clearTimeout(silence.current);
       input.stop();
       output.cancel();
     };
@@ -179,21 +193,54 @@ export function useVoice({
     setListening(true);
     marks.current.answerStartedMs = since();
     marks.current.answerEndedMs = null;
+
+    /**
+     * Ends the turn on a pause, the way a person on the other end of a call
+     * would.
+     *
+     * Recognition runs `continuous`, so it never ends on its own — the turn
+     * used to close only when someone pressed the button, which is nothing
+     * like the interview it is rehearsing for. The timer restarts on every
+     * piece of transcript that arrives, so it measures silence since the last
+     * word rather than time since the turn began.
+     *
+     * It only arms once something has been said. Before that, a candidate
+     * gathering their thoughts would be answered by an interviewer who heard
+     * nothing.
+     *
+     * `SILENCE_MS` is deliberately long. Cutting someone off mid-sentence
+     * because they paused to find a word in a language they are still
+     * learning is worse than waiting an extra beat — and this product's
+     * whole audience is people pausing to find words in English.
+     */
+    const hush = () => {
+      window.clearTimeout(silence.current);
+      silence.current = window.setTimeout(() => {
+        input.stop();
+      }, SILENCE_MS);
+    };
+
     input.start({
-      onInterim: setTranscript,
+      onInterim: (text) => {
+        setTranscript(text);
+        if (text.trim() !== "") hush();
+      },
       onFinal: (text) => {
+        window.clearTimeout(silence.current);
         setListening(false);
         marks.current.answerEndedMs = since();
         if (text.trim() !== "") onFinalAnswer(text.trim());
       },
       onError: (message) => {
+        window.clearTimeout(silence.current);
         setError(message);
         setListening(false);
       },
     });
-  }, [enabled, input, output, onFinalAnswer]);
+  }, [enabled, input, output, onFinalAnswer, since]);
 
   const stopListening = useCallback(() => {
+    window.clearTimeout(silence.current);
     input.stop();
     setListening(false);
     // Recognition may deliver its final result after this, but the candidate
