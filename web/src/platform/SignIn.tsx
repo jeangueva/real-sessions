@@ -132,9 +132,6 @@ export function SignIn() {
         : t("auth.toSignIn")}
     </button>
 
-    <p className="mt-8 border-t border-line pt-5 text-xs text-cream-faint">
-      {t("auth.guestNote")}
-    </p>
     </AuthLayout>
   );
 }

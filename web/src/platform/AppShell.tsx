@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   FileUser,
   History,
@@ -39,7 +39,13 @@ import { Wordmark } from "@/design-system";
  * phrase correctly across languages; there is only knowing the short word.
  */
 const NAV = [
-  { to: "/app", key: "nav.new" as const, short: "nav.newShort" as const, icon: Play, end: true },
+  {
+    to: "/app",
+    key: "nav.new" as const,
+    short: "nav.newShort" as const,
+    icon: Play,
+    end: true,
+  },
   {
     to: "/app/profile",
     key: "nav.context" as const,
@@ -47,14 +53,34 @@ const NAV = [
     icon: FileUser,
     end: false,
   },
-  { to: "/app/progress", key: "nav.progress" as const, short: "nav.progress" as const, icon: LineChart, end: false },
-  { to: "/app/history", key: "nav.history" as const, short: "nav.history" as const, icon: History, end: false },
-  { to: "/app/settings", key: "nav.settings" as const, short: "nav.settings" as const, icon: Settings, end: false },
+  {
+    to: "/app/progress",
+    key: "nav.progress" as const,
+    short: "nav.progress" as const,
+    icon: LineChart,
+    end: false,
+  },
+  {
+    to: "/app/history",
+    key: "nav.history" as const,
+    short: "nav.history" as const,
+    icon: History,
+    end: false,
+  },
+  {
+    to: "/app/settings",
+    key: "nav.settings" as const,
+    short: "nav.settings" as const,
+    icon: Settings,
+    end: false,
+  },
 ];
 
 export function AppShell() {
   const t = useT();
   const [session, setSession] = useState<Session | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
   /**
    * Whether to show the review entry point. The server decides — this only
    * hides a link, and the route itself is 404 for anyone not on the allowlist.
@@ -79,12 +105,36 @@ export function AppShell() {
   }, []);
 
   useEffect(() => {
-    // A failure here is not worth blocking the app: the shell just shows the
-    // signed-out state, and every screen still works as a guest.
+    // The gate. Every screen below this needs an account — there is no
+    // anonymous identity to fall back to — so no session means the sign-in
+    // page, carrying where they were headed so they land there afterwards.
+    //
+    // A network failure is treated the same as no session. The alternative is
+    // rendering a shell whose every panel then fails its own request, which
+    // reads as a broken product rather than as one asking you to sign in.
     fetchSession()
-      .then(setSession)
-      .catch(() => setSession({ kind: null, email: null }));
-  }, []);
+      .then((result) => {
+        setSession(result);
+        if (result.kind !== "user") {
+          navigate("/signin", {
+            replace: true,
+            state: { from: location.pathname + location.hash },
+          });
+        }
+      })
+      .catch(() => {
+        setSession({ kind: null, email: null });
+        navigate("/signin", {
+          replace: true,
+          state: { from: location.pathname + location.hash },
+        });
+      });
+  }, [navigate, location.pathname, location.hash]);
+
+  // Nothing is drawn until it is known who is looking: a flash of the shell
+  // before the redirect reads as being thrown out of a page you were allowed
+  // to see.
+  if (session === null || session.kind !== "user") return null;
 
   return (
     <div className="flex min-h-screen bg-surface-deep">
@@ -137,45 +187,22 @@ export function AppShell() {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 border-t border-line pt-4">
-          {session?.kind === "user" ? (
-            <>
-              <p
-                className="hidden truncate px-3 text-xs text-cream-dim lg:block"
-                title={session.email ?? undefined}
-              >
-                {session.email}
-              </p>
-              <button
-                onClick={() => {
-                  void signOut().then(() => window.location.assign("/"));
-                }}
-                title={t("nav.signOut")}
-                className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
-              >
-                <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
-                <span className="hidden lg:inline">{t("nav.signOut")}</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="hidden px-3 text-xs text-cream-faint lg:block">
-                {t("nav.guest")}
-              </p>
-              {/* A way out, not a way in. This used to be "Save my progress"
-                  linking to sign-up — a guest reading the bottom of a sidebar
-                  expects the exit there, and got a paywall-adjacent CTA
-                  instead. The sign-up prompt still exists in Settings, under
-                  Account, where someone goes to look for it. */}
-              <Link
-                to="/"
-                title={t("nav.exit")}
-                className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
-              >
-                <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
-                <span className="hidden lg:inline">{t("nav.exit")}</span>
-              </Link>
-            </>
-          )}
+          <p
+            className="hidden truncate px-3 text-xs text-cream-dim lg:block"
+            title={session.email ?? undefined}
+          >
+            {session.email}
+          </p>
+          <button
+            onClick={() => {
+              void signOut().then(() => window.location.assign("/"));
+            }}
+            title={t("nav.signOut")}
+            className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
+          >
+            <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
+            <span className="hidden lg:inline">{t("nav.signOut")}</span>
+          </button>
         </div>
       </aside>
 

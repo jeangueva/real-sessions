@@ -240,21 +240,27 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 /**
- * Obtains the identity cookie. Called before the first protected request and
- * again after a 401, which is what an expired token looks like.
+ * Thrown when the API says there is nobody signed in.
+ *
+ * Its own type because the answer is a screen, not a retry: whoever catches
+ * this sends the reader to sign in. Until accounts became mandatory a 401 was
+ * recoverable — the client asked for an anonymous identity and tried again —
+ * and doing that now would loop against a server that has none to give.
  */
-export function authenticate(accessCode?: string) {
-  return post<{ expiresAt: number }>("/api/auth", { accessCode });
+export class NotSignedIn extends ApiError {
+  constructor(message = "Sign in to continue.") {
+    super(message, 401);
+    this.name = "NotSignedIn";
+  }
 }
 
-/** Runs `action`, obtaining an identity once if the API says we lack one. */
+/** Runs `action`, turning "nobody is signed in" into something callers can act on. */
 async function withIdentity<T>(action: () => Promise<T>): Promise<T> {
   try {
     return await action();
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      await authenticate();
-      return action();
+      throw new NotSignedIn(error.message);
     }
     throw error;
   }

@@ -9,7 +9,6 @@ import { resetTour } from "@/lib/tour";
 import { PageBody, PageHeader } from "./AppShell";
 import { Billing } from "./Billing";
 import { DeleteAccount } from "./DeleteAccount";
-import { Link } from "react-router-dom";
 import {
   ApiError,
   fetchCatalogue,
@@ -491,22 +490,11 @@ export function Settings() {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="mt-3 flex max-w-prose flex-col gap-4">
-              <p className="text-sm text-cream-dim">
-                {t("settings.guestNote")}
-              </p>
-              <Link to="/signin">
-                <Action tone="glass" className="self-start">
-                  {t("settings.saveProgress")}
-                </Action>
-              </Link>
-            </div>
-          )}
+          ) : null}
         </Panel>
 
-        {/* Only for an account: a guest has nothing to delete, and the server
-            says so rather than pretending otherwise. */}
+        {/* Guarded on the email rather than on having an account: the shell
+            above already refuses anyone without one. */}
         {session?.kind === "user" && session.email && (
           <DeleteAccount email={session.email} />
         )}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
   cancelSubscription,
@@ -44,9 +44,9 @@ export function Billing() {
   /**
    * Who is asking.
    *
-   * Mercado Pago needs a payer email and a guest has none, so the server
-   * refuses their checkout. Knowing that here means offering an account
-   * instead of a button that fails at the last step.
+   * Mercado Pago needs a payer email. Everyone who reaches this panel has
+   * one now — the shell refuses anyone without an account — so this is read
+   * for the address rather than to decide whether to offer a way in.
    */
   const [session, setSession] = useState<Session | null>(null);
   const [busy, setBusy] = useState(false);
@@ -103,6 +103,24 @@ export function Billing() {
     if (hash !== "#plan" || !state) return;
     panel.current?.scrollIntoView({ block: "center" });
   }, [hash, state]);
+
+  /**
+   * Someone who came here to pay lands on the card form, not on a button.
+   *
+   * The pricing card sends them to `#plan`; if they had no account they went
+   * through sign-up first and came back to the same anchor. Either way the
+   * decision was made before they arrived, and asking for one more click at
+   * the end of that journey is asking twice.
+   *
+   * Only when there is something to open: configured, on the free plan, and
+   * with a public key, which is what the button itself needs.
+   */
+  useEffect(() => {
+    if (hash !== "#plan" || !state || paying) return;
+    if (!state.configured || !state.publicKey || plan === "premium") return;
+    if (session?.kind !== "user") return;
+    setPaying(true);
+  }, [hash, state, plan, session, paying]);
 
   const upgrade = async () => {
     setBusy(true);
@@ -195,15 +213,6 @@ export function Billing() {
             sent to Mercado Pago's own page. Both end in the same subscription,
             and the redirect stays because a deployment that has not been given
             a public key must still be able to sell. */}
-        {!active && state.configured && !canBeBilled && (
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-cream-dim">{t("billing.needsAccount")}</p>
-            <Link to="/signin">
-              <Action withArrow>{t("settings.saveProgress")}</Action>
-            </Link>
-          </div>
-        )}
-
         {(!active || lapsing) && state.configured && canBeBilled && state.publicKey && !paying && (
           <Action withArrow onClick={() => setPaying(true)} disabled={busy}>
             {lapsing

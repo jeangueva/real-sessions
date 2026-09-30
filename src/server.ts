@@ -910,6 +910,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
   const path = url.pathname;
 
+  /**
+   * Gone: this handed out an anonymous identity to anyone who asked, and
+   * every protected route accepted it. An interview now belongs to an
+   * account from the moment it starts.
+   *
+   * Answered rather than deleted, and with the code check kept in front, so a
+   * client still holding the old flow is told to sign in instead of being
+   * met by the single-page app's HTML where it expected JSON.
+   */
   if (req.method === "POST" && path === "/api/auth") {
     if (await limited(res, `auth:${clientIp(req)}`, RULES.auth)) return;
     const body = await readJson(req);
@@ -917,17 +926,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // Same response whether the code was wrong or absent.
       return json(res, 403, { error: "Invalid access code." });
     }
-    const { token, identity } = issueToken();
-    res.setHeader(
-      "Set-Cookie",
-      cookieHeader(token, process.env.NODE_ENV === "production"),
-    );
-    json(res, 201, { expiresAt: identity.expiresAt });
-    return;
+    return json(res, 410, {
+      error: "Create an account or sign in — Mockio no longer runs without one.",
+    });
   }
 
   const secureCookies = process.env.NODE_ENV === "production";
-  /** The guest identity in play, if any — used to carry history into an account. */
+  /** The signed-in identity, if the request carried a valid one. */
   const priorIdentity = verifyToken(readCookie(req.headers.cookie));
 
   /**
@@ -970,18 +975,21 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await deliver(verifyEmail(email, `${siteUrl()}/verify?token=${token}`));
   };
 
+  /**
+   * Nothing to carry across any more.
+   *
+   * This used to move five stores — preferences, progress, profile,
+   * entitlements, subscription — from an anonymous browser identity onto the
+   * new account, because signing up used to mean giving up the history that
+   * motivated signing up. There is no anonymous identity to move from now:
+   * an interview cannot exist before an account does.
+   *
+   * The `transfer` methods stay on the stores. They are how an account will
+   * absorb another one if that ever becomes a feature, and deleting them
+   * would be removing a capability rather than a caller.
+   */
   const signIn = async (accountId: string): Promise<void> => {
-    if (priorIdentity?.kind === "guest") {
-      // Preferences and progress are separate stores, so both have to move.
-      // Missing either one makes creating an account destroy the very history
-      // that motivated creating it.
-      await USERS.transfer(priorIdentity.id, accountId);
-      await recordQuietly(PROGRESS.transfer(priorIdentity.id, accountId));
-      await recordQuietly(PROFILES.transfer(priorIdentity.id, accountId));
-      await recordQuietly(PLANS.transfer(priorIdentity.id, accountId));
-      await recordQuietly(SUBSCRIPTIONS.transfer(priorIdentity.id, accountId));
-    }
-    const { token } = issueToken({ kind: "user", id: accountId });
+    const { token } = issueToken({ id: accountId });
     res.setHeader("Set-Cookie", cookieHeader(token, secureCookies, "user"));
   };
 
@@ -1282,9 +1290,6 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   if (req.method === "GET" && path === "/api/auth/me") {
     if (!priorIdentity) return json(res, 200, { kind: null, email: null });
-    if (priorIdentity.kind === "guest") {
-      return json(res, 200, { kind: "guest", email: null });
-    }
     if (await revoked(priorIdentity)) {
       res.setHeader("Set-Cookie", clearCookieHeader(secureCookies));
       return json(res, 200, { kind: null, email: null });

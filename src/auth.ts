@@ -52,10 +52,16 @@ export interface Identity {
   id: string;
   expiresAt: number;
   /**
-   * `guest` is an anonymous browser identity; `user` is a signed-in account.
-   * Carried in the signed payload so it cannot be edited client-side.
+   * Always `user`. Kept in the signed payload rather than dropped.
+   *
+   * There used to be a second kind, `guest`: an anonymous browser identity
+   * that could run interviews without an account. It is gone — every
+   * interview now belongs to someone who signed up — but the field stays,
+   * because tokens issued before that change are still in browsers and
+   * `verifyToken` has to be able to read one and refuse it rather than
+   * misread it as valid.
    */
-  kind: "guest" | "user";
+  kind: "user";
 }
 
 function sign(payload: string): string {
@@ -63,12 +69,12 @@ function sign(payload: string): string {
 }
 
 export function issueToken(
-  options: { kind?: "guest" | "user"; id?: string } = {},
+  options: { id?: string } = {},
 ): { token: string; identity: Identity } {
-  const kind = options.kind ?? "guest";
+  const kind = "user" as const;
   const identity: Identity = {
     id: options.id ?? randomBytes(16).toString("hex"),
-    expiresAt: Date.now() + (kind === "user" ? USER_TTL_MS : GUEST_TTL_MS),
+    expiresAt: Date.now() + USER_TTL_MS,
     kind,
   };
   const payload = `${kind}.${identity.id}.${identity.expiresAt}`;
@@ -83,7 +89,11 @@ export function verifyToken(token: string | undefined): Identity | null {
   const [kindRaw, id, expiresRaw, signature] = parts as [
     string, string, string, string,
   ];
-  if (kindRaw !== "guest" && kindRaw !== "user") return null;
+  // A `guest.` token is one issued before accounts became mandatory. It is
+  // refused here rather than accepted as some lesser identity: whoever holds
+  // it signs in, and what they had was never reachable without an address to
+  // return it to.
+  if (kindRaw !== "user") return null;
 
   const expected = sign(`${kindRaw}.${id}.${expiresRaw}`);
   // Compare in constant time; a length mismatch alone would leak information
