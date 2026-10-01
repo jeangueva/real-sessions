@@ -120,7 +120,11 @@ type Event =
   | "shared report viewed"
   // The act of sharing, counted separately from the reading of it. One tells
   // us whether candidates want this; the other whether anybody opens it.
-  | "report shared";
+  | "report shared"
+  // Counted because this is the only feature whose output leaves the product
+  // entirely: the file goes to a camera roll and we never see where it lands.
+  // Whether it is saved at all is the only signal there will ever be.
+  | "progress card saved";
 
 /**
  * Records one event.
