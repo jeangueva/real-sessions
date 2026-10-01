@@ -53,6 +53,8 @@ export interface SessionSnapshot {
   personaId?: string;
   /** The candidate briefing in force for this session, if any. */
   candidateBrief?: string | null;
+  /** The advertisement they are answering, when they pasted one. */
+  jobPosting?: string | null;
   /** Verified questions this session was built with. */
   knownQuestions?: string[];
   messages: ChatTurn[];
@@ -88,6 +90,8 @@ export interface InterviewSessionOptions {
   personaId?: string;
   /** Candidate briefing, from an uploaded CV or portfolio. */
   candidateBrief?: string | null;
+  /** The advertisement they are answering, when they pasted one. */
+  jobPosting?: string | null;
   /** Verified crowd-reported questions for this company. */
   knownQuestions?: readonly string[];
 }
@@ -118,6 +122,7 @@ export class InterviewSession {
   private readonly fallbackModels: string[];
   private readonly personaId: string;
   private readonly candidateBrief: string | null;
+  private readonly jobPosting: string | null;
   private readonly knownQuestions: string[];
   private readonly systemPrompt: string;
   private readonly messages: ChatTurn[] = [];
@@ -156,6 +161,7 @@ export class InterviewSession {
     this.fallbackModels = options.fallbackModels ?? INTERVIEWER_FALLBACKS;
     this.personaId = options.personaId ?? defaultPersonaFor(context.companyName).id;
     this.candidateBrief = options.candidateBrief ?? null;
+    this.jobPosting = options.jobPosting ?? null;
     this.knownQuestions = [...(options.knownQuestions ?? [])];
     this.systemPrompt = buildInterviewerPrompt(context, {
       stages: stages.map((entry) => entry.id),
@@ -166,6 +172,7 @@ export class InterviewSession {
       maxTurns,
       personaId: this.personaId,
       candidateBrief: this.candidateBrief,
+      jobPosting: this.jobPosting,
       knownQuestions: this.knownQuestions,
     });
   }
@@ -215,6 +222,7 @@ export class InterviewSession {
       fallbackModels: [...this.fallbackModels],
       personaId: this.personaId,
       candidateBrief: this.candidateBrief,
+      jobPosting: this.jobPosting,
       knownQuestions: [...this.knownQuestions],
       messages: this.messages.map((message) => ({ ...message })),
       interviewerTurns: this.interviewerTurns,
@@ -246,6 +254,7 @@ export class InterviewSession {
       // Restored rather than re-read: the brief the interview started with is
       // the one it must finish with, even if the candidate re-uploads midway.
       candidateBrief: snapshot.candidateBrief ?? null,
+      jobPosting: snapshot.jobPosting ?? null,
       knownQuestions: snapshot.knownQuestions ?? [],
     });
     session.messages.push(...snapshot.messages);

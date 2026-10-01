@@ -161,6 +161,7 @@ import {
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
+import { MAX_POSTING_CHARS } from "./prompts/interviewer.js";
 import { FOREVER_SOURCE, holdsForeverPremium } from "./forever.js";
 import {
   INACTIVE_DAYS,
@@ -2166,6 +2167,26 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       : null;
     const candidateBrief = profile ? renderProfileBrief(profile) : "";
 
+    /**
+     * The advertisement they are answering, if they pasted one.
+     *
+     * Behind the same gate as the CV, and for the same reason: this is the
+     * difference between rehearsing the role and rehearsing the interview on
+     * Thursday. Read from the request rather than stored, because a posting
+     * belongs to one application and keeping it would quietly apply it to
+     * every later interview.
+     *
+     * Trimmed to the prompt's cap here as well as there — a megabyte of
+     * pasted HTML should not travel through the session snapshot to be cut at
+     * the far end.
+     */
+    const postingRaw =
+      typeof body["jobPosting"] === "string" ? body["jobPosting"].trim() : "";
+    const jobPosting =
+      can.targetCompany && postingRaw !== ""
+        ? postingRaw.slice(0, MAX_POSTING_CHARS)
+        : null;
+
     // Only what a reviewer has verified, and only for a named company — a free
     // session runs against the generic one and has no crowd questions to draw
     // on. A read failure costs the interview nothing.
@@ -2188,6 +2209,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       pressure,
       personaId: persona.id,
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
+      jobPosting,
       knownQuestions,
       ...(PROVIDER ? { provider: PROVIDER } : {}),
     });

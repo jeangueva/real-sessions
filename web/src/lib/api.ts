@@ -405,6 +405,14 @@ export function startSessionStream(
     language?: string;
     /** Interruptions, pushback and moved goalposts. Free on every plan. */
     pressure?: boolean;
+    /**
+     * The advertisement they are answering, pasted in.
+     *
+     * Sent per interview rather than stored: a posting belongs to one
+     * application, and keeping it would quietly apply it to every later
+     * interview.
+     */
+    jobPosting?: string;
   },
   handlers: {
     onDelta: (text: string) => void;

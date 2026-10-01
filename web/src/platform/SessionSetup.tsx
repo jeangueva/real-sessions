@@ -65,6 +65,14 @@ export function SessionSetup() {
   const [personaId, setPersonaId] = useState("");
   const [can, setCan] = useState<Capabilities | null>(null);
   const [sector, setSector] = useState("");
+  /**
+   * The advertisement this interview is for.
+   *
+   * Not stored with the profile the way a CV is: a posting belongs to one
+   * application, and keeping it would quietly apply last month's job to
+   * every interview after it. It travels with this session and is gone.
+   */
+  const [jobPosting, setJobPosting] = useState("");
   const [company, setCompany] = useState(FALLBACK_COMPANIES[0]!);
   const [role, setRole] = useState(FALLBACK_ROLES[0]!);
   /**
@@ -777,6 +785,7 @@ export function SessionSetup() {
                   mode,
                   personaId,
                   pressure,
+                  jobPosting,
                 },
               });
             }}
@@ -786,6 +795,32 @@ export function SessionSetup() {
             }
           />
         </div>
+
+        {/* Below the filters, because it is the one input that belongs to a
+            single application rather than to a standing preference. Only on
+            the paid plan, which is where targeting a real employer lives. */}
+        {can?.targetCompany && (
+          <details className="rounded-2xl border border-line bg-surface-card">
+            <summary className="focus-ring cursor-pointer list-none rounded-2xl px-5 py-4 text-sm text-cream-bright">
+              {t("setup.postingTitle")}
+              <span className="ml-2 text-xs text-cream-faint">
+                {jobPosting.trim() === "" ? t("setup.postingEmpty") : t("setup.postingSet")}
+              </span>
+            </summary>
+            <div className="flex flex-col gap-3 border-t border-line p-5">
+              <p className="max-w-prose text-xs text-cream-dim">
+                {t("setup.postingHint")}
+              </p>
+              <textarea
+                value={jobPosting}
+                onChange={(event) => setJobPosting(event.target.value.slice(0, 4000))}
+                rows={6}
+                placeholder={t("setup.postingPlaceholder")}
+                className="focus-ring resize-y rounded-xl border border-line-strong bg-transparent px-4 py-3 text-sm text-cream-bright placeholder:text-cream-faint"
+              />
+            </div>
+          </details>
+        )}
 
         {/* The search and the past sessions are one thing: searching is
             mostly how you find a session to run again, and it used to sit
