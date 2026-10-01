@@ -90,6 +90,63 @@ describe.each(backends)("progress store (%s)", (_name, make) => {
     expect(summary?.score).toBeNull();
   });
 
+  it("mints a share token and resolves the report by it", async () => {
+    const id = await seedSession();
+    const token = await store.shareSession(owner, id);
+    expect(token).toBeTruthy();
+    const shared = await store.sessionByShareToken(token!);
+    expect(shared?.id).toBe(id);
+  });
+
+  it("returns the same token when the same session is shared twice", async () => {
+    const id = await seedSession();
+    const first = await store.shareSession(owner, id);
+    const second = await store.shareSession(owner, id);
+    // A fresh token on the second click would revoke a link already sent to
+    // somebody, which looks like the feature breaking when used correctly.
+    expect(second).toBe(first);
+  });
+
+  it("will not share a session belonging to somebody else", async () => {
+    const id = await seedSession();
+    const stranger = `owner-${randomUUID()}`;
+    expect(await store.shareSession(stranger, id)).toBeNull();
+    expect(await store.getSession(stranger, id)).toBeNull();
+    // And the owner's own session is still unshared, so the refused attempt
+    // did not mint a token for it as a side effect.
+    const [summary] = await store.listSessions(owner);
+    expect(summary?.shareToken).toBeNull();
+  });
+
+  it("does not resolve an unknown token", async () => {
+    await seedSession();
+    expect(await store.sessionByShareToken("not-a-real-token")).toBeNull();
+  });
+
+  it("stops resolving the token once sharing is revoked", async () => {
+    const id = await seedSession();
+    const token = await store.shareSession(owner, id);
+    await store.unshareSession(owner, id);
+    expect(await store.sessionByShareToken(token!)).toBeNull();
+    const [summary] = await store.listSessions(owner);
+    expect(summary?.shareToken).toBeNull();
+  });
+
+  it("will not revoke a share on somebody else's session", async () => {
+    const id = await seedSession();
+    const token = await store.shareSession(owner, id);
+    await store.unshareSession(`owner-${randomUUID()}`, id);
+    expect((await store.sessionByShareToken(token!))?.id).toBe(id);
+  });
+
+  it("shows on the summary whether a session is shared", async () => {
+    const id = await seedSession();
+    expect((await store.listSessions(owner))[0]?.shareToken).toBeNull();
+    const token = await store.shareSession(owner, id);
+    expect((await store.listSessions(owner))[0]?.shareToken).toBe(token);
+    expect((await store.getSession(owner, id))?.shareToken).toBe(token);
+  });
+
   it("round-trips turns with their timings", async () => {
     const id = await seedSession();
     await store.recordTurns(id, TURNS);

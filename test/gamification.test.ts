@@ -39,6 +39,7 @@ function past(
     score: 70,
     vocabularyScore: 7,
     structureScore: 6,
+    shareToken: null,
     metrics: METRICS,
     ...overrides,
   };

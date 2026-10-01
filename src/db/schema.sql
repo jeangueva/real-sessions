@@ -64,6 +64,24 @@ ALTER TABLE sessions ADD COLUMN IF NOT EXISTS level TEXT;
 
 CREATE INDEX IF NOT EXISTS sessions_owner_idx ON sessions (owner_id, started_at DESC);
 
+-- The capability to read one report, and nothing else.
+--
+-- Null by default, because a report is private until its owner decides
+-- otherwise, and a column that defaulted to a token would quietly make every
+-- interview ever recorded readable by anyone who guessed a URL.
+--
+-- Nullable rather than a separate table so revoking is one UPDATE: a link that
+-- cannot be withdrawn is a link nobody should be comfortable creating, and a
+-- row in a `shares` table would have to be found and deleted, which is the
+-- same thing with more places to get it wrong.
+--
+-- A unique index rather than a UNIQUE column constraint, because
+-- `ADD COLUMN IF NOT EXISTS` cannot carry a constraint idempotently. Postgres
+-- allows many nulls under a unique index, which is exactly what is wanted:
+-- one holder per token, any number of unshared sessions.
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS sessions_share_token_idx ON sessions (share_token);
+
 -- The raw material. Timings are what separate this from a chat log: they are
 -- the only source for words-per-minute, pause length, and how long someone
 -- took to start talking.

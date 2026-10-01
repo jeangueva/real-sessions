@@ -11,6 +11,7 @@
  * production. The memory implementation is not a toy — it has to satisfy the
  * same tests as the real one, because it is what local development runs on.
  */
+import { randomBytes } from "node:crypto";
 import type { DbPool } from "./db/index.js";
 import type { Evaluation } from "./schema.js";
 import type { SessionMetrics } from "./metrics.js";
@@ -73,6 +74,15 @@ export interface SessionSummary {
    */
   vocabularyScore: number | null;
   structureScore: number | null;
+  /**
+   * The token the report is readable by, or null when it is not shared.
+   *
+   * On the summary rather than only the detail because the history screen has
+   * to show which interviews are already out in the world — a share button
+   * that cannot tell you it is already on is how somebody sends a second link
+   * and believes the first one is gone.
+   */
+  shareToken: string | null;
 }
 
 export interface SessionDetail extends SessionSummary {
@@ -113,6 +123,30 @@ export interface ProgressStore {
   }): Promise<void>;
   listSessions(ownerId: string): Promise<SessionSummary[]>;
   getSession(ownerId: string, id: string): Promise<SessionDetail | null>;
+  /**
+   * Starts sharing one report, returning the token to put in the link.
+   *
+   * Idempotent: a session already shared returns the token it already has.
+   * Minting a fresh one on every click would silently revoke a link the owner
+   * had already sent to somebody, which looks like the feature being broken by
+   * the person using it correctly.
+   *
+   * Null when the session does not exist or belongs to somebody else — the
+   * same answer for both, because telling a stranger that an id is real is
+   * already telling them something.
+   */
+  shareSession(ownerId: string, id: string): Promise<string | null>;
+  /** Stops sharing. A no-op when there is nothing to stop. */
+  unshareSession(ownerId: string, id: string): Promise<void>;
+  /**
+   * The report behind a share token, with no owner check.
+   *
+   * That absence is the whole point: holding the token IS the authorisation,
+   * which is why it is 16 random bytes and not an id. The caller decides what
+   * of this reaches a stranger's screen — this returns the session, not a
+   * public view of it.
+   */
+  sessionByShareToken(token: string): Promise<SessionDetail | null>;
   addXp(ownerId: string, sessionId: string | null, events: XpEvent[]): Promise<void>;
   /** XP already granted on the given UTC day, for the daily cap. */
   xpOnDay(ownerId: string, dayIso: string): Promise<number>;
@@ -142,6 +176,22 @@ export interface ProgressStore {
    */
   eraseOwner(ownerId: string): Promise<void>;
   close(): Promise<void>;
+}
+
+/**
+ * A share token: 16 random bytes, base64url.
+ *
+ * Sixteen because the token is the only thing standing between a stranger and
+ * somebody's interview — 128 bits is not guessable, and the next power down
+ * starts to be. base64url because it goes in a path segment and must survive
+ * being copied out of a chat window, which `+` and `/` do not.
+ *
+ * Random, not derived. A token computed from the session id — a hash, a
+ * cipher, an encoding — is the id wearing a hat: anybody who works out the
+ * construction can mint a link for every interview in the table.
+ */
+function mintShareToken(): string {
+  return randomBytes(16).toString("base64url");
 }
 
 /** Cap per identity on the list view, matching what the history screen shows. */
@@ -278,10 +328,52 @@ class PostgresProgressStore implements ProgressStore {
     );
     const row = rows[0];
     if (!row) return null;
+    return this.withTurns(row);
+  }
+
+  async shareSession(ownerId: string, id: string): Promise<string | null> {
+    // One statement, not a read then a write: two instances clicking share at
+    // the same moment would otherwise both see null and the second would
+    // overwrite the first one's token, invalidating a link already sent.
+    // COALESCE makes the existing token win against the candidate one.
+    const { rows } = await this.pool.query(
+      `UPDATE sessions
+          SET share_token = COALESCE(share_token, $3)
+        WHERE owner_id = $1 AND id = $2
+        RETURNING share_token`,
+      [ownerId, id, mintShareToken()],
+    );
+    return (rows[0]?.share_token as string | null) ?? null;
+  }
+
+  async unshareSession(ownerId: string, id: string): Promise<void> {
+    await this.pool.query(
+      `UPDATE sessions SET share_token = NULL WHERE owner_id = $1 AND id = $2`,
+      [ownerId, id],
+    );
+  }
+
+  async sessionByShareToken(token: string): Promise<SessionDetail | null> {
+    const { rows } = await this.pool.query(
+      `SELECT s.*, m.*,
+              (s.evaluation->'vocabulary_feedback'->>'score_out_of_10')::real AS vocabulary_score,
+              (s.evaluation->'structure_feedback'->>'score_out_of_10')::real  AS structure_score
+         FROM sessions s
+         LEFT JOIN metrics m ON m.session_id = s.id
+        WHERE s.share_token = $1`,
+      [token],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return this.withTurns(row);
+  }
+
+  /** The turns half of a detail read, shared by the owned and shared paths. */
+  private async withTurns(row: Record<string, unknown>): Promise<SessionDetail> {
     const turns = await this.pool.query(
       `SELECT idx, speaker, text, t_start_ms, t_end_ms
          FROM turns WHERE session_id = $1 ORDER BY idx`,
-      [id],
+      [row.id as string],
     );
     return {
       ...toSummary(row),
@@ -471,6 +563,7 @@ function toSummary(row: Record<string, unknown>): SessionSummary {
     score: (row.score as number | null) ?? null,
     vocabularyScore: (row.vocabulary_score as number | null) ?? null,
     structureScore: (row.structure_score as number | null) ?? null,
+    shareToken: (row.share_token as string | null) ?? null,
     metrics: hasMetrics
       ? {
           words: row.words as number,
@@ -502,6 +595,7 @@ interface MemorySession extends NewSession {
   score: number | null;
   evaluation: Evaluation | null;
   metrics: SessionMetrics | null;
+  shareToken: string | null;
   turns: Map<number, RecordedTurn>;
 }
 
@@ -520,6 +614,7 @@ class MemoryProgressStore implements ProgressStore {
       score: null,
       evaluation: null,
       metrics: null,
+      shareToken: null,
       turns: new Map(),
     });
   }
@@ -567,6 +662,31 @@ class MemoryProgressStore implements ProgressStore {
   async getSession(ownerId: string, id: string): Promise<SessionDetail | null> {
     const session = this.sessions.get(id);
     if (!session || session.ownerId !== ownerId) return null;
+    return {
+      ...summarize(session),
+      evaluation: session.evaluation,
+      turns: [...session.turns.values()].sort((a, b) => a.idx - b.idx),
+    };
+  }
+
+  async shareSession(ownerId: string, id: string): Promise<string | null> {
+    const session = this.sessions.get(id);
+    if (!session || session.ownerId !== ownerId) return null;
+    session.shareToken ??= mintShareToken();
+    return session.shareToken;
+  }
+
+  async unshareSession(ownerId: string, id: string): Promise<void> {
+    const session = this.sessions.get(id);
+    if (!session || session.ownerId !== ownerId) return;
+    session.shareToken = null;
+  }
+
+  async sessionByShareToken(token: string): Promise<SessionDetail | null> {
+    const session = [...this.sessions.values()].find(
+      (candidate) => candidate.shareToken === token,
+    );
+    if (!session) return null;
     return {
       ...summarize(session),
       evaluation: session.evaluation,
@@ -693,6 +813,7 @@ function summarize(session: MemorySession): SessionSummary {
     vocabularyScore:
       session.evaluation?.vocabulary_feedback.score_out_of_10 ?? null,
     structureScore: session.evaluation?.structure_feedback.score_out_of_10 ?? null,
+    shareToken: session.shareToken,
     metrics: session.metrics,
   };
 }
