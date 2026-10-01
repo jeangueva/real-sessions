@@ -430,6 +430,8 @@ const KO: Record<MessageKey, string> = {
   "setup.quotaNone": "이번 주 무료 면접을 모두 사용했습니다",
   "setup.quotaLeft": "이번 주 무료 {limit}회 중 {left}회",
   "setup.quotaFree": "무료 플랜",
+  "setup.fromApplication": "{company} 지원을 위한 연습",
+  "setup.fromApplicationHint": "면접관이 해당 공고와 함께 저장한 내용을 사용합니다.",
   "nav.applications": "지원",
   "nav.applicationsShort": "공고",
   "apps.title": "지원 현황",

@@ -417,6 +417,13 @@ export function startSessionStream(
      * interview.
      */
     jobPosting?: string;
+  /**
+   * The application this rehearses for.
+   *
+   * When present, the server reads the posting from the stored row and
+   * ignores `jobPosting` — the advertisement is pasted once, against the job.
+   */
+  applicationId?: string;
   },
   handlers: {
     onDelta: (text: string) => void;

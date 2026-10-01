@@ -540,6 +540,8 @@ const EN = {
   "setup.quotaNone": "No free interviews left this week",
   "setup.quotaLeft": "{left} of {limit} free this week",
   "setup.quotaFree": "Free plan",
+  "setup.fromApplication": "Practising for your application to {company}",
+  "setup.fromApplicationHint": "The interviewer is using the posting you saved with that job.",
   "nav.applications": "Applications",
   "nav.applicationsShort": "Jobs",
   "apps.title": "Your applications",

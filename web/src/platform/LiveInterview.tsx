@@ -41,6 +41,8 @@ interface SetupState {
   pressure?: boolean;
   /** The advertisement this interview is for, pasted on the setup screen. */
   jobPosting?: string;
+  /** Set when this rehearses for a tracked application. */
+  applicationId?: string;
 }
 
 /** Until the session says otherwise. The round decides the real number. */
@@ -78,6 +80,7 @@ export function LiveInterview() {
   const stages = setup.stages ?? [];
   const pressure = setup.pressure ?? false;
   const jobPosting = setup.jobPosting ?? "";
+  const applicationId = setup.applicationId ?? "";
   /**
    * The language the server actually ran, not the one requested — free plans
    * get English whatever was asked for, and the voice has to match the words.
@@ -222,7 +225,15 @@ export function LiveInterview() {
         companyName: company,
         interviewStage: stage,
       },
-      { mode, personaId, stages, language, pressure, jobPosting },
+      {
+        mode,
+        personaId,
+        stages,
+        language,
+        pressure,
+        jobPosting,
+        ...(applicationId === "" ? {} : { applicationId }),
+      },
       {
         // The session id arrives first so a mid-stream failure is still
         // recoverable — the interview exists server-side either way.
@@ -258,7 +269,7 @@ export function LiveInterview() {
       })
       .catch((caught: unknown) => setError(describe(caught)))
       .finally(() => setBusy(false));
-  }, [company, role, stage, mode, personaId, pressure, jobPosting, stages.join(",")]);
+  }, [company, role, stage, mode, personaId, pressure, jobPosting, applicationId, stages.join(",")]);
 
   // Released once the assigned interviewer has reached a render, so the
   // output speaking these words is the one built from their voice.

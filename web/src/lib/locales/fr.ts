@@ -431,6 +431,8 @@ const FR: Record<MessageKey, string> = {
   "setup.quotaNone": "Plus d'entretiens gratuits cette semaine",
   "setup.quotaLeft": "{left} sur {limit} gratuits cette semaine",
   "setup.quotaFree": "Formule gratuite",
+  "setup.fromApplication": "Entraînement pour votre candidature chez {company}",
+  "setup.fromApplicationHint": "L'entretien s'appuie sur l'offre enregistrée avec ce poste.",
   "nav.applications": "Candidatures",
   "nav.applicationsShort": "Postes",
   "apps.title": "Vos candidatures",

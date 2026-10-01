@@ -430,6 +430,8 @@ const ZH: Record<MessageKey, string> = {
   "setup.quotaNone": "本周免费面试已用完",
   "setup.quotaLeft": "本周免费 {limit} 次，剩 {left} 次",
   "setup.quotaFree": "免费方案",
+  "setup.fromApplication": "正在为你投递 {company} 的职位练习",
+  "setup.fromApplicationHint": "面试官正在使用你随该职位保存的招聘信息。",
   "nav.applications": "投递",
   "nav.applicationsShort": "职位",
   "apps.title": "你的投递",

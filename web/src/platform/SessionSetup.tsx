@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Action, Panel, Eyebrow } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
@@ -73,6 +73,18 @@ export function SessionSetup() {
    * every interview after it. It travels with this session and is gone.
    */
   const [jobPosting, setJobPosting] = useState("");
+  /**
+   * The tracked application this interview is for, when somebody arrived from
+   * the applications screen.
+   *
+   * Held rather than read inline so that changing the company afterwards
+   * detaches it: the link means "rehearse for this job", and a session filed
+   * against an application whose company no longer matches would corrupt the
+   * one number that screen exists to show.
+   */
+  const [application, setApplication] = useState<
+    { id: string; company: string; role: string } | null
+  >(null);
   const [company, setCompany] = useState(FALLBACK_COMPANIES[0]!);
   const [role, setRole] = useState(FALLBACK_ROLES[0]!);
   /**
@@ -177,6 +189,33 @@ export function SessionSetup() {
     }
   };
 
+  /**
+   * Arriving from the applications screen.
+   *
+   * Read once, on mount: the state stays on the history entry, so re-reading
+   * it would re-apply the company and role every time anything else on this
+   * screen changed, and somebody who deliberately picked a different company
+   * would watch it snap back.
+   */
+  const arrived = (useLocation().state ?? null) as
+    | { applicationId?: string; company?: string; role?: string }
+    | null;
+  useEffect(() => {
+    if (!arrived?.applicationId || !arrived.company || !arrived.role) return;
+    setApplication({
+      id: arrived.applicationId,
+      company: arrived.company,
+      role: arrived.role,
+    });
+    setCompany(arrived.company);
+    setRole(arrived.role);
+    // The posting lives on the application now, so the textarea has nothing
+    // to hold — and leaving a stale one would send material the server is
+    // about to ignore.
+    setJobPosting("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     // A failure here is not worth an error banner: the fallback list still
     // produces a working interview.
@@ -212,10 +251,18 @@ export function SessionSetup() {
         // The level is a standing answer, not a per-session choice, so the bar
         // opens on whatever the account settled on.
         if (preferences.defaultLevel) setLevelId(preferences.defaultLevel);
-        setRole((current) =>
-          preferences.defaultRole || current,
-        );
-        setCompany((current) => preferences.defaultCompany || current);
+        /**
+         * A standing preference must not outrank an explicit arrival.
+         *
+         * This resolves after mount, so somebody who came from an application
+         * had their company and role set and then watched the saved default
+         * overwrite both — which detached the session from the application it
+         * was started for, silently, and left the rehearsal uncounted.
+         */
+        if (!arrived?.applicationId) {
+          setRole((current) => preferences.defaultRole || current);
+          setCompany((current) => preferences.defaultCompany || current);
+        }
         setSector(preferences.defaultSector);
         setMode(preferences.defaultMode);
       })
@@ -324,10 +371,21 @@ export function SessionSetup() {
   // not be handed Nubank because they then picked Fintech.
   useEffect(() => {
     if (company === genericCompany) return;
+    /**
+     * And not a company that arrived from an application.
+     *
+     * Most real employers are not in this catalogue — it is a curated list,
+     * and somebody tracking a job at a forty-person startup will never find
+     * it there. Without this, arriving from an application set the company
+     * and then watched it snap to the first name in the list, which both lost
+     * the employer and detached the session from the application it was
+     * started for.
+     */
+    if (application && company === application.company) return;
     if (visibleCompanies.length > 0 && !visibleCompanies.includes(company)) {
       setCompany(visibleCompanies[0]!);
     }
-  }, [visibleCompanies, company, genericCompany]);
+  }, [visibleCompanies, company, genericCompany, application]);
 
   const activeSector = sectors.find((entry) => entry.id === sector);
 
@@ -776,6 +834,15 @@ export function SessionSetup() {
                 state: {
                   company,
                   role,
+                  // Only while it still describes the same job. Changing the
+                  // company after arriving means this is no longer a rehearsal
+                  // for that application, and filing it there would break the
+                  // count the applications screen reports.
+                  ...(application &&
+                  application.company === company &&
+                  application.role === role
+                    ? { applicationId: application.id }
+                    : {}),
                   stage: chosenStages.map((entry) => entry.label).join(" + "),
                   stages: chosenStages.map((entry) => entry.id),
                   language: languageId,
@@ -796,10 +863,25 @@ export function SessionSetup() {
           />
         </div>
 
+        {/* When this rehearses for a tracked application the posting already
+            exists, so the textarea is replaced by a note saying where the
+            material is coming from. Two places to paste one advertisement is
+            how the two copies end up different. */}
+        {application && application.company === company && application.role === role && (
+          <Panel className="flex flex-col gap-1 p-5">
+            <p className="text-sm text-cream-bright">
+              {t("setup.fromApplication", { company: application.company })}
+            </p>
+            <p className="text-xs text-cream-faint">{t("setup.fromApplicationHint")}</p>
+          </Panel>
+        )}
+
         {/* Below the filters, because it is the one input that belongs to a
             single application rather than to a standing preference. Only on
-            the paid plan, which is where targeting a real employer lives. */}
-        {can?.targetCompany && (
+            the paid plan, which is where targeting a real employer lives.
+            Hidden when an application is supplying it. */}
+        {can?.targetCompany &&
+          !(application && application.company === company && application.role === role) && (
           <details className="rounded-2xl border border-line bg-surface-card">
             <summary className="focus-ring cursor-pointer list-none rounded-2xl px-5 py-4 text-sm text-cream-bright">
               {t("setup.postingTitle")}

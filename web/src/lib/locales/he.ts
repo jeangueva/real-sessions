@@ -430,6 +430,8 @@ const HE: Record<MessageKey, string> = {
   "setup.quotaNone": "לא נותרו ראיונות חינם השבוע",
   "setup.quotaLeft": "{left} מתוך {limit} חינם השבוע",
   "setup.quotaFree": "תוכנית חינמית",
+  "setup.fromApplication": "מתרגלים לקראת ההגשה ל{company}",
+  "setup.fromApplicationHint": "המראיין משתמש במודעה ששמרתם עם המשרה הזאת.",
   "nav.applications": "משרות",
   "nav.applicationsShort": "משרות",
   "apps.title": "המשרות שהגשתם",
