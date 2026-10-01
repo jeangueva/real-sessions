@@ -430,6 +430,7 @@ const TH: Record<MessageKey, string> = {
   "setup.quotaNone": "สัปดาห์นี้ไม่เหลือสัมภาษณ์ฟรีแล้ว",
   "setup.quotaLeft": "เหลือ {left} จาก {limit} ครั้งฟรีสัปดาห์นี้",
   "setup.quotaFree": "แพ็กเกจฟรี",
+  "auth.googleFailed": "ไม่สำเร็จ ลองอีกครั้ง หรือเข้าสู่ระบบด้วยอีเมลและรหัสผ่าน",
   "setup.fromApplication": "กำลังฝึกสำหรับการสมัครที่ {company}",
   "setup.fromApplicationHint": "ผู้สัมภาษณ์ใช้ประกาศที่คุณบันทึกไว้กับตำแหน่งนั้น",
   "nav.applications": "ใบสมัคร",

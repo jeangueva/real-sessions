@@ -431,6 +431,7 @@ const IT: Record<MessageKey, string> = {
   "setup.quotaNone": "Nessun colloquio gratuito questa settimana",
   "setup.quotaLeft": "{left} di {limit} gratis questa settimana",
   "setup.quotaFree": "Piano gratuito",
+  "auth.googleFailed": "Non ha funzionato. Riprova, oppure entra con email e password.",
   "setup.fromApplication": "Ti alleni per la tua candidatura in {company}",
   "setup.fromApplicationHint": "L'intervistatore usa l'annuncio che hai salvato con quella posizione.",
   "nav.applications": "Candidature",

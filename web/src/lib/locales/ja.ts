@@ -430,6 +430,7 @@ const JA: Record<MessageKey, string> = {
   "setup.quotaNone": "今週の無料面接は使い切りました",
   "setup.quotaLeft": "今週の無料 {limit} 回中 {left} 回",
   "setup.quotaFree": "無料プラン",
+  "auth.googleFailed": "うまくいきませんでした。もう一度試すか、メールとパスワードでログインしてください。",
   "setup.fromApplication": "{company} への応募に向けた練習",
   "setup.fromApplicationHint": "面接官は、その求人と一緒に保存した内容を使っています。",
   "nav.applications": "応募",

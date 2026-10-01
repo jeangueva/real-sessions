@@ -850,6 +850,26 @@ export function deleteApplication(id: string) {
   );
 }
 
+/**
+ * What the sign-in screen needs before anybody has an identity.
+ *
+ * `google` is null on a deployment where sign-in with Google is not
+ * configured, which is how the button knows not to draw itself rather than
+ * appearing and failing when pressed.
+ */
+export function fetchAuthConfig() {
+  return request<{ google: string | null }>("/api/auth/config", { method: "GET" });
+}
+
+/** Exchanges the token Google signed for our own session cookie. */
+export function signInWithGoogle(credential: string) {
+  return request<{ email: string }>("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential }),
+  });
+}
+
 export function fetchPlan() {
   return withIdentity(() =>
     request<{ plan: Plan; capabilities: Capabilities; reviewer: boolean }>(

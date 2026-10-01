@@ -430,6 +430,7 @@ const RU: Record<MessageKey, string> = {
   "setup.quotaNone": "На этой неделе бесплатных собеседований не осталось",
   "setup.quotaLeft": "{left} из {limit} бесплатно на этой неделе",
   "setup.quotaFree": "Бесплатный тариф",
+  "auth.googleFailed": "Не получилось. Попробуйте ещё раз или войдите по почте и паролю.",
   "setup.fromApplication": "Готовитесь к отклику в {company}",
   "setup.fromApplicationHint": "Интервьюер использует вакансию, сохранённую вместе с этой должностью.",
   "nav.applications": "Отклики",

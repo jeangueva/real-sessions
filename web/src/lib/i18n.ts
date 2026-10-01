@@ -540,6 +540,7 @@ const EN = {
   "setup.quotaNone": "No free interviews left this week",
   "setup.quotaLeft": "{left} of {limit} free this week",
   "setup.quotaFree": "Free plan",
+  "auth.googleFailed": "That did not work. Try again, or use your email and password.",
   "setup.fromApplication": "Practising for your application to {company}",
   "setup.fromApplicationHint": "The interviewer is using the posting you saved with that job.",
   "nav.applications": "Applications",

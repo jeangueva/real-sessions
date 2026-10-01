@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
+import { GoogleButton } from "./GoogleButton";
 import { Action, Eyebrow, Field } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
 import { track } from "@/lib/analytics";
@@ -48,7 +49,18 @@ export function SignIn() {
         : t("auth.signUpTitle")}
     </h1>
 
-    <form onSubmit={submit} className="mt-8 flex flex-col gap-5">
+    {/* Above the form, because somebody who has a Google account and uses it
+        here never has to read the form at all — and because the fastest way
+        in belongs where the eye lands first. It draws nothing when the
+        deployment has no Client ID, so this leaves no empty gap. */}
+    <div className="mt-8 flex flex-col gap-4">
+      <GoogleButton
+        onSignedIn={() => navigate(state?.from ?? "/app", { replace: true })}
+        onError={() => setError(t("auth.googleFailed"))}
+      />
+    </div>
+
+    <form onSubmit={submit} className="mt-6 flex flex-col gap-5">
       <Field label={t("auth.email")} htmlFor="email">
         <input
           id="email"

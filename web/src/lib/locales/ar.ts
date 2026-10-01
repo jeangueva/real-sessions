@@ -430,6 +430,7 @@ const AR: Record<MessageKey, string> = {
   "setup.quotaNone": "لا مقابلات مجانية متبقية هذا الأسبوع",
   "setup.quotaLeft": "{left} من {limit} مجانية هذا الأسبوع",
   "setup.quotaFree": "الخطة المجانية",
+  "auth.googleFailed": "لم ينجح ذلك. حاول مرة أخرى، أو ادخل ببريدك وكلمة المرور.",
   "setup.fromApplication": "تتدرّب لتقديمك إلى {company}",
   "setup.fromApplicationHint": "المحاوِر يستخدم الإعلان الذي حفظته مع تلك الوظيفة.",
   "nav.applications": "التقديمات",
