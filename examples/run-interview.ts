@@ -4,7 +4,7 @@
  */
 import "../src/env.js";
 import * as readline from "node:readline/promises";
-import process, { stdin, stdout } from "node:process";
+import { stdin, stdout } from "node:process";
 import { InterviewSession, evaluateInterview } from "../src/index.js";
 import type { InterviewContext } from "../src/index.js";
 

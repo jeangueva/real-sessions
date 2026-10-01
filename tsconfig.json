@@ -6,6 +6,12 @@
     "lib": ["ES2022"],
     "types": ["node"],
     "strict": true,
+    // An import nobody calls is how `forever.ts` sat looking finished and
+    // doing nothing: it had a module, it had five passing tests, the server
+    // imported it, and no line ever invoked it. The web package has had these
+    // on all along, which is why the same mistake never survived there.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,
     "noEmit": true,

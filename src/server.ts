@@ -103,7 +103,6 @@ import {
   inactivityEmail,
   lastFreeInterviewEmail,
   passwordChangedEmail,
-  paymentFailedEmail,
   googleOnlyEmail,
   resetEmail,
   reviewQueueEmail,
@@ -146,11 +145,10 @@ import {
   BADGES,
   AXES,
   DAILY_XP_CAP,
-  type Axis,
 } from "./gamification.js";
 import { coachTurn } from "./coach.js";
 import { COMPANIES, SECTORS, findCompany, sectorForCompany } from "./sectors.js";
-import { PERSONAS, castFor, defaultPersonaFor, findPersona } from "./personas.js";
+import { PERSONAS, castFor, findPersona } from "./personas.js";
 import {
   capabilitiesFor,
   createEntitlementStore,
@@ -236,7 +234,6 @@ import { deepgramConfigured } from "./voice/deepgram.js";
 import {
   MAX_SPEECH_CHARS,
   SPEECH_MIME,
-  SpeechError,
   synthesize,
   ttsConfigured,
 } from "./voice/tts.js";
