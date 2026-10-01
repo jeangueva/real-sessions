@@ -428,3 +428,57 @@ describe("what the sign-in screen is told", () => {
     expect(await response.json()).toHaveProperty("google");
   });
 });
+
+describe("the addresses that hold premium without paying", () => {
+  const MASTER = "founder@example.com";
+
+  beforeEach(() => {
+    process.env.REALSESSIONS_FOREVER_PREMIUM = MASTER;
+  });
+  afterEach(() => {
+    delete process.env.REALSESSIONS_FOREVER_PREMIUM;
+  });
+
+  it("is actually wired to something", async () => {
+    /**
+     * This is the test that was missing. `forever.ts` had five of its own and
+     * all of them passed, while nothing in the server ever called it — so the
+     * environment variable did nothing at all and the unit tests could not
+     * tell.
+     */
+    await api.call("/api/accounts", post({ email: MASTER, password: PASSWORD }));
+    // Not yet: `forever.ts` grants on a proved address, never on a typed one,
+    // because typing an address proves nothing about owning it.
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("free");
+
+    await api.call("/api/auth/verify", post({ token: api.mailer.tokenFor(MASTER) }));
+    const plan = await api.json<{ plan: string }>("/api/plan");
+    expect(plan.plan).toBe("premium");
+  });
+
+  it("reaches somebody who already had an account", async () => {
+    // Added to the list after they signed up: the grant has to arrive at
+    // their next sign-in, not never.
+    delete process.env.REALSESSIONS_FOREVER_PREMIUM;
+    await api.call("/api/accounts", post({ email: MASTER, password: PASSWORD }));
+    await api.call("/api/auth/verify", post({ token: api.mailer.tokenFor(MASTER) }));
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("free");
+
+    process.env.REALSESSIONS_FOREVER_PREMIUM = MASTER;
+    api.forget();
+    await api.call("/api/auth/login", post({ email: MASTER, password: PASSWORD }));
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
+  });
+
+  it("leaves everybody else on the free plan", async () => {
+    await api.call("/api/accounts", post({ email: "someone@example.com", password: PASSWORD }));
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("free");
+  });
+
+  it("grants it through Google sign-in too", async () => {
+    process.env.GOOGLE_CLIENT_ID = "test-client.apps.googleusercontent.com";
+    await api.call("/api/auth/google", post({ credential: JSON.stringify({ email: MASTER }) }));
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
+    delete process.env.GOOGLE_CLIENT_ID;
+  });
+});

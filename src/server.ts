@@ -639,6 +639,36 @@ function publicReport(record: SessionDetail): {
  * cannot get into their account because a promotional grant could not be
  * written has been given a worse problem than the one we were solving.
  */
+/**
+ * Gives the handful of addresses that hold premium for free the row that says
+ * so.
+ *
+ * This existed as a module with tests and no caller: `forever.ts` was written,
+ * imported here, and never invoked, so putting an address in the environment
+ * variable did exactly nothing. The tests passed because they tested the
+ * module in isolation — nothing tested that it was wired to anything.
+ *
+ * Checked at sign-in rather than only at sign-up, which makes it self-healing:
+ * adding an address to the list reaches somebody who already has an account
+ * the next time they sign in, instead of never.
+ *
+ * Skipped when the account is already premium, which is both the idempotence —
+ * no second row per sign-in — and the right behaviour for a paying subscriber
+ * who is also on the list. If their subscription later lapses they fall to
+ * free, and the next sign-in grants this.
+ */
+async function claimForeverPremium(account: { id: string; email: string }): Promise<void> {
+  if (!holdsForeverPremium(account.email)) return;
+  try {
+    if ((await PLANS.planFor(account.id)) === "premium") return;
+    await PLANS.grant(account.id, "premium", FOREVER_SOURCE, null);
+  } catch (error) {
+    // Never fails a sign-in. Somebody locked out because a comped grant could
+    // not be written has a worse problem than the one being solved.
+    console.error("[mockio] forever-premium grant failed:", error);
+  }
+}
+
 async function claimEarlyAccess(account: { id: string; email: string }): Promise<Date | null> {
   return PLANS.redeemEarlyAccess(account.email, account.id).catch((error: unknown) => {
     console.error("[mockio] early-access redemption failed:", error);
@@ -1169,6 +1199,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!account) return reject();
     if (!(await verifyPassword(supplied, account.passwordHash))) return reject();
 
+    await claimForeverPremium(account);
     await signIn(account.id);
     json(res, 200, { email: account.email });
     return;
@@ -1255,6 +1286,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       await claimEarlyAccess(account);
     }
 
+    await claimForeverPremium(account);
     await signIn(account.id);
     json(res, 200, { email: account.email });
     return;
@@ -1353,6 +1385,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await ACCOUNTS.markEmailVerified(accountId);
     const account = await ACCOUNTS.findById(accountId);
     const grantedUntil = account ? await claimEarlyAccess(account) : null;
+    if (account) await claimForeverPremium(account);
     if (account && grantedUntil) {
       // The page this request answers says the months are unlocked, but the
       // link is often opened on a different device from the one the account is
