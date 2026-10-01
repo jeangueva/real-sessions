@@ -430,6 +430,8 @@ const TH: Record<MessageKey, string> = {
   "setup.quotaNone": "สัปดาห์นี้ไม่เหลือสัมภาษณ์ฟรีแล้ว",
   "setup.quotaLeft": "เหลือ {left} จาก {limit} ครั้งฟรีสัปดาห์นี้",
   "setup.quotaFree": "แพ็กเกจฟรี",
+  "feedback.shareProgress": "สร้างการ์ด",
+  "progress.share": "แชร์ความคืบหน้า",
   "share.statPrivate": "ส่วนตัว",
   "share.look": "สไตล์",
   "share.tone.cream": "ตัวอักษรสีครีม",

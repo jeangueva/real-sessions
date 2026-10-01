@@ -179,6 +179,15 @@ export function Progress() {
             ? "Loading…"
             : `${sessions.length} completed session${sessions.length === 1 ? "" : "s"}`
         }
+        actions={
+          /* Here because this is the screen somebody opens when they want to
+             look at what they have done. The card is made of these numbers,
+             so the offer belongs where the numbers are rather than in a menu
+             nobody browses. */
+          <Link to="/app/share">
+            <Action tone="glass">{t("progress.share")}</Action>
+          </Link>
+        }
       />
 
       <PageBody className="flex flex-col gap-4">

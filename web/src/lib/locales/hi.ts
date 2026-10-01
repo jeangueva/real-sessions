@@ -430,6 +430,8 @@ const HI: Record<MessageKey, string> = {
   "setup.quotaNone": "इस हफ़्ते कोई मुफ़्त इंटरव्यू नहीं बचा",
   "setup.quotaLeft": "इस हफ़्ते {limit} में से {left} मुफ़्त",
   "setup.quotaFree": "मुफ़्त प्लान",
+  "feedback.shareProgress": "कार्ड बनाएँ",
+  "progress.share": "प्रगति साझा करें",
   "share.statPrivate": "निजी",
   "share.look": "लुक",
   "share.tone.cream": "क्रीम टेक्स्ट",

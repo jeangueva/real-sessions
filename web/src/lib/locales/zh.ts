@@ -430,6 +430,8 @@ const ZH: Record<MessageKey, string> = {
   "setup.quotaNone": "本周免费面试已用完",
   "setup.quotaLeft": "本周免费 {limit} 次，剩 {left} 次",
   "setup.quotaFree": "免费方案",
+  "feedback.shareProgress": "制作进展卡片",
+  "progress.share": "分享你的进展",
   "share.statPrivate": "私人",
   "share.look": "样式",
   "share.tone.cream": "米色文字",

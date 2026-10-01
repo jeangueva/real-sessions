@@ -430,6 +430,8 @@ const HE: Record<MessageKey, string> = {
   "setup.quotaNone": "לא נותרו ראיונות חינם השבוע",
   "setup.quotaLeft": "{left} מתוך {limit} חינם השבוע",
   "setup.quotaFree": "תוכנית חינמית",
+  "feedback.shareProgress": "צרו כרטיס",
+  "progress.share": "שתפו את ההתקדמות",
   "share.statPrivate": "אישי",
   "share.look": "סטייל",
   "share.tone.cream": "טקסט בצבע שמנת",

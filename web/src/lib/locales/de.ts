@@ -430,6 +430,8 @@ const DE: Record<MessageKey, string> = {
   "setup.quotaNone": "Diese Woche keine kostenlosen Interviews mehr",
   "setup.quotaLeft": "{left} von {limit} diese Woche frei",
   "setup.quotaFree": "Gratistarif",
+  "feedback.shareProgress": "Karte erstellen",
+  "progress.share": "Fortschritt teilen",
   "share.statPrivate": "persönlich",
   "share.look": "Stil",
   "share.tone.cream": "Cremefarbene Schrift",

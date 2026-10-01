@@ -334,6 +334,12 @@ function FeedbackBody({
                 initialToken={share.token}
               />
             )}
+            {/* The moment the card is worth offering: a streak has just
+                grown and the number is fresh. Offering it from a menu a week
+                later is offering it to somebody who has stopped feeling it. */}
+            <Link to="/app/share">
+              <Action tone="glass">{t("feedback.shareProgress")}</Action>
+            </Link>
             <Link to="/app">
               <Action tone="glass">{t("feedback.again")}</Action>
             </Link>

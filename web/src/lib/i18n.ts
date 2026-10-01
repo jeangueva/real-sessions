@@ -540,6 +540,8 @@ const EN = {
   "setup.quotaNone": "No free interviews left this week",
   "setup.quotaLeft": "{left} of {limit} free this week",
   "setup.quotaFree": "Free plan",
+  "feedback.shareProgress": "Make a progress card",
+  "progress.share": "Share your progress",
   "share.statPrivate": "personal",
   "share.look": "Look",
   "share.tone.cream": "Cream text",

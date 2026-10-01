@@ -476,6 +476,8 @@ const PT: Record<MessageKey, string> = {
   "setup.quotaNone": "Sem entrevistas grátis esta semana",
   "setup.quotaLeft": "{left} de {limit} grátis esta semana",
   "setup.quotaFree": "Plano grátis",
+  "feedback.shareProgress": "Criar um card",
+  "progress.share": "Compartilhe seu progresso",
   "share.statPrivate": "pessoal",
   "share.look": "Estilo",
   "share.tone.cream": "Texto creme",

@@ -430,6 +430,8 @@ const KO: Record<MessageKey, string> = {
   "setup.quotaNone": "이번 주 무료 면접을 모두 사용했습니다",
   "setup.quotaLeft": "이번 주 무료 {limit}회 중 {left}회",
   "setup.quotaFree": "무료 플랜",
+  "feedback.shareProgress": "카드 만들기",
+  "progress.share": "진행 상황 공유",
   "share.statPrivate": "개인적",
   "share.look": "스타일",
   "share.tone.cream": "크림색 글자",

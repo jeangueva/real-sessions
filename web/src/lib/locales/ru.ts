@@ -430,6 +430,8 @@ const RU: Record<MessageKey, string> = {
   "setup.quotaNone": "На этой неделе бесплатных собеседований не осталось",
   "setup.quotaLeft": "{left} из {limit} бесплатно на этой неделе",
   "setup.quotaFree": "Бесплатный тариф",
+  "feedback.shareProgress": "Сделать карточку",
+  "progress.share": "Поделиться прогрессом",
   "share.statPrivate": "личное",
   "share.look": "Вид",
   "share.tone.cream": "Кремовый текст",

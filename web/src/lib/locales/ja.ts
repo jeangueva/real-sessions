@@ -430,6 +430,8 @@ const JA: Record<MessageKey, string> = {
   "setup.quotaNone": "今週の無料面接は使い切りました",
   "setup.quotaLeft": "今週の無料 {limit} 回中 {left} 回",
   "setup.quotaFree": "無料プラン",
+  "feedback.shareProgress": "カードを作る",
+  "progress.share": "進み具合をシェア",
   "share.statPrivate": "非公開向け",
   "share.look": "スタイル",
   "share.tone.cream": "クリーム色の文字",

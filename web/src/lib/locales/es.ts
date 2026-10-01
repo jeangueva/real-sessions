@@ -486,6 +486,8 @@ const ES: Record<MessageKey, string> = {
   "setup.quotaNone": "Sin entrevistas gratis esta semana",
   "setup.quotaLeft": "{left} de {limit} gratis esta semana",
   "setup.quotaFree": "Plan gratuito",
+  "feedback.shareProgress": "Hacer una tarjeta",
+  "progress.share": "Comparte tu progreso",
   "share.statPrivate": "personal",
   "share.look": "Estilo",
   "share.tone.cream": "Texto crema",

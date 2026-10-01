@@ -430,6 +430,8 @@ const AR: Record<MessageKey, string> = {
   "setup.quotaNone": "لا مقابلات مجانية متبقية هذا الأسبوع",
   "setup.quotaLeft": "{left} من {limit} مجانية هذا الأسبوع",
   "setup.quotaFree": "الخطة المجانية",
+  "feedback.shareProgress": "أنشئ بطاقة",
+  "progress.share": "شارك تقدّمك",
   "share.statPrivate": "شخصي",
   "share.look": "المظهر",
   "share.tone.cream": "نص كريمي",

@@ -431,6 +431,8 @@ const FR: Record<MessageKey, string> = {
   "setup.quotaNone": "Plus d'entretiens gratuits cette semaine",
   "setup.quotaLeft": "{left} sur {limit} gratuits cette semaine",
   "setup.quotaFree": "Formule gratuite",
+  "feedback.shareProgress": "Créer une carte",
+  "progress.share": "Partagez votre progression",
   "share.statPrivate": "personnel",
   "share.look": "Style",
   "share.tone.cream": "Texte crème",
