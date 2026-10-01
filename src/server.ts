@@ -19,6 +19,10 @@
  *   POST /api/history/:id/share         → { shared: { token, url } }
  *   DELETE /api/history/:id/share       → { shared: null }
  *   GET  /api/shared/:token             → { report }  (public, no identity)
+ *   GET  /api/applications              → { applications }
+ *   POST /api/applications              → { application }
+ *   PATCH /api/applications/:id         → { application }
+ *   DELETE /api/applications/:id        → { deleted }
  *   GET  /api/progress                  → { sessions, axes }
  *   GET  /api/profile                   → { xp, level, badges }  (gamification)
  *   GET  /api/leaderboard               → { rows }
@@ -126,6 +130,8 @@ import {
   type RecordedTurn,
   type SessionMode,
   type SessionDetail,
+  type ApplicationStatus,
+  isApplicationStatus,
 } from "./progress-store.js";
 import { computeMetrics } from "./metrics.js";
 import type { SessionMetrics } from "./metrics.js";
@@ -2262,12 +2268,37 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
      * pasted HTML should not travel through the session snapshot to be cut at
      * the far end.
      */
+    /**
+     * The application this rehearses for, when it rehearses for one.
+     *
+     * Resolved against the store rather than trusted: the id arrives from a
+     * client, and `getApplication` is scoped by owner, so somebody else's id
+     * reads as absent and the interview simply runs without a posting.
+     */
+    const applicationId =
+      can.trackApplications && typeof body["applicationId"] === "string"
+        ? body["applicationId"]
+        : null;
+    const application = applicationId
+      ? await readQuietly(PROGRESS.getApplication(identity.id, applicationId), null)
+      : null;
+
     const postingRaw =
       typeof body["jobPosting"] === "string" ? body["jobPosting"].trim() : "";
+    /**
+     * The stored posting wins over a pasted one.
+     *
+     * Because the stored one is the whole point of having applications: the
+     * advertisement is pasted once and serves every rehearsal after it. A
+     * client that sends both is a client with a stale textarea, and honouring
+     * the textarea would mean the second rehearsal for a job silently used
+     * different material than the first.
+     */
     const jobPosting =
-      can.targetCompany && postingRaw !== ""
+      application?.posting ??
+      (can.targetCompany && postingRaw !== ""
         ? postingRaw.slice(0, MAX_POSTING_CHARS)
-        : null;
+        : null);
 
     // Only what a reviewer has verified, and only for a named company — a free
     // session runs against the generic one and has no crowd questions to draw
@@ -2311,6 +2342,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         mode,
         personaId: persona.id,
         level: level.id,
+        // Null unless it resolved to one of theirs, which is what ties the
+        // rehearsal count on the applications screen to real sessions.
+        applicationId: application ? applicationId : null,
       }),
     );
 
@@ -2621,6 +2655,100 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // paid half straight back out of their own history a moment later.
     json(res, 200, { session: shapeFeedback(record, can.advancedFeedback) });
     return;
+  }
+
+  /**
+   * The jobs somebody is actually going after.
+   *
+   * One list, five states, and a posting per row. Everything here is scoped by
+   * `identity.id` in the store rather than filtered after reading, so a
+   * mistyped id reads as missing instead of as somebody else's job search.
+   *
+   * Deliberately not a CRUD surface for anything the candidate did not type:
+   * the rehearsal count and the best score are derived on read and have no
+   * route to write them, because a number a client can set is a number that
+   * will eventually disagree with the sessions it was supposed to summarise.
+   */
+  if (path === "/api/applications" && (req.method === "GET" || req.method === "POST")) {
+    if (!can.trackApplications) {
+      return json(res, 402, { error: "Tracking applications is on the paid plan." });
+    }
+
+    if (req.method === "GET") {
+      const applications = await readQuietly(PROGRESS.listApplications(identity.id), []);
+      return json(res, 200, { applications });
+    }
+
+    if (await limited(res, `applications:${identity.id}`, RULES.contribute)) return;
+    const body = await readJson(req);
+    const company = typeof body["company"] === "string" ? body["company"].trim() : "";
+    const role = typeof body["role"] === "string" ? body["role"].trim() : "";
+    if (company === "" || role === "") {
+      // The two fields the row cannot mean anything without. A posting is
+      // optional — plenty of jobs arrive from a friend with no advertisement.
+      return json(res, 400, { error: "A company and a role are required." });
+    }
+    const postingRaw = typeof body["posting"] === "string" ? body["posting"].trim() : "";
+    const status = isApplicationStatus(body["status"]) ? body["status"] : "interested";
+
+    const id = randomUUID();
+    await PROGRESS.createApplication({
+      id,
+      ownerId: identity.id,
+      company: company.slice(0, 120),
+      role: role.slice(0, 120),
+      // Cut to the prompt's cap on the way in rather than on the way out: a
+      // megabyte of pasted HTML has no business being stored to be trimmed
+      // every time an interview reads it.
+      posting: postingRaw === "" ? null : postingRaw.slice(0, MAX_POSTING_CHARS),
+      status,
+    });
+    const created = await PROGRESS.getApplication(identity.id, id);
+    return json(res, 201, { application: created });
+  }
+
+  const applicationMatch = path.match(/^\/api\/applications\/([\w-]+)$/);
+  if (applicationMatch && (req.method === "PATCH" || req.method === "DELETE")) {
+    const applicationId = applicationMatch[1]!;
+
+    if (req.method === "DELETE") {
+      // Ungated, like revoking a share: somebody whose plan lapsed must be
+      // able to delete what they wrote. The rehearsals survive it.
+      await PROGRESS.deleteApplication(identity.id, applicationId);
+      return json(res, 200, { deleted: true });
+    }
+
+    if (!can.trackApplications) {
+      return json(res, 402, { error: "Tracking applications is on the paid plan." });
+    }
+    const body = await readJson(req);
+    const patch: {
+      company?: string;
+      role?: string;
+      posting?: string | null;
+      status?: ApplicationStatus;
+    } = {};
+    if (typeof body["company"] === "string" && body["company"].trim() !== "") {
+      patch.company = body["company"].trim().slice(0, 120);
+    }
+    if (typeof body["role"] === "string" && body["role"].trim() !== "") {
+      patch.role = body["role"].trim().slice(0, 120);
+    }
+    if (typeof body["posting"] === "string" && body["posting"].trim() !== "") {
+      patch.posting = body["posting"].trim().slice(0, MAX_POSTING_CHARS);
+    }
+    if (body["status"] !== undefined) {
+      // Checked rather than passed through. The column has a CHECK constraint,
+      // so an unknown status would fail as a 500 at the database instead of as
+      // the 400 it is.
+      if (!isApplicationStatus(body["status"])) {
+        return json(res, 400, { error: "That is not a status." });
+      }
+      patch.status = body["status"];
+    }
+    const updated = await PROGRESS.updateApplication(identity.id, applicationId, patch);
+    if (!updated) return json(res, 404, { error: "Application not found." });
+    return json(res, 200, { application: updated });
   }
 
   /**

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createHmac } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { completeInterview, post, startHarness, type Harness } from "./support/http.js";
 
 /**
@@ -1398,5 +1398,119 @@ describe("sharing a report", () => {
     await api.makePremium();
     const response = await api.call(`/api/history/${id}/share`, post({}));
     expect(response.status).toBe(404);
+  });
+});
+
+describe("tracking applications", () => {
+  async function paid() {
+    await api.authenticate();
+    await api.makePremium();
+  }
+
+  async function create(body: Record<string, unknown> = {}) {
+    return api.json<{ application: { id: string; status: string; posting: string | null } }>(
+      "/api/applications",
+      post({ company: "Nubank", role: "Growth PM", ...body }),
+    );
+  }
+
+  it("refuses the list on the free plan", async () => {
+    await api.authenticate();
+    expect((await api.call("/api/applications")).status).toBe(402);
+  });
+
+  it("keeps a posting and moves the row through its states", async () => {
+    await paid();
+    const { application } = await create({
+      posting: "We need a PM who has owned activation.",
+    });
+    expect(application.status).toBe("interested");
+    expect(application.posting).toContain("owned activation");
+
+    const moved = await api.json<{ application: { status: string } }>(
+      `/api/applications/${application.id}`,
+      { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "interviewing" }) },
+    );
+    expect(moved.application.status).toBe("interviewing");
+  });
+
+  it("answers a status it does not know with a 400, not a 500", async () => {
+    await paid();
+    const { application } = await create();
+    // The column has a CHECK constraint, so an unchecked value would surface
+    // as a database error rather than as the bad request it is.
+    const response = await api.call(`/api/applications/${application.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ghosted" }),
+    });
+    expect(response.status).toBe(400);
+  });
+
+  it("requires a company and a role", async () => {
+    await paid();
+    const response = await api.call("/api/applications", post({ company: "  ", role: "" }));
+    expect(response.status).toBe(400);
+  });
+
+  it("counts a rehearsal against the application it was started for", async () => {
+    await paid();
+    const { application } = await create({ posting: "Own activation end to end." });
+
+    const started = await api.json<{ sessionId: string }>(
+      "/api/sessions",
+      post({
+        candidateName: "Mariana",
+        targetRole: "Growth PM",
+        companyName: "Nubank",
+        interviewStage: "Behavioral",
+        applicationId: application.id,
+      }),
+    );
+    expect(started.sessionId).toBeTruthy();
+
+    const { applications } = await api.json<{
+      applications: { id: string; sessions: number; bestScore: number | null }[];
+    }>("/api/applications");
+    const [row] = applications;
+    expect(row?.id).toBe(application.id);
+    expect(row?.sessions).toBe(1);
+    // Started, not finished: nothing to score yet.
+    expect(row?.bestScore).toBeNull();
+  });
+
+  it("ignores an application id belonging to somebody else", async () => {
+    await paid();
+    const { application } = await create();
+
+    api.forget();
+    await paid();
+    // The stranger's interview still runs — it simply rehearses for nothing,
+    // rather than failing or quietly reading somebody else's posting.
+    const started = await api.json<{ sessionId: string }>(
+      "/api/sessions",
+      post({
+        candidateName: "Mariana",
+        targetRole: "Growth PM",
+        companyName: "Nubank",
+        interviewStage: "Behavioral",
+        applicationId: application.id,
+      }),
+    );
+    expect(started.sessionId).toBeTruthy();
+    expect((await api.json<{ applications: unknown[] }>("/api/applications")).applications).toEqual([]);
+  });
+
+  it("does not put the paywall in front of deleting", async () => {
+    // A free account cannot create one, so there is nothing of theirs to
+    // delete — but the gate must not be what stops them, because somebody
+    // whose subscription lapsed still has rows they wrote and must be able to
+    // take them down. Ungated on purpose, the same way revoking a share is.
+    await api.authenticate();
+    const response = await api.call(`/api/applications/${randomUUID()}`, {
+      method: "DELETE",
+    });
+    expect(response.status).not.toBe(402);
+    expect(response.status).toBe(200);
   });
 });

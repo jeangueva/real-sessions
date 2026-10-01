@@ -75,6 +75,15 @@ export interface Capabilities {
    * the one thing the paywall exists to prevent.
    */
   shareReport: boolean;
+  /**
+   * Keep a list of real jobs, each holding its posting and its rehearsals.
+   *
+   * Paid for the same reason `targetCompany` is: this is the half of the
+   * product that is about one specific interview on Thursday rather than
+   * about practising English in general. The free plan rehearses; the paid
+   * plan prepares.
+   */
+  trackApplications: boolean;
 }
 
 const FREE: Capabilities = {
@@ -90,6 +99,7 @@ const FREE: Capabilities = {
   interviewLanguage: false,
   weeklySessions: 5,
   shareReport: false,
+  trackApplications: false,
 };
 
 const PREMIUM: Capabilities = {
@@ -106,6 +116,7 @@ const PREMIUM: Capabilities = {
   weeklySessions: null,
   interviewLanguage: true,
   shareReport: true,
+  trackApplications: true,
 };
 
 export function capabilitiesFor(plan: Plan): Capabilities {

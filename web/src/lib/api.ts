@@ -78,6 +78,8 @@ export interface Capabilities {
   weeklySessions: number | null;
   /** Publish one finished report at a link anybody can open. */
   shareReport: boolean;
+  /** Keep a list of real jobs, each with its posting and its rehearsals. */
+  trackApplications: boolean;
 }
 
 export interface ProfileLink {
