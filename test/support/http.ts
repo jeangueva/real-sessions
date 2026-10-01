@@ -32,6 +32,7 @@ import {
 } from "../../src/contributions.js";
 import { createSubscriptionStore } from "../../src/billing/store.js";
 import { createAccountStore, hashPassword } from "../../src/accounts.js";
+import type { AccountStore } from "../../src/accounts.js";
 import { issueToken } from "../../src/auth.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
 import type { EmailMessage, EmailSender } from "../../src/email.js";
@@ -137,6 +138,11 @@ export interface Harness {
   contributions: ContributionStore;
   /** The entitlement store, for putting a test identity on the paid plan. */
   plans: EntitlementStore;
+  /**
+   * The account store, for arranging an account a route cannot create —
+   * one with no password, which only signing in with Google produces.
+   */
+  accounts: AccountStore;
   /** Puts the current identity on premium. Requires an identity already. */
   makePremium(): Promise<void>;
   mailer: StubMailer;
@@ -250,6 +256,7 @@ export async function startHarness(): Promise<Harness> {
     mailer,
     contributions,
     plans,
+    accounts,
     call,
     async json(path, init) {
       const response = await call(path, init);

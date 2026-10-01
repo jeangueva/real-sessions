@@ -307,3 +307,40 @@ describe("deleting an account", () => {
     expect(body.kept).toMatch(/contributed/i);
   });
 });
+
+describe("recovering an account that signs in with Google", () => {
+  const GOOGLE_EMAIL = "ana@example.com";
+
+  it("tells them to use Google instead of sending a link that cannot work", async () => {
+    // Only Google sign-in produces this: an account with no password at all.
+    await api.accounts.create(GOOGLE_EMAIL, null);
+    api.mailer.sent.length = 0;
+
+    const response = await api.call("/api/auth/forgot", post({ email: GOOGLE_EMAIL }));
+    expect(response.status).toBe(202);
+
+    // Silence would read as a deleted account, and they would then try to
+    // sign up again with an address that is already taken.
+    expect(api.mailer.sent).toHaveLength(1);
+    expect(api.mailer.sent[0]?.subject).toMatch(/signing in/i);
+    expect(api.mailer.tokenFor(GOOGLE_EMAIL)).toBeFalsy();
+  });
+
+  it("answers the same way it answers for anybody else", async () => {
+    await api.accounts.create(GOOGLE_EMAIL, null);
+    const google = await api.call("/api/auth/forgot", post({ email: GOOGLE_EMAIL }));
+    const unknown = await api.call("/api/auth/forgot", post({ email: "nobody@example.com" }));
+    // The mail says something about the account; the response must not.
+    expect(google.status).toBe(unknown.status);
+    expect(await google.json()).toEqual(await unknown.json());
+  });
+
+  it("refuses a password sign-in for it", async () => {
+    await api.accounts.create(GOOGLE_EMAIL, null);
+    const response = await api.call(
+      "/api/auth/login",
+      post({ email: GOOGLE_EMAIL, password: PASSWORD }),
+    );
+    expect(response.status).toBe(401);
+  });
+});

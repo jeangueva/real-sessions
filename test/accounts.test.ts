@@ -280,3 +280,30 @@ describe("email verification", () => {
     expect(await store.consumeToken("verify", hashResetToken(token))).toBeNull();
   });
 });
+
+describe("an account with no password", () => {
+  it("cannot be signed into with one", async () => {
+    // The rule lives in verifyPassword rather than at each call site, so it
+    // holds for every caller written later too. A Google-only account
+    // reaching a password comparison is the shape of bug that signs the wrong
+    // person in.
+    expect(await verifyPassword("anything at all", null)).toBe(false);
+    expect(await verifyPassword("", null)).toBe(false);
+  });
+
+  it("is stored and read back with the hash still absent", async () => {
+    const store = createAccountStore(null);
+    const created = await store.create("ana@example.com", null);
+    expect(created?.passwordHash).toBeNull();
+    const read = await store.findByEmail("ana@example.com");
+    expect(read?.passwordHash).toBeNull();
+  });
+
+  it("still claims its address, so nobody can register it again", async () => {
+    const store = createAccountStore(null);
+    await store.create("ana@example.com", null);
+    // Without this, somebody could take the address of a Google account by
+    // signing up with a password.
+    expect(await store.create("ana@example.com", "scrypt$1$1$1$a$b")).toBeNull();
+  });
+});

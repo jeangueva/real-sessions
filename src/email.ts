@@ -163,6 +163,30 @@ export function resetEmail(email: string, url: string): EmailMessage {
 }
 
 /**
+ * Sent when somebody asks to reset a password they never set.
+ *
+ * They signed up with Google, so there is nothing to reset — and silence
+ * would be the cruel answer, because from their side the reset link simply
+ * never arrives and they conclude the account is gone.
+ *
+ * Safe to send despite saying something about the account: it goes only to the
+ * address itself, and the HTTP response is identical either way, so it reveals
+ * nothing to anybody typing addresses into the form.
+ */
+export function googleOnlyEmail(email: string): EmailMessage {
+  return compose(email, "Signing in to Mockio", {
+    heading: "This account signs in with Google",
+    body: [
+      "Someone asked to reset a password for this account, but it does not " +
+        "have one — it was created by signing in with Google.",
+      "Use the Sign in with Google button and you are in.",
+    ],
+    footnote:
+      "If this wasn't you, nothing has changed and there is nothing to do.",
+  });
+}
+
+/**
  * The transactional mail nobody asks for and everybody needs.
  *
  * These exist because the events they describe were previously silent. A card

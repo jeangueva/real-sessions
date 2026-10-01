@@ -41,7 +41,16 @@ const KEY_LENGTH = 32;
 export interface Account {
   id: string;
   email: string;
-  passwordHash: string;
+  /**
+   * Null for an account that has only ever signed in with Google.
+   *
+   * Nullable rather than an empty string or a sentinel hash, because those
+   * both compare against something: a password field that holds a value no
+   * password produces is one refactor away from being treated as a password.
+   * Null cannot be verified against by accident — `verifyPassword` refuses it
+   * before it does any work.
+   */
+  passwordHash: string | null;
   createdAt: string;
   /**
    * When the password last changed. Sessions issued before this are refused,
@@ -58,7 +67,8 @@ export interface AccountStore {
   findByEmail(email: string): Promise<Account | null>;
   findById(id: string): Promise<Account | null>;
   /** Returns null when the email is already taken. */
-  create(email: string, passwordHash: string): Promise<Account | null>;
+  /** `passwordHash` is null for an account created through Google. */
+  create(email: string, passwordHash: string | null): Promise<Account | null>;
   updatePassword(id: string, passwordHash: string): Promise<void>;
   markEmailVerified(id: string): Promise<void>;
   /**
@@ -107,8 +117,17 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(
   password: string,
-  stored: string,
+  stored: string | null,
 ): Promise<boolean> {
+  /**
+   * An account with no password cannot be signed into with one.
+   *
+   * Checked here rather than at each call site, so the rule holds for every
+   * caller that exists now and every one written later. A Google-only account
+   * reaching a password comparison is the shape of bug that signs the wrong
+   * person in.
+   */
+  if (stored === null) return false;
   const parts = stored.split("$");
   if (parts.length !== 6 || parts[0] !== "scrypt") return false;
 
@@ -236,7 +255,7 @@ class RedisAccountStore implements AccountStore {
     }
   }
 
-  async create(email: string, passwordHash: string): Promise<Account | null> {
+  async create(email: string, passwordHash: string | null): Promise<Account | null> {
     const account: Account = {
       id: randomUUID(),
       email,
@@ -320,7 +339,7 @@ class MemoryAccountStore implements AccountStore {
     return this.byId.get(id) ?? null;
   }
 
-  async create(email: string, passwordHash: string): Promise<Account | null> {
+  async create(email: string, passwordHash: string | null): Promise<Account | null> {
     if (this.byEmail.has(email)) return null;
     const account: Account = {
       id: randomUUID(),

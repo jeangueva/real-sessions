@@ -102,6 +102,7 @@ import {
   lastFreeInterviewEmail,
   passwordChangedEmail,
   paymentFailedEmail,
+  googleOnlyEmail,
   resetEmail,
   reviewQueueEmail,
   subscriptionMail,
@@ -1152,7 +1153,18 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `forgot-email:${email}`, RULES.forgotByEmail)) return;
 
     const account = await ACCOUNTS.findByEmail(email);
-    if (account) {
+    if (account && account.passwordHash === null) {
+      /**
+       * Nothing to reset: they signed up with Google.
+       *
+       * Told rather than ignored. A reset link that never arrives reads as a
+       * deleted account, and the person then makes a second one with the same
+       * address — which they cannot, because the address is taken. Saying it
+       * leaks nothing: the mail goes only to the address itself and the HTTP
+       * response below is identical either way.
+       */
+      await deliver(googleOnlyEmail(account.email));
+    } else if (account) {
       const { token, hash } = newResetToken();
       await ACCOUNTS.putToken("reset", hash, account.id, RESET_TTL_SECONDS);
       await deliver(resetEmail(account.email, `${siteUrl()}/reset?token=${token}`));
