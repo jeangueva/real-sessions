@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
+  Briefcase,
   FileUser,
   History,
   ImageUp,
@@ -66,6 +67,13 @@ const NAV = [
     key: "nav.history" as const,
     short: "nav.history" as const,
     icon: History,
+    end: false,
+  },
+  {
+    to: "/app/applications",
+    key: "nav.applications" as const,
+    short: "nav.applicationsShort" as const,
+    icon: Briefcase,
     end: false,
   },
   {

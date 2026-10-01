@@ -770,6 +770,79 @@ export function unshareSession(historyId: string) {
   );
 }
 
+/**
+ * One real job, with what the practice says about it.
+ *
+ * `sessions` and `bestScore` are derived by the server on read and have no
+ * route that writes them, so there is nothing here to keep in sync.
+ */
+export interface Application {
+  id: string;
+  company: string;
+  role: string;
+  posting: string | null;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApplicationSummary extends Application {
+  sessions: number;
+  bestScore: number | null;
+}
+
+/** The five states, in the order a search passes through them. */
+export const APPLICATION_STATUSES = [
+  "interested",
+  "applied",
+  "interviewing",
+  "offer",
+  "rejected",
+] as const;
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+export function fetchApplications() {
+  return withIdentity(() =>
+    request<{ applications: ApplicationSummary[] }>("/api/applications", {
+      method: "GET",
+    }),
+  );
+}
+
+export function createApplication(input: {
+  company: string;
+  role: string;
+  posting?: string;
+}) {
+  return withIdentity(() =>
+    request<{ application: Application }>("/api/applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export function updateApplication(
+  id: string,
+  patch: { status?: ApplicationStatus; company?: string; role?: string; posting?: string },
+) {
+  return withIdentity(() =>
+    request<{ application: Application }>(`/api/applications/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }),
+  );
+}
+
+export function deleteApplication(id: string) {
+  return withIdentity(() =>
+    request<{ deleted: boolean }>(`/api/applications/${id}`, { method: "DELETE" }),
+  );
+}
+
 export function fetchPlan() {
   return withIdentity(() =>
     request<{ plan: Plan; capabilities: Capabilities; reviewer: boolean }>(
