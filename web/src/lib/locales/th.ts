@@ -212,7 +212,7 @@ const TH: Record<MessageKey, string> = {
   "tip.grammar": "ไวยากรณ์",
   "auth.welcomeBack": "ยินดีต้อนรับกลับมา",
   "auth.createAccount": "สร้างบัญชี",
-  "auth.signInTitle": "เข้าสู่ระบบเพื่อเก็บความคืบหน้าไว้",
+  "auth.signInTitle": "เข้าสู่ระบบเพื่อทำต่อจากที่ค้างไว้",
   "auth.signUpTitle": "เก็บประวัติไว้บนทุกอุปกรณ์",
   "auth.email": "อีเมล",
   "auth.password": "รหัสผ่าน",

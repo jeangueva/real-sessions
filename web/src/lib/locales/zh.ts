@@ -212,7 +212,7 @@ const ZH: Record<MessageKey, string> = {
   "tip.grammar": "语法",
   "auth.welcomeBack": "欢迎回来",
   "auth.createAccount": "创建账户",
-  "auth.signInTitle": "登录以保留你的进度。",
+  "auth.signInTitle": "登录以继续上次的进度。",
   "auth.signUpTitle": "在所有设备上保留你的历史记录。",
   "auth.email": "邮箱",
   "auth.password": "密码",

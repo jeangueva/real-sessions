@@ -212,7 +212,7 @@ const HI: Record<MessageKey, string> = {
   "tip.grammar": "व्याकरण",
   "auth.welcomeBack": "वापसी पर स्वागत है",
   "auth.createAccount": "खाता बनाएँ",
-  "auth.signInTitle": "अपनी प्रगति बनाए रखने के लिए साइन इन करें।",
+  "auth.signInTitle": "जहाँ छोड़ा था वहीं से जारी रखने के लिए साइन इन करें।",
   "auth.signUpTitle": "अपना इतिहास हर डिवाइस पर रखें।",
   "auth.email": "ईमेल",
   "auth.password": "पासवर्ड",

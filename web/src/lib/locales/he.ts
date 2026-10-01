@@ -212,7 +212,7 @@ const HE: Record<MessageKey, string> = {
   "tip.grammar": "דקדוק",
   "auth.welcomeBack": "טוב לראות אותך שוב",
   "auth.createAccount": "יצירת חשבון",
-  "auth.signInTitle": "התחבר כדי לשמור את ההתקדמות שלך.",
+  "auth.signInTitle": "התחבר כדי להמשיך מהנקודה שבה עצרת.",
   "auth.signUpTitle": "שמור את ההיסטוריה שלך בכל המכשירים.",
   "auth.email": "אימייל",
   "auth.password": "סיסמה",

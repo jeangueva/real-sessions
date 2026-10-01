@@ -212,7 +212,7 @@ const RU: Record<MessageKey, string> = {
   "tip.grammar": "Грамматика",
   "auth.welcomeBack": "С возвращением",
   "auth.createAccount": "Создать аккаунт",
-  "auth.signInTitle": "Войдите, чтобы сохранить прогресс.",
+  "auth.signInTitle": "Войдите, чтобы продолжить с того места, где остановились.",
   "auth.signUpTitle": "Держите историю на всех устройствах.",
   "auth.email": "Эл. почта",
   "auth.password": "Пароль",

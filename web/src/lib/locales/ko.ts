@@ -212,7 +212,7 @@ const KO: Record<MessageKey, string> = {
   "tip.grammar": "문법",
   "auth.welcomeBack": "다시 오셨군요",
   "auth.createAccount": "계정 만들기",
-  "auth.signInTitle": "로그인하고 진행 상황을 이어가세요.",
+  "auth.signInTitle": "로그인하고 이어서 계속하세요.",
   "auth.signUpTitle": "어느 기기에서든 기록을 유지하세요.",
   "auth.email": "이메일",
   "auth.password": "비밀번호",

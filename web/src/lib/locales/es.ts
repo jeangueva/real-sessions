@@ -253,7 +253,7 @@ const ES: Record<MessageKey, string> = {
 
   "auth.welcomeBack": "Bienvenido de vuelta",
   "auth.createAccount": "Crear una cuenta",
-  "auth.signInTitle": "Inicia sesión para conservar tu progreso.",
+  "auth.signInTitle": "Inicia sesión para seguir donde lo dejaste.",
   "auth.signUpTitle": "Guarda tu historial en todos tus dispositivos.",
   "auth.email": "Email",
   "auth.password": "Contraseña",

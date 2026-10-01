@@ -307,7 +307,7 @@ const EN = {
 
   "auth.welcomeBack": "Welcome back",
   "auth.createAccount": "Create an account",
-  "auth.signInTitle": "Sign in to keep your progress.",
+  "auth.signInTitle": "Sign in to pick up where you left off.",
   "auth.signUpTitle": "Keep your history across devices.",
   "auth.email": "Email",
   "auth.password": "Password",

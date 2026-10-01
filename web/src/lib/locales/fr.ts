@@ -213,7 +213,7 @@ const FR: Record<MessageKey, string> = {
   "tip.grammar": "Grammaire",
   "auth.welcomeBack": "Content de vous revoir",
   "auth.createAccount": "Créer un compte",
-  "auth.signInTitle": "Connectez-vous pour garder votre progression.",
+  "auth.signInTitle": "Connectez-vous pour reprendre où vous en étiez.",
   "auth.signUpTitle": "Gardez votre historique sur tous vos appareils.",
   "auth.email": "E-mail",
   "auth.password": "Mot de passe",

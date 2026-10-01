@@ -212,7 +212,7 @@ const AR: Record<MessageKey, string> = {
   "tip.grammar": "القواعد",
   "auth.welcomeBack": "أهلًا بعودتك",
   "auth.createAccount": "إنشاء حساب",
-  "auth.signInTitle": "سجّل الدخول للاحتفاظ بتقدّمك.",
+  "auth.signInTitle": "سجّل الدخول لتكمل من حيث توقفت.",
   "auth.signUpTitle": "احتفظ بسجلّك على كل أجهزتك.",
   "auth.email": "البريد الإلكتروني",
   "auth.password": "كلمة المرور",

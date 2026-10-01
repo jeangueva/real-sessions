@@ -212,7 +212,7 @@ const JA: Record<MessageKey, string> = {
   "tip.grammar": "文法",
   "auth.welcomeBack": "おかえりなさい",
   "auth.createAccount": "アカウントを作成",
-  "auth.signInTitle": "ログインして進捗を残しましょう。",
+  "auth.signInTitle": "ログインして、続きから始めましょう。",
   "auth.signUpTitle": "どの端末でも履歴を残せます。",
   "auth.email": "メールアドレス",
   "auth.password": "パスワード",
