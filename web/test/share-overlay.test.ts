@@ -53,6 +53,37 @@ describe("measuring the block", () => {
   });
 });
 
+describe("measuring the text that is actually drawn", () => {
+  it("measures the label upper-cased, the way it is painted", () => {
+    // The bug this exists for: labels are drawn through `toUpperCase`, and
+    // the width was taken from the original string. Upper-case is wider, so
+    // the scrim came out narrower than the words inside it and the
+    // transparent export clipped them — invisible to every test here, because
+    // no test draws. Found by rendering the card and looking at it.
+    const seen: string[] = [];
+    layoutOverlay({ width: 4000, height: 4000 }, STATS, 1, (text) => {
+      seen.push(text);
+      return 10;
+    });
+    expect(seen).toContain("WEEKS IN A ROW");
+    expect(seen).not.toContain("weeks in a row");
+  });
+
+  it("uses the measured width rather than the estimate when it can", () => {
+    const wide = layoutOverlay({ width: 4000, height: 4000 }, STATS, 1, () => 900);
+    const estimated = layoutOverlay({ width: 4000, height: 4000 }, STATS, 1);
+    expect(wide.width).toBe(900);
+    expect(wide.width).not.toBeCloseTo(estimated.width);
+  });
+
+  it("reserves room below the wordmark's baseline", () => {
+    const layout = layoutOverlay(STORY, STATS);
+    // The scrim is drawn to `height`. Stopping at the baseline left "mockio"
+    // outside the shade that exists to make it readable.
+    expect(layout.height).toBeGreaterThan(layout.brandY);
+  });
+});
+
 describe("where the block sits", () => {
   it("keeps the whole block inside the frame at the extremes", () => {
     const layout = layoutOverlay(STORY, STATS);

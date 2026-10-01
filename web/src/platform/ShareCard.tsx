@@ -7,11 +7,13 @@ import { defaultStats, shareStats, type ShareStat, type ShareStatId } from "@/li
 import {
   drawOverlay,
   layoutOverlay,
+  type Measure,
   overlayOnlySize,
   overlayOrigin,
   TONES,
   type OverlayStat,
   type Tone,
+  SHARE_FONT,
 } from "@/lib/share-overlay";
 import { track } from "@/lib/analytics";
 import {
@@ -125,7 +127,28 @@ export function ShareCard() {
     .filter((stat): stat is ShareStat => Boolean(stat))
     .map((stat) => ({ value: stat.value, label: t(stat.labelKey) }));
 
-  const layout = layoutOverlay(frame, drawn, cardScale);
+  /**
+   * A context kept only to measure text.
+   *
+   * The layout needs the width of the words as they will actually be drawn,
+   * in the font the browser actually resolved. Estimating from the character
+   * count made the scrim narrower than the text inside it and clipped the
+   * transparent export — neither of which any test can see, because no test
+   * draws.
+   */
+  const ruler = useRef<CanvasRenderingContext2D | null>(null);
+  if (!ruler.current && typeof document !== "undefined") {
+    ruler.current = document.createElement("canvas").getContext("2d");
+  }
+  const measure: Measure | undefined = ruler.current
+    ? (text, weight, size) => {
+        const context = ruler.current!;
+        context.font = `${weight} ${size}px ${SHARE_FONT}`;
+        return context.measureText(text).width;
+      }
+    : undefined;
+
+  const layout = layoutOverlay(frame, drawn, cardScale, measure);
 
   /** Redrawn whenever anything about the picture or the card changes. */
   useEffect(() => {
@@ -270,7 +293,7 @@ export function ShareCard() {
     // Laid out against a square of the export width so the type comes out the
     // same size as on the photo version, then cropped to the block.
     const square = { width: frame.width, height: frame.width };
-    const tight = layoutOverlay(square, drawn, cardScale);
+    const tight = layoutOverlay(square, drawn, cardScale, measure);
     const size = overlayOnlySize(tight);
     const offscreen = document.createElement("canvas");
     offscreen.width = size.width;

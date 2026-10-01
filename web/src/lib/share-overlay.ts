@@ -35,7 +35,7 @@ export const TONES = {
 
 export type Tone = keyof typeof TONES;
 
-const FONT =
+export const SHARE_FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 /** The wordmark. The whole reason this feature is free. */
@@ -53,23 +53,38 @@ export interface OverlayLayout extends Size {
 }
 
 /**
+ * Measures one run of text, when a real canvas is available.
+ *
+ * Passed in rather than reached for, so the layout stays pure and testable.
+ * Without it the width falls back to an estimate, which is fine for a test and
+ * is NOT fine for the scrim or the transparent export — both are drawn to this
+ * width, and an estimate that comes up short clips the text.
+ */
+export type Measure = (text: string, weight: number, size: number) => number;
+
+/** The estimate, used when nothing can measure for real. */
+function estimate(text: string, size: number, perChar: number): number {
+  return text.length * size * perChar;
+}
+
+/**
  * Measures the block.
  *
  * Measured rather than guessed because the block has to be clamped inside the
- * frame, and a clamp against an estimated height is a card that hangs off the
- * bottom edge of somebody's story.
+ * frame, and a clamp against the wrong height is a card that hangs off the
+ * bottom of somebody's story.
  *
- * Text width is estimated from the character count rather than measured with
- * `measureText`, deliberately: measuring needs a canvas, which would make this
- * untestable and would tie the layout to whichever font the browser actually
- * resolved. The estimate is generous, so the backdrop is slightly wide rather
- * than ever too narrow — and nothing is centred against it, so a loose
- * estimate costs nothing visible.
+ * The width is measured from the text AS DRAWN, which is the part that was
+ * wrong: labels are drawn upper-cased, and upper-case is wider than the string
+ * they were measured from. The scrim came out narrower than the words inside
+ * it and the transparent export clipped them — neither visible to any test,
+ * because no test draws.
  */
 export function layoutOverlay(
   frame: Size,
   stats: readonly OverlayStat[],
   scale = 1,
+  measure?: Measure,
 ): OverlayLayout {
   // One unit is a hundredth of the frame's width, so every size below reads
   // as a percentage of the picture.
@@ -94,16 +109,22 @@ export function layoutOverlay(
 
   const brandY = y + brandSize * 2.4;
 
+  const widthOf = (text: string, weight: number, size: number, perChar: number) =>
+    measure ? measure(text, weight, size) : estimate(text, size, perChar);
+
   const widest = stats.reduce((longest, stat) => {
-    // 0.58em per character for the value's weight, 0.52 for the label's.
-    const value = stat.value.length * valueSize * 0.58;
-    const label = stat.label.length * labelSize * 0.52;
+    const value = widthOf(stat.value, 600, valueSize, 0.62);
+    // Upper-cased here exactly as `drawOverlay` draws it. Measuring the
+    // original string is what made the scrim too narrow.
+    const label = widthOf(stat.label.toUpperCase(), 500, labelSize, 0.68);
     return Math.max(longest, value, label);
-  }, BRAND.length * brandSize * 0.6);
+  }, widthOf(BRAND, 600, brandSize, 0.62));
 
   return {
     width: Math.min(widest, frame.width - padding * 2),
-    height: brandY,
+    // Past the wordmark's baseline, so a scrim drawn to this height covers its
+    // descenders instead of cutting them off.
+    height: brandY + brandSize * 0.3,
     rows,
     valueSize,
     labelSize,
@@ -160,12 +181,15 @@ export function drawOverlay(
   if (options.backdrop) {
     const pad = layout.padding;
     context.fillStyle = options.tone === "ink" ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.42)";
+    // Symmetric, and taller than the content rather than shorter. It used to
+    // end above the wordmark, leaving "mockio" floating on the photograph
+    // outside the shade that exists to make it readable.
     roundedRect(
       context,
-      origin.x - pad * 0.6,
+      origin.x - pad * 0.7,
       origin.y - pad * 0.9,
-      layout.width + pad * 1.2,
-      layout.height + pad * 0.6,
+      layout.width + pad * 1.4,
+      layout.height + pad * 1.6,
       pad * 0.8,
     );
     context.fill();
@@ -182,15 +206,15 @@ export function drawOverlay(
   stats.forEach((stat, index) => {
     const row = layout.rows[index];
     if (!row) return;
-    context.font = `600 ${layout.valueSize}px ${FONT}`;
+    context.font = `600 ${layout.valueSize}px ${SHARE_FONT}`;
     context.fillText(stat.value, origin.x, origin.y + row.valueY);
-    context.font = `500 ${layout.labelSize}px ${FONT}`;
+    context.font = `500 ${layout.labelSize}px ${SHARE_FONT}`;
     context.globalAlpha = 0.82;
     context.fillText(stat.label.toUpperCase(), origin.x, origin.y + row.labelY);
     context.globalAlpha = 1;
   });
 
-  context.font = `600 ${layout.brandSize}px ${FONT}`;
+  context.font = `600 ${layout.brandSize}px ${SHARE_FONT}`;
   context.globalAlpha = 0.6;
   context.fillText(BRAND, origin.x, origin.y + layout.brandY);
 
