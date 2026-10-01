@@ -9,11 +9,14 @@
  * printed to a log file is a reset link anyone with log access can use.
  */
 import process from "node:process";
+import { shellHtml, shellText, type Shell } from "./email-shell.js";
 
 export interface EmailMessage {
   to: string;
   subject: string;
   text: string;
+  /** The same message, drawn. Absent on anything built before the shell. */
+  html?: string;
 }
 
 export interface EmailSender {
@@ -62,6 +65,10 @@ export class ResendEmailSender implements EmailSender {
             to: [message.to],
             subject: message.subject,
             text: message.text,
+            // Both halves. Sending only HTML loses screen readers, terminal
+            // clients, and anyone whose filter strips markup — which is a
+            // workplace inbox, where mail about a job gets read.
+            ...(message.html ? { html: message.html } : {}),
           }),
           // A hanging provider must not hang a sign-up.
           signal: AbortSignal.timeout(10_000),
@@ -123,28 +130,36 @@ export function createEmailSender(): EmailSender {
   return new ConsoleEmailSender();
 }
 
+/**
+ * Builds both halves of a message from one description.
+ *
+ * Every template below goes through here, so a change to the frame reaches
+ * all fourteen and the text body can never say something the HTML does not.
+ */
+function compose(to: string, subject: string, shell: Shell): EmailMessage {
+  return { to, subject, text: shellText(shell), html: shellHtml(shell) };
+}
+
 export function verifyEmail(email: string, url: string): EmailMessage {
-  return {
-    to: email,
-    subject: "Confirm your email for Mockio",
-    text:
-      `Confirm this address so we can reach you about your account.\n\n` +
-      `${url}\n\n` +
-      `The link works once and expires in 24 hours. ` +
-      `If you did not sign up, ignore this and the account stays unusable.`,
-  };
+  return compose(email, "Confirm your email for Mockio", {
+    heading: "Confirm your address",
+    body: ["Confirm this address so we can reach you about your account."],
+    action: { label: "Confirm my address", url },
+    footnote:
+      "The link works once and expires in 24 hours. If you did not sign up, " +
+      "ignore this and the account stays unusable.",
+  });
 }
 
 export function resetEmail(email: string, url: string): EmailMessage {
-  return {
-    to: email,
-    subject: "Reset your Mockio password",
-    text:
-      `Someone asked to reset the password for this account.\n\n` +
-      `${url}\n\n` +
-      `The link works once and expires in 30 minutes. ` +
-      `If this wasn't you, nothing has changed and you can ignore this.`,
-  };
+  return compose(email, "Reset your Mockio password", {
+    heading: "Reset your password",
+    body: ["Someone asked to reset the password for this account."],
+    action: { label: "Choose a new password", url },
+    footnote:
+      "The link works once and expires in 30 minutes. If this wasn't you, " +
+      "nothing has changed and you can ignore this.",
+  });
 }
 
 /**
@@ -172,17 +187,18 @@ export function subscriptionStartedEmail(
   detail: { amount: number; currency: string; renewsOn: Date | null },
 ): EmailMessage {
   const renews = onDate(detail.renewsOn);
-  return {
-    to: email,
-    subject: "Your Mockio subscription is active",
-    text:
-      `Payment went through and the paid plan is on.\n\n` +
-      `Amount: ${detail.amount} ${detail.currency}\n` +
-      (renews ? `Renews: ${renews}\n` : `Renews monthly.\n`) +
-      `\nThis is the charge that will appear on your statement, so you know ` +
-      `what it is when it does. Cancel any time from Settings — you keep the ` +
-      `plan until the period you have paid for runs out.`,
-  };
+  return compose(email, "Your Mockio subscription is active", {
+    heading: "The paid plan is on",
+    body: [
+      "Payment went through.",
+      `Amount: ${detail.amount} ${detail.currency}`,
+      renews ? `Renews: ${renews}` : "Renews monthly.",
+      "This is the charge that will appear on your statement, so you know what it is when it does.",
+    ],
+    footnote:
+      "Cancel any time from Settings — you keep the plan until the period " +
+      "you have paid for runs out.",
+  });
 }
 
 /**
@@ -198,18 +214,17 @@ export function paymentFailedEmail(
   detail: { accessUntil: Date | null },
 ): EmailMessage {
   const until = onDate(detail.accessUntil);
-  return {
-    to: email,
-    subject: "Mockio could not charge your card",
-    text:
-      `The last payment did not go through, so the subscription is paused.\n\n` +
-      (until
-        ? `The paid plan stays on until ${until}, which is the period already paid for.\n\n`
-        : `The paid plan is off until a payment succeeds.\n\n`) +
-      `Usually this is an expired card or a bank declining an automatic ` +
-      `charge. Updating the card in Settings and subscribing again fixes it. ` +
-      `Nothing in your history is lost either way.`,
-  };
+  return compose(email, "Mockio could not charge your card", {
+    heading: "We could not charge your card",
+    body: [
+      "The last payment did not go through, so the subscription is paused.",
+      until
+        ? `The paid plan stays on until ${until}, which is the period already paid for.`
+        : "The paid plan is off until a payment succeeds.",
+      "Usually this is an expired card, or a bank declining an automatic charge. Updating the card in Settings and subscribing again fixes it.",
+    ],
+    footnote: "Nothing in your history is lost either way.",
+  });
 }
 
 export function subscriptionEndedEmail(
@@ -217,17 +232,18 @@ export function subscriptionEndedEmail(
   detail: { accessUntil: Date | null },
 ): EmailMessage {
   const until = onDate(detail.accessUntil);
-  return {
-    to: email,
-    subject: "Your Mockio subscription has ended",
-    text:
-      `The subscription is cancelled and will not be charged again.\n\n` +
-      (until
-        ? `The paid plan stays on until ${until} — the period already paid for.\n\n`
-        : `The account is back on the free plan.\n\n`) +
-      `Your interviews, feedback and progress stay where they are. Starting ` +
-      `again later picks up from the same history.`,
-  };
+  return compose(email, "Your Mockio subscription has ended", {
+    heading: "Your subscription has ended",
+    body: [
+      "The subscription is cancelled and will not be charged again.",
+      until
+        ? `The paid plan stays on until ${until} — the period already paid for.`
+        : "The account is back on the free plan.",
+    ],
+    footnote:
+      "Your interviews, feedback and progress stay where they are. Starting " +
+      "again later picks up from the same history.",
+  });
 }
 
 /**
@@ -239,31 +255,28 @@ export function subscriptionEndedEmail(
  * who asked.
  */
 export function passwordChangedEmail(email: string): EmailMessage {
-  return {
-    to: email,
-    subject: "Your Mockio password was changed",
-    text:
-      `The password on this account was just changed, and every device that ` +
-      `was signed in has been signed out.\n\n` +
-      `If that was you, there is nothing to do.\n\n` +
-      `If it was not, someone else has access to this address or had your ` +
-      `password. Reset it again from the sign-in page to take the account ` +
-      `back, and write to hello@getmockio.com.`,
-  };
+  return compose(email, "Your Mockio password was changed", {
+    heading: "Your password was changed",
+    body: [
+      "The password on this account was just changed, and every device that was signed in has been signed out.",
+      "If that was you, there is nothing to do.",
+    ],
+    footnote:
+      "If it was not, someone else has access to this address or had your " +
+      "password. Reset it again from the sign-in page to take the account " +
+      "back, and write to hello@getmockio.com.",
+  });
 }
 
 export function accountDeletedEmail(email: string): EmailMessage {
-  return {
-    to: email,
-    subject: "Your Mockio account is deleted",
-    text:
-      `The account for this address is gone, along with its interviews, ` +
-      `transcripts, feedback and progress.\n\n` +
-      `This cannot be undone, and we cannot restore it — that is what makes ` +
-      `it a deletion rather than a hidden account. Signing up again starts ` +
-      `from nothing.\n\n` +
-      `If you did not do this, write to hello@getmockio.com.`,
-  };
+  return compose(email, "Your Mockio account is deleted", {
+    heading: "Your account is deleted",
+    body: [
+      "The account for this address is gone, along with its interviews, transcripts, feedback and progress.",
+      "This cannot be undone, and we cannot restore it — that is what makes it a deletion rather than a hidden account. Signing up again starts from nothing.",
+    ],
+    footnote: "If you did not do this, write to hello@getmockio.com.",
+  });
 }
 
 
@@ -326,19 +339,15 @@ export function earlyAccessEmail(
   detail: { months: number; until: Date | null },
 ): EmailMessage {
   const until = onDate(detail.until);
-  return {
-    to: email,
-    subject: `Your ${detail.months} free months of Mockio`,
-    text:
-      `You are on the early-access list.\n\n` +
-      `Create an account with this exact address — ${email} — then confirm ` +
-      `it from the link we send you. The first ${detail.months} months of the ` +
-      `paid plan unlock the moment it is confirmed. The offer is tied to the ` +
-      `address, so signing up with a different one does not carry it over.\n\n` +
-      (until ? `Claim it before ${until}.\n\n` : "") +
-      `If you did not ask for this, nothing has been created and you can ` +
-      `ignore it.`,
-  };
+  return compose(email, `Your ${detail.months} free months of Mockio`, {
+    heading: "You are on the early-access list",
+    body: [
+      `Create an account with this exact address — ${email} — then confirm it from the link we send you.`,
+      `The first ${detail.months} months of the paid plan unlock the moment it is confirmed. The offer is tied to the address, so signing up with a different one does not carry it over.`,
+      ...(until ? [`Claim it before ${until}.`] : []),
+    ],
+    footnote: "If you did not ask for this, nothing has been created and you can ignore it.",
+  });
 }
 
 /**
@@ -354,19 +363,18 @@ export function earlyAccessUnlockedEmail(
   detail: { months: number; until: Date | null; appUrl: string },
 ): EmailMessage {
   const until = onDate(detail.until);
-  return {
-    to: email,
-    subject: `Your ${detail.months} free months have started`,
-    text:
-      `Your address is confirmed, and the paid plan is now on your account.\n\n` +
+  return compose(email, `Your ${detail.months} free months have started`, {
+    heading: "Your free months have started",
+    body: [
+      "Your address is confirmed, and the paid plan is now on your account.",
       (until ? `It stays on until ${until}. ` : "") +
-      `That means interviews for the company you are actually applying to, an ` +
-      `interviewer who has read your CV, live coaching, and the measured ` +
-      `feedback behind every score.\n\n` +
-      `Start an interview: ${detail.appUrl}\n\n` +
-      `No card is on file, so nothing is charged when the months end — the ` +
-      `account simply goes back to the free plan.`,
-  };
+        "That means interviews for the company you are actually applying to, an interviewer who has read your CV, live coaching, and the measured feedback behind every score.",
+    ],
+    action: { label: "Start an interview", url: detail.appUrl },
+    footnote:
+      "No card is on file, so nothing is charged when the months end — the " +
+      "account simply goes back to the free plan.",
+  });
 }
 
 /**
@@ -382,19 +390,17 @@ export function lastFreeInterviewEmail(
   detail: { limit: number; resetsAt: Date | null },
 ): EmailMessage {
   const resets = onDate(detail.resetsAt);
-  return {
-    to: email,
-    subject: "That was your last free interview this month",
-    text:
-      `You have now used all ${detail.limit} free interviews for this month.\n\n` +
-      (resets
-        ? `The next ${detail.limit} arrive on ${resets}.\n\n`
-        : `They renew at the start of next month.\n\n`) +
-      `Your feedback, transcripts and progress stay available in the ` +
-      `meantime — the limit is on starting new interviews, not on reading ` +
-      `the ones you have done.\n\n` +
-      `The paid plan removes the limit if you would rather not wait.`,
-  };
+  return compose(email, "That was your last free interview this month", {
+    heading: "That was your last free interview this month",
+    body: [
+      `You have now used all ${detail.limit} free interviews for this month.`,
+      resets
+        ? `The next ${detail.limit} arrive on ${resets}.`
+        : "They renew at the start of next month.",
+      "Your feedback, transcripts and progress stay available in the meantime — the limit is on starting new interviews, not on reading the ones you have done.",
+    ],
+    footnote: "The paid plan removes the limit if you would rather not wait.",
+  });
 }
 
 /**
@@ -406,16 +412,16 @@ export function lastFreeInterviewEmail(
  * again. Mailing on every submission would train the recipients to filter it.
  */
 export function reviewQueueEmail(email: string, url: string): EmailMessage {
-  return {
-    to: email,
-    subject: "A contributed question is waiting for review",
-    text:
-      `Someone reported a question they were asked, and nothing reaches an ` +
-      `interview until a human confirms it.\n\n` +
-      `${url}\n\n` +
-      `You will not get another of these until the queue has been cleared ` +
-      `and something new arrives.`,
-  };
+  return compose(email, "A contributed question is waiting for review", {
+    heading: "A question is waiting for review",
+    body: [
+      "Someone reported a question they were asked, and nothing reaches an interview until a human confirms it.",
+    ],
+    action: { label: "Open the queue", url },
+    footnote:
+      "You will not get another of these until the queue has been cleared " +
+      "and something new arrives.",
+  });
 }
 
 /**
@@ -427,28 +433,23 @@ export function reviewQueueEmail(email: string, url: string): EmailMessage {
  * require the URL rather than accepting an optional one. A signature that lets
  * you forget it is a signature that eventually does.
  */
-function withUnsubscribe(body: string, unsubscribeUrl: string): string {
-  return `${body}\n\n—\nStop these emails: ${unsubscribeUrl}\nThis does not affect receipts or security notices.`;
+function unsubscribeNote(unsubscribeUrl: string): string {
+  return `Stop these emails: ${unsubscribeUrl} — this does not affect receipts or security notices.`;
 }
 
 export function inactivityEmail(
   email: string,
   detail: { days: number; unsubscribeUrl: string },
 ): EmailMessage {
-  return {
-    to: email,
-    subject: "Your English is still waiting",
-    text: withUnsubscribe(
-      `It has been about ${detail.days} days since your last interview.\n\n` +
-        `Nothing has expired and nothing is lost — your transcripts, feedback ` +
-        `and progress are where you left them. One interview takes around ten ` +
-        `minutes, and the hardest part of speaking English under pressure is ` +
-        `the part that goes first when you stop.\n\n` +
-        `If you are not looking for a job right now, that is a good reason to ` +
-        `practise and a fine reason to ignore this.`,
-      detail.unsubscribeUrl,
-    ),
-  };
+  return compose(email, "Your English is still waiting", {
+    heading: "Your English is still waiting",
+    body: [
+      `It has been about ${detail.days} days since your last interview.`,
+      "Nothing has expired and nothing is lost — your transcripts, feedback and progress are where you left them. One interview takes around ten minutes, and the hardest part of speaking English under pressure is the part that goes first when you stop.",
+      "If you are not looking for a job right now, that is a good reason to practise and a fine reason to ignore this.",
+    ],
+    footnote: unsubscribeNote(detail.unsubscribeUrl),
+  });
 }
 
 /**
@@ -469,17 +470,14 @@ export function weeklyDigestEmail(
 ): EmailMessage {
   const count =
     detail.sessions === 1 ? "one interview" : `${detail.sessions} interviews`;
-  return {
-    to: email,
-    subject: `Your week: ${count}`,
-    text: withUnsubscribe(
-      `You sat ${count} in the last seven days.\n\n` +
-        (detail.bestScore !== null ? `Best score: ${detail.bestScore}/100\n` : "") +
-        (detail.xp > 0 ? `XP earned: ${detail.xp}\n` : "") +
-        `\nThe scores are only worth reading next to each other, which is what ` +
-        `the progress screen is for. Two or three interviews a week is where ` +
-        `the curve starts moving.`,
-      detail.unsubscribeUrl,
-    ),
-  };
+  return compose(email, `Your week: ${count}`, {
+    heading: `Your week: ${count}`,
+    body: [
+      `You sat ${count} in the last seven days.`,
+      ...(detail.bestScore !== null ? [`Best score: ${detail.bestScore}/100`] : []),
+      ...(detail.xp > 0 ? [`XP earned: ${detail.xp}`] : []),
+      "The scores are only worth reading next to each other, which is what the progress screen is for. Two or three interviews a week is where the curve starts moving.",
+    ],
+    footnote: unsubscribeNote(detail.unsubscribeUrl),
+  });
 }
