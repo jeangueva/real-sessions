@@ -76,6 +76,8 @@ export interface Capabilities {
   interviewLanguage: boolean;
   /** Interviews a calendar month, or null when the plan does not meter them. */
   weeklySessions: number | null;
+  /** Publish one finished report at a link anybody can open. */
+  shareReport: boolean;
 }
 
 export interface ProfileLink {
@@ -508,6 +510,14 @@ export interface SessionSummary {
   vocabularyScore: number | null;
   structureScore: number | null;
   metrics: SessionMetrics | null;
+  /**
+   * The token this report is readable by, or null when it is not shared.
+   *
+   * Optional on this type rather than required: the history list and the
+   * report screen both read it, and a server older than this field would make
+   * every row fail to parse rather than simply not offer sharing.
+   */
+  shareToken?: string | null;
 }
 
 export interface Preferences {
@@ -729,6 +739,32 @@ export function startCheckout() {
 export function cancelSubscription() {
   return withIdentity(() =>
     request<{ plan: Plan }>("/api/billing/cancel", { method: "POST" }),
+  );
+}
+
+/**
+ * Starts sharing one report, and returns the link to hand out.
+ *
+ * The URL comes from the server rather than being assembled here: the one
+ * place that knows this deployment's own address is the server, and a client
+ * building it from `window.location` would produce a localhost link in
+ * development and paste it into somebody's chat window.
+ */
+export function shareSession(historyId: string) {
+  return withIdentity(() =>
+    request<{ shared: { token: string; url: string } }>(
+      `/api/history/${historyId}/share`,
+      { method: "POST" },
+    ),
+  );
+}
+
+/** Takes the link down. Allowed on any plan — see the route. */
+export function unshareSession(historyId: string) {
+  return withIdentity(() =>
+    request<{ shared: null }>(`/api/history/${historyId}/share`, {
+      method: "DELETE",
+    }),
   );
 }
 

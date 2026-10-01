@@ -6,7 +6,14 @@ import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import { SAMPLE_EVALUATION } from "@/lib/evaluation";
 import type { Evaluation } from "@/lib/evaluation";
-import { ApiError, fetchHistoryEntry, requestEvaluation } from "@/lib/api";
+import {
+  ApiError,
+  fetchHistoryEntry,
+  fetchPlan,
+  requestEvaluation,
+  shareSession,
+  unshareSession,
+} from "@/lib/api";
 import type { Badge as BadgeInfo, SessionMetrics, XpAward } from "@/lib/api";
 import {
   formatFiller,
@@ -50,7 +57,24 @@ export function FeedbackReport() {
   const [withheld, setWithheld] = useState({ metrics: false, nextSteps: false });
   const [xp, setXp] = useState<XpAward | null>(null);
   const [earned, setEarned] = useState<BadgeInfo[]>([]);
+  /**
+   * Whether this report can be shared, and whether it already is.
+   *
+   * Null while unknown, so the control renders nothing rather than flashing
+   * the paid-plan version at a subscriber for one frame.
+   */
+  const [canShare, setCanShare] = useState<boolean | null>(null);
+  const [shareToken, setShareToken] = useState<string | null>(null);
   const requested = useRef(false);
+
+  useEffect(() => {
+    // Separate from the evaluation read below, which is guarded against
+    // running twice. This one is cheap and has no side effect, and a report
+    // reached without an id — the sample — still wants the control's state.
+    fetchPlan()
+      .then((result) => setCanShare(result.capabilities.shareReport))
+      .catch(() => setCanShare(false));
+  }, []);
 
   useEffect(() => {
     if (requested.current) return;
@@ -68,6 +92,7 @@ export function FeedbackReport() {
           setEvaluation(result.session.evaluation);
           setMetrics(result.session.metrics);
           setWithheld(result.session.withheld);
+          setShareToken(result.session.shareToken ?? null);
           setMeta(
             `${result.session.company} · ${result.session.role} · ` +
               `${result.session.stage} · ${formatSessionDate(result.session.completedAt)}`,
@@ -143,7 +168,130 @@ export function FeedbackReport() {
       withheld={withheld}
       xp={xp}
       earned={earned}
+      // Only a stored report can be shared. The sample has no row behind it,
+      // and a just-finished interview is the same id as its history entry.
+      share={
+        canShare === null
+          ? null
+          : { historyId: historyId ?? sessionId ?? null, allowed: canShare, token: shareToken }
+      }
     />
+  );
+}
+
+/**
+ * Share this report, or stop.
+ *
+ * Copies the link rather than opening a share sheet. The reader is in Lima
+ * sending it to a mentor on WhatsApp, and the sheet is a different control on
+ * every platform and absent on a desktop browser — a clipboard is the one
+ * thing that behaves the same everywhere and lands in the app they are already
+ * typing in.
+ *
+ * The state is three things, not two: not shared, shared, and "shared and the
+ * link is on your clipboard right now". The last one is the only confirmation
+ * a copy can give, and without it people click twice and wonder which click
+ * worked.
+ *
+ * Shown on the free plan rather than hidden, because an absent control teaches
+ * nobody that the feature exists. It says what it costs and goes to the plan.
+ */
+function ShareControl({
+  historyId,
+  allowed,
+  initialToken,
+}: {
+  historyId: string;
+  allowed: boolean;
+  /** The token the report already had, when it arrived with one. */
+  initialToken: string | null;
+}) {
+  const t = useT();
+  const [token, setToken] = useState<string | null>(initialToken);
+  const [url, setUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  if (!allowed) {
+    return (
+      <Link to="/app/settings#plan">
+        <Action tone="glass">{t("feedback.sharePaid")}</Action>
+      </Link>
+    );
+  }
+
+  const link = url ?? (token ? `${window.location.origin}/r/${token}` : null);
+
+  const copy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      // Long enough to read, short enough that the button is not stuck
+      // confirming something the reader has moved on from.
+      window.setTimeout(() => setCopied(false), 4000);
+    } catch {
+      // A browser that refuses the clipboard — an insecure origin, a denied
+      // permission — still gets the link, below, to select by hand.
+      setCopied(false);
+    }
+  };
+
+  const share = async () => {
+    setBusy(true);
+    try {
+      if (link) {
+        await copy(link);
+        return;
+      }
+      const result = await shareSession(historyId);
+      setToken(result.shared.token);
+      setUrl(result.shared.url);
+      track("report shared");
+      await copy(result.shared.url);
+    } catch {
+      // Nothing to say that the reader can act on: the link either exists or
+      // it does not, and the button still reads "share" if it does not.
+      setToken(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const stop = async () => {
+    setBusy(true);
+    try {
+      await unshareSession(historyId);
+      setToken(null);
+      setUrl(null);
+      setCopied(false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-stretch gap-2 sm:items-end">
+      <div className="flex flex-wrap gap-2">
+        <Action tone="glass" onClick={share} disabled={busy}>
+          {copied
+            ? t("feedback.shareCopied")
+            : link
+              ? t("feedback.shareCopy")
+              : t("feedback.shareReport")}
+        </Action>
+        {link && (
+          <Action tone="glass" onClick={stop} disabled={busy}>
+            {t("feedback.shareStop")}
+          </Action>
+        )}
+      </div>
+      {link && (
+        /* The link in full, selectable. For the browser that refused the
+           clipboard, and for the reader who wants to see what they are about
+           to send before they send it. */
+        <p className="max-w-xs break-all text-right text-xs text-cream-faint">{link}</p>
+      )}
+    </div>
   );
 }
 
@@ -161,6 +309,7 @@ function FeedbackBody({
   withheld,
   xp,
   earned,
+  share,
 }: {
   evaluation: Evaluation;
   meta: string;
@@ -168,6 +317,7 @@ function FeedbackBody({
   withheld: { metrics: boolean; nextSteps: boolean };
   xp: XpAward | null;
   earned: BadgeInfo[];
+  share: { historyId: string | null; allowed: boolean; token: string | null } | null;
 }) {
   const t = useT();
   return (
@@ -176,9 +326,18 @@ function FeedbackBody({
         title={t("feedback.title")}
         meta={meta}
         actions={
-          <Link to="/app">
-            <Action tone="glass">{t("feedback.again")}</Action>
-          </Link>
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">
+            {share?.historyId && (
+              <ShareControl
+                historyId={share.historyId}
+                allowed={share.allowed}
+                initialToken={share.token}
+              />
+            )}
+            <Link to="/app">
+              <Action tone="glass">{t("feedback.again")}</Action>
+            </Link>
+          </div>
         }
       />
 
@@ -297,7 +456,7 @@ function FeedbackBody({
               <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
                 <Stat label={t("feedback.words")} value={String(metrics.words)} />
                 <Stat label={t("feedback.fillers")} value={formatFiller(metrics.fillerPer100)} />
-                <Stat label={t("feedback.share")} value={formatShare(metrics.wordShare)} />
+                <Stat label={t("feedback.shareReport")} value={formatShare(metrics.wordShare)} />
                 <Stat label={t("feedback.pace")} value={formatWpm(metrics.wpm)} />
                 <Stat
                   label={t("feedback.thinking")}
