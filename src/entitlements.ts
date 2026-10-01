@@ -65,6 +65,16 @@ export interface Capabilities {
    * habit, and the subscription is what has to cover it.
    */
   weeklySessions: number | null;
+  /**
+   * Publish one finished report at a link anybody can open.
+   *
+   * Paid because of who it is for. A candidate sends this to a mentor, a
+   * recruiter, or the friend who is also job-hunting, and what comes back is
+   * the paid half of the report — the metrics and the next steps. Free
+   * sharing would hand that away to a reader who never signed up, which is
+   * the one thing the paywall exists to prevent.
+   */
+  shareReport: boolean;
 }
 
 const FREE: Capabilities = {
@@ -79,6 +89,7 @@ const FREE: Capabilities = {
   historyLimit: 3,
   interviewLanguage: false,
   weeklySessions: 5,
+  shareReport: false,
 };
 
 const PREMIUM: Capabilities = {
@@ -94,6 +105,7 @@ const PREMIUM: Capabilities = {
   // nothing and would punish exactly the people getting the most out of it.
   weeklySessions: null,
   interviewLanguage: true,
+  shareReport: true,
 };
 
 export function capabilitiesFor(plan: Plan): Capabilities {

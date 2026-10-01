@@ -1317,3 +1317,86 @@ describe("the interviewer's voice", () => {
     expect(body.speech).toBe(true);
   });
 });
+
+describe("sharing a report", () => {
+  it("refuses to mint a link on the free plan", async () => {
+    await api.authenticate();
+    const id = await completeInterview(api);
+    const response = await api.call(`/api/history/${id}/share`, post({}));
+    expect(response.status).toBe(402);
+  });
+
+  it("serves a shared report to a caller with no identity at all", async () => {
+    await api.authenticate();
+    await api.makePremium();
+    const id = await completeInterview(api);
+    const { shared } = await api.json<{ shared: { token: string; url: string } }>(
+      `/api/history/${id}/share`,
+      post({}),
+    );
+    expect(shared.url).toContain(`/r/${shared.token}`);
+
+    // The whole point: a reader who has never been here.
+    api.forget();
+    const response = await api.call(`/api/shared/${shared.token}`);
+    expect(response.status).toBe(200);
+    const { report } = (await response.json()) as { report: Record<string, unknown> };
+    expect(report.company).toBe("Nubank");
+    expect(report.evaluation).toBeTruthy();
+  });
+
+  it("gives a stranger the report and nothing else", async () => {
+    await api.authenticate();
+    await api.makePremium();
+    const id = await completeInterview(api);
+    const { shared } = await api.json<{ shared: { token: string } }>(
+      `/api/history/${id}/share`,
+      post({}),
+    );
+    api.forget();
+    const { report } = await api.json<{ report: Record<string, unknown> }>(
+      `/api/shared/${shared.token}`,
+    );
+    // The guard on `publicReport` being a whitelist. If a field is ever added
+    // to the session and reaches this without being written down there, this
+    // is what fails.
+    expect(Object.keys(report).sort()).toEqual(
+      ["company", "completedAt", "evaluation", "metrics", "role", "score", "stage"],
+    );
+    // Named individually too, because the list above is only as good as its
+    // author and these three are the ones that would actually hurt.
+    expect(report).not.toHaveProperty("ownerId");
+    expect(report).not.toHaveProperty("turns");
+    expect(report).not.toHaveProperty("id");
+  });
+
+  it("stops serving the report once the link is revoked", async () => {
+    await api.authenticate();
+    await api.makePremium();
+    const id = await completeInterview(api);
+    const { shared } = await api.json<{ shared: { token: string } }>(
+      `/api/history/${id}/share`,
+      post({}),
+    );
+    expect((await api.call(`/api/history/${id}/share`, { method: "DELETE" })).status).toBe(200);
+    api.forget();
+    expect((await api.call(`/api/shared/${shared.token}`)).status).toBe(404);
+  });
+
+  it("answers a fabricated token the same way as a revoked one", async () => {
+    const response = await api.call("/api/shared/not-a-real-token");
+    expect(response.status).toBe(404);
+  });
+
+  it("will not let one account share another's session", async () => {
+    await api.authenticate();
+    await api.makePremium();
+    const id = await completeInterview(api);
+
+    api.forget();
+    await api.authenticate();
+    await api.makePremium();
+    const response = await api.call(`/api/history/${id}/share`, post({}));
+    expect(response.status).toBe(404);
+  });
+});

@@ -16,6 +16,9 @@
  *   POST /api/sessions/:id/coach        → { tips }
  *   GET  /api/history                   → { sessions }
  *   GET  /api/history/:id               → { session }
+ *   POST /api/history/:id/share         → { shared: { token, url } }
+ *   DELETE /api/history/:id/share       → { shared: null }
+ *   GET  /api/shared/:token             → { report }  (public, no identity)
  *   GET  /api/progress                  → { sessions, axes }
  *   GET  /api/profile                   → { xp, level, badges }  (gamification)
  *   GET  /api/leaderboard               → { rows }
@@ -50,6 +53,11 @@
  *
  * Every route but /api/auth requires that identity, and every interview is
  * owned by the identity that created it.
+ *
+ * The exception is /api/shared/:token, where the token IS the authorisation:
+ * it is a link the owner chose to hand out, and it answers a reader who has
+ * no identity at all. What that reader receives is built by `publicReport`,
+ * field by field — see the reasoning there.
  *
  * Run with `npm run serve`.
  */
@@ -117,8 +125,10 @@ import {
   type ProgressStore,
   type RecordedTurn,
   type SessionMode,
+  type SessionDetail,
 } from "./progress-store.js";
 import { computeMetrics } from "./metrics.js";
+import type { SessionMetrics } from "./metrics.js";
 import {
   axisScores,
   badgesForSession,
@@ -549,6 +559,47 @@ function readContext(
  * the client needs the difference to show an upsell where the panel would be
  * instead of silently rendering a shorter report.
  */
+/**
+ * What a stranger holding a share link is allowed to see.
+ *
+ * Built field by field rather than by deleting from the session, and that
+ * direction is the whole security property. A blacklist is a list somebody has
+ * to remember to extend: the day a column is added to `sessions` — an email, a
+ * note, an uploaded CV's text — it ships to every share link in the world and
+ * nobody notices, because nothing failed. A whitelist means a new field is
+ * invisible until somebody writes it down here on purpose.
+ *
+ * So: the report, and just enough around it for the page to make sense. Not
+ * the owner id, which is the identity the whole product is keyed by. Not the
+ * transcript — that is the candidate's own words under pressure, and sharing a
+ * score is not consenting to publish a recording of yourself struggling with
+ * a question. Not the internal session id, which would let a reader try it
+ * against the authenticated endpoints.
+ *
+ * The evaluation goes out whole, including the next steps and the metrics.
+ * Somebody sharing their report is sharing their report; withholding half of
+ * it from the mentor they sent it to would make the feature pointless.
+ */
+function publicReport(record: SessionDetail): {
+  company: string;
+  role: string;
+  stage: string;
+  completedAt: string | null;
+  score: number | null;
+  evaluation: Evaluation | null;
+  metrics: SessionMetrics | null;
+} {
+  return {
+    company: record.company,
+    role: record.role,
+    stage: record.stage,
+    completedAt: record.completedAt,
+    score: record.score,
+    evaluation: record.evaluation,
+    metrics: record.metrics,
+  };
+}
+
 function shapeFeedback<T extends { evaluation: Evaluation | null; metrics: unknown }>(
   record: T,
   advanced: boolean,
@@ -1390,6 +1441,37 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // microphone is opened, the answer is identical for everyone, and making
     // it authenticated cost a 401 on the first call of every session.
     json(res, 200, { live: deepgramConfigured(), speech: ttsConfigured() });
+    return;
+  }
+
+  /**
+   * A shared report, by its token.
+   *
+   * Unauthenticated, and in front of the gate for that reason: the whole
+   * point is a link that works for somebody who has never heard of this
+   * product. The token is the authorisation — 128 random bits, which is why
+   * this can exist at all.
+   *
+   * Rate limited by IP on the `auth` rule, the one other anonymous route. Not
+   * because a report is expensive to serve — it is one query — but because
+   * without it this endpoint is an oracle: a script could walk tokens and
+   * learn which ones are real. At ten an hour, finding one by guessing takes
+   * longer than the universe has been running.
+   *
+   * 404 for a token that does not resolve, with the same body as one that
+   * never existed. A revoked link and a fabricated one are indistinguishable
+   * from the outside, which is what makes revoking meaningful.
+   */
+  const sharedMatch = path.match(/^\/api\/shared\/([\w-]+)$/);
+  if (req.method === "GET" && sharedMatch) {
+    if (await limited(res, `shared:${clientIp(req)}`, RULES.auth)) return;
+    const record = await PROGRESS.sessionByShareToken(sharedMatch[1]!);
+    // Only a finished interview has a report to show. An abandoned one would
+    // render as an empty page, and its owner shared a result, not a start.
+    if (!record || record.completedAt === null) {
+      return json(res, 404, { error: "This report is not available." });
+    }
+    json(res, 200, { report: publicReport(record) });
     return;
   }
 
@@ -2538,6 +2620,41 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // Gated identically to /evaluation. Without this a free caller reads the
     // paid half straight back out of their own history a moment later.
     json(res, 200, { session: shapeFeedback(record, can.advancedFeedback) });
+    return;
+  }
+
+  /**
+   * Sharing one report, and stopping.
+   *
+   * POST returns the link rather than only the token: the client would
+   * otherwise have to know how to build it, and the one place that knows the
+   * site's own address is the server — which is the same reason `back_url`
+   * for the checkout is built here.
+   *
+   * Gated on the plan at the moment of the request, not at the moment the
+   * interview ran. Someone whose subscription lapsed cannot mint new links;
+   * the ones they already sent keep working, because revoking them silently
+   * on a lapse would break a link a mentor has in their inbox for a reason
+   * that is between us and the candidate.
+   */
+  const shareMatch = path.match(/^\/api\/history\/([\w-]+)\/share$/);
+  if (shareMatch && (req.method === "POST" || req.method === "DELETE")) {
+    const sessionId = shareMatch[1]!;
+    if (req.method === "DELETE") {
+      // Deliberately not gated: revoking is always allowed. A lapsed
+      // subscriber who wants a link taken down must be able to take it down.
+      await PROGRESS.unshareSession(identity.id, sessionId);
+      return json(res, 200, { shared: null });
+    }
+    if (!can.shareReport) {
+      return json(res, 402, { error: "Sharing a report is on the paid plan." });
+    }
+    if (await limited(res, `share:${identity.id}`, RULES.contribute)) return;
+    const token = await PROGRESS.shareSession(identity.id, sessionId);
+    // Null means not theirs, or not there. Same answer for both: confirming
+    // that an id exists is already telling a stranger something.
+    if (!token) return json(res, 404, { error: "Session not found." });
+    json(res, 200, { shared: { token, url: `${siteUrl()}/r/${token}` } });
     return;
   }
 
