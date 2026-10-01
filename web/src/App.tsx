@@ -38,6 +38,7 @@ const Progress = lazy(() => import("@/platform/Progress").then((m) => ({ default
 const Profile = lazy(() => import("@/platform/Profile").then((m) => ({ default: m.Profile })));
 const Review = lazy(() => import("@/platform/Review").then((m) => ({ default: m.Review })));
 const Settings = lazy(() => import("@/platform/Settings").then((m) => ({ default: m.Settings })));
+const ShareCard = lazy(() => import("@/platform/ShareCard").then((m) => ({ default: m.ShareCard })));
 /**
  * Lazy although it is public, which is the opposite of the rule above.
  *
@@ -147,6 +148,7 @@ export function App() {
           <Route path="profile" element={<Suspense fallback={null}><Profile /></Suspense>} />
           <Route path="review" element={<Suspense fallback={null}><Review /></Suspense>} />
           <Route path="settings" element={<Suspense fallback={null}><Settings /></Suspense>} />
+          <Route path="share" element={<Suspense fallback={null}><ShareCard /></Suspense>} />
         </Route>
       </Routes>
     </BrowserRouter>

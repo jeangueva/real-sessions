@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   FileUser,
   History,
+  ImageUp,
   LineChart,
   Lock,
   LogIn,
@@ -65,6 +66,13 @@ const NAV = [
     key: "nav.history" as const,
     short: "nav.history" as const,
     icon: History,
+    end: false,
+  },
+  {
+    to: "/app/share",
+    key: "nav.share" as const,
+    short: "nav.shareShort" as const,
+    icon: ImageUp,
     end: false,
   },
   {
