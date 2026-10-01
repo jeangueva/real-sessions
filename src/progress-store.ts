@@ -27,6 +27,8 @@ export type SessionMode = "practice" | "real";
 export interface NewSession {
   id: string;
   ownerId: string;
+  /** The application this rehearses for, when it rehearses for one. */
+  applicationId?: string | null;
   company: string;
   sectorId: string | null;
   role: string;
@@ -35,6 +37,64 @@ export interface NewSession {
   personaId: string;
   /** The English level it ran at. Null on rows written before levels existed. */
   level: string | null;
+}
+
+/**
+ * The states a job search actually passes through.
+ *
+ * Five, closed, and in order. 'rejected' is last rather than absent because a
+ * search is mostly rejections and a tracker that cannot record one is a
+ * tracker people stop opening — and because the rehearsals attached to it are
+ * still worth keeping.
+ */
+export const APPLICATION_STATUSES = [
+  "interested",
+  "applied",
+  "interviewing",
+  "offer",
+  "rejected",
+] as const;
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+export function isApplicationStatus(value: unknown): value is ApplicationStatus {
+  return (
+    typeof value === "string" &&
+    (APPLICATION_STATUSES as readonly string[]).includes(value)
+  );
+}
+
+export interface NewApplication {
+  id: string;
+  ownerId: string;
+  company: string;
+  role: string;
+  posting: string | null;
+  status: ApplicationStatus;
+}
+
+export interface Application {
+  id: string;
+  company: string;
+  role: string;
+  posting: string | null;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * An application with what the practice says about it.
+ *
+ * The two derived numbers are the whole reason this screen is worth opening:
+ * how many times you rehearsed for this job, and the best you did. Computed
+ * on read rather than stored, for the reason the XP total is — a counter kept
+ * beside the rows goes wrong the first time the rules change and cannot be
+ * recomputed.
+ */
+export interface ApplicationSummary extends Application {
+  sessions: number;
+  bestScore: number | null;
 }
 
 export interface RecordedTurn {
@@ -147,6 +207,27 @@ export interface ProgressStore {
    * public view of it.
    */
   sessionByShareToken(token: string): Promise<SessionDetail | null>;
+  createApplication(application: NewApplication): Promise<void>;
+  /** Newest first, each with its rehearsal count and best score. */
+  listApplications(ownerId: string): Promise<ApplicationSummary[]>;
+  /** One application, scoped to its owner. Null reads as "not yours". */
+  getApplication(ownerId: string, id: string): Promise<Application | null>;
+  /**
+   * Changes what the candidate can change. Returns the updated row, or null
+   * when it is not theirs — so a caller never has to re-read to find out.
+   */
+  updateApplication(
+    ownerId: string,
+    id: string,
+    patch: {
+      company?: string;
+      role?: string;
+      posting?: string | null;
+      status?: ApplicationStatus;
+    },
+  ): Promise<Application | null>;
+  /** Removes it. The sessions that rehearsed for it survive, ownerless. */
+  deleteApplication(ownerId: string, id: string): Promise<void>;
   addXp(ownerId: string, sessionId: string | null, events: XpEvent[]): Promise<void>;
   /** XP already granted on the given UTC day, for the daily cap. */
   xpOnDay(ownerId: string, dayIso: string): Promise<number>;
@@ -207,8 +288,8 @@ class PostgresProgressStore implements ProgressStore {
 
   async createSession(session: NewSession): Promise<void> {
     await this.pool.query(
-      `INSERT INTO sessions (id, owner_id, company, sector_id, role, stage, mode, persona_id, level)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO sessions (id, owner_id, company, sector_id, role, stage, mode, persona_id, level, application_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (id) DO NOTHING`,
       [
         session.id,
@@ -220,6 +301,7 @@ class PostgresProgressStore implements ProgressStore {
         session.mode,
         session.personaId,
         session.level,
+        session.applicationId ?? null,
       ],
     );
   }
@@ -366,6 +448,97 @@ class PostgresProgressStore implements ProgressStore {
     const row = rows[0];
     if (!row) return null;
     return this.withTurns(row);
+  }
+
+  async createApplication(application: NewApplication): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO applications (id, owner_id, company, role, posting, status)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        application.id,
+        application.ownerId,
+        application.company,
+        application.role,
+        application.posting,
+        application.status,
+      ],
+    );
+  }
+
+  async listApplications(ownerId: string): Promise<ApplicationSummary[]> {
+    // The counts come from one join rather than a query per row: a candidate
+    // with twenty applications would otherwise cost twenty-one round trips to
+    // draw one screen.
+    const { rows } = await this.pool.query(
+      `SELECT a.*,
+              COUNT(s.id)::int AS sessions,
+              MAX(s.score)     AS best_score
+         FROM applications a
+         LEFT JOIN sessions s ON s.application_id = a.id
+        WHERE a.owner_id = $1
+        GROUP BY a.id
+        ORDER BY a.created_at DESC`,
+      [ownerId],
+    );
+    return rows.map(toApplicationSummary);
+  }
+
+  async getApplication(ownerId: string, id: string): Promise<Application | null> {
+    const { rows } = await this.pool.query(
+      `SELECT * FROM applications WHERE owner_id = $1 AND id = $2`,
+      [ownerId, id],
+    );
+    return rows[0] ? toApplication(rows[0]) : null;
+  }
+
+  async updateApplication(
+    ownerId: string,
+    id: string,
+    patch: {
+      company?: string;
+      role?: string;
+      posting?: string | null;
+      status?: ApplicationStatus;
+    },
+  ): Promise<Application | null> {
+    // COALESCE against the parameter rather than a built SET list: the status
+    // selector sends one field and the edit form sends three, and assembling
+    // SQL per shape is how a column ends up updatable by a caller that never
+    // meant to touch it.
+    //
+    // Which costs one thing, stated here because it is not obvious: `posting`
+    // cannot be cleared through this path, since null means "leave it". Taking
+    // a posting away is not something the UI offers, and when it does it needs
+    // its own call rather than a sentinel string.
+    const { rows } = await this.pool.query(
+      `UPDATE applications
+          SET company    = COALESCE($3, company),
+              role       = COALESCE($4, role),
+              posting    = COALESCE($5, posting),
+              status     = COALESCE($6, status),
+              updated_at = now()
+        WHERE owner_id = $1 AND id = $2
+        RETURNING *`,
+      [
+        ownerId,
+        id,
+        patch.company ?? null,
+        patch.role ?? null,
+        patch.posting ?? null,
+        patch.status ?? null,
+      ],
+    );
+    return rows[0] ? toApplication(rows[0]) : null;
+  }
+
+  async deleteApplication(ownerId: string, id: string): Promise<void> {
+    // The sessions keep their rows and lose the link, by the foreign key's
+    // ON DELETE SET NULL. That is the point, not a side effect.
+    await this.pool.query(
+      `DELETE FROM applications WHERE owner_id = $1 AND id = $2`,
+      [ownerId, id],
+    );
   }
 
   /** The turns half of a detail read, shared by the owned and shared paths. */
@@ -532,6 +705,11 @@ class PostgresProgressStore implements ProgressStore {
       await client.query(`DELETE FROM xp_events WHERE owner_id = $1`, [ownerId]);
       await client.query(`DELETE FROM badges WHERE owner_id = $1`, [ownerId]);
       await client.query(`DELETE FROM sessions WHERE owner_id = $1`, [ownerId]);
+      // After the sessions, not before: the foreign key would otherwise null
+      // out links on rows that are about to be deleted anyway, which is work
+      // for nothing. Applications hold a pasted posting, so they are squarely
+      // within what someone deleting their account is asking to be rid of.
+      await client.query(`DELETE FROM applications WHERE owner_id = $1`, [ownerId]);
       await client.query("COMMIT");
     } catch (error) {
       await client.query("ROLLBACK").catch(() => undefined);
@@ -581,6 +759,29 @@ function toSummary(row: Record<string, unknown>): SessionSummary {
   };
 }
 
+function toApplication(row: Record<string, unknown>): Application {
+  return {
+    id: row.id as string,
+    company: row.company as string,
+    role: row.role as string,
+    posting: (row.posting as string | null) ?? null,
+    status: row.status as ApplicationStatus,
+    createdAt: iso(row.created_at),
+    updatedAt: iso(row.updated_at),
+  };
+}
+
+function toApplicationSummary(row: Record<string, unknown>): ApplicationSummary {
+  return {
+    ...toApplication(row),
+    sessions: (row.sessions as number | null) ?? 0,
+    // MAX over no rows is null, and over unscored rows is also null. Both mean
+    // "nothing to show yet", which is not the same as zero and must not round
+    // to it on the screen.
+    bestScore: (row.best_score as number | null) ?? null,
+  };
+}
+
 function iso(value: unknown): string {
   return value instanceof Date ? value.toISOString() : String(value);
 }
@@ -599,9 +800,35 @@ interface MemorySession extends NewSession {
   turns: Map<number, RecordedTurn>;
 }
 
+interface MemoryApplication extends NewApplication {
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Drops the owner id on the way out.
+ *
+ * The Postgres projection cannot leak it because it names its fields; the
+ * memory one holds the whole row, and returning it would make the two
+ * implementations answer differently — which is exactly the class of bug the
+ * shared test suite exists to catch.
+ */
+function stripOwner(application: MemoryApplication): Application {
+  return {
+    id: application.id,
+    company: application.company,
+    role: application.role,
+    posting: application.posting,
+    status: application.status,
+    createdAt: application.createdAt,
+    updatedAt: application.updatedAt,
+  };
+}
+
 class MemoryProgressStore implements ProgressStore {
   readonly kind = "memory" as const;
   private readonly sessions = new Map<string, MemorySession>();
+  private readonly applications = new Map<string, MemoryApplication>();
   private readonly xp: { ownerId: string; amount: number; at: number }[] = [];
   private readonly badges = new Map<string, Map<string, string>>();
 
@@ -694,6 +921,76 @@ class MemoryProgressStore implements ProgressStore {
     };
   }
 
+  async createApplication(application: NewApplication): Promise<void> {
+    if (this.applications.has(application.id)) return;
+    const now = new Date().toISOString();
+    this.applications.set(application.id, {
+      ...application,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  async listApplications(ownerId: string): Promise<ApplicationSummary[]> {
+    return [...this.applications.values()]
+      .filter((application) => application.ownerId === ownerId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .map((application) => {
+        const rehearsals = [...this.sessions.values()].filter(
+          (session) => session.applicationId === application.id,
+        );
+        const scores = rehearsals
+          .map((session) => session.score)
+          .filter((score): score is number => score !== null);
+        return {
+          ...stripOwner(application),
+          sessions: rehearsals.length,
+          bestScore: scores.length > 0 ? Math.max(...scores) : null,
+        };
+      });
+  }
+
+  async getApplication(ownerId: string, id: string): Promise<Application | null> {
+    const application = this.applications.get(id);
+    if (!application || application.ownerId !== ownerId) return null;
+    return stripOwner(application);
+  }
+
+  async updateApplication(
+    ownerId: string,
+    id: string,
+    patch: {
+      company?: string;
+      role?: string;
+      posting?: string | null;
+      status?: ApplicationStatus;
+    },
+  ): Promise<Application | null> {
+    const application = this.applications.get(id);
+    if (!application || application.ownerId !== ownerId) return null;
+    // `??` and not `||`, so an empty company does not silently keep the old
+    // one — and matching the COALESCE in the Postgres path, where a null
+    // parameter means "leave it".
+    application.company = patch.company ?? application.company;
+    application.role = patch.role ?? application.role;
+    application.posting = patch.posting ?? application.posting;
+    application.status = patch.status ?? application.status;
+    application.updatedAt = new Date().toISOString();
+    return stripOwner(application);
+  }
+
+  async deleteApplication(ownerId: string, id: string): Promise<void> {
+    const application = this.applications.get(id);
+    if (!application || application.ownerId !== ownerId) return;
+    this.applications.delete(id);
+    // Standing in for ON DELETE SET NULL. Without this the memory store would
+    // keep counting rehearsals against an application that no longer exists,
+    // and the two implementations would disagree about what deleting means.
+    for (const session of this.sessions.values()) {
+      if (session.applicationId === id) session.applicationId = null;
+    }
+  }
+
   async addXp(ownerId: string, _sessionId: string | null, events: XpEvent[]): Promise<void> {
     for (const event of events) {
       this.xp.push({ ownerId, amount: event.amount, at: Date.now() });
@@ -783,6 +1080,9 @@ class MemoryProgressStore implements ProgressStore {
   async eraseOwner(ownerId: string): Promise<void> {
     for (const [id, session] of this.sessions) {
       if (session.ownerId === ownerId) this.sessions.delete(id);
+    }
+    for (const [id, application] of this.applications) {
+      if (application.ownerId === ownerId) this.applications.delete(id);
     }
     for (let i = this.xp.length - 1; i >= 0; i -= 1) {
       if (this.xp[i]!.ownerId === ownerId) this.xp.splice(i, 1);

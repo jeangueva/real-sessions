@@ -82,6 +82,53 @@ CREATE INDEX IF NOT EXISTS sessions_owner_idx ON sessions (owner_id, started_at 
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS sessions_share_token_idx ON sessions (share_token);
 
+/*
+ * One real job somebody is going after.
+ *
+ * The parent of sessions, not a sibling: a candidate practises three times
+ * for the same posting and wants to know whether they got better at THAT
+ * one. A column on `sessions` could not express that — it would repeat the
+ * posting on every row and have no place to hold a status that belongs to the
+ * application rather than to any one rehearsal.
+ *
+ * It is also where the pasted posting finally lives. Until now it was read
+ * into the prompt and thrown away, so the second rehearsal for the same job
+ * meant pasting it again.
+ *
+ * `status` is a closed set rather than free text. A free-text status column is
+ * a column that holds 'applied', 'Applied', 'aplicado' and 'waiting??' within
+ * a fortnight, and nothing can be counted from it afterwards.
+ *
+ * Deliberately thin. This is not a CRM: no notes, no reminder dates, no
+ * contacts, no salary field. The value is practice attached to a real posting,
+ * and every field added here is a field that makes this compete with the
+ * spreadsheet the candidate already keeps — a competition it would lose.
+ */
+CREATE TABLE IF NOT EXISTS applications (
+  id          UUID PRIMARY KEY,
+  owner_id    TEXT NOT NULL,
+  company     TEXT NOT NULL,
+  role        TEXT NOT NULL,
+  -- The advertisement, as pasted. Nullable: somebody tracking a job they
+  -- heard about from a friend has no posting to paste.
+  posting     TEXT,
+  status      TEXT NOT NULL DEFAULT 'interested'
+              CHECK (status IN ('interested', 'applied', 'interviewing', 'offer', 'rejected')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS applications_owner_idx ON applications (owner_id, created_at DESC);
+
+-- ON DELETE SET NULL, never CASCADE. Dropping an application you are no
+-- longer chasing must not delete the interviews you practised for it: the
+-- posting was theirs, the practice is yours, and the progress chart is built
+-- from it.
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS application_id UUID
+  REFERENCES applications(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS sessions_application_idx ON sessions (application_id);
+
 -- The raw material. Timings are what separate this from a chat log: they are
 -- the only source for words-per-minute, pause length, and how long someone
 -- took to start talking.

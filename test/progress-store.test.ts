@@ -90,6 +90,106 @@ describe.each(backends)("progress store (%s)", (_name, make) => {
     expect(summary?.score).toBeNull();
   });
 
+  async function seedApplication(overrides: Record<string, unknown> = {}) {
+    const id = randomUUID();
+    await store.createApplication({
+      id,
+      ownerId: owner,
+      company: "Nubank",
+      role: "Growth PM",
+      posting: "We are looking for a PM who has owned activation.",
+      status: "interested",
+      ...overrides,
+    });
+    return id;
+  }
+
+  it("keeps the posting so a second rehearsal does not need it pasted again", async () => {
+    const id = await seedApplication();
+    const application = await store.getApplication(owner, id);
+    expect(application?.posting).toContain("owned activation");
+    expect(application?.status).toBe("interested");
+  });
+
+  it("counts the rehearsals and reports the best score for one application", async () => {
+    const applicationId = await seedApplication();
+    const weak = await seedSession({ applicationId });
+    const strong = await seedSession({ applicationId });
+    // A session with no application attached must not be counted against it.
+    await seedSession();
+
+    await store.recordTurns(weak, TURNS);
+    await store.completeSession({
+      sessionId: weak,
+      score: 54,
+      evaluation: SAMPLE_EVALUATION,
+      metrics: computeMetrics(TURNS),
+    });
+    await store.recordTurns(strong, TURNS);
+    await store.completeSession({
+      sessionId: strong,
+      score: 71,
+      evaluation: SAMPLE_EVALUATION,
+      metrics: computeMetrics(TURNS),
+    });
+
+    const [summary] = await store.listApplications(owner);
+    expect(summary?.sessions).toBe(2);
+    expect(summary?.bestScore).toBe(71);
+  });
+
+  it("reports no best score rather than zero before anything is scored", async () => {
+    const applicationId = await seedApplication();
+    await seedSession({ applicationId });
+    const [summary] = await store.listApplications(owner);
+    expect(summary?.sessions).toBe(1);
+    // Zero would read on the screen as a score of zero, which is a different
+    // and much worse statement than "nothing yet".
+    expect(summary?.bestScore).toBeNull();
+  });
+
+  it("moves an application through its states", async () => {
+    const id = await seedApplication();
+    const updated = await store.updateApplication(owner, id, { status: "interviewing" });
+    expect(updated?.status).toBe("interviewing");
+    // The fields not in the patch survive it.
+    expect(updated?.company).toBe("Nubank");
+    expect(updated?.posting).toContain("owned activation");
+  });
+
+  it("will not read or change an application belonging to somebody else", async () => {
+    const id = await seedApplication();
+    const stranger = `owner-${randomUUID()}`;
+    expect(await store.getApplication(stranger, id)).toBeNull();
+    expect(await store.updateApplication(stranger, id, { status: "offer" })).toBeNull();
+    await store.deleteApplication(stranger, id);
+    // Still there, and still as it was.
+    expect((await store.getApplication(owner, id))?.status).toBe("interested");
+  });
+
+  it("never returns the owner id with an application", async () => {
+    const id = await seedApplication();
+    const application = await store.getApplication(owner, id);
+    // The memory store holds the whole row and the Postgres one names its
+    // fields; without this they would disagree about what an application is.
+    expect(application).not.toHaveProperty("ownerId");
+    expect(Object.keys(application ?? {}).sort()).toEqual(
+      ["company", "createdAt", "id", "posting", "role", "status", "updatedAt"],
+    );
+  });
+
+  it("keeps the practice when the application is deleted", async () => {
+    const applicationId = await seedApplication();
+    const sessionId = await seedSession({ applicationId });
+    await store.deleteApplication(owner, applicationId);
+
+    expect(await store.getApplication(owner, applicationId)).toBeNull();
+    // The posting was theirs; the practice is the candidate's, and the
+    // progress chart is built from it.
+    expect((await store.getSession(owner, sessionId))?.id).toBe(sessionId);
+    expect(await store.listApplications(owner)).toEqual([]);
+  });
+
   it("mints a share token and resolves the report by it", async () => {
     const id = await seedSession();
     const token = await store.shareSession(owner, id);
