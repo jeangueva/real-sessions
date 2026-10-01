@@ -47,19 +47,24 @@ export interface Capabilities {
    */
   interviewLanguage: boolean;
   /**
-   * Interviews a calendar month, or null for no limit.
+   * Interviews a week, or null for no limit.
    *
    * The free plan had no cap at all — only a rate limit of twelve starts an
    * hour, which is 288 a day and about $14 of vendor spend per account. That
    * is not a paywall, it is an unbounded liability with a paywall next to it.
    *
-   * Three is chosen to be enough rather than generous: one session proves the
-   * product works, and the progress chart needs a third before its shape means
-   * anything. A fourth generic round teaches nobody anything the first three
-   * did not — what makes someone upgrade is targeting a real employer and
-   * putting their CV in the interviewer's hands, not more of the same.
+   * It was three a month before this, chosen so the progress chart had enough
+   * points to mean something. The window moved to a week because the product
+   * is a habit: somebody preparing for interviews practises this week, not
+   * once a quarter, and an allowance that renews monthly tells them to come
+   * back in three weeks — which is the same as telling them not to.
+   *
+   * What it costs is real and worth stating. Five a week is about
+   * twenty-two a month against the old three, so a free account now costs
+   * roughly seven times what it did in vendor spend. That is the price of the
+   * habit, and the subscription is what has to cover it.
    */
-  monthlySessions: number | null;
+  weeklySessions: number | null;
 }
 
 const FREE: Capabilities = {
@@ -73,7 +78,7 @@ const FREE: Capabilities = {
   // upgrade; zero is just a broken screen.
   historyLimit: 3,
   interviewLanguage: false,
-  monthlySessions: 3,
+  weeklySessions: 5,
 };
 
 const PREMIUM: Capabilities = {
@@ -87,7 +92,7 @@ const PREMIUM: Capabilities = {
   // Uncapped on purpose. Even a candidate running six a week costs about five
   // dollars across their whole subscription, so metering them would buy
   // nothing and would punish exactly the people getting the most out of it.
-  monthlySessions: null,
+  weeklySessions: null,
   interviewLanguage: true,
 };
 

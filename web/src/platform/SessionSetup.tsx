@@ -332,7 +332,7 @@ export function SessionSetup() {
    * the worst a stale count does is show an encouraging number and then get a
    * refusal, which is the right way round.
    */
-  const limit = can?.monthlySessions ?? null;
+  const limit = can?.weeklySessions ?? null;
   const usedThisMonth = (() => {
     if (limit === null) return 0;
     const now = new Date();

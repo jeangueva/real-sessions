@@ -75,7 +75,7 @@ export interface Capabilities {
   /** Run the interview in Spanish or Portuguese. Not the interface language. */
   interviewLanguage: boolean;
   /** Interviews a calendar month, or null when the plan does not meter them. */
-  monthlySessions: number | null;
+  weeklySessions: number | null;
 }
 
 export interface ProfileLink {

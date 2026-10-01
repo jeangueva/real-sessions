@@ -40,10 +40,10 @@ const seed = async (
 
 describe("the allowance", () => {
   it("is three on free and unmetered on premium", () => {
-    expect(capabilitiesFor("free").monthlySessions).toBe(3);
+    expect(capabilitiesFor("free").weeklySessions).toBe(5);
     // Null rather than a large number: a cap of 9999 is still a cap, and the
     // server branches on null to skip the count entirely.
-    expect(capabilitiesFor("premium").monthlySessions).toBeNull();
+    expect(capabilitiesFor("premium").weeklySessions).toBeNull();
   });
 });
 
@@ -80,11 +80,66 @@ describe("sessionsSince", () => {
   it("reaches the free limit on the fourth start", async () => {
     const store = await createProgressStore(null);
     const owner = `owner-${randomUUID()}`;
-    const limit = capabilitiesFor("free").monthlySessions!;
+    const limit = capabilitiesFor("free").weeklySessions!;
     for (let i = 0; i < limit; i++) {
       expect(await store.sessionsSince(owner, monthStart())).toBeLessThan(limit);
       await seed(store, owner);
     }
     expect(await store.sessionsSince(owner, monthStart())).toBe(limit);
+  });
+});
+
+/**
+ * Where the week starts.
+ *
+ * The allowance renews on a Monday in UTC rather than seven days after each
+ * person's first interview. A predictable window is one someone can plan
+ * around — "five a week, Mondays" is a sentence you can hold — and a sliding
+ * one is not.
+ *
+ * Mirrors `weekStart` in server.ts. The arithmetic is the part that breaks
+ * silently: a Sunday belongs to the week that began six days earlier, and
+ * getting that wrong hands out a second allowance every Sunday.
+ */
+function weekStart(now: Date): Date {
+  const start = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  const since = (start.getUTCDay() + 6) % 7;
+  start.setUTCDate(start.getUTCDate() - since);
+  return start;
+}
+
+describe("the week the allowance runs on", () => {
+  it("starts on Monday", () => {
+    // Wednesday 1 October 2026 → Monday the 28th of September.
+    expect(weekStart(new Date("2026-10-01T12:00:00Z")).toISOString()).toBe(
+      "2026-09-28T00:00:00.000Z",
+    );
+  });
+
+  it("puts Sunday at the end of its week, not the start of the next", () => {
+    // The one that hands out a second allowance if it is wrong.
+    const sunday = weekStart(new Date("2026-10-04T23:59:00Z"));
+    const saturday = weekStart(new Date("2026-10-03T00:00:00Z"));
+    expect(sunday.toISOString()).toBe(saturday.toISOString());
+    expect(sunday.toISOString()).toBe("2026-09-28T00:00:00.000Z");
+  });
+
+  it("rolls over on Monday", () => {
+    const sunday = weekStart(new Date("2026-10-04T23:59:00Z"));
+    const monday = weekStart(new Date("2026-10-05T00:01:00Z"));
+    expect(monday.getTime()).toBeGreaterThan(sunday.getTime());
+    expect(monday.toISOString()).toBe("2026-10-05T00:00:00.000Z");
+  });
+
+  it("holds across a month boundary", () => {
+    // A week that spans two months still has one start.
+    expect(weekStart(new Date("2026-11-02T06:00:00Z")).toISOString()).toBe(
+      "2026-11-02T00:00:00.000Z",
+    );
+    expect(weekStart(new Date("2026-11-01T06:00:00Z")).toISOString()).toBe(
+      "2026-10-26T00:00:00.000Z",
+    );
   });
 });

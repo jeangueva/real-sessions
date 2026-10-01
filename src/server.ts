@@ -907,6 +907,37 @@ async function readQuietly<T>(work: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+/**
+ * The Monday the allowance last renewed, in UTC.
+ *
+ * Monday rather than a rolling seven days from each person's first interview,
+ * because an allowance you can predict is one you can plan around: "five a
+ * week, Mondays" is a sentence someone can hold, and a window that slides
+ * with every session is one nobody can.
+ *
+ * UTC rather than the candidate's own timezone, for the reason the monthly
+ * window used it: doing it locally needs the client to say what the zone is,
+ * and an allowance that renews a few hours early for someone in UTC-5 is a
+ * much smaller problem than one that renews late.
+ */
+function weekStart(now: Date): Date {
+  const start = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  // getUTCDay is 0 on Sunday, which belongs to the week that began six days
+  // earlier rather than to the one starting tomorrow.
+  const since = (start.getUTCDay() + 6) % 7;
+  start.setUTCDate(start.getUTCDate() - since);
+  return start;
+}
+
+/** The Monday after one. */
+function nextWeek(start: Date): Date {
+  const next = new Date(start);
+  next.setUTCDate(next.getUTCDate() + 7);
+  return next;
+}
+
 async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
   const path = url.pathname;
@@ -2025,32 +2056,27 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     let spendsLastFree = false;
     let monthResetsAt: Date | null = null;
     let freeLimit = 0;
-    if (can.monthlySessions !== null) {
+    if (can.weeklySessions !== null) {
       const now = new Date();
-      const monthStart = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-      ).toISOString();
-      const used = await PROGRESS.sessionsSince(identity.id, monthStart).catch(
-        () => 0,
-      );
+      const start = weekStart(now);
+      const used = await PROGRESS.sessionsSince(
+        identity.id,
+        start.toISOString(),
+      ).catch(() => 0);
       // The one about to start spends the last of the allowance. Captured
       // here, sent once the durable row exists — telling someone they are out
       // before the interview is written would be wrong if the write failed.
-      spendsLastFree = used === can.monthlySessions - 1;
-      monthResetsAt = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
-      );
-      freeLimit = can.monthlySessions;
-      if (used >= can.monthlySessions) {
+      spendsLastFree = used === can.weeklySessions - 1;
+      monthResetsAt = nextWeek(start);
+      freeLimit = can.weeklySessions;
+      if (used >= can.weeklySessions) {
         return json(res, 402, {
-          error: `You have used all ${can.monthlySessions} free interviews this month.`,
-          code: "monthly_limit",
+          error: `You have used all ${can.weeklySessions} free interviews this week.`,
+          code: "weekly_limit",
           used,
-          limit: can.monthlySessions,
+          limit: can.weeklySessions,
           // So the client can say when, rather than "later".
-          resetsAt: new Date(
-            Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
-          ).toISOString(),
+          resetsAt: monthResetsAt.toISOString(),
         });
       }
     }
