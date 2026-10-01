@@ -11,6 +11,7 @@
  * Every collaborator is in-memory and every model call is stubbed, so the suite
  * needs no Redis, no Postgres, no API key and no network.
  */
+import { randomUUID } from "node:crypto";
 import { createLifecycleStore } from "../../src/lifecycle-store.js";
 import type { AddressInfo } from "node:net";
 import { configure, server } from "../../src/server.js";
@@ -30,7 +31,8 @@ import {
   type ContributionStore,
 } from "../../src/contributions.js";
 import { createSubscriptionStore } from "../../src/billing/store.js";
-import { createAccountStore } from "../../src/accounts.js";
+import { createAccountStore, hashPassword } from "../../src/accounts.js";
+import { issueToken } from "../../src/auth.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
 import type { EmailMessage, EmailSender } from "../../src/email.js";
 import type { ModelProvider } from "../../src/providers/index.js";
@@ -141,7 +143,16 @@ export interface Harness {
   /** fetch with the cookie jar attached, so an identity persists across calls. */
   call(path: string, init?: RequestInit): Promise<Response>;
   json<T = Record<string, unknown>>(path: string, init?: RequestInit): Promise<T>;
-  /** Takes a guest identity, as the web client does on its first request. */
+  /**
+   * Signs someone in, so the request carries an identity.
+   *
+   * This used to take a guest identity, as the web client did on its first
+   * request. There is no such thing now — every interview belongs to an
+   * account — so it makes one and signs it in directly rather than going
+   * through `/api/accounts`, for two reasons: sign-up is limited to five an
+   * hour per address and this is called by most of the suite, and a test
+   * about interviews should not fail because the registration rules changed.
+   */
   authenticate(): Promise<void>;
   /**
    * Drops the cookie, so the next `authenticate` is a different person.
@@ -165,6 +176,7 @@ export async function startHarness(): Promise<Harness> {
   const mailer = createStubMailer();
   const contributions = createContributionStore(null);
   const plans = createEntitlementStore(null);
+  const accounts = createAccountStore(null);
 
   // Wrapped so a test can pull the database out from under a request.
   const realProgress = createProgressStore(null);
@@ -190,7 +202,7 @@ export async function startHarness(): Promise<Harness> {
     subscriptions: createSubscriptionStore(null),
 
     lifecycle: createLifecycleStore(null),
-    accounts: createAccountStore(null),
+    accounts,
     mailer,
     limiter: new MemoryRateLimiter(),
     provider,
@@ -244,7 +256,11 @@ export async function startHarness(): Promise<Harness> {
       return (await response.json()) as never;
     },
     async authenticate() {
-      await call("/api/auth", post({}));
+      const email = `t${randomUUID()}@example.com`;
+      const account = await accounts.create(email, await hashPassword("a long enough passphrase"));
+      if (!account) throw new Error("harness could not create an account");
+      const { token } = issueToken({ id: account.id });
+      jar.set("rs_id", token);
     },
     async makePremium() {
       // The identity id is not exposed to the client, so this reads it back

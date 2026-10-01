@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { renderScreen, stubApi } from "./support/render";
 import { Billing } from "@/platform/Billing";
 import { Review } from "@/platform/Review";
@@ -29,9 +29,17 @@ describe("Billing", () => {
     expect(screen.queryByRole("button", { name: /upgrade/i })).not.toBeInTheDocument();
   });
 
-  it("offers an account to a guest instead of a checkout that would be refused", async () => {
-    // Mercado Pago needs a payer email; a guest has none and the server says
-    // so. Finding that out after clicking would be the worse way to learn it.
+  /**
+   * This panel used to have a branch for guests: Mercado Pago needs a payer
+   * email, a guest had none, and offering an account beat a button that
+   * failed at the last step.
+   *
+   * Nobody reaches this screen without an account now — the shell turns them
+   * away first — so the branch is gone and so is the test for it. What is
+   * worth keeping is that a session the server does not recognise never
+   * produces a pay button.
+   */
+  it("offers no checkout when the server does not recognise the session", async () => {
     stubApi({
       "/api/billing": {
         configured: true,
@@ -40,12 +48,13 @@ describe("Billing", () => {
         publicKey: "TEST-key",
       },
       "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
-      "/api/auth/me": { kind: "guest", email: null },
+      "/api/auth/me": { kind: null, email: null },
     });
     renderScreen(<Billing />);
 
-    await screen.findByText(/subscribing needs an account/i);
-    expect(screen.queryByRole("button", { name: /9000 ARS/i })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /9000 ARS/i })).not.toBeInTheDocument(),
+    );
   });
 
   it("shows the price it will actually charge", async () => {

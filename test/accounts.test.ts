@@ -101,25 +101,40 @@ describe("account store", () => {
   });
 });
 
-describe("identity tokens carry account kind", () => {
-  it("marks a signed-in token as a user and keeps its id", () => {
-    const { token } = issueToken({ kind: "user", id: "account-1" });
+describe("identity tokens", () => {
+  it("keeps the account id it was issued for", () => {
+    const { token } = issueToken({ id: "account-1" });
     const identity = verifyToken(token);
     expect(identity?.kind).toBe("user");
     expect(identity?.id).toBe("account-1");
   });
 
-  it("gives an account a longer life than a guest", () => {
-    const guest = issueToken().identity;
-    const user = issueToken({ kind: "user", id: "a" }).identity;
-    // History hangs off the account; a 12-hour window would lose it weekly.
-    expect(user.expiresAt).toBeGreaterThan(guest.expiresAt);
+  /**
+   * The signature is over the whole payload, kind included.
+   *
+   * There used to be two kinds and this proved a guest could not promote
+   * itself by rewriting one word of its own cookie. Only one kind is issued
+   * now, but the property that made that safe is the one worth keeping: any
+   * edit to the payload invalidates it, whichever field was edited.
+   */
+  it("refuses a payload that was edited after signing", () => {
+    const { token } = issueToken({ id: "account-1" });
+    const [kind, id, expiresAt, signature] = token.split(".");
+    // Someone else's id, our signature.
+    expect(verifyToken(`${kind}.account-2.${expiresAt}.${signature}`)).toBeNull();
+    // A longer life than it was given.
+    expect(verifyToken(`${kind}.${id}.${Number(expiresAt) + 86_400_000}.${signature}`)).toBeNull();
   });
 
-  it("cannot be upgraded from guest to user by editing the cookie", () => {
-    const { token } = issueToken();
+  /**
+   * `guest` was the other kind, dropped when accounts became mandatory.
+   * Tokens carrying it are still in browsers, and they have to read as
+   * invalid rather than as some lesser identity the server still honours.
+   */
+  it("refuses a token from before accounts were mandatory", () => {
+    const { token } = issueToken({ id: "account-1" });
     const [, id, expiresAt, signature] = token.split(".");
-    expect(verifyToken(`user.${id}.${expiresAt}.${signature}`)).toBeNull();
+    expect(verifyToken(`guest.${id}.${expiresAt}.${signature}`)).toBeNull();
   });
 });
 

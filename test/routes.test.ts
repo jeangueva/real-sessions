@@ -48,9 +48,17 @@ describe("the authentication gate", () => {
     }
   });
 
-  it("issues an identity that later requests carry", async () => {
-    expect((await api.call("/api/auth", post({}))).status).toBe(201);
-    expect((await api.call("/api/history")).status).toBe(200);
+  /**
+   * `/api/auth` used to hand an anonymous identity to anyone who asked, and
+   * every protected route accepted it. It answers 410 now — a message rather
+   * than a 404, so a client still running the old flow is told to sign in
+   * instead of being handed the single-page app's HTML where it expected
+   * JSON.
+   */
+  it("no longer hands out an identity to whoever asks", async () => {
+    expect((await api.call("/api/auth", post({}))).status).toBe(410);
+    // And without one, a protected route refuses rather than inventing a caller.
+    expect((await api.call("/api/history")).status).toBe(401);
   });
 
   it("reports an unknown route rather than falling through", async () => {

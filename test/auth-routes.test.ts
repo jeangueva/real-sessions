@@ -58,14 +58,21 @@ describe("signing up", () => {
     ).toBe(400);
   });
 
-  it("carries guest work onto the new account", async () => {
-    // The whole reason guests exist: practising before signing up must not be
-    // thrown away by signing up.
+  /**
+   * There used to be a test here called "carries guest work onto the new
+   * account": practising before signing up must not be thrown away by
+   * signing up. Nobody practises before signing up now — the account comes
+   * first — so there is nothing to carry and nothing to protect.
+   *
+   * What replaces it is the weaker claim that still matters: preferences
+   * belong to the account that set them and survive a round trip.
+   */
+  it("keeps preferences with the account that set them", async () => {
+    await signUp();
     await api.call(
       "/api/preferences",
       { ...post({ defaultRole: "Backend Engineer" }), method: "PUT" },
     );
-    await signUp();
 
     const prefs = await api.json<{ preferences: { defaultRole: string } }>(
       "/api/preferences",
@@ -221,28 +228,15 @@ describe("confirming an address", () => {
 });
 
 describe("deleting an account", () => {
-  it("erases a guest's data, which they otherwise had no way to remove", async () => {
-    // A guest accumulates the same transcripts, scores and leaderboard rows a
-    // signed-up account does. This route used to answer "you have no account"
-    // — true about the sign-up table, false about the data, and it left the
-    // person who most wanted out with no way out.
-    await api.authenticate();
-    const response = await api.call("/api/account", { method: "DELETE" });
-    expect(response.status).toBe(200);
-  });
-
-  it("takes no email from a guest, because there is none to type", async () => {
-    // The confirmation lives in the interface instead. The blast radius is
-    // one browser's own cookie: this can only ever erase the caller.
-    await api.authenticate();
-    const response = await api.call("/api/account", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "someone@else.com" }),
-    });
-    expect(response.status).toBe(200);
-  });
-
+  /**
+   * Two tests stood here for guests, who accumulated the same transcripts and
+   * scores as an account but had no address to type back — so deletion asked
+   * them for nothing and the interface carried the confirmation.
+   *
+   * There are no guests. Everyone reaching this route has an address, and the
+   * test below is the one that matters: it has to be typed back exactly,
+   * because this is the one action with no undo.
+   */
   it("needs the address typed back exactly", async () => {
     // A button alone is too easy to hit for the one action with no undo.
     await signUp();
