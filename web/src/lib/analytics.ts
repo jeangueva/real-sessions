@@ -113,7 +113,11 @@ type Event =
   | "interview started"
   | "interview finished"
   | "plan viewed"
-  | "subscription started";
+  | "subscription started"
+  // The only event fired by someone who is not a user yet. A shared link is
+  // the one way into this product that we did not pay for, so whether these
+  // get read at all is what decides if the feature earns its screen.
+  | "shared report viewed";
 
 /**
  * Records one event.

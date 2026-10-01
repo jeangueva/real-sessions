@@ -38,6 +38,14 @@ const Progress = lazy(() => import("@/platform/Progress").then((m) => ({ default
 const Profile = lazy(() => import("@/platform/Profile").then((m) => ({ default: m.Profile })));
 const Review = lazy(() => import("@/platform/Review").then((m) => ({ default: m.Review })));
 const Settings = lazy(() => import("@/platform/Settings").then((m) => ({ default: m.Settings })));
+/**
+ * Lazy although it is public, which is the opposite of the rule above.
+ *
+ * A shared report is a page a stranger lands on directly from a link, so it is
+ * never the second request — nothing is saved by having it in the first
+ * bundle, and everyone who only reads the landing page would carry it.
+ */
+const SharedReport = lazy(() => import("@/platform/SharedReport").then((m) => ({ default: m.SharedReport })));
 
 /**
  * One page view per route change.
@@ -102,6 +110,17 @@ export function App() {
         {/* One route for both halves: request a link, or use one. */}
         <Route path="/reset" element={<ResetPassword />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
+        {/* Public, and outside the shell below: the reader was sent this link
+            and has no account. `/r/` rather than `/report/` because the link
+            gets pasted into chat windows that break long URLs. */}
+        <Route
+          path="/r/:token"
+          element={
+            <Suspense fallback={null}>
+              <SharedReport />
+            </Suspense>
+          }
+        />
         <Route path="/verify" element={<ConfirmEmail />} />
         {/* Outside the shell: reachable without an account, and linked from
             the footer, the sign-up screen and the payment provider. */}
