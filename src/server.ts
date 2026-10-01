@@ -161,6 +161,7 @@ import {
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
+import { FOREVER_SOURCE, holdsForeverPremium } from "./forever.js";
 import {
   INACTIVE_DAYS,
   JOBS,

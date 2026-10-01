@@ -115,6 +115,11 @@ services:
 
       # Unset: nobody can verify contributed questions, so none reach an
       # interview. Comma-separated account emails.
+      # Addresses that hold the paid plan without paying. Not a superuser:
+      # an ordinary premium entitlement with no end date, applied when the
+      # address is confirmed.
+      - key: REALSESSIONS_FOREVER_PREMIUM
+        sync: false
       - key: REALSESSIONS_REVIEWERS
         sync: false
 
