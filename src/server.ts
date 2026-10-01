@@ -53,6 +53,8 @@
  *   POST /api/auth/reset                → set a new password
  *   POST /api/auth/verify               → confirm an email address
  *   POST /api/auth/verify/resend        → send another confirmation
+ *   GET  /api/auth/config               → { google }  (public, no identity)
+ *   POST /api/auth/google               → signs in with a Google ID token
  *   DELETE /api/account                 → erases the account and its data
  *
  * Every route but /api/auth requires that identity, and every interview is
@@ -181,6 +183,11 @@ import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
 import { MAX_POSTING_CHARS } from "./prompts/interviewer.js";
 import { FOREVER_SOURCE, holdsForeverPremium } from "./forever.js";
 import {
+  googleClientId,
+  verifyGoogleIdToken,
+  type GoogleIdentity,
+} from "./google.js";
+import {
   INACTIVE_DAYS,
   JOBS,
   lifecycleEmailEnabled,
@@ -275,6 +282,7 @@ let LIMITER: RateLimiter;
  * they are most of the API.
  */
 let PROVIDER: ModelProvider | undefined;
+let VERIFY_GOOGLE: typeof verifyGoogleIdToken = verifyGoogleIdToken;
 
 export interface ServerDependencies {
   sessions: SessionStore;
@@ -289,6 +297,15 @@ export interface ServerDependencies {
   mailer: EmailSender;
   limiter: RateLimiter;
   provider?: ModelProvider;
+  /**
+   * How a Google token is checked, injected like every other collaborator.
+   *
+   * Defaults to the real verifier, which talks to Google for its public keys.
+   * A test cannot mint a token Google signed, so without this seam the only
+   * testable part of signing in with Google would be its refusals — and the
+   * part worth testing is what happens to an account afterwards.
+   */
+  verifyGoogle?: typeof verifyGoogleIdToken;
 }
 
 /**
@@ -311,6 +328,7 @@ export function configure(deps: ServerDependencies): void {
   MAILER = deps.mailer;
   LIMITER = deps.limiter;
   PROVIDER = deps.provider;
+  VERIFY_GOOGLE = deps.verifyGoogle ?? verifyGoogleIdToken;
 }
 
 setInterval(() => {
@@ -605,6 +623,27 @@ function publicReport(record: SessionDetail): {
     evaluation: record.evaluation,
     metrics: record.metrics,
   };
+}
+
+/**
+ * Claims the early-access months an address was promised, if any.
+ *
+ * Shared by the two ways an address gets proved: a confirmation link consumed
+ * from the inbox, and signing in with Google, which proves it the same way
+ * Google proves it to itself. The landing-page list is keyed by email because
+ * it is collected before anyone has an account, and the grant is claimed when
+ * the address is proved rather than when it is typed — typing an address
+ * proves nothing about owning it.
+ *
+ * A failure here never fails the sign-in it is attached to. Somebody who
+ * cannot get into their account because a promotional grant could not be
+ * written has been given a worse problem than the one we were solving.
+ */
+async function claimEarlyAccess(account: { id: string; email: string }): Promise<Date | null> {
+  return PLANS.redeemEarlyAccess(account.email, account.id).catch((error: unknown) => {
+    console.error("[mockio] early-access redemption failed:", error);
+    return null;
+  });
 }
 
 function shapeFeedback<T extends { evaluation: Evaluation | null; metrics: unknown }>(
@@ -1135,6 +1174,92 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  /**
+   * What the sign-in screen needs to know before anybody signs in.
+   *
+   * Public, and it has to be: the page that shows the Google button is served
+   * to someone with no identity at all. The Client ID is not a secret — it
+   * ships inside the HTML of every site that uses Google sign-in — and null
+   * here is how the button knows not to draw itself on a deployment where
+   * Google is not configured.
+   */
+  if (req.method === "GET" && path === "/api/auth/config") {
+    return json(res, 200, { google: googleClientId() });
+  }
+
+  /**
+   * Signing in with Google.
+   *
+   * The browser posts the token Google signed and this exchanges it for our
+   * own session cookie. Everything that makes it safe happens in
+   * `verifyGoogleIdToken` — audience, issuer, signature, expiry, and that
+   * Google itself verified the address.
+   *
+   * Linking by email is the decision worth stating. Somebody who signed up
+   * with a password and later clicks the Google button lands on their own
+   * account rather than a second one, because Google has proved the address
+   * belongs to them and the alternative — two accounts on one email — orphans
+   * their history and cannot be explained to them afterwards.
+   */
+  if (req.method === "POST" && path === "/api/auth/google") {
+    if (await limited(res, `google-ip:${clientIp(req)}`, RULES.loginByIp)) return;
+
+    const clientId = googleClientId();
+    if (!clientId) {
+      return json(res, 503, { error: "Signing in with Google is not available." });
+    }
+
+    const body = await readJson(req);
+    const credential = typeof body["credential"] === "string" ? body["credential"] : "";
+
+    let identity: GoogleIdentity;
+    try {
+      identity = await VERIFY_GOOGLE(credential, { clientId });
+    } catch (error) {
+      /**
+       * One message for every reason, and the detail only in the log.
+       *
+       * The reasons are "expired", "signed by somebody else", "minted for
+       * another application" and "that address is not verified" — a set that
+       * tells anybody probing this endpoint exactly which of their attempts
+       * got closest.
+       */
+      console.error("[mockio] google sign-in refused:", error);
+      return json(res, 401, { error: "That Google sign-in could not be verified." });
+    }
+
+    let account = await ACCOUNTS.findByEmail(identity.email);
+    if (!account) {
+      // Null password: there is nothing to compare against, and
+      // `verifyPassword` refuses it outright.
+      account = await ACCOUNTS.create(identity.email, null);
+      // Lost a race with another tab, or with the same person signing up by
+      // password a second ago. Theirs won; this reads it back rather than
+      // failing a sign-in that is perfectly valid.
+      if (!account) account = await ACCOUNTS.findByEmail(identity.email);
+      if (!account) {
+        return json(res, 500, { error: "Could not create that account." });
+      }
+    }
+
+    /**
+     * Google verified the address, so we do too.
+     *
+     * The same thing a confirmation link proves, proved by the same party
+     * that owns the mailbox. Sending them a confirmation email after Google
+     * has already said yes would be asking for a second opinion from the
+     * first opinion.
+     */
+    if (!account.emailVerifiedAt) {
+      await ACCOUNTS.markEmailVerified(account.id);
+      await claimEarlyAccess(account);
+    }
+
+    await signIn(account.id);
+    json(res, 200, { email: account.email });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/auth/forgot") {
     if (await limited(res, `forgot-ip:${clientIp(req)}`, RULES.forgotByIp)) return;
     const body = await readJson(req);
@@ -1227,19 +1352,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     await ACCOUNTS.markEmailVerified(accountId);
     const account = await ACCOUNTS.findById(accountId);
-    // The landing-page list is keyed by email because it is collected before
-    // anyone has an account. The grant is claimed when a confirmation link
-    // consumed from that inbox proves the address, not when someone merely
-    // types it at sign-up, because typing an address proves nothing about
-    // owning it.
-    const grantedUntil = account
-      ? await PLANS.redeemEarlyAccess(account.email, account.id).catch(
-          (error: unknown) => {
-            console.error("[mockio] early-access redemption failed:", error);
-            return null;
-          },
-        )
-      : null;
+    const grantedUntil = account ? await claimEarlyAccess(account) : null;
     if (account && grantedUntil) {
       // The page this request answers says the months are unlocked, but the
       // link is often opened on a different device from the one the account is

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import process from "node:process";
 import { completeInterview, post, startHarness, type Harness } from "./support/http.js";
 
 /**
@@ -342,5 +343,88 @@ describe("recovering an account that signs in with Google", () => {
       post({ email: GOOGLE_EMAIL, password: PASSWORD }),
     );
     expect(response.status).toBe(401);
+  });
+});
+
+describe("signing in with Google", () => {
+  const GOOGLE = "ana@example.com";
+
+  /**
+   * The route refuses outright when no Client ID is configured, which is the
+   * correct behaviour for a deployment without Google and the wrong one for
+   * these tests. Set and removed around each, so no other file inherits it.
+   */
+  beforeEach(() => {
+    process.env.GOOGLE_CLIENT_ID = "test-client.apps.googleusercontent.com";
+  });
+  afterEach(() => {
+    delete process.env.GOOGLE_CLIENT_ID;
+  });
+
+  const token = (claims: Record<string, unknown>) => JSON.stringify(claims);
+
+  it("creates an account with no password, already verified", async () => {
+    const response = await api.call("/api/auth/google", post({ credential: token({ email: GOOGLE }) }));
+    expect(response.status).toBe(200);
+
+    const account = await api.accounts.findByEmail(GOOGLE);
+    expect(account?.passwordHash).toBeNull();
+    // Google proved the address the same way a confirmation link does, by the
+    // party that owns the mailbox. Mailing them to ask again would be asking
+    // the first opinion for a second opinion.
+    expect(account?.emailVerifiedAt).toBeTruthy();
+    expect(api.mailer.sent.filter((mail) => /confirm/i.test(mail.subject))).toHaveLength(0);
+  });
+
+  it("joins an account that already exists on that address", async () => {
+    await signUp(GOOGLE);
+    const before = await api.accounts.findByEmail(GOOGLE);
+    api.forget();
+
+    const response = await api.call("/api/auth/google", post({ credential: token({ email: GOOGLE }) }));
+    expect(response.status).toBe(200);
+
+    const after = await api.accounts.findByEmail(GOOGLE);
+    // The same account, not a second one. Two accounts on one email orphan
+    // somebody's history and cannot be explained to them afterwards.
+    expect(after?.id).toBe(before?.id);
+    // And their password still works: clicking the Google button once does
+    // not take away the way they used to get in.
+    expect(after?.passwordHash).toBe(before?.passwordHash);
+  });
+
+  it("signs them in, so the next request carries the identity", async () => {
+    await api.call("/api/auth/google", post({ credential: token({ email: GOOGLE }) }));
+    const me = await api.json<{ kind: string; email: string }>("/api/auth/me");
+    expect(me.email).toBe(GOOGLE);
+  });
+
+  it("matches an address that differs only in case", async () => {
+    await signUp(GOOGLE);
+    const before = await api.accounts.findByEmail(GOOGLE);
+    api.forget();
+    await api.call("/api/auth/google", post({ credential: token({ email: "Ana@Example.com" }) }));
+    expect((await api.accounts.findByEmail(GOOGLE))?.id).toBe(before?.id);
+  });
+
+  it("refuses a credential it cannot verify", async () => {
+    const response = await api.call("/api/auth/google", post({ credential: "not a token" }));
+    expect(response.status).toBe(401);
+    // One message for every reason. The reasons — expired, wrong audience,
+    // unverified address — would tell anybody probing which attempt got
+    // closest.
+    expect(await response.json()).toEqual({
+      error: "That Google sign-in could not be verified.",
+    });
+  });
+});
+
+describe("what the sign-in screen is told", () => {
+  it("answers before anybody has an identity", async () => {
+    // The page that draws the Google button is served to someone with no
+    // session at all, so this cannot sit behind the gate.
+    const response = await api.call("/api/auth/config");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toHaveProperty("google");
   });
 });

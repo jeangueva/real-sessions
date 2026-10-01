@@ -212,6 +212,28 @@ export async function startHarness(): Promise<Harness> {
     mailer,
     limiter: new MemoryRateLimiter(),
     provider,
+    /**
+     * Stands in for Google.
+     *
+     * A test cannot mint a token Google signed, and `google.test.ts` already
+     * holds the real verifier to eleven attacks. What this lets the route
+     * tests reach is the part after verification: whether an existing account
+     * is joined or a second one appears.
+     *
+     * The token is read as JSON so a test can say who Google claims this is.
+     */
+    verifyGoogle: async (credential: string) => {
+      const claimed = JSON.parse(credential) as {
+        email: string;
+        subject?: string;
+        name?: string;
+      };
+      return {
+        email: claimed.email.trim().toLowerCase(),
+        subject: claimed.subject ?? "google-subject",
+        name: claimed.name ?? null,
+      };
+    },
   });
 
   // Port 0 lets the OS choose, so the suite does not collide with a developer's
