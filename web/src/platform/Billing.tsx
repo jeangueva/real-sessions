@@ -37,7 +37,19 @@ const STATUS_COPY: Record<string, MessageKey> = {
 export function Billing() {
   const t = useT();
   const { locale } = useLocale();
-  const { hash } = useLocation();
+  const { hash, state: arrived } = useLocation() as {
+    hash: string;
+    state: { cycle?: "monthly" | "yearly" } | null;
+  };
+  /**
+   * Which cycle the person chose on the pricing page.
+   *
+   * Carried in the navigation state rather than refetched, because the choice
+   * was made on the previous screen and there is nowhere else it is recorded.
+   * Monthly when they arrived here by any other route — the server validates
+   * it again, and defaults the same way.
+   */
+  const cycle = arrived?.cycle === "yearly" ? "yearly" : "monthly";
   const panel = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<BillingState | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -126,7 +138,7 @@ export function Billing() {
     setBusy(true);
     setError(null);
     try {
-      const { initPoint } = await startCheckout();
+      const { initPoint } = await startCheckout(cycle);
       // A full navigation, not a new tab: the payer comes back to /app/settings
       // through Mercado Pago's own return URL, and a popup would be blocked.
       window.location.assign(initPoint);
@@ -263,6 +275,7 @@ export function Billing() {
       {paying && state.publicKey && state.plan && (
         <div className="mt-6 border-t border-line pt-6">
           <CardForm
+            cycle={cycle}
             publicKey={state.publicKey}
             amount={state.plan.amount}
             currency={state.plan.currency}

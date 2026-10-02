@@ -164,6 +164,24 @@
   }
 
   /**
+   * The light across the top of the recommended plan.
+   *
+   * Cream at low opacity over a dark card reads as a light source. On the
+   * light theme the same token is near-black, so the identical rule paints a
+   * grey smear down the top edge of a white card — the failure `glow-card.tsx`
+   * documents, arriving here by the same route.
+   *
+   * It is a light effect, so it belongs to the dark themes and is simply
+   * absent on the light one. Dimming it would leave a faint smudge, which is
+   * worse than nothing: nobody reads a faint smudge as light.
+   */
+  :root[data-theme="light"] .plan-glow { display: none; }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .plan-glow { display: none; }
+  }
+
+  /**
    * A dark island inside a light page.
    *
    * The hero's ground is not a surface token. It is video, under scrims that

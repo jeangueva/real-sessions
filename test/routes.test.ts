@@ -1514,3 +1514,29 @@ describe("tracking applications", () => {
     expect(response.status).toBe(200);
   });
 });
+
+describe("choosing how often to be charged", () => {
+  it("refuses a cycle it does not know rather than guessing", async () => {
+    await api.authenticate();
+    const response = await api.call(
+      "/api/billing/checkout",
+      post({ cycle: "fortnightly" }),
+    );
+    /**
+     * Of the two ways to guess, both are unacceptable: "yearly" read as
+     * monthly charges a twelfth of what somebody agreed to, and the reverse
+     * charges twelve times. So nothing is read as anything.
+     */
+    expect(response.status).toBe(400);
+  });
+
+  it("still takes a payment from a client that says nothing about cycles", async () => {
+    await api.authenticate();
+    // Absent means monthly, so an older page keeps working.
+    const response = await api.call("/api/billing/subscribe", post({ cardTokenId: "" }));
+    // Whatever it fails on next — a missing token, or payments being off in
+    // this harness — it is not the cycle. That is the whole assertion.
+    const body = (await response.json()) as { error?: string };
+    expect(body.error ?? "").not.toMatch(/billing cycle/i);
+  });
+});

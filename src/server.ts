@@ -220,6 +220,10 @@ import {
   MercadoPagoError,
   mercadoPagoConfigured,
   planConfig,
+  planOffer,
+  planForCycle,
+  isBillingCycle,
+  type BillingCycle,
   createCardSubscription,
   publicKey,
   readAmount,
@@ -620,6 +624,24 @@ function publicReport(record: SessionDetail): {
     evaluation: record.evaluation,
     metrics: record.metrics,
   };
+}
+
+/**
+ * Which billing cycle a checkout asked for.
+ *
+ * Takes the parsed body rather than the request, because a request body can
+ * be read exactly once — reading it here and again in the route left the
+ * route with an empty object and turned every card payment into a 400.
+ *
+ * Absent means monthly, so a client that knows nothing about years keeps
+ * working. An unknown value is refused rather than coerced: "yearly" misread
+ * as monthly charges a twelfth of what somebody agreed to, and "monthly"
+ * misread as yearly charges twelve times.
+ */
+function cycleFrom(body: Record<string, unknown>): BillingCycle | null {
+  const raw = body["cycle"];
+  if (raw === undefined) return "monthly";
+  return isBillingCycle(raw) ? raw : null;
 }
 
 /**
@@ -1428,7 +1450,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // has an identity, and it is the same `planConfig()` the checkout charges
     // from. A price written into the page instead would be a second source of
     // truth, and the one people read before deciding.
-    json(res, 200, { plan: planConfig() });
+    json(res, 200, { plan: planConfig(), offer: planOffer() });
     return;
   }
 
@@ -1726,6 +1748,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     json(res, 200, {
       configured,
       plan: planConfig(),
+      offer: planOffer(),
       // Safe to serve: this key can tokenise a card and nothing else. Null
       // when unset, and the client falls back to the redirect checkout.
       publicKey: configured ? publicKey() : null,
@@ -1870,7 +1893,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "POST" && path === "/api/billing/subscribe") {
     if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
 
-    const config = planConfig();
+    // Read once: a request body cannot be read twice, and both the cycle and
+    // the card token live in this one.
+    const body = await readJson(req);
+    const requested = cycleFrom(body);
+    if (requested === null) {
+      return json(res, 400, { error: "That is not a billing cycle." });
+    }
+    const config = planForCycle(requested);
     if (!mercadoPagoConfigured() || !config) {
       return json(res, 503, {
         error: "Payments are not configured on this deployment yet.",
@@ -1896,7 +1926,6 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       });
     }
 
-    const body = await readJson(req);
     const cardTokenId =
       typeof body["cardTokenId"] === "string" ? body["cardTokenId"].trim() : "";
     if (cardTokenId === "") {
@@ -1917,7 +1946,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // the wrong tab, never ask the provider anything, and sit on `pending`
         // with the money gone.
         backUrl: `${siteUrl()}/app/settings#plan`,
-        reason: "Mockio — monthly",
+        reason: `Mockio — ${config.cycle}`,
         plan: config,
       });
     } catch (error) {
@@ -1991,7 +2020,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "POST" && path === "/api/billing/checkout") {
     if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
 
-    const config = planConfig();
+    const requested = cycleFrom(await readJson(req));
+    if (requested === null) {
+      return json(res, 400, { error: "That is not a billing cycle." });
+    }
+    const config = planForCycle(requested);
     if (!mercadoPagoConfigured() || !config) {
       return json(res, 503, {
         error: "Payments are not configured on this deployment yet.",
@@ -2027,7 +2060,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // the wrong tab, never ask the provider anything, and sit on `pending`
         // with the money gone.
         backUrl: `${siteUrl()}/app/settings#plan`,
-      reason: "Mockio — monthly",
+      reason: `Mockio — ${config.cycle}`,
       plan: config,
     });
 

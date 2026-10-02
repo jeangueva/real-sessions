@@ -155,6 +155,74 @@ export function planConfig(): PlanConfig | null {
   return { amount, currency };
 }
 
+/** How often a subscription is charged. */
+export type BillingCycle = "monthly" | "yearly";
+
+export function isBillingCycle(value: unknown): value is BillingCycle {
+  return value === "monthly" || value === "yearly";
+}
+
+export interface CyclePlan extends PlanConfig {
+  cycle: BillingCycle;
+  /** Mercado Pago's own words for the interval. */
+  frequency: number;
+  frequencyType: "months";
+}
+
+export interface PlanOffer {
+  monthly: CyclePlan;
+  /** Absent until a yearly amount is configured. */
+  yearly: CyclePlan | null;
+  /**
+   * What the yearly price actually saves, as a whole percent, or null when
+   * there is no yearly price.
+   *
+   * Derived from the two real amounts rather than written anywhere. A "20%
+   * off" banner beside a figure that is 17% off is a lie the landing page
+   * tells on the checkout's behalf, and the only way to be sure it never
+   * happens is to never let a human type the number.
+   */
+  savingPercent: number | null;
+}
+
+/**
+ * The yearly price, when one is set.
+ *
+ * Declared rather than computed: twenty percent off 29.90 is 287.04, and
+ * nobody publishes that. The round number is a decision, so it lives in the
+ * environment beside the monthly one, and the discount shown is whatever those
+ * two numbers really are.
+ */
+export function planOffer(): PlanOffer | null {
+  const monthly = planConfig();
+  if (!monthly) return null;
+  const yearlyAmount = readAmount(process.env.MERCADOPAGO_AMOUNT_YEARLY);
+  const yearly: CyclePlan | null =
+    yearlyAmount === null
+      ? null
+      : {
+          amount: yearlyAmount,
+          currency: monthly.currency,
+          cycle: "yearly",
+          frequency: 12,
+          frequencyType: "months",
+        };
+  const full = monthly.amount * 12;
+  return {
+    monthly: { ...monthly, cycle: "monthly", frequency: 1, frequencyType: "months" },
+    yearly,
+    savingPercent:
+      yearly && yearly.amount < full ? Math.round((1 - yearly.amount / full) * 100) : null,
+  };
+}
+
+/** The plan for one cycle, or null when that cycle is not on offer. */
+export function planForCycle(cycle: BillingCycle): CyclePlan | null {
+  const offer = planOffer();
+  if (!offer) return null;
+  return cycle === "yearly" ? offer.yearly : offer.monthly;
+}
+
 /**
  * Verifies the `x-signature` header.
  *
@@ -359,7 +427,7 @@ export async function createCardSubscription(input: {
    */
   backUrl: string;
   reason: string;
-  plan: PlanConfig;
+  plan: CyclePlan;
 }): Promise<Preapproval> {
   const raw = await call<RawPreapproval>("/preapproval", {
     method: "POST",
@@ -370,8 +438,10 @@ export async function createCardSubscription(input: {
       card_token_id: input.cardTokenId,
       back_url: input.backUrl,
       auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
+        // From the plan rather than fixed at one month: a yearly subscription
+        // charged monthly would be the most expensive bug in the product.
+        frequency: input.plan.frequency,
+        frequency_type: input.plan.frequencyType,
         transaction_amount: input.plan.amount,
         currency_id: input.plan.currency,
       },
@@ -397,7 +467,7 @@ export async function createPreapproval(input: {
   payerEmail: string;
   backUrl: string;
   reason: string;
-  plan: PlanConfig;
+  plan: CyclePlan;
 }): Promise<{ id: string; initPoint: string }> {
   const raw = await call<RawPreapproval>("/preapproval", {
     method: "POST",
@@ -407,8 +477,10 @@ export async function createPreapproval(input: {
       payer_email: input.payerEmail,
       back_url: input.backUrl,
       auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
+        // From the plan rather than fixed at one month: a yearly subscription
+        // charged monthly would be the most expensive bug in the product.
+        frequency: input.plan.frequency,
+        frequency_type: input.plan.frequencyType,
         transaction_amount: input.plan.amount,
         currency_id: input.plan.currency,
       },

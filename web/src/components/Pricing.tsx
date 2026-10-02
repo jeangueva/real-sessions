@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
-import { fetchPricing } from "@/lib/api";
+import { fetchPricing, type BillingCycle, type PlanOffer } from "@/lib/api";
 import { formatPrice } from "@/lib/format";
 import { useLocale, useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
@@ -49,17 +49,31 @@ export function Pricing() {
    * payments are off; neither shows a number, because no number is better
    * than the wrong one.
    */
-  const [price, setPrice] = useState<{ amount: number; currency: string } | null | undefined>();
+  const [offer, setOffer] = useState<PlanOffer | null | undefined>();
+  /**
+   * Which cycle the cards are showing.
+   *
+   * Starts on the year when one exists, because that is the one worth
+   * choosing and the saving is the reason to look. Nobody is charged for
+   * looking: the cycle travels to the checkout, which validates it again.
+   */
+  const [cycle, setCycle] = useState<BillingCycle>("monthly");
 
   useEffect(() => {
     let cancelled = false;
     fetchPricing()
-      .then((result) => !cancelled && setPrice(result.plan))
-      .catch(() => !cancelled && setPrice(null));
+      .then((result) => {
+        if (cancelled) return;
+        setOffer(result.offer);
+        if (result.offer?.yearly) setCycle("yearly");
+      })
+      .catch(() => !cancelled && setOffer(null));
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const shown = cycle === "yearly" ? offer?.yearly : offer?.monthly;
 
   return (
     <Section id="pricing" className="bg-surface-base">
@@ -68,12 +82,41 @@ export function Pricing() {
         {t("land.pricingTitle")}
       </h2>
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-2">
+      {/* Only when there is a year to switch to. A toggle with one position
+          is a control that teaches somebody the product has choices it does
+          not have. */}
+      {offer?.yearly && (
+        <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-line bg-surface-card p-1">
+          {(["monthly", "yearly"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={cycle === option}
+              onClick={() => setCycle(option)}
+              className={`focus-ring rounded-full px-4 py-2 text-xs transition-colors ${
+                cycle === option
+                  ? "bg-cream text-surface-base"
+                  : "text-cream-dim hover:text-cream-bright"
+              }`}
+            >
+              {t(option === "monthly" ? "land.billMonthly" : "land.billYearly")}
+              {option === "yearly" && offer.savingPercent !== null && (
+                <span className="ml-2 opacity-80">
+                  {t("land.savePercent", { percent: String(offer.savingPercent) })}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-10 grid gap-4 lg:grid-cols-2">
         <FadeRise>
           <Panel className="flex h-full flex-col gap-6 p-6 sm:p-8">
             <div>
               <p className="text-sm text-cream-dim">{t("land.free")}</p>
-              <p className="mt-2 text-title text-cream-bright">$0</p>
+              <p className="mt-1 text-xs text-cream-faint">{t("land.billedNever")}</p>
+              <p className="mt-3 text-title text-cream-bright">$0</p>
               <p className="mt-2 text-sm text-cream-dim">
                 {t("land.freeBlurb")}
               </p>
@@ -92,21 +135,50 @@ export function Pricing() {
         <FadeRise delay={0.1}>
           <Panel
             variant="raised"
-            className="flex h-full flex-col gap-6 border border-cream/25 p-6 sm:p-8"
+            className="relative flex h-full flex-col gap-6 overflow-hidden border border-cream/25 p-6 sm:p-8"
           >
-            <div>
-              <p className="text-sm text-cream-dim">{t("land.premium")}</p>
+            {/* The wash across the top of the recommended card, the one thing
+                worth taking from the references. Theirs is green and orange;
+                this product has no accent colour and inventing one here would
+                leave a hue that appears nowhere else. Cream at low opacity
+                reads as the same light without the lie. */}
+            <div
+              aria-hidden
+              className="plan-glow pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cream/15 to-transparent"
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-cream-dim">{t("land.premium")}</p>
+                <span className="rounded-full border border-cream/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-cream-bright">
+                  {t("land.recommended")}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-cream-faint">
+                {t(cycle === "yearly" ? "land.billedYearly" : "land.billedMonthly")}
+              </p>
               {/* Reserves its line whether or not the price has arrived, so
                   the card does not jump when it does. */}
-              <p className="mt-2 min-h-[1.6em] text-title text-cream-bright">
-                {price ? (
+              <p className="mt-3 min-h-[1.6em] text-title text-cream-bright">
+                {shown ? (
                   <>
-                    {formatPrice(price.amount, price.currency, locale)}
-                    <span className="text-sm text-cream-faint">{t("land.perMonth")}</span>
+                    {formatPrice(shown.amount, shown.currency, locale)}
+                    <span className="text-sm text-cream-faint">
+                      {t(cycle === "yearly" ? "land.perYear" : "land.perMonth")}
+                    </span>
                   </>
                 ) : null}
               </p>
-              <p className="mt-2 text-sm text-cream-dim">
+              {/* What a year works out to each month — the comparison somebody
+                  is making in their head anyway, done for them rather than
+                  left as arithmetic beside a decision about money. */}
+              {cycle === "yearly" && shown && (
+                <p className="mt-1 text-xs text-cream-faint">
+                  {t("land.perMonthEquivalent", {
+                    price: formatPrice(shown.amount / 12, shown.currency, locale),
+                  })}
+                </p>
+              )}
+              <p className="mt-3 text-sm text-cream-dim">
                 {t("land.premiumBlurb")}
               </p>
             </div>
@@ -119,7 +191,11 @@ export function Pricing() {
                 the hosted checkout both start. The hash matters: the panel is
                 near the bottom of a long page, and it scrolls itself into
                 view. */}
-            <Link to="/app/settings#plan" className="mt-auto self-start">
+            <Link
+              to="/app/settings#plan"
+              state={{ cycle }}
+              className="relative mt-auto self-start"
+            >
               <Action withArrow>{t("cta.subscribe")}</Action>
             </Link>
           </Panel>

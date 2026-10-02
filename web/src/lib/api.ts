@@ -710,11 +710,11 @@ export interface BillingState {
   subscription: Subscription | null;
 }
 
-export function subscribeWithCard(cardTokenId: string) {
+export function subscribeWithCard(cardTokenId: string, cycle: BillingCycle = "monthly") {
   return withIdentity(() =>
     request<{ status: string }>("/api/billing/subscribe", {
       method: "POST",
-      body: JSON.stringify({ cardTokenId }),
+      body: JSON.stringify({ cardTokenId, cycle }),
     }),
   );
 }
@@ -739,9 +739,12 @@ export function fetchBilling() {
 }
 
 /** Returns where to send the payer. Mercado Pago hosts the checkout itself. */
-export function startCheckout() {
+export function startCheckout(cycle: BillingCycle = "monthly") {
   return withIdentity(() =>
-    request<{ initPoint: string }>("/api/billing/checkout", { method: "POST" }),
+    request<{ initPoint: string }>("/api/billing/checkout", {
+      method: "POST",
+      body: JSON.stringify({ cycle }),
+    }),
   );
 }
 
@@ -921,11 +924,27 @@ export function decideQuestion(id: number, status: "verified" | "rejected") {
  *
  * Public, because the landing page asks before anyone has an identity.
  */
+export type BillingCycle = "monthly" | "yearly";
+
+export interface CyclePlan {
+  amount: number;
+  currency: string;
+  cycle: BillingCycle;
+}
+
+export interface PlanOffer {
+  monthly: CyclePlan;
+  /** Null until a yearly amount is configured on the deployment. */
+  yearly: CyclePlan | null;
+  /** Worked out from the two real amounts by the server, never written down. */
+  savingPercent: number | null;
+}
+
 export function fetchPricing() {
-  return request<{ plan: { amount: number; currency: string } | null }>(
-    "/api/pricing",
-    { method: "GET" },
-  );
+  return request<{
+    plan: { amount: number; currency: string } | null;
+    offer: PlanOffer | null;
+  }>("/api/pricing", { method: "GET" });
 }
 
 export function fetchEarlyAccessState() {

@@ -7,6 +7,8 @@ import {
   grantsAccess,
   liveBillingEnabled,
   planConfig,
+  planForCycle,
+  planOffer,
   SIGNATURE_TOLERANCE_MS,
   billingMode,
   verifySignature,
@@ -322,7 +324,7 @@ describe("createCardSubscription", () => {
       cardTokenId: "tok-1",
       backUrl: "https://getmockio.com/app/settings",
       reason: "Mockio — monthly",
-      plan: { amount: 29.9, currency: "PEN" },
+      plan: { amount: 29.9, currency: "PEN", cycle: "monthly", frequency: 1, frequencyType: "months" },
     });
     return body;
   };
@@ -349,5 +351,52 @@ describe("createCardSubscription", () => {
       transaction_amount: 29.9,
       currency_id: "PEN",
     });
+  });
+});
+
+describe("the yearly cycle", () => {
+  const env = { ...process.env };
+  afterEach(() => {
+    process.env = { ...env };
+  });
+
+  it("offers only a month until a yearly amount is configured", () => {
+    process.env.MERCADOPAGO_AMOUNT = "29.90";
+    process.env.MERCADOPAGO_CURRENCY = "PEN";
+    delete process.env.MERCADOPAGO_AMOUNT_YEARLY;
+    const offer = planOffer();
+    // No yearly price means no yearly anything: the toggle never appears, so
+    // nobody is shown a saving the checkout cannot honour.
+    expect(offer?.yearly).toBeNull();
+    expect(offer?.savingPercent).toBeNull();
+    expect(planForCycle("yearly")).toBeNull();
+  });
+
+  it("works out the saving from the two real amounts", () => {
+    process.env.MERCADOPAGO_AMOUNT = "29.90";
+    process.env.MERCADOPAGO_CURRENCY = "PEN";
+    process.env.MERCADOPAGO_AMOUNT_YEARLY = "287";
+    // 29.90 × 12 = 358.80, and 287 of that is 20% off. Derived rather than
+    // typed: a "20% off" banner beside a figure that is 17% off is a lie the
+    // landing page tells on the checkout's behalf.
+    expect(planOffer()?.savingPercent).toBe(20);
+  });
+
+  it("does not claim a saving when the year costs more", () => {
+    process.env.MERCADOPAGO_AMOUNT = "10";
+    process.env.MERCADOPAGO_CURRENCY = "PEN";
+    process.env.MERCADOPAGO_AMOUNT_YEARLY = "500";
+    expect(planOffer()?.savingPercent).toBeNull();
+  });
+
+  it("charges the year once a year, not twelve times", () => {
+    process.env.MERCADOPAGO_AMOUNT = "29.90";
+    process.env.MERCADOPAGO_CURRENCY = "PEN";
+    process.env.MERCADOPAGO_AMOUNT_YEARLY = "287";
+    const yearly = planForCycle("yearly");
+    // The most expensive bug available in this file.
+    expect(yearly?.frequency).toBe(12);
+    expect(yearly?.frequencyType).toBe("months");
+    expect(planForCycle("monthly")?.frequency).toBe(1);
   });
 });

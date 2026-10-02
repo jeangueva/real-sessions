@@ -99,12 +99,15 @@ export function CardForm({
   amount,
   currency,
   locale,
+  cycle = "monthly",
   onSubscribed,
 }: {
   publicKey: string;
   amount: number;
   currency: string;
   locale: string;
+  /** Which cycle this card is being charged for. */
+  cycle?: "monthly" | "yearly";
   /** Called once Mercado Pago has authorized the subscription. */
   onSubscribed: () => void;
 }) {
@@ -203,7 +206,7 @@ export function CardForm({
                 setError(say.current("card.checkDetails"));
                 return;
               }
-              subscribeWithCard(token)
+              subscribeWithCard(token, cycle)
                 .then(() => live && onDone.current())
                 .catch((caught: unknown) => {
                   if (!live) return;

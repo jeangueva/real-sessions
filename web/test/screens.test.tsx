@@ -185,7 +185,7 @@ describe("Pricing", () => {
   it("sends someone who wants the paid plan to where they can pay", () => {
     // The landing page no longer carries the early-access form, so this is the
     // only way off it and onto the paid plan.
-    stubApi({ "/api/pricing": { plan: null } });
+    stubApi({ "/api/pricing": { plan: null, offer: null } });
     renderScreen(<Pricing />);
 
     const subscribe = screen.getByRole("link", { name: /subscribe/i });
@@ -195,11 +195,59 @@ describe("Pricing", () => {
   it("shows the price the checkout will actually charge", async () => {
     // "$9" was written into the page while Mercado Pago billed 29.90 soles.
     // The number a reader decides on has to be the one they are asked for.
-    stubApi({ "/api/pricing": { plan: { amount: 29.9, currency: "PEN" } } });
+    stubApi({
+      "/api/pricing": {
+        plan: { amount: 29.9, currency: "PEN" },
+        offer: {
+          monthly: { amount: 29.9, currency: "PEN", cycle: "monthly" },
+          yearly: null,
+          savingPercent: null,
+        },
+      },
+    });
     renderScreen(<Pricing />);
 
     await screen.findByText(/29[.,]90/);
     expect(screen.queryByText(/\$9(?!\d)/)).not.toBeInTheDocument();
+  });
+
+  it("hides the yearly switch until a yearly price exists", async () => {
+    // A toggle with one position teaches somebody the product has a choice it
+    // does not have — and worse, promises a saving the checkout cannot honour.
+    stubApi({
+      "/api/pricing": {
+        plan: { amount: 29.9, currency: "PEN" },
+        offer: {
+          monthly: { amount: 29.9, currency: "PEN", cycle: "monthly" },
+          yearly: null,
+          savingPercent: null,
+        },
+      },
+    });
+    renderScreen(<Pricing />);
+
+    await screen.findByText(/29[.,]90/);
+    expect(screen.queryByRole("button", { name: /yearly/i })).not.toBeInTheDocument();
+  });
+
+  it("opens on the year, and says what it saves and what it costs a month", async () => {
+    stubApi({
+      "/api/pricing": {
+        plan: { amount: 29.9, currency: "PEN" },
+        offer: {
+          monthly: { amount: 29.9, currency: "PEN", cycle: "monthly" },
+          yearly: { amount: 287, currency: "PEN", cycle: "yearly" },
+          savingPercent: 20,
+        },
+      },
+    });
+    renderScreen(<Pricing />);
+
+    // The year is the one worth choosing, so it is the one shown first.
+    await screen.findByText(/287/);
+    expect(screen.getByText(/20%/)).toBeInTheDocument();
+    // And the arithmetic somebody is doing in their head anyway: 287/12.
+    expect(screen.getByText(/23[.,]9/)).toBeInTheDocument();
   });
 
   it("shows no price at all rather than a wrong one when payments are off", async () => {
