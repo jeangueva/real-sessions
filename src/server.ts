@@ -151,6 +151,8 @@ import { COMPANIES, SECTORS, findCompany, sectorForCompany } from "./sectors.js"
 import { PERSONAS, castFor, findPersona } from "./personas.js";
 import {
   capabilitiesFor,
+  normalisePromoCode,
+  promoCodesFromEnv,
   createEntitlementStore,
   EARLY_ACCESS_MONTHS,
   earlyAccessClosesAt,
@@ -1890,6 +1892,76 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  /**
+   * Redeeming a promotion code.
+   *
+   * Separate from the checkout rather than a field inside it, because they
+   * are different acts: one is a payment and the other is a grant, and
+   * folding the second into the first means every change to the payment flow
+   * has to be reasoned about twice.
+   */
+  if (req.method === "POST" && path === "/api/billing/promo") {
+    /**
+     * Rate limited hard, and keyed by identity as well as address.
+     *
+     * A promotion code is a short string that is worth money, which makes
+     * guessing it worth doing. Without a limit, eight characters fall to a
+     * script in an afternoon.
+     */
+    if (await limited(res, `promo:${identity.id}`, RULES.checkout)) return;
+    if (await limited(res, `promo-ip:${clientIp(req)}`, RULES.checkout)) return;
+
+    const account = identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
+    /**
+     * A proved address, for the same reason early access needs one.
+     *
+     * Otherwise one person makes a hundred throwaway accounts and takes every
+     * seat of a hundred-seat promotion, and the people it was for find it
+     * sold out.
+     */
+    if (!account?.emailVerifiedAt) {
+      return json(res, 403, {
+        error: "Confirm your email address first — the link is in your inbox.",
+      });
+    }
+
+    const body = await readJson(req);
+    const code = normalisePromoCode(body["code"]);
+    if (code === "") return json(res, 400, { error: "Enter a code." });
+
+    // Already paying: being charged and comped at the same time is not a
+    // thing anybody wants, and the grant would quietly overlap a subscription
+    // they keep paying for.
+    const subscription = await SUBSCRIPTIONS.forOwner(identity.id).catch(() => null);
+    if (subscription && grantsAccess(subscription.status)) {
+      return json(res, 409, {
+        error: "You are already on the paid plan. Cancel first if you want to use a code.",
+      });
+    }
+
+    const result = await PLANS.redeemPromo(code, identity.id);
+    if (!result.ok) {
+      const says: Record<typeof result.reason, string> = {
+        unknown: "That code is not valid.",
+        expired: "That code has expired.",
+        full: "That code has been fully claimed.",
+        taken: "You have already used that code.",
+      };
+      // 404 only for a code that does not exist; the rest are states of a
+      // real code and deserve their own answer.
+      return json(res, result.reason === "unknown" ? 404 : 409, {
+        error: says[result.reason],
+        reason: result.reason,
+      });
+    }
+
+    json(res, 200, {
+      plan: await PLANS.planFor(identity.id),
+      until: result.until.toISOString(),
+    });
+    return;
+  }
+
   if (req.method === "POST" && path === "/api/billing/subscribe") {
     if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
 
@@ -3160,6 +3232,10 @@ process.on("uncaughtException", (error) => {
 const redis = await getRedis();
 const db = await getDb();
 const store = createSessionStore(redis);
+// Held locally as well as handed to `configure`, so the promo seeding below
+// can use it without TypeScript having to prove the module slot was filled.
+const plans = createEntitlementStore(db);
+
 configure({
   sessions: store,
   users: createUserStore(redis),
@@ -3167,7 +3243,7 @@ configure({
   mailer: createEmailSender(),
   limiter: createRateLimiter(redis),
   progress: createProgressStore(db),
-  plans: createEntitlementStore(db),
+  plans,
   profiles: createProfileStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
@@ -3177,6 +3253,24 @@ configure({
 // The catalogue is code (see sectors.ts) and the table is a copy of it, so
 // this runs on every boot rather than as a migration someone has to remember.
 if (db) await seedCatalogue(db);
+
+/**
+ * The promotion codes this deployment offers.
+ *
+ * Defined at every boot from the environment, which is how a code is created:
+ * add it to REALSESSIONS_PROMO_CODES and restart. Redefining never returns
+ * seats already taken — the count stays on the row — so a deploy in the
+ * middle of a promotion is not a hundred free months handed out twice.
+ *
+ * A failure here is logged and the server starts anyway. A promotion that
+ * could not be defined is a promotion nobody can redeem, which is a bad day;
+ * a product that will not boot is a worse one.
+ */
+for (const promo of promoCodesFromEnv()) {
+  await plans.definePromo(promo).catch((error: unknown) => {
+    console.error(`[mockio] could not define promo ${promo.code}:`, error);
+  });
+}
 
 // Present in the container image, absent in development.
 SITE = await createStaticSite("web/dist");

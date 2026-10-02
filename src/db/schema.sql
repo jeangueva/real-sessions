@@ -365,3 +365,44 @@ CREATE TABLE IF NOT EXISTS lifecycle_sends (
   sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (email, kind)
 );
+
+/*
+ * Promotion codes, and who has used them.
+ *
+ * Two tables rather than one, because they answer different questions and
+ * only one of them is a race. `promo_codes` holds the offer and its running
+ * count; `promo_redemptions` holds the fact that a particular person used it.
+ *
+ * The composite primary key on the second is what stops one person redeeming
+ * twice — not a check in the application, which two simultaneous requests
+ * both pass before either writes.
+ *
+ * `redeemed` lives on the code rather than being counted from the redemption
+ * rows on every attempt. A count is the honest shape and the wrong one here:
+ * claiming the hundredth seat has to be a single conditional UPDATE, and you
+ * cannot condition on an aggregate without locking the table.
+ */
+CREATE TABLE IF NOT EXISTS promo_codes (
+  -- Stored upper-cased; the route normalises before it ever reaches here, so
+  -- "early100" and "Early100" are the same code and not two misses.
+  code         TEXT PRIMARY KEY,
+  -- How long the grant lasts. Days rather than an end date, because the clock
+  -- starts when somebody redeems, not when the code was created.
+  grant_days   INTEGER NOT NULL CHECK (grant_days > 0),
+  -- How many people may use it. The whole point of EARLY100.
+  cap          INTEGER NOT NULL CHECK (cap > 0),
+  redeemed     INTEGER NOT NULL DEFAULT 0,
+  -- When the code itself stops working, regardless of seats left. Null means
+  -- it runs until the seats are gone.
+  expires_at   TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS promo_redemptions (
+  code        TEXT NOT NULL REFERENCES promo_codes(code) ON DELETE CASCADE,
+  owner_id    TEXT NOT NULL,
+  redeemed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (code, owner_id)
+);
+
+CREATE INDEX IF NOT EXISTS promo_redemptions_owner_idx ON promo_redemptions (owner_id);

@@ -748,6 +748,22 @@ export function startCheckout(cycle: BillingCycle = "monthly") {
   );
 }
 
+/**
+ * Redeems a promotion code.
+ *
+ * The error carries a `reason` as well as a message, so the panel can say
+ * "already claimed" differently from "not a code" without parsing prose.
+ */
+export function redeemPromo(code: string) {
+  return withIdentity(() =>
+    request<{ plan: Plan; until: string }>("/api/billing/promo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    }),
+  );
+}
+
 export function cancelSubscription() {
   return withIdentity(() =>
     request<{ plan: Plan }>("/api/billing/cancel", { method: "POST" }),
