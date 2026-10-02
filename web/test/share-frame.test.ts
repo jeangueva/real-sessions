@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   clampPan,
+  clampZoom,
+  MAX_ZOOM,
   frameFor,
   panLimit,
   placeCover,
@@ -81,6 +83,46 @@ describe("placing the photo", () => {
     expect(limit.x).toBeCloseTo(0);
     expect(limit.y).toBeCloseTo(0);
     expect(clampPan({ x: 40, y: -40 }, frame, drawn)).toEqual({ x: 0, y: -0 });
+  });
+});
+
+describe("zooming in", () => {
+  it("never goes below covering the frame", () => {
+    // The floor is the whole safety property: under it the photo stops filling
+    // the crop and a transparent wedge appears, which flattens to a black bar.
+    expect(clampZoom(0)).toBe(1);
+    expect(clampZoom(-5)).toBe(1);
+    expect(clampZoom(Number.NaN)).toBe(1);
+  });
+
+  it("stops at the ceiling", () => {
+    expect(clampZoom(99)).toBe(MAX_ZOOM);
+  });
+
+  it("still covers the frame at every zoom", () => {
+    const frame = frameFor(9 / 16);
+    for (const zoom of [1, 1.5, 2.7, MAX_ZOOM]) {
+      const at = placeCover(frame, LANDSCAPE, { x: 0, y: 0 }, zoom);
+      expect(at.width).toBeGreaterThanOrEqual(frame.width);
+      expect(at.height).toBeGreaterThanOrEqual(frame.height);
+    }
+  });
+
+  it("makes the photo larger, not the frame", () => {
+    const frame = frameFor(1);
+    const near = placeCover(frame, LANDSCAPE, { x: 0, y: 0 }, 2);
+    const far = placeCover(frame, LANDSCAPE, { x: 0, y: 0 }, 1);
+    expect(near.width).toBeCloseTo(far.width * 2);
+  });
+
+  it("clamps the drag against the zoomed size, not the original", () => {
+    const frame = frameFor(1);
+    // Zoomed in, there is more room to drag; the limit has to grow with it or
+    // the photo locks in place the moment somebody zooms.
+    const at = placeCover(frame, LANDSCAPE, { x: 99_999, y: 99_999 }, 3);
+    expect(at.x).toBeLessThanOrEqual(0);
+    expect(at.x + at.width).toBeGreaterThanOrEqual(frame.width);
+    expect(at.y + at.height).toBeGreaterThanOrEqual(frame.height);
   });
 });
 

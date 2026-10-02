@@ -85,6 +85,28 @@ function even(value: number): number {
  * PNG. There is nothing to drag along an axis the image exactly fills, and the
  * clamp collapses to zero there on its own.
  */
+/**
+ * How far in the photograph may be pushed.
+ *
+ * Four is enough to crop a face out of a group shot, which is the real reason
+ * somebody zooms here, and little enough that a 3000px photo still has pixels
+ * to spare at the far end.
+ */
+export const MAX_ZOOM = 4;
+
+/**
+ * Keeps a zoom between "exactly covers the frame" and the ceiling.
+ *
+ * One is the floor and not a suggestion: below it the photograph no longer
+ * fills the crop and a transparent wedge appears down one side, which exports
+ * as a black bar. Zoom multiplies the cover scale rather than replacing it, so
+ * 1 means cover whatever the shapes involved happen to be.
+ */
+export function clampZoom(zoom: number): number {
+  if (!Number.isFinite(zoom)) return 1;
+  return Math.min(MAX_ZOOM, Math.max(1, zoom));
+}
+
 export function panLimit(frame: Size, drawn: Size): Pan {
   return {
     x: Math.max(0, (drawn.width - frame.width) / 2),
@@ -108,9 +130,12 @@ export function clampPan(pan: Pan, frame: Size, drawn: Size): Pan {
  * arguments `drawImage` wants — the component should not be doing arithmetic
  * at the call site.
  */
-export function placeCover(frame: Size, image: Size, pan: Pan): Placement {
-  // The larger of the two scales is what makes it cover rather than fit.
-  const scale = Math.max(frame.width / image.width, frame.height / image.height);
+export function placeCover(frame: Size, image: Size, pan: Pan, zoom = 1): Placement {
+  // The larger of the two scales is what makes it cover rather than fit; the
+  // zoom multiplies it, so a zoom of 1 is still exactly cover and the crop can
+  // never show an edge no matter what the two shapes are.
+  const scale =
+    Math.max(frame.width / image.width, frame.height / image.height) * clampZoom(zoom);
   const drawn = { width: image.width * scale, height: image.height * scale };
   const clamped = clampPan(pan, frame, drawn);
   return {

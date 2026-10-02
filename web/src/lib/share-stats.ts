@@ -69,7 +69,8 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Consecutive weeks ending with the current one, counting only weeks that
- * have a finished interview in them.
+ * have an interview in them. Takes the dates as given — the caller decides
+ * whether that means started or finished, and it means started.
  *
  * The current week is allowed to be empty without breaking the streak: it is
  * Monday morning for somebody, and telling them their six-week streak is over
@@ -77,8 +78,8 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
  * fastest way to lose them. An empty current week holds the streak at what
  * last week earned.
  */
-export function weekStreak(completedAt: readonly string[], now: Date): number {
-  const weeks = new Set(completedAt.map((iso) => weekStart(new Date(iso))));
+export function weekStreak(days: readonly string[], now: Date): number {
+  const weeks = new Set(days.map((iso) => weekStart(new Date(iso))));
   if (weeks.size === 0) return 0;
 
   const current = weekStart(now);
@@ -107,18 +108,38 @@ export function shareStats(
   sessions: readonly SessionSummary[],
   now: Date = new Date(),
 ): ShareStat[] {
+  /**
+   * Effort counts what was started; results need what was finished.
+   *
+   * This read everything off completed interviews, so somebody who had
+   * practised several times without reaching the end of any of them was told
+   * there was nothing to show. They had done the work — sat down, spoke
+   * English under pressure, and stopped — and the one screen meant to say
+   * "look how much you have done" said nothing at all.
+   *
+   * Counting starts is also what the rest of the product already does: the
+   * free plan's weekly allowance is spent on a session begun, on the grounds
+   * that an abandoned interview still cost a prompt and a voice stream. The
+   * same reasoning says it still cost the candidate ten minutes of nerve.
+   *
+   * A score cannot work this way — an unevaluated interview has none, and the
+   * level it ran at means nothing without a report behind it — so those two
+   * stay on the finished ones below.
+   */
+  const started = sessions;
   const finished = sessions.filter(
     (session): session is SessionSummary & { completedAt: string } =>
       session.completedAt !== null,
   );
 
+  // Dated by when it began, because that is the day the person showed up.
   const streak = weekStreak(
-    finished.map((session) => session.completedAt),
+    started.map((session) => session.startedAt),
     now,
   );
   const current = weekStart(now);
-  const thisWeek = finished.filter(
-    (session) => weekStart(new Date(session.completedAt)) === current,
+  const thisWeek = started.filter(
+    (session) => weekStart(new Date(session.startedAt)) === current,
   ).length;
 
   const scores = finished
@@ -127,8 +148,10 @@ export function shareStats(
 
   // Speaking time only, not wall-clock: the minutes somebody held the floor in
   // English are the ones they earned. A session they sat through in silence
-  // contributes nothing, which is correct.
-  const spokenMs = finished.reduce(
+  // contributes nothing, which is correct. Counted across started sessions,
+  // because the metrics are written from the turns as they happen — an
+  // interview abandoned at turn four already has four turns of speech in it.
+  const spokenMs = started.reduce(
     (total, session) => total + (session.metrics?.speakingMs ?? 0),
     0,
   );
@@ -136,7 +159,9 @@ export function shareStats(
 
   // The level the most recent finished interview ran at. Not the highest ever
   // reached: a card saying C1 for somebody who has since dropped back to B2
-  // is a card that misrepresents them to a recruiter.
+  // is a card that misrepresents them to a recruiter. Finished rather than
+  // started, because a level with no report behind it is a setting, not an
+  // achievement.
   const level = finished[0]?.level ?? null;
 
   const stats: ShareStat[] = [];
@@ -157,10 +182,10 @@ export function shareStats(
       sensitive: false,
     });
   }
-  if (finished.length > 0) {
+  if (started.length > 0) {
     stats.push({
       id: "total",
-      value: String(finished.length),
+      value: String(started.length),
       labelKey: "share.statTotal",
       sensitive: false,
     });

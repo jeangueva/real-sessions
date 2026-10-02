@@ -46,6 +46,8 @@ describe("the week a date belongs to", () => {
 });
 
 describe("the streak", () => {
+  // These dates are read as the days somebody showed up. `shareStats` feeds
+  // it `startedAt` for exactly that reason.
   it("counts consecutive weeks", () => {
     const weeks = [
       "2026-09-28T10:00:00.000Z",
@@ -73,11 +75,46 @@ describe("the streak", () => {
 });
 
 describe("the stats on offer", () => {
-  it("omits what there is nothing behind rather than showing a zero", () => {
+  it("counts an interview somebody started but did not finish", () => {
     const stats = shareStats([session({ completedAt: null, score: null })], MONDAY);
-    // An abandoned interview is not a practised one, so there is nothing to
-    // publish — and "0 interviews" is worse than silence.
-    expect(stats).toEqual([]);
+    /**
+     * They sat down and spoke English under pressure. Requiring a finished
+     * interview told exactly those people there was nothing to show, on the
+     * one screen whose job is to say how much they have done — and it is the
+     * same rule the free plan's allowance already uses, which is spent on a
+     * session begun.
+     */
+    expect(stats.find((stat) => stat.id === "total")?.value).toBe("1");
+    expect(stats.find((stat) => stat.id === "thisWeek")?.value).toBe("1");
+  });
+
+  it("still withholds a score from an interview that was never evaluated", () => {
+    const stats = shareStats([session({ completedAt: null, score: null })], MONDAY);
+    // An unevaluated interview has no score, and the level it ran at is a
+    // setting rather than an achievement until there is a report behind it.
+    expect(stats.find((stat) => stat.id === "best")).toBeUndefined();
+    expect(stats.find((stat) => stat.id === "level")).toBeUndefined();
+  });
+
+  it("omits what there is nothing behind rather than showing a zero", () => {
+    // Nothing at all: no sessions, so no card.
+    expect(shareStats([], MONDAY)).toEqual([]);
+  });
+
+  it("counts the minutes of an interview that was abandoned midway", () => {
+    const stats = shareStats(
+      [
+        session({
+          completedAt: null,
+          score: null,
+          metrics: { words: 90, fillerPer100: 3, vocabularyRange: 0.5, wordShare: 0.5, speakingMs: 60_000, wpm: 120, avgResponseMs: 1_100, longPauses: 0, timeToFirstMs: 800, fromSpeech: true },
+        }),
+      ],
+      MONDAY,
+    );
+    // Metrics are written from the turns as they happen, so an interview
+    // abandoned at turn four already holds four turns of speech.
+    expect(stats.find((stat) => stat.id === "spoken")?.value).toBe("1");
   });
 
   it("marks the score as the one stat that is not boastable", () => {

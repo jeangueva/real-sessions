@@ -17,6 +17,7 @@ import {
 } from "@/lib/share-overlay";
 import { track } from "@/lib/analytics";
 import {
+  clampZoom,
   CROPS,
   frameFor,
   placeCover,
@@ -55,6 +56,13 @@ export function ShareCard() {
   const [crop, setCrop] = useState<Crop>("original");
   const [custom, setCustom] = useState<Size>({ width: 4, height: 5 });
   const [pan, setPan] = useState<Pan>({ x: 0, y: 0 });
+  /**
+   * How far into the photograph we are, as a multiple of "just covers".
+   *
+   * One is the floor rather than zero, so there is no setting at which an
+   * edge of the picture can appear inside the crop.
+   */
+  const [zoom, setZoom] = useState(1);
   const [stats, setStats] = useState<ShareStat[]>([]);
   /**
    * Which stats are on the card, in the order they were chosen.
@@ -109,6 +117,7 @@ export function ShareCard() {
       // A new picture starts centred. Keeping the previous drag would frame
       // the new one by the shape of the old one, which looks like a bug.
       setPan({ x: 0, y: 0 });
+      setZoom(1);
     };
     next.src = url;
   };
@@ -158,7 +167,7 @@ export function ShareCard() {
     element.width = frame.width;
     element.height = frame.height;
     context.clearRect(0, 0, frame.width, frame.height);
-    const at = placeCover(frame, source, pan);
+    const at = placeCover(frame, source, pan, zoom);
     context.drawImage(image, at.x, at.y, at.width, at.height);
     if (drawn.length > 0) {
       drawOverlay(context, layout, drawn, {
@@ -195,9 +204,36 @@ export function ShareCard() {
    * two modes to explain, and nobody reads the explanation — whereas grabbing
    * the thing you want to move is how every other editor on a phone behaves.
    */
+  /**
+   * Fingers currently down, so a pinch can be told from a drag.
+   *
+   * Pointer events give one event per finger and no gesture of their own, so
+   * the two-finger case has to be assembled here: the distance between them
+   * when the second one lands is the baseline, and every move scales against
+   * it.
+   */
+  const touches = useRef(new Map<number, Pan>());
+  const pinch = useRef<{ span: number; zoom: number } | null>(null);
+
+  const spanOf = (): number => {
+    const [a, b] = [...touches.current.values()];
+    if (!a || !b) return 0;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
   const startDrag = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!image) return;
     event.currentTarget.setPointerCapture(event.pointerId);
+    touches.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (touches.current.size === 2) {
+      // A pinch has begun. The drag that was in flight is abandoned rather
+      // than continued, because carrying it on would slide the photograph
+      // sideways while the person is only trying to zoom.
+      pinch.current = { span: spanOf(), zoom };
+      dragging.current = null;
+      return;
+    }
     const box = event.currentTarget.getBoundingClientRect();
     // Pointer position in frame coordinates, which is what the layout is in.
     const at = {
@@ -221,6 +257,18 @@ export function ShareCard() {
   };
 
   const moveDrag = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (touches.current.has(event.pointerId)) {
+      touches.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+
+    if (pinch.current && touches.current.size === 2) {
+      const span = spanOf();
+      if (span > 0 && pinch.current.span > 0) {
+        setZoom(clampZoom((pinch.current.zoom * span) / pinch.current.span));
+      }
+      return;
+    }
+
     const drag = dragging.current;
     if (!drag || drag.id !== event.pointerId) return;
     const moved = {
@@ -244,7 +292,17 @@ export function ShareCard() {
   };
 
   const endDrag = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    touches.current.delete(event.pointerId);
     if (dragging.current?.id === event.pointerId) dragging.current = null;
+    /**
+     * Lifting one finger of a pinch ends the pinch rather than turning it into
+     * a drag.
+     *
+     * Otherwise the remaining finger becomes a drag whose starting point is
+     * wherever it happened to be, and the photograph jumps — which is the one
+     * moment a zoom gesture visibly breaks.
+     */
+    if (touches.current.size < 2) pinch.current = null;
   };
 
   /**
@@ -375,6 +433,7 @@ export function ShareCard() {
                   tone={option === crop ? "solid" : "glass"}
                   onClick={() => {
                     setCrop(option);
+                    setZoom(1);
                     // The drag that framed one shape is wrong for the next:
                     // what was centred in a square sits off-centre in a story.
                     setPan({ x: 0, y: 0 });
@@ -403,6 +462,20 @@ export function ShareCard() {
                   onChange={(height) => setCustom((held) => ({ ...held, height }))}
                 />
               </div>
+            )}
+
+            {image && (
+              <label className="flex flex-col gap-1 text-xs text-cream-faint">
+                {t("share.zoom")}
+                <input
+                  type="range"
+                  min={100}
+                  max={400}
+                  value={Math.round(zoom * 100)}
+                  onChange={(event) => setZoom(clampZoom(Number(event.target.value) / 100))}
+                  className="focus-ring"
+                />
+              </label>
             )}
 
             {image && (
