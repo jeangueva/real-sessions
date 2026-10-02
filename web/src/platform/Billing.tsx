@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
+  ApiError,
   cancelSubscription,
   fetchBilling,
   fetchPlan,
   fetchSession,
   reconcileBilling,
+  redeemPromo,
   startCheckout,
 } from "@/lib/api";
 import type { BillingState, Plan, Session } from "@/lib/api";
@@ -142,7 +144,7 @@ export function Billing() {
       // A full navigation, not a new tab: the payer comes back to /app/settings
       // through Mercado Pago's own return URL, and a popup would be blocked.
       window.location.assign(initPoint);
-    } catch (caught) {
+    } catch (caught: unknown) {
       setError(refusalMessage(caught, t, "billing.couldNotOpen"));
       setBusy(false);
     }
@@ -292,6 +294,12 @@ export function Billing() {
         </div>
       )}
 
+      {/* Only to somebody who is not already paying. Being charged and comped
+          at the same time is not a thing anybody wants, and the server
+          refuses it anyway — this is the same rule, said earlier and more
+          kindly than a 409. */}
+      {plan !== "premium" && <PromoField onRedeemed={load} />}
+
       {lapsing && subscription.periodEnd && (
         <p className="mt-4 border-t border-line pt-4 text-xs text-cream-faint">
           {t("billing.cancelledUntil", {
@@ -300,6 +308,98 @@ export function Billing() {
         </p>
       )}
     </Panel>
+    </div>
+  );
+}
+
+
+/**
+ * "Do you have a code?"
+ *
+ * Collapsed by default, and that is the whole design. An open field marked
+ * "promotion code" on a payment page is a prompt to leave and go looking for
+ * one, and most people who leave to look do not come back. Behind one line of
+ * text it is found by the people who were given a code and invisible to
+ * everybody else.
+ */
+function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [until, setUntil] = useState<string | null>(null);
+
+  const redeem = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await redeemPromo(code.trim());
+      setUntil(result.until);
+      setCode("");
+      // The panel reloads, so the plan line above this says premium.
+      onRedeemed();
+    } catch (caught) {
+      /**
+       * The server's own words.
+       *
+       * Unlike most of this interface, these are not translated locally: the
+       * four outcomes — unknown, expired, fully claimed, already used — are
+       * distinctions the server makes and the panel would have to mirror
+       * exactly to restate. Mirroring them is how the two drift.
+       */
+      setError(caught instanceof ApiError ? caught.message : t("billing.promoFailed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (until) {
+    return (
+      <p role="status" className="mt-4 border-t border-line pt-4 text-xs text-cream-bright">
+        {t("billing.promoDone", { date: formatSessionDate(until) })}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 border-t border-line pt-4">
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="focus-ring rounded text-xs text-cream-faint underline underline-offset-4 hover:text-cream-bright"
+        >
+          {t("billing.promoAsk")}
+        </button>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <label className="flex flex-col gap-1 text-xs text-cream-faint">
+            {t("billing.promoLabel")}
+            <input
+              value={code}
+              onChange={(event) => setCode(event.target.value.toUpperCase().slice(0, 40))}
+              autoCapitalize="characters"
+              spellCheck={false}
+              className="focus-ring w-full max-w-xs rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm uppercase tracking-wider text-cream-bright"
+            />
+          </label>
+          <div className="flex items-center gap-3">
+            <Action
+              tone="glass"
+              onClick={() => void redeem()}
+              disabled={busy || code.trim() === ""}
+            >
+              {t("billing.promoApply")}
+            </Action>
+            {error && (
+              <p role="alert" className="text-xs text-cream-bright">
+                {error}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

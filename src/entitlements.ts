@@ -136,6 +136,28 @@ export const GENERIC_COMPANY = "a well-regarded technology company";
 export const GENERIC_CULTURE = "High standards, clear communication, ownership";
 export const GENERIC_INDUSTRY = "Technology";
 
+export interface PromoDefinition {
+  code: string;
+  /** How long the grant lasts, counted from the moment it is redeemed. */
+  grantDays: number;
+  /** How many people may use it. */
+  cap: number;
+  expiresAt: Date | null;
+}
+
+export type PromoResult =
+  | { ok: true; until: Date }
+  /**
+   * Why it did not work, in the candidate's terms.
+   *
+   * "taken" and "full" are deliberately different answers: a person who used
+   * a code already is told so, and one who arrived at a sold-out promotion is
+   * told that rather than being left to think they typed it wrong. Neither
+   * tells an attacker anything they did not already know by guessing the code
+   * correctly, which is the only way to reach either message.
+   */
+  | { ok: false; reason: "unknown" | "expired" | "full" | "taken" };
+
 export interface EntitlementStore {
   planFor(ownerId: string): Promise<Plan>;
   grant(
@@ -157,6 +179,22 @@ export interface EntitlementStore {
    * when the address is confirmed, the first moment it is proven to be theirs.
    */
   redeemEarlyAccess(email: string, ownerId: string): Promise<Date | null>;
+  /**
+   * Defines a promotion code, leaving any count it already has alone.
+   *
+   * Called at boot from the environment, so restarting the service does not
+   * hand back the seats already taken — which is the one thing that would
+   * make a cap meaningless.
+   */
+  definePromo(code: PromoDefinition): Promise<void>;
+  /**
+   * Takes one seat of a promotion for this person.
+   *
+   * Resolves the end of the grant it created, or a reason it could not. The
+   * reason is a value rather than an exception because every one of them is
+   * something the candidate is told, and none of them is exceptional.
+   */
+  redeemPromo(code: string, ownerId: string): Promise<PromoResult>;
   /**
    * Ends every unexpired grant from one source.
    *
@@ -216,6 +254,99 @@ class PostgresEntitlementStore implements EntitlementStore {
     return until;
   }
 
+  async definePromo(code: PromoDefinition): Promise<void> {
+    // The count is left exactly as it was. Restarting the service must not
+    // return a hundred seats that a hundred people are already holding.
+    await this.pool.query(
+      `INSERT INTO promo_codes (code, grant_days, cap, expires_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (code) DO UPDATE
+          SET grant_days = EXCLUDED.grant_days,
+              cap = EXCLUDED.cap,
+              expires_at = EXCLUDED.expires_at`,
+      [code.code, code.grantDays, code.cap, code.expiresAt],
+    );
+  }
+
+  async redeemPromo(code: string, ownerId: string): Promise<PromoResult> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      /**
+       * The claim, and the only line in this feature that matters.
+       *
+       * One conditional UPDATE: the seat is taken by the statement that
+       * increments the count, so a hundred people pressing at the same second
+       * produce exactly a hundred winners. Reading the count and then writing
+       * it is the shape that hands the hundredth seat to three people.
+       */
+      const { rows } = await client.query(
+        `UPDATE promo_codes
+            SET redeemed = redeemed + 1
+          WHERE code = $1
+            AND redeemed < cap
+            AND (expires_at IS NULL OR expires_at > now())
+        RETURNING grant_days`,
+        [code],
+      );
+      const claimed = rows[0];
+      if (!claimed) {
+        await client.query("ROLLBACK");
+        /**
+         * Asked on the same connection, not from the pool.
+         *
+         * Reaching for a second connection while still holding this one is
+         * how a promotion deadlocks itself: every loser waits for a free
+         * connection, and the connections are all held by losers. Forty
+         * people pressing at once found it immediately — which is the load
+         * this feature exists for.
+         */
+        const { rows: found } = await client.query(
+          `SELECT redeemed >= cap AS full,
+                  (expires_at IS NOT NULL AND expires_at <= now()) AS expired
+             FROM promo_codes WHERE code = $1`,
+          [code],
+        );
+        const known = found[0];
+        if (!known) return { ok: false, reason: "unknown" };
+        if (known.expired) return { ok: false, reason: "expired" };
+        return { ok: false, reason: "full" };
+      }
+
+      /**
+       * And the seat is theirs, once.
+       *
+       * The composite key does the work: a second attempt by the same person
+       * conflicts, which rolls the whole transaction back and returns the
+       * seat that the UPDATE above had just taken.
+       */
+      const taken = await client.query(
+        `INSERT INTO promo_redemptions (code, owner_id) VALUES ($1, $2)
+         ON CONFLICT DO NOTHING RETURNING owner_id`,
+        [code, ownerId],
+      );
+      if (taken.rowCount === 0) {
+        await client.query("ROLLBACK");
+        return { ok: false, reason: "taken" };
+      }
+
+      const until = new Date(Date.now() + Number(claimed.grant_days) * 24 * 60 * 60 * 1000);
+      await client.query(
+        `INSERT INTO entitlements (owner_id, plan, source, expires_at)
+         VALUES ($1, 'premium', $2, $3)`,
+        [ownerId, `promo:${code}`, until],
+      );
+      await client.query("COMMIT");
+      return { ok: true, until };
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async revoke(ownerId: string, source: string) {
     await this.pool.query(
       `UPDATE entitlements SET expires_at = now()
@@ -247,6 +378,8 @@ class MemoryEntitlementStore implements EntitlementStore {
     string,
     { grantedUntil: Date; redeemed: boolean }
   >();
+  private readonly promos = new Map<string, PromoDefinition & { redeemed: number }>();
+  private readonly redemptions = new Map<string, Set<string>>();
 
   async planFor(ownerId: string): Promise<Plan> {
     const held = this.grants.get(ownerId) ?? [];
@@ -262,6 +395,30 @@ class MemoryEntitlementStore implements EntitlementStore {
     const held = this.grants.get(ownerId) ?? [];
     held.push({ plan, source, expiresAt });
     this.grants.set(ownerId, held);
+  }
+
+  async definePromo(code: PromoDefinition): Promise<void> {
+    const held = this.promos.get(code.code);
+    // Same rule as the real store: redefining a code never returns its seats.
+    this.promos.set(code.code, { ...code, redeemed: held?.redeemed ?? 0 });
+  }
+
+  async redeemPromo(code: string, ownerId: string): Promise<PromoResult> {
+    const promo = this.promos.get(code);
+    if (!promo) return { ok: false, reason: "unknown" };
+    if (promo.expiresAt && promo.expiresAt.getTime() <= Date.now()) {
+      return { ok: false, reason: "expired" };
+    }
+    const already = this.redemptions.get(code) ?? new Set<string>();
+    if (already.has(ownerId)) return { ok: false, reason: "taken" };
+    if (promo.redeemed >= promo.cap) return { ok: false, reason: "full" };
+
+    promo.redeemed += 1;
+    already.add(ownerId);
+    this.redemptions.set(code, already);
+    const until = new Date(Date.now() + promo.grantDays * 24 * 60 * 60 * 1000);
+    await this.grant(ownerId, "premium", `promo:${code}`, until);
+    return { ok: true, until };
   }
 
   async revoke(ownerId: string, source: string) {
@@ -362,4 +519,54 @@ export function earlyAccessOpen(
 export function contributorHash(ownerId: string): string {
   const salt = process.env.REALSESSIONS_SESSION_SECRET ?? "realsessions-dev-salt";
   return createHash("sha256").update(`${salt}:contrib:${ownerId}`).digest("hex");
+}
+
+/**
+ * The promotion codes this deployment offers, read from the environment.
+ *
+ * `REALSESSIONS_PROMO_CODES="EARLY100:30:100"` — code, days granted, seats.
+ * A fourth field sets an end date: `LAUNCH:14:50:2026-12-31`.
+ *
+ * In the environment rather than a database row somebody inserts by hand,
+ * for the reason the reviewer and forever lists are: creating a code is a
+ * decision about money, and a decision about money should not be something
+ * anything with a database connection can make for itself. The counter still
+ * lives in the table, because it has to survive a restart.
+ *
+ * A malformed entry is skipped and logged rather than crashing the boot. A
+ * typo in a promotion is not worth taking the product down for, and the
+ * absence of the code is a loud enough symptom.
+ */
+export function promoCodesFromEnv(raw = process.env.REALSESSIONS_PROMO_CODES): PromoDefinition[] {
+  const out: PromoDefinition[] = [];
+  for (const entry of (raw ?? "").split(",")) {
+    const text = entry.trim();
+    if (text === "") continue;
+    const [code, days, cap, until] = text.split(":").map((part) => part.trim());
+    const grantDays = Number(days);
+    const seats = Number(cap);
+    if (
+      !code ||
+      !Number.isInteger(grantDays) ||
+      grantDays <= 0 ||
+      !Number.isInteger(seats) ||
+      seats <= 0
+    ) {
+      console.error(`[mockio] ignoring malformed promo code: ${text}`);
+      continue;
+    }
+    const expiresAt = until ? new Date(until) : null;
+    out.push({
+      code: code.toUpperCase(),
+      grantDays,
+      cap: seats,
+      expiresAt: expiresAt && !Number.isNaN(expiresAt.getTime()) ? expiresAt : null,
+    });
+  }
+  return out;
+}
+
+/** Normalises what somebody typed into what the table stores. */
+export function normalisePromoCode(raw: unknown): string {
+  return typeof raw === "string" ? raw.trim().toUpperCase() : "";
 }

@@ -1540,3 +1540,69 @@ describe("choosing how often to be charged", () => {
     expect(body.error ?? "").not.toMatch(/billing cycle/i);
   });
 });
+
+describe("promotion codes", () => {
+  const CODE = "EARLY100";
+  const ADDRESS = "promo-user@example.com";
+  const PASSPHRASE = "a long enough passphrase";
+
+  beforeEach(() => {
+    process.env.REALSESSIONS_PROMO_CODES = `${CODE}:30:100`;
+  });
+  afterEach(() => {
+    delete process.env.REALSESSIONS_PROMO_CODES;
+  });
+
+  /** An account whose address has been proved, which the route requires. */
+  async function verified() {
+    await api.call("/api/accounts", post({ email: ADDRESS, password: PASSPHRASE }));
+    await api.call("/api/auth/verify", post({ token: api.mailer.tokenFor(ADDRESS) }));
+  }
+
+  it("will not take a code from an unconfirmed address", async () => {
+    await api.call("/api/accounts", post({ email: ADDRESS, password: PASSPHRASE }));
+    const response = await api.call("/api/billing/promo", post({ code: CODE }));
+    /**
+     * Otherwise one person makes a hundred throwaway accounts and takes every
+     * seat of a hundred-seat promotion, and the people it was meant for find
+     * it sold out.
+     */
+    expect(response.status).toBe(403);
+  });
+
+  it("grants the paid plan to somebody who confirmed theirs", async () => {
+    await verified();
+    await api.plans.definePromo({ code: CODE, grantDays: 30, cap: 100, expiresAt: null });
+
+    const response = await api.call("/api/billing/promo", post({ code: "  early100 " }));
+    // Typed in lower case with a stray space, as people do.
+    expect(response.status).toBe(200);
+    expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
+  });
+
+  it("says a code is unknown rather than pretending it worked", async () => {
+    await verified();
+    const response = await api.call("/api/billing/promo", post({ code: "NOPE" }));
+    expect(response.status).toBe(404);
+  });
+
+  it("tells somebody who already used it, in those words", async () => {
+    await verified();
+    await api.plans.definePromo({ code: CODE, grantDays: 30, cap: 100, expiresAt: null });
+    await api.call("/api/billing/promo", post({ code: CODE }));
+
+    const again = await api.call("/api/billing/promo", post({ code: CODE }));
+    expect(again.status).toBe(409);
+    expect(await again.json()).toMatchObject({ reason: "taken" });
+  });
+
+  it("says a sold-out code is sold out, not invalid", async () => {
+    await verified();
+    await api.plans.definePromo({ code: CODE, grantDays: 30, cap: 1, expiresAt: null });
+    await api.plans.redeemPromo(CODE, "somebody-else");
+
+    const response = await api.call("/api/billing/promo", post({ code: CODE }));
+    // "Not valid" would send them hunting for a typo that is not there.
+    expect(await response.json()).toMatchObject({ reason: "full" });
+  });
+});
