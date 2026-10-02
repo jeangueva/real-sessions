@@ -45,6 +45,21 @@ describe("signing in with Google", () => {
     );
   });
 
+  /**
+   * Not covered: that only one button is drawn.
+   *
+   * Google's `renderButton` appends rather than replaces, and this effect
+   * re-runs when the interface language resolves — which it always does, a
+   * moment after the first paint. Production shipped with two buttons stacked
+   * on each other, and `slot.replaceChildren()` is the fix.
+   *
+   * A test was written for it and then deleted: Google's script never loads
+   * here, and with a stub in its place the locale never changes, so the effect
+   * runs once and the test passed with the fix removed. A test that passes
+   * either way is worse than none — it reads as coverage. This one is held by
+   * having looked at the live page, and by that sentence.
+   */
+
   it("still offers the email form, so Google is never the only way in", async () => {
     serve("test-client.apps.googleusercontent.com");
     // Somebody without a Google account, or whose work laptop blocks it, has

@@ -122,6 +122,16 @@ export function GoogleButton({
         cancel_on_tap_outside: true,
       });
 
+      /**
+       * Emptied first, because `renderButton` appends.
+       *
+       * This effect runs again whenever the interface language resolves — and
+       * it always resolves, a moment after the first paint — so without this
+       * the screen shipped with two Google buttons stacked on top of each
+       * other. Nothing in the test suite could see it: the button is drawn by
+       * Google's script, which never loads in a test.
+       */
+      slot.current.replaceChildren();
       window.google.accounts.id.renderButton(slot.current, {
         type: "standard",
         theme: "filled_black",
