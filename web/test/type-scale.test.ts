@@ -42,7 +42,31 @@ function sources(dir: string): string[] {
 /** `text-[13px]`, `text-[0.8rem]` and friends — anything hand-set. */
 const ARBITRARY = /text-\[([0-9.]+)(px|rem|em)\]/g;
 
+/** `<input>`, `<textarea>` and `<select>`, attributes and all. */
+const FIELDS = /<(input|textarea|select)\b[^>]*?>/gs;
+
 describe("the type scale", () => {
+  it("never sets a form field below 16px", () => {
+    /**
+     * iOS Safari zooms the whole page when a field with text under 16px is
+     * focused, and then leaves it zoomed. On a sign-up form that is somebody
+     * typing their password into a page that has just jumped sideways.
+     *
+     * `sm` is 16px and `xs` is 14, so the rule is: fields never wear `xs`.
+     * None do today — this is here so none start.
+     */
+    const small: string[] = [];
+    for (const file of sources(root)) {
+      const text = readFileSync(file, "utf8");
+      for (const match of text.matchAll(FIELDS)) {
+        if (/\btext-xs\b/.test(match[0])) {
+          small.push(`${file.replace(root, "src")}: ${match[0].slice(0, 70)}`);
+        }
+      }
+    }
+    expect(small).toEqual([]);
+  });
+
   it("has no text smaller than 14px anywhere in the interface", () => {
     const tooSmall: string[] = [];
     for (const file of sources(root)) {

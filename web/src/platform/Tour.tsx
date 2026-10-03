@@ -207,7 +207,7 @@ export function Tour() {
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <p className="mt-2 text-xs leading-relaxed text-cream-dim">{step.body}</p>
+        <p className="mt-2 text-sm leading-relaxed text-cream-dim">{step.body}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="text-xs text-cream-faint">

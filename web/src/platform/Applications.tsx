@@ -146,7 +146,7 @@ export function Applications() {
             {/* What it is for, said once, where somebody with no rows is
                 looking. The value is the posting and the rehearsals, not the
                 list itself. */}
-            <p className="text-xs leading-relaxed text-cream-dim">{t("apps.emptyBody")}</p>
+            <p className="text-sm leading-relaxed text-cream-dim">{t("apps.emptyBody")}</p>
             <Action className="self-start" onClick={() => setAdding(true)}>
               {t("apps.add")}
             </Action>
