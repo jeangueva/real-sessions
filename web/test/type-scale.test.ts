@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import process from "node:process";
 import { describe, expect, it } from "vitest";
@@ -23,13 +23,24 @@ import { describe, expect, it } from "vitest";
  */
 
 /**
- * Resolved from the working directory rather than from `import.meta.url`.
+ * The web package's own source, whichever directory the suite was started in.
  *
- * Under happy-dom that URL is not a `file:` one, and `fileURLToPath` refuses
- * it before a single assertion runs — which is a confusing way to learn that
- * a test never executed.
+ * The root suite picks up `web/test/**` too, so `process.cwd()` is the repo
+ * root there and the web package here. Resolving against it alone silently
+ * pointed one of these tests at the server's source — where it found nothing
+ * and passed for the wrong reason.
  */
-const root = resolve(process.cwd(), "src");
+function webSource(relative: string): string {
+  const here = resolve(process.cwd(), relative);
+  return existsSync(here) ? here : resolve(process.cwd(), "web", relative);
+}
+
+/**
+ * Resolved from the working directory rather than from `import.meta.url`:
+ * under happy-dom that URL is not a `file:` one and `fileURLToPath` refuses
+ * it before a single assertion runs.
+ */
+const root = webSource("src");
 
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {

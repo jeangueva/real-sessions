@@ -45,6 +45,21 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
   );
 
   /** Whether the element is worth mounting at all. */
+  /**
+   * The video is still mounted when autoplay was refused.
+   *
+   * It used to be torn out and replaced by the CSS field, on the reasoning
+   * that a moving gradient beats a frozen first frame. That holds when the
+   * video would otherwise stutter — and it is wrong for the case that
+   * actually happens: iOS blocks autoplay outright in Low Power Mode, which
+   * is how a great many phones spend their afternoons, and those readers were
+   * shown a dark gradient where the product's one picture should be.
+   *
+   * A still of the real thing says more than a gradient does. So a refusal to
+   * autoplay no longer sets `failed` — the element stays mounted with its
+   * poster up. `failed` now means only what it says: the video could not be
+   * decoded, and there is no frame to show.
+   */
   const hasVideo = Boolean(src) && !failed;
   /** Whether it is allowed to play. */
   const animated = hasVideo && !reducedMotion;
@@ -119,7 +134,10 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
 
     // Autoplay is refused in some browsers even when muted. Falling back to
     // the CSS field is better than a frozen first frame.
-    void video.play().catch(() => setFailed(true));
+    // A refusal to autoplay is not a failure to load. The poster stays up and
+    // the element stays mounted; `failed` is reserved for a video that cannot
+    // be decoded at all, where there is nothing to show.
+    void video.play().catch(() => undefined);
 
     return () => {
       cancel();

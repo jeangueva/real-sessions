@@ -17,11 +17,22 @@ import { useT } from "@/hooks/useLocale";
  * layout below never depends on the video being there.
  */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
+
+/**
+ * A still from the video itself, three seconds in.
+ *
+ * Shown whenever the video is not playing — most often because iOS refuses
+ * autoplay in Low Power Mode, which is how a large share of phones spend
+ * their day. Those readers were getting a dark gradient where the one
+ * picture of what this product is should be. 49 KB against the video's two
+ * megabytes, and it is the first thing painted either way.
+ */
+const HERO_POSTER = "/hero-2.jpg";
 export function Hero() {
   const t = useT();
   return (
     <InsetFrame className="on-media bg-surface-base">
-      <HeroVideo src={HERO_VIDEO} />
+      <HeroVideo src={HERO_VIDEO} poster={HERO_POSTER} />
 
       <div className="absolute bottom-0 left-0 right-0 z-10 grid grid-cols-1 gap-6 p-6 md:grid-cols-12 md:items-end md:gap-4 md:p-10">
         <h1 className="relative col-span-1 font-mark text-display font-semibold lowercase tracking-[-0.04em] text-cream-bright md:col-span-8">
