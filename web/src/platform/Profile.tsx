@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Trash2, Upload } from "lucide-react";
-import { Action, Eyebrow, Field, Panel } from "@/design-system";
+import { Action, Eyebrow, FadeRise, Field, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import {
@@ -147,7 +147,10 @@ export function Profile() {
       />
 
       <PageBody className="grid items-start gap-6 lg:grid-cols-2">
-        <Panel className="flex flex-col gap-5 p-6">
+        {/* In sequence, because these are three separate things to read and
+            a page that lands all at once gives the eye nowhere to start. */}
+        <FadeRise>
+        <Panel className="flex h-full flex-col gap-5 p-6">
           <div>
             <Eyebrow>{t("profile.cvTitle")}</Eyebrow>
             <p className="mt-2 text-xs text-cream-faint">
@@ -193,8 +196,10 @@ export function Profile() {
             </p>
           )}
         </Panel>
+        </FadeRise>
 
-        <Panel className="flex flex-col gap-5 p-6">
+        <FadeRise delay={0.08}>
+        <Panel className="flex h-full flex-col gap-5 p-6">
           <div>
             <Eyebrow>{t("profile.links")}</Eyebrow>
             <p className="mt-2 text-xs text-cream-faint">
@@ -221,9 +226,11 @@ export function Profile() {
             {busy === "saving" ? t("profile.saving") : t("profile.saveLinks")}
           </Action>
         </Panel>
+        </FadeRise>
 
         {profile?.brief && (
-          <Panel variant="raised" className="flex flex-col gap-4 p-6 lg:col-span-2">
+          <FadeRise delay={0.16} className="lg:col-span-2">
+          <Panel variant="raised" className="flex flex-col gap-4 p-6">
             <div>
               <Eyebrow>{t("profile.briefTitle")}</Eyebrow>
               <p className="mt-2 text-xs text-cream-faint">
@@ -234,6 +241,7 @@ export function Profile() {
               {profile.brief}
             </p>
           </Panel>
+          </FadeRise>
         )}
       </PageBody>
     </>

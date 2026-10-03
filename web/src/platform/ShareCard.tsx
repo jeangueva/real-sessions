@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Action, Eyebrow, Panel } from "@/design-system";
+import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import { fetchHistory } from "@/lib/api";
@@ -395,6 +395,7 @@ export function ShareCard() {
       />
 
       <PageBody className="flex flex-col gap-4 lg:flex-row lg:items-start">
+        <FadeRise>
         <Panel variant="raised" className="flex flex-col items-center gap-3 p-5">
           <canvas
             ref={canvas}
@@ -419,6 +420,7 @@ export function ShareCard() {
           />
           <p className="max-w-xs text-center text-xs text-cream-faint">{t("share.moveHint")}</p>
         </Panel>
+        </FadeRise>
 
         <div className="flex w-full flex-col gap-4 lg:max-w-sm">
           {step === "ground" && (
