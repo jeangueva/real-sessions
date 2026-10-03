@@ -260,6 +260,8 @@ const RU: Record<MessageKey, string> = {
   "billing.notOn": "Платежи ещё не включены.",
   "billing.cancelSub": "Отменить подписку",
   "billing.promoAsk": "Есть промокод?",
+  "billing.promoHint": "Введите его здесь — платный тариф начнётся сразу.",
+  "billing.promoPlaceholder": "EARLY100",
   "billing.promoLabel": "Промокод",
   "billing.promoApply": "Применить",
   "billing.promoFailed": "Не удалось применить этот код.",

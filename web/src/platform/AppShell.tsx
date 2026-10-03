@@ -269,7 +269,7 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
               // real target to point at rather than the rail's empty rect.
               data-tour={to.split("/").pop()}
               className={({ isActive }) =>
-                `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] transition-colors ${
+                `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs transition-colors ${
                   isActive ? "text-cream-bright" : "text-cream-dim"
                 }`
               }
@@ -283,7 +283,7 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
           <NavLink
             to="/app/settings"
             className={({ isActive }) =>
-              `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] transition-colors ${
+              `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs transition-colors ${
                 isActive ? "text-cream-bright" : "text-cream-dim"
               }`
             }

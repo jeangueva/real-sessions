@@ -260,6 +260,8 @@ const ZH: Record<MessageKey, string> = {
   "billing.notOn": "付款功能尚未开启。",
   "billing.cancelSub": "取消订阅",
   "billing.promoAsk": "有优惠码吗？",
+  "billing.promoHint": "在这里输入，付费方案立刻开始。",
+  "billing.promoPlaceholder": "EARLY100",
   "billing.promoLabel": "优惠码",
   "billing.promoApply": "使用",
   "billing.promoFailed": "这个优惠码无法使用。",

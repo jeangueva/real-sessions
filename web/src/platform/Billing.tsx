@@ -274,6 +274,14 @@ export function Billing() {
         )}
       </div>
 
+      {/* Before the card, not after it.
+          Somebody holding a code is not shopping — they were given something
+          and came to use it, and making them scroll past a payment form to
+          find the field is asking them to consider paying for what they
+          already have. Only to somebody not already on the paid plan: being
+          charged and comped at once is not a thing anybody wants. */}
+      {plan !== "premium" && <PromoField onRedeemed={load} />}
+
       {paying && state.publicKey && state.plan && (
         <div className="mt-6 border-t border-line pt-6">
           <CardForm
@@ -293,12 +301,6 @@ export function Billing() {
           />
         </div>
       )}
-
-      {/* Only to somebody who is not already paying. Being charged and comped
-          at the same time is not a thing anybody wants, and the server
-          refuses it anyway — this is the same rule, said earlier and more
-          kindly than a 409. */}
-      {plan !== "premium" && <PromoField onRedeemed={load} />}
 
       {lapsing && subscription.periodEnd && (
         <p className="mt-4 border-t border-line pt-4 text-xs text-cream-faint">
@@ -324,7 +326,6 @@ export function Billing() {
  */
 function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -337,16 +338,16 @@ function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
       const result = await redeemPromo(code.trim());
       setUntil(result.until);
       setCode("");
-      // The panel reloads, so the plan line above this says premium.
       onRedeemed();
-    } catch (caught) {
+    } catch (caught: unknown) {
       /**
        * The server's own words.
        *
        * Unlike most of this interface, these are not translated locally: the
        * four outcomes — unknown, expired, fully claimed, already used — are
-       * distinctions the server makes and the panel would have to mirror
-       * exactly to restate. Mirroring them is how the two drift.
+       * distinctions the server makes, and a panel that restated them would
+       * have to match it exactly for ever. Matching for ever is how two
+       * copies of the same sentence drift apart.
        */
       setError(caught instanceof ApiError ? caught.message : t("billing.promoFailed"));
     } finally {
@@ -356,49 +357,46 @@ function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
 
   if (until) {
     return (
-      <p role="status" className="mt-4 border-t border-line pt-4 text-xs text-cream-bright">
+      <p
+        role="status"
+        className="mt-6 rounded-2xl border border-cream/30 bg-surface-raised p-4 text-sm text-cream-bright"
+      >
         {t("billing.promoDone", { date: formatSessionDate(until) })}
       </p>
     );
   }
 
   return (
-    <div className="mt-4 border-t border-line pt-4">
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="focus-ring rounded text-xs text-cream-faint underline underline-offset-4 hover:text-cream-bright"
+    <div className="mt-6 rounded-2xl border border-line-strong bg-surface-raised p-4">
+      <p className="text-sm text-cream-bright">{t("billing.promoAsk")}</p>
+      <p className="mt-1 text-xs text-cream-dim">{t("billing.promoHint")}</p>
+      <div className="mt-3 flex flex-wrap items-start gap-2">
+        <label className="flex flex-col gap-1">
+          <span className="sr-only">{t("billing.promoLabel")}</span>
+          <input
+            value={code}
+            onChange={(event) => setCode(event.target.value.toUpperCase().slice(0, 40))}
+            placeholder={t("billing.promoPlaceholder")}
+            autoCapitalize="characters"
+            autoComplete="off"
+            spellCheck={false}
+            /* `text-sm` is 16px, and under 16px iOS Safari zooms the page the
+               moment this is focused. */
+            className="focus-ring w-44 rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm uppercase tracking-wider text-cream-bright placeholder:tracking-normal placeholder:text-cream-faint"
+          />
+        </label>
+        <Action
+          tone="glass"
+          onClick={() => void redeem()}
+          disabled={busy || code.trim() === ""}
         >
-          {t("billing.promoAsk")}
-        </button>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <label className="flex flex-col gap-1 text-xs text-cream-faint">
-            {t("billing.promoLabel")}
-            <input
-              value={code}
-              onChange={(event) => setCode(event.target.value.toUpperCase().slice(0, 40))}
-              autoCapitalize="characters"
-              spellCheck={false}
-              className="focus-ring w-full max-w-xs rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm uppercase tracking-wider text-cream-bright"
-            />
-          </label>
-          <div className="flex items-center gap-3">
-            <Action
-              tone="glass"
-              onClick={() => void redeem()}
-              disabled={busy || code.trim() === ""}
-            >
-              {t("billing.promoApply")}
-            </Action>
-            {error && (
-              <p role="alert" className="text-xs text-cream-bright">
-                {error}
-              </p>
-            )}
-          </div>
-        </div>
+          {t("billing.promoApply")}
+        </Action>
+      </div>
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-cream-bright">
+          {error}
+        </p>
       )}
     </div>
   );

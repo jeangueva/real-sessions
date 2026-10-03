@@ -149,7 +149,7 @@ export function Pricing() {
             <div className="relative">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm text-cream-dim">{t("land.premium")}</p>
-                <span className="rounded-full border border-cream/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-cream-bright">
+                <span className="rounded-full border border-cream/40 px-3 py-1 text-xs uppercase tracking-wider text-cream-bright">
                   {t("land.recommended")}
                 </span>
               </div>

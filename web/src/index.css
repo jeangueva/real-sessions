@@ -24,7 +24,20 @@
     --surface-base: 0 0 0;
     --surface-raised: 16 16 16;
     --surface-card: 33 33 33;
-    --surface-deep: 4 33 46;
+    /**
+     * The ground the signed-in shell sits on.
+     *
+     * It was 4 33 46 — a dark petrol blue, there to read as "deeper than
+     * black" when the base is pure black. It did read as deeper, and it also
+     * read as blue: against it the cream ink loses the warmth the whole
+     * palette is built on, and every panel laid over it looks like it belongs
+     * to a different product.
+     *
+     * Near-black with a trace of the same warmth instead. It is still a step
+     * away from `surface-base`, which is what it was for, without being a
+     * colour nothing else in the system is.
+     */
+    --surface-deep: 10 10 11;
     /* Recessed panels inside a surface — transcript, call stage. */
     --surface-sunken: 0 0 0;
     --surface-sunken-alpha: 0.25;

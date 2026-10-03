@@ -300,7 +300,15 @@ const LABEL_R = RADAR_R + 16;
  * stylesheet.
  */
 const RADAR_LABEL_MAX = 14;
-const RADAR_LABEL_CLASS = "text-[14px] sm:text-[11px]";
+/**
+ * One size, and it is the scale's.
+ *
+ * These labels used to be set by hand, and smaller on a desktop than on a
+ * phone — backwards twice over: the small screen is where a label is hardest
+ * to read, and the desktop step sat below the floor this product sets for
+ * any text at all. The scale decides now.
+ */
+const RADAR_LABEL_CLASS = "text-xs";
 const LABEL_LINE = RADAR_LABEL_MAX + 2;
 
 /** Unit vectors for the four compass points, clockwise from the top. */
