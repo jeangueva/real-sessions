@@ -1105,7 +1105,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readJson(req);
     if (!accessCodeAccepted(body["accessCode"])) {
       // Same response whether the code was wrong or absent.
-      return json(res, 403, { error: "That access code did not work." });
+      return json(res, 403, { error: "That access code did not work.", code: "badAccessCode" });
     }
     return json(res, 410, {
       error: "Create an account or sign in — Mockio no longer runs without one.",
@@ -1179,7 +1179,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readJson(req);
 
     const email = normalizeEmail(body["email"]);
-    if (!email) return json(res, 400, { error: "Enter a valid email address." });
+    if (!email) return json(res, 400, { error: "Enter a valid email address.", code: "badEmail" });
 
     const password = checkPassword(body["password"]);
     if (!password.ok) return json(res, 400, { error: password.reason });
@@ -1193,7 +1193,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // always returning success and mailing the existing owner instead —
       // needs an email provider this deployment does not have, and silently
       // failing a sign-up is worse than the leak. Revisit when email exists.
-      return json(res, 409, { error: "That email is already registered." });
+      return json(res, 409, { error: "That email is already registered.", code: "emailTaken" });
     }
 
     await sendVerification(account.id, account.email);
@@ -1211,7 +1211,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const reject = () =>
       // One message for "no such account" and "wrong password": distinct
       // errors would let an attacker enumerate registered addresses.
-      json(res, 401, { error: "Email or password is incorrect." });
+      json(res, 401, { error: "Email or password is incorrect.", code: "badLogin" });
 
     if (!email || typeof supplied !== "string") return reject();
     if (await limited(res, `login-email:${email}`, RULES.loginByEmail)) return;
@@ -1479,7 +1479,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     }
     const body = await readJson(req);
     const email = normalizeEmail(body["email"]);
-    if (!email) return json(res, 400, { error: "Enter a valid email address." });
+    if (!email) return json(res, 400, { error: "Enter a valid email address.", code: "badEmail" });
 
     const text = (key: string) =>
       typeof body[key] === "string" ? (body[key] as string).trim() : "";
@@ -1693,6 +1693,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (!identity) {
     return json(res, 401, {
       error: "Not authenticated.",
+      code: "signedOut",
       accessCodeRequired: requiresAccessCode(),
     });
   }
@@ -1927,7 +1928,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const body = await readJson(req);
     const code = normalisePromoCode(body["code"]);
-    if (code === "") return json(res, 400, { error: "Enter a code." });
+    if (code === "") return json(res, 400, { error: "Enter a code.", code: "noPromo" });
 
     // Already paying: being charged and comped at the same time is not a
     // thing anybody wants, and the grant would quietly overlap a subscription
@@ -1952,6 +1953,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, result.reason === "unknown" ? 404 : 409, {
         error: says[result.reason],
         reason: result.reason,
+        // The reason is already the distinction the panel needs; it doubles
+        // as the code the client translates by.
+        code: `promo_${result.reason}`,
       });
     }
 
@@ -1976,6 +1980,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!mercadoPagoConfigured() || !config) {
       return json(res, 503, {
         error: "Payments are not configured on this deployment yet.",
+        code: "payOff",
       });
     }
     // The same guard the redirect flow answers to. Collecting the card on our
@@ -2001,7 +2006,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const cardTokenId =
       typeof body["cardTokenId"] === "string" ? body["cardTokenId"].trim() : "";
     if (cardTokenId === "") {
-      return json(res, 400, { error: "Fill in the card details first." });
+      return json(res, 400, { error: "Fill in the card details first.", code: "noCard" });
     }
 
     let opened;
@@ -2100,6 +2105,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!mercadoPagoConfigured() || !config) {
       return json(res, 503, {
         error: "Payments are not configured on this deployment yet.",
+        code: "payOff",
       });
     }
     // Checked here rather than at boot: a deployment with the wrong token
@@ -2687,7 +2693,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // A session owned by someone else is reported as missing, not forbidden —
     // "forbidden" would confirm the id exists.
     if (!stored || stored.ownerId !== identity.id) {
-      return json(res, 404, { error: "That interview is no longer open. Start a new one." });
+      return json(res, 404, { error: "That interview is no longer open. Start a new one.", code: "sessionGone" });
     }
 
     const body = await readJson(req);
@@ -2727,7 +2733,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `coach:${identity.id}`, RULES.coach)) return;
     const stored = await STORE.get(coachMatch[1]!);
     if (!stored || stored.ownerId !== identity.id) {
-      return json(res, 404, { error: "That interview is no longer open. Start a new one." });
+      return json(res, 404, { error: "That interview is no longer open. Start a new one.", code: "sessionGone" });
     }
     // Coaching is withheld in real mode by the server, not by the client
     // hiding a panel. The point of real mode is that the help is not there.
@@ -2772,7 +2778,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `eval:${identity.id}`, RULES.evaluation)) return;
     const stored = await STORE.get(evalMatch[1]!);
     if (!stored || stored.ownerId !== identity.id) {
-      return json(res, 404, { error: "That interview is no longer open. Start a new one." });
+      return json(res, 404, { error: "That interview is no longer open. Start a new one.", code: "sessionGone" });
     }
     const sessionId = evalMatch[1]!;
     const session = InterviewSession.restore(
@@ -2910,7 +2916,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "GET" && historyMatch) {
     const record = await PROGRESS.getSession(identity.id, historyMatch[1]!);
     // Scoped to the identity, so another caller's id reads as missing.
-    if (!record) return json(res, 404, { error: "We could not find that interview." });
+    if (!record) return json(res, 404, { error: "We could not find that interview.", code: "sessionMissing" });
     // Gated identically to /evaluation. Without this a free caller reads the
     // paid half straight back out of their own history a moment later.
     json(res, 200, { session: shapeFeedback(record, can.advancedFeedback) });
@@ -2931,7 +2937,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    */
   if (path === "/api/applications" && (req.method === "GET" || req.method === "POST")) {
     if (!can.trackApplications) {
-      return json(res, 402, { error: "Tracking applications is on the paid plan." });
+      return json(res, 402, { error: "Tracking applications is on the paid plan.", code: "paidOnly" });
     }
 
     if (req.method === "GET") {
@@ -2979,7 +2985,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     }
 
     if (!can.trackApplications) {
-      return json(res, 402, { error: "Tracking applications is on the paid plan." });
+      return json(res, 402, { error: "Tracking applications is on the paid plan.", code: "paidOnly" });
     }
     const body = await readJson(req);
     const patch: {
@@ -3035,13 +3041,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 200, { shared: null });
     }
     if (!can.shareReport) {
-      return json(res, 402, { error: "Sharing a report is on the paid plan." });
+      return json(res, 402, { error: "Sharing a report is on the paid plan.", code: "paidOnly" });
     }
     if (await limited(res, `share:${identity.id}`, RULES.contribute)) return;
     const token = await PROGRESS.shareSession(identity.id, sessionId);
     // Null means not theirs, or not there. Same answer for both: confirming
     // that an id exists is already telling a stranger something.
-    if (!token) return json(res, 404, { error: "We could not find that interview." });
+    if (!token) return json(res, 404, { error: "We could not find that interview.", code: "sessionMissing" });
     json(res, 200, { shared: { token, url: `${siteUrl()}/r/${token}` } });
     return;
   }
@@ -3200,7 +3206,8 @@ export const server = createServer((req, res) => {
       return json(res, 400, { error: message });
     }
     console.error("[mockio]", error);
-    json(res, 500, { error: "Something broke on our side. Try again — nothing you did caused this." });
+    json(res, 500, { error: "Something broke on our side. Try again — nothing you did caused this.",
+      code: "internal" });
   });
 });
 

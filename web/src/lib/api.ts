@@ -3,6 +3,13 @@
  * stays on the server, which is the whole reason this boundary exists.
  */
 import type { Evaluation } from "./evaluation";
+import {
+  dictionaryFor,
+  EN_MESSAGES,
+  readLocale,
+  translate,
+  type MessageKey,
+} from "./i18n";
 
 export interface InterviewContext {
   /**
@@ -214,6 +221,31 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The server's sentence, in the reader's language when we have one.
+ *
+ * Server errors are written in English and reach seventeen screens unchanged,
+ * so a candidate with the interface in Spanish was reading "That access code
+ * did not work." in the middle of a Spanish page. Translating every one of
+ * them would mean carrying forty sentences in fourteen languages; sending a
+ * code and keeping the words on this side costs one key each.
+ *
+ * Unknown codes — and responses with none — fall back to what the server
+ * said, which is exactly the behaviour that existed before. Adding a language
+ * to an error is therefore adding one key, never a migration.
+ */
+function localise(code: string | undefined, fallback: string): string {
+  if (!code) return fallback;
+  const key = `err.${code}` as MessageKey;
+  const locale = readLocale();
+  const dictionary = dictionaryFor(locale);
+  // `translate` falls back to English for a missing key, which would silently
+  // replace a precise server sentence with nothing useful — so the key has to
+  // actually exist before it is used.
+  if (!(key in EN_MESSAGES) || (dictionary && !(key in dictionary))) return fallback;
+  return translate(locale, key);
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   let response: Response;
   try {
@@ -232,11 +264,12 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
   const payload = (await response.json().catch(() => ({}))) as {
     error?: string;
+    code?: string;
   } & T;
 
   if (!response.ok) {
     throw new ApiError(
-      payload.error ?? `Request failed (${response.status}).`,
+      localise(payload.code, payload.error ?? `Request failed (${response.status}).`),
       response.status,
     );
   }

@@ -116,3 +116,32 @@ describe("storedLocale", () => {
     expect(storedLocale(null)).toBeNull();
   });
 });
+
+describe("the server's errors, in the reader's language", () => {
+  it("translates a coded error instead of showing the English", () => {
+    /**
+     * Server errors are written in English and reach seventeen screens
+     * unchanged, so a candidate reading the interface in Spanish met "That
+     * access code did not work." in the middle of a Spanish page. The server
+     * now sends a code and the words live here.
+     */
+    expect(translate("es", "err.badLogin")).not.toBe(
+      translate("en", "err.badLogin"),
+    );
+    expect(translate("es", "err.badLogin")).toMatch(/correo/i);
+  });
+
+  it("has every coded error in every language", () => {
+    // A missing key falls back to English, which is the bug this replaces —
+    // so the absence has to fail here rather than ship quietly.
+    const codes = Object.keys(EN_MESSAGES).filter((key) => key.startsWith("err."));
+    expect(codes.length).toBeGreaterThan(10);
+    for (const locale of LOCALES) {
+      const dictionary = dictionaryFor(locale.id);
+      if (!dictionary) continue;
+      for (const code of codes) {
+        expect(dictionary).toHaveProperty(code);
+      }
+    }
+  });
+});
