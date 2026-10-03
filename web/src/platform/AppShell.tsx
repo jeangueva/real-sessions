@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Briefcase,
   FileUser,
@@ -225,7 +226,37 @@ export function AppShell() {
       {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is fixed
           and would otherwise sit on top of the last element on the page. */}
       <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
-        <Outlet />
+        {/**
+         * One screen gives way to the next instead of being replaced.
+         *
+         * Every move inside the signed-in product was a hard cut: the old
+         * screen vanished and the new one appeared in the same frame, which
+         * is the single clearest way an application announces it is a
+         * collection of pages rather than one place. A short rise does not
+         * slow anybody down — it is gone in a fifth of a second — and it
+         * gives the eye something to follow across the change.
+         *
+         * `mode="wait"` so the two never overlap: two full screens on top of
+         * each other reads as a flicker, not as a transition. Keyed by
+         * pathname and not by the whole location, so opening `#plan` inside
+         * settings does not replay the whole screen.
+         *
+         * Declarative, so `MotionConfig reducedMotion="user"` in App.tsx
+         * turns it back into the hard cut for anybody who asked for less
+         * movement.
+         */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            className="flex min-w-0 flex-1 flex-col"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <MobileNav signedIn={session?.kind === "user"} />

@@ -29,3 +29,4 @@ export type { RadarAxis, TrendPoint } from "./chart";
 export { Backdrop } from "./backdrop";
 export { HeroVideo } from "./hero-video";
 export { Waveform } from "./waveform";
+export { InterviewerPresence } from "./presence";

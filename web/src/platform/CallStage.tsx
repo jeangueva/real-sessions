@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { VideoOff } from "lucide-react";
-import { Waveform } from "@/design-system";
+import { InterviewerPresence, Waveform } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 
 /**
@@ -101,16 +101,29 @@ export function CallStage({
             : "flex flex-col items-center gap-4 text-center"
         }
       >
-        <span
-          aria-hidden
-          className={`grid place-items-center rounded-full font-medium tracking-wide transition-colors duration-500 ${
-            sharing
-              ? "h-10 w-10 text-sm"
-              : "h-24 w-24 text-2xl sm:h-32 sm:w-32 sm:text-3xl"
-          } ${speaking ? "bg-cream text-surface-base" : "bg-cream/10 text-cream-bright"}`}
-        >
-          {initials}
-        </span>
+        {/* Small and flat while sharing a screen — the presence is for the
+            moment the interviewer is the thing being looked at, and over
+            somebody's slides it would be noise competing with their work. */}
+        {sharing ? (
+          <span
+            aria-hidden
+            className={`grid h-10 w-10 place-items-center rounded-full text-sm font-medium tracking-wide transition-colors duration-500 ${
+              speaking ? "bg-cream text-surface-base" : "bg-cream/10 text-cream-bright"
+            }`}
+          >
+            {initials}
+          </span>
+        ) : (
+          <InterviewerPresence
+            initials={initials}
+            speaking={speaking}
+            // Measured only: an unmeasured meter reads zero for ever, and a
+            // halo frozen flat while somebody talks is worse than none.
+            level={voiceMeasured() ? voiceLevel : undefined}
+            size={128}
+            className="sm:scale-110"
+          />
+        )}
         <div className={sharing ? "text-left" : ""}>
           <p className={sharing ? "text-sm text-cream-bright" : "text-base text-cream-bright sm:text-lg"}>
             {name}
