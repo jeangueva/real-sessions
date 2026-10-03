@@ -1105,7 +1105,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readJson(req);
     if (!accessCodeAccepted(body["accessCode"])) {
       // Same response whether the code was wrong or absent.
-      return json(res, 403, { error: "Invalid access code." });
+      return json(res, 403, { error: "That access code did not work." });
     }
     return json(res, 410, {
       error: "Create an account or sign in — Mockio no longer runs without one.",
@@ -1290,7 +1290,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // failing a sign-in that is perfectly valid.
       if (!account) account = await ACCOUNTS.findByEmail(identity.email);
       if (!account) {
-        return json(res, 500, { error: "Could not create that account." });
+        return json(res, 500, { error: "We could not create your account just now. Try again in a moment." });
       }
     }
 
@@ -1475,7 +1475,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // landing page reached zero at this same moment, and taking the address
     // anyway would turn that count into a lie.
     if (!earlyAccessOpen()) {
-      return json(res, 410, { error: "Early access has closed." });
+      return json(res, 410, { error: "Early access has closed — the paid plan is open to everyone." });
     }
     const body = await readJson(req);
     const email = normalizeEmail(body["email"]);
@@ -1616,7 +1616,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         return json(res, 200, { ok: true, reconciled: false });
       }
       console.error("[mockio] billing reconcile failed:", error);
-      return json(res, 500, { error: "Could not reconcile." });
+      return json(res, 500, { error: "We could not check your payment just now. Your access has not changed." });
     }
     return json(res, 200, { ok: true });
   }
@@ -1804,7 +1804,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 200, { plan: settled ?? (await PLANS.planFor(identity.id)) });
     } catch (error) {
       console.warn("[mockio] could not reconcile:", error);
-      return json(res, 502, { error: "Could not reach Mercado Pago." });
+      return json(res, 502, { error: "We could not reach the payment provider. Nothing was charged." });
     }
   }
 
@@ -1827,7 +1827,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
 
     if (identity.kind === "user") {
-      if (!account) return json(res, 404, { error: "No account found." });
+      if (!account) return json(res, 404, { error: "We could not find an account for that address." });
 
       // Typing the address is the confirmation. A button alone is too easy to
       // hit for something with no undo, and this is the one action in the
@@ -2001,7 +2001,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const cardTokenId =
       typeof body["cardTokenId"] === "string" ? body["cardTokenId"].trim() : "";
     if (cardTokenId === "") {
-      return json(res, 400, { error: "cardTokenId is required." });
+      return json(res, 400, { error: "Fill in the card details first." });
     }
 
     let opened;
@@ -2151,7 +2151,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   if (req.method === "POST" && path === "/api/billing/cancel") {
     const held = await SUBSCRIPTIONS.forOwner(identity.id);
-    if (!held) return json(res, 404, { error: "No subscription to cancel." });
+    if (!held) return json(res, 404, { error: "There is no subscription to cancel." });
 
     await cancelPreapproval(held.externalId);
     // Reconciled rather than assumed: the provider is the authority on what
@@ -2179,9 +2179,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const body = await readJson(req);
     const text = typeof body["text"] === "string" ? body["text"].trim() : "";
-    if (text === "") return json(res, 400, { error: "text is required." });
+    if (text === "") return json(res, 400, { error: "There is nothing to say yet." });
     if (text.length > MAX_SPEECH_CHARS) {
-      return json(res, 400, { error: "Phrase too long." });
+      return json(res, 400, { error: "That phrase is too long to read aloud." });
     }
 
     const persona = findPersona(
@@ -2215,7 +2215,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       console.error("[mockio] speak failed:", error);
       // The provider's own message can carry account detail, so it is logged
       // and not returned.
-      json(res, 502, { error: "Could not synthesize speech." });
+      json(res, 502, { error: "The voice did not come through. The interview continues in text." });
     }
     return;
   }
@@ -2287,7 +2287,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const companyId = typeof body["companyId"] === "string" ? body["companyId"] : "";
     const company = COMPANIES.find((entry) => entry.id === companyId);
-    if (!company) return json(res, 400, { error: "Pick a company from the list." });
+    if (!company) return json(res, 400, { error: "Choose a company from the list." });
 
     const question = readQuestion(body["question"]);
     if (!question) {
@@ -2365,7 +2365,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readJson(req);
     const decision = body["status"];
     if (decision !== "verified" && decision !== "rejected") {
-      return json(res, 400, { error: "Decide either verified or rejected." });
+      return json(res, 400, { error: "Choose verified or rejected." });
     }
 
     const decided = await CONTRIBUTIONS.decide({
@@ -2379,7 +2379,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // think their click did something it did not.
     json(res, decided ? 200 : 409, {
       decided,
-      ...(decided ? {} : { error: "Already decided by someone else." }),
+      ...(decided ? {} : { error: "Another reviewer already answered this one." }),
     });
     return;
   }
@@ -2687,7 +2687,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // A session owned by someone else is reported as missing, not forbidden —
     // "forbidden" would confirm the id exists.
     if (!stored || stored.ownerId !== identity.id) {
-      return json(res, 404, { error: "Session not found or expired." });
+      return json(res, 404, { error: "That interview is no longer open. Start a new one." });
     }
 
     const body = await readJson(req);
@@ -2727,7 +2727,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `coach:${identity.id}`, RULES.coach)) return;
     const stored = await STORE.get(coachMatch[1]!);
     if (!stored || stored.ownerId !== identity.id) {
-      return json(res, 404, { error: "Session not found or expired." });
+      return json(res, 404, { error: "That interview is no longer open. Start a new one." });
     }
     // Coaching is withheld in real mode by the server, not by the client
     // hiding a panel. The point of real mode is that the help is not there.
@@ -2772,7 +2772,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `eval:${identity.id}`, RULES.evaluation)) return;
     const stored = await STORE.get(evalMatch[1]!);
     if (!stored || stored.ownerId !== identity.id) {
-      return json(res, 404, { error: "Session not found or expired." });
+      return json(res, 404, { error: "That interview is no longer open. Start a new one." });
     }
     const sessionId = evalMatch[1]!;
     const session = InterviewSession.restore(
@@ -2910,7 +2910,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "GET" && historyMatch) {
     const record = await PROGRESS.getSession(identity.id, historyMatch[1]!);
     // Scoped to the identity, so another caller's id reads as missing.
-    if (!record) return json(res, 404, { error: "Session not found." });
+    if (!record) return json(res, 404, { error: "We could not find that interview." });
     // Gated identically to /evaluation. Without this a free caller reads the
     // paid half straight back out of their own history a moment later.
     json(res, 200, { session: shapeFeedback(record, can.advancedFeedback) });
@@ -3007,7 +3007,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       patch.status = body["status"];
     }
     const updated = await PROGRESS.updateApplication(identity.id, applicationId, patch);
-    if (!updated) return json(res, 404, { error: "Application not found." });
+    if (!updated) return json(res, 404, { error: "We could not find that job." });
     return json(res, 200, { application: updated });
   }
 
@@ -3041,7 +3041,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const token = await PROGRESS.shareSession(identity.id, sessionId);
     // Null means not theirs, or not there. Same answer for both: confirming
     // that an id exists is already telling a stranger something.
-    if (!token) return json(res, 404, { error: "Session not found." });
+    if (!token) return json(res, 404, { error: "We could not find that interview." });
     json(res, 200, { shared: { token, url: `${siteUrl()}/r/${token}` } });
     return;
   }
@@ -3186,10 +3186,10 @@ export const server = createServer((req, res) => {
     // Typed failures carry a useful message; anything else could contain
     // provider internals, so it is logged here and generalized for the client.
     if (error instanceof InterviewRefusalError) {
-      return json(res, 422, { error: "The interviewer declined to continue." });
+      return json(res, 422, { error: "The interviewer stopped there. Start a new interview when you are ready." });
     }
     if (error instanceof EvaluationParseError) {
-      return json(res, 502, { error: "The evaluator returned an unusable result." });
+      return json(res, 502, { error: "We could not write your report. Your interview is saved — try again in a moment." });
     }
     // Both carry a message written for the person who uploaded the file.
     if (error instanceof ExtractionError || error instanceof BriefError) {
@@ -3200,7 +3200,7 @@ export const server = createServer((req, res) => {
       return json(res, 400, { error: message });
     }
     console.error("[mockio]", error);
-    json(res, 500, { error: "Internal error." });
+    json(res, 500, { error: "Something broke on our side. Try again — nothing you did caused this." });
   });
 });
 
