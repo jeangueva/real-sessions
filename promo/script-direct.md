@@ -38,27 +38,32 @@ the Callirrhoe sample). Total about 40 s, inside the 60 s Reels/TikTok limit.
 | 6 | 28–33 s | Practise again, and watch it climb from one attempt to the next. | 54 % → 66 % → 78 % |
 | 7 | 33–38 s | Start free: five interviews a week. Mockio. | **mockio** · getmockio.com |
 
-## Stock footage (Pexels)
+## Stock photos (Unsplash)
 
-Free under the Pexels licence: no attribution required, commercial use
-allowed. The limit that matters here is that people in the footage must not
-look like they endorse Mockio, so no shot where a person looks at the camera
-and the voice implies they used it.
+Unsplash has photos only, no video. Each stock shot is a still with a slow
+camera move (a push-in or a drift, 4–6 s), cut between the product screens,
+which stay animated. Moving product screens with still photos between them is
+how most launch videos read anyway.
+
+Free under the Unsplash licence: commercial use allowed, no attribution
+required. Two things still apply:
+
+- **The API's rules**: every photo used is registered through its
+  `download_location` link, which is what the API terms ask of anything that
+  downloads through it. Photographers are credited in the video description,
+  not on screen.
+- **No implied endorsement**: nobody in a photo can look like they used
+  Mockio. No one looking at the camera while the voice says "you get a report".
 
 One person across shots 1, 4 and 7 makes it read as one evening, not a
-collage. Search the same creator's uploads for matching clips.
+collage. Search the same photographer's uploads for matching frames.
 
-| Shot | Pexels search | What to pick |
-| --- | --- | --- |
-| 1 | `woman laptop night`, `working late laptop` | Vertical or croppable to 9:16, warm screen light, face visible, not looking at camera |
-| 3 | `typing keyboard close up dark` | Hands only, dark desk, slow |
-| 4 | `video call headphones talking`, `online interview` | Mid-sentence, natural gestures, not a staged smile |
-| 7 | `closing laptop smile`, `relief laptop night` | Same person as shot 1 if possible |
-
-Unsplash (photos only, no video, same free licence) fills any shot where a
-still with a slow push-in reads better than a clip: `laptop night desk`,
-`headphones desk lamp`. Pexels comes first because moving footage carries a
-video better than a still does.
+| Shot | Unsplash search | What to pick | Move |
+| --- | --- | --- | --- |
+| 1 | `woman laptop night`, `working late laptop` | Portrait or croppable to 9:16, warm screen light on the face, not looking at camera | Slow push-in |
+| 3 | `typing keyboard dark`, `hands laptop night` | Hands only, dark desk | Drift left to right |
+| 4 | `headphones laptop talking`, `video call home` | Mid-sentence, a hand moving, not a posed smile | Slow push-in |
+| 7 | `closing laptop`, `laptop night window` | Same person as shot 1 if possible, the laptop half closed | Slow pull-out into the logo |
 
 The product shots (2, 3, 5, 6) come from the existing Remotion scenes. Real
 screens prove more than stock does, so they keep most of the time.
