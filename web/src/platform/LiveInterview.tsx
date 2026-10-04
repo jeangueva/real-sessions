@@ -521,7 +521,7 @@ export function LiveInterview() {
                     level={voice.micLevel}
                     measured={voice.micMeasured}
                     label={t("call.micLive")}
-                    className="mt-0.5 shrink-0 text-cream-bright"
+                    className="mt-0.5 shrink-0 text-grow"
                   />
                   <p className="text-sm text-cream-dim" aria-live="polite">
                     {voice.transcript || t("call.listening")}

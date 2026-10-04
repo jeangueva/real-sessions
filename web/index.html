@@ -26,7 +26,7 @@
          without a request. Lowercase m, on the product's own ink. -->
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23101010'/%3E%3Ctext x='32' y='45' font-family='Helvetica,Arial,sans-serif' font-size='40' font-weight='600' fill='%23DEDBC8' text-anchor='middle'%3Em%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C4461F'/%3E%3Ctext x='32' y='45' font-family='Helvetica,Arial,sans-serif' font-size='40' font-weight='600' fill='%23FFFFFF' text-anchor='middle'%3Em%3C/text%3E%3C/svg%3E"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,14 +46,16 @@
       (function () {
         try {
           var stored = localStorage.getItem("realsessions.theme");
+          // Light unless someone chose dark, or chose to follow a machine
+          // that is set to dark. Mirrors storedChoice in src/lib/theme.ts.
           var light =
-            stored === "light" ||
-            (stored !== "dark" &&
-              window.matchMedia("(prefers-color-scheme: light)").matches);
+            stored !== "dark" &&
+            !(stored === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (light) document.documentElement.setAttribute("data-theme", "light");
           document.documentElement.style.colorScheme = light ? "light" : "dark";
         } catch (error) {
-          /* Blocked storage. The dark theme is what :root declares anyway. */
+          document.documentElement.setAttribute("data-theme", "light");
         }
       })();
     </script>

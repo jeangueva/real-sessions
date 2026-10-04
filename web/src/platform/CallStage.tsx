@@ -108,7 +108,7 @@ export function CallStage({
           <span
             aria-hidden
             className={`grid h-10 w-10 place-items-center rounded-full text-sm font-medium tracking-wide transition-colors duration-500 ${
-              speaking ? "bg-cream text-surface-base" : "bg-cream/10 text-cream-bright"
+              speaking ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
             }`}
           >
             {initials}
@@ -135,7 +135,9 @@ export function CallStage({
           level={voiceLevel}
           measured={voiceMeasured}
           label={speaking ? t("call.speaking", { name }) : t("call.notSpeaking", { name })}
-          className="text-cream-bright"
+          // The interviewer's voice wears the accent, yours wears `grow`: two
+          // colours, so it is clear at a glance whose turn it is.
+          className="text-accent"
         />
       </div>
 

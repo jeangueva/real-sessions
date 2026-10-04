@@ -19,65 +19,108 @@
    * compile to `rgb(var(--x) / 0.5)`, which needs the raw numbers.
    */
   :root {
-    --cream: 222 219 200;
-    --cream-bright: 225 224 204;
-    --surface-base: 0 0 0;
-    --surface-raised: 16 16 16;
-    --surface-card: 33 33 33;
     /**
-     * The ground the signed-in shell sits on.
+     * Dark, now a warm night rather than a black room.
      *
-     * It was 4 33 46 — a dark petrol blue, there to read as "deeper than
-     * black" when the base is pure black. It did read as deeper, and it also
-     * read as blue: against it the cream ink loses the warmth the whole
-     * palette is built on, and every panel laid over it looks like it belongs
-     * to a different product.
-     *
-     * Near-black with a trace of the same warmth instead. It is still a step
-     * away from `surface-base`, which is what it was for, without being a
-     * colour nothing else in the system is.
+     * The first palette was cream on pure black — cinematic, and also the
+     * colour of a product that takes itself seriously. The person on the other
+     * side is about to get something wrong out loud, in a language that is not
+     * theirs; a room with the lights off is the wrong room for that. The ink
+     * keeps its warmth and the ground picks it up, so the dark theme reads as
+     * a lamp-lit desk at night, not as a cinema.
      */
-    --surface-deep: 10 10 11;
+    --cream: 240 230 214;
+    --cream-bright: 250 244 233;
+    --surface-base: 23 19 15;
+    --surface-raised: 33 28 23;
+    --surface-card: 40 34 28;
+    /* The ground the signed-in shell sits on: a step away from the base, in
+       the same family, so panels on it read as one product. */
+    --surface-deep: 28 23 19;
     /* Recessed panels inside a surface — transcript, call stage. */
     --surface-sunken: 0 0 0;
-    --surface-sunken-alpha: 0.25;
+    --surface-sunken-alpha: 0.22;
     /* A barely-there lift, for a row that is hovered or selected. */
     --surface-lift: 255 255 255;
-    --surface-lift-alpha: 0.05;
-    --line: rgba(222, 219, 200, 0.14);
+    --surface-lift-alpha: 0.06;
+    --line: rgba(240, 230, 214, 0.14);
     /* 0.42 is the lowest that clears 3:1 against every dark surface. */
-    --line-strong: rgba(222, 219, 200, 0.42);
+    --line-strong: rgba(240, 230, 214, 0.42);
     /**
      * The dim behind a spotlight or a modal.
      *
-     * Sixty percent black over a black page is barely a change of tone. Over
-     * a white one it turns the whole screen mid-grey, which reads as broken
+     * Sixty percent black over a dark page is barely a change of tone. Over
+     * a light one it turns the whole screen mid-grey, which reads as broken
      * rather than as focused — so the light theme dims by half as much and
      * still separates the highlighted control from everything else.
      */
     --scrim: rgba(0, 0, 0, 0.6);
+
+    /**
+     * The colours that mean something.
+     *
+     * Until now the product had one hue — cream — and every state wore it,
+     * which is why a finished interview and a settings page felt the same.
+     * Three roles, each with a job, and never used for decoration:
+     *
+     *   accent  The way forward. The button that starts talking, the step you
+     *           are on, the voice of the interviewer. A sunrise coral: warm,
+     *           awake, and nowhere near the red of a mistake.
+     *   grow    Something that got better. A score that rose, the natural way
+     *           to say it, a step completed.
+     *   step    Something to work on. Amber, not red: what you said is the
+     *           step before the better version, not a wrong answer.
+     *
+     * Each has an ink for text on its fill (`-ink`), a text shade that clears
+     * 4.5:1 on every surface (`-text`), and a soft wash for chips and rows.
+     */
+    --accent: 240 138 98;
+    --accent-ink: 23 19 15;
+    --accent-text: 240 138 98;
+    --accent-soft: 62 36 26;
+    --grow: 95 208 168;
+    --grow-text: 95 208 168;
+    --grow-soft: 24 50 41;
+    --step: 242 182 97;
+    --step-text: 242 182 97;
+    --step-soft: 56 43 24;
   }
 
   /**
-   * Light. Not an inversion — the navy shell would read as mud flipped, so
-   * the surfaces are chosen rather than computed, and the ink is a warm
-   * near-black that keeps the product from looking like a spreadsheet.
+   * Light — the product's own theme now, not the alternative.
+   *
+   * Paper, not white: a warm off-white that reads as a notebook rather than a
+   * form, with white cards lifted off it. The ink is a warm near-black so the
+   * page keeps the warmth the accent brings instead of fighting it.
    */
   :root[data-theme="light"] {
-    --cream: 26 30 34;
-    --cream-bright: 12 15 18;
-    --surface-base: 250 249 245;
+    --cream: 31 27 22;
+    --cream-bright: 23 19 15;
+    --surface-base: 251 246 238;
     --surface-raised: 255 255 255;
-    --surface-card: 242 240 233;
-    --surface-deep: 255 255 255;
-    --surface-sunken: 26 30 34;
+    --surface-card: 255 255 255;
+    --surface-deep: 251 246 238;
+    --surface-sunken: 31 27 22;
     --surface-sunken-alpha: 0.04;
-    --surface-lift: 26 30 34;
+    --surface-lift: 31 27 22;
     --surface-lift-alpha: 0.05;
-    --line: rgba(26, 30, 34, 0.16);
+    --line: rgba(31, 27, 22, 0.12);
     /* The light surfaces are brighter, so the same rule costs more alpha. */
-    --line-strong: rgba(26, 30, 34, 0.49);
-    --scrim: rgba(0, 0, 0, 0.32);
+    --line-strong: rgba(31, 27, 22, 0.49);
+    --scrim: rgba(31, 27, 22, 0.32);
+
+    /* #C4461F carries white text at 4.95:1 and reads as text on paper at
+       4.6:1 — the lightest coral that does both. */
+    --accent: 196 70 31;
+    --accent-ink: 255 255 255;
+    --accent-text: 196 70 31;
+    --accent-soft: 250 228 217;
+    --grow: 29 158 117;
+    --grow-text: 15 110 86;
+    --grow-soft: 221 242 233;
+    --step: 239 159 39;
+    --step-text: 138 90 30;
+    --step-soft: 251 233 204;
   }
 
   * {
@@ -209,28 +252,41 @@
    * nothing about the hero — comes out right.
    */
   .on-media {
-    --cream: 222 219 200;
-    --cream-bright: 225 224 204;
+    --cream: 240 230 214;
+    --cream-bright: 250 244 233;
     --surface-base: 0 0 0;
-    --line: rgba(222, 219, 200, 0.14);
-    --line-strong: rgba(222, 219, 200, 0.42);
+    --line: rgba(240, 230, 214, 0.14);
+    --line-strong: rgba(240, 230, 214, 0.42);
+    --accent: 240 138 98;
+    --accent-ink: 23 19 15;
+    --accent-text: 240 138 98;
   }
 
   /* Liquid glass. The only surface treatment allowed to float over video. */
   /* Highlights are white on a dark ground and near-black on a light one, so
      the glass reads as glass either way rather than as haze. */
+  /* On paper there is nothing behind the glass to refract, so it becomes
+     what glass on a desk looks like: a white sheet with an edge. Nearly
+     transparent here read as plain text with no control around it. */
   :root[data-theme="light"] .liquid-glass {
-    background: rgba(26, 30, 34, 0.02);
-    box-shadow: inset 0 1px 1px rgba(26, 30, 34, 0.06);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow:
+      inset 0 0 0 1px rgba(31, 27, 22, 0.12),
+      0 1px 2px rgba(31, 27, 22, 0.04);
   }
 
   :root[data-theme="light"] .liquid-glass::before {
-    background: linear-gradient(
-      180deg,
-      rgba(26, 30, 34, 0.16) 0%,
-      rgba(26, 30, 34, 0.06) 20%,
-      rgba(26, 30, 34, 0) 40%
-    );
+    display: none;
+  }
+
+  /* Over footage the light theme still needs real glass. */
+  :root[data-theme="light"] .on-media .liquid-glass {
+    background: rgba(255, 255, 255, 0.01);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  :root[data-theme="light"] .on-media .liquid-glass::before {
+    display: block;
   }
 
   .liquid-glass {
@@ -278,6 +334,6 @@
 
   /* Focus is never removed, only restyled — this is an accessibility product. */
   .focus-ring {
-    @apply outline-none ring-offset-2 ring-offset-surface-base focus-visible:ring-2 focus-visible:ring-cream;
+    @apply outline-none ring-offset-2 ring-offset-surface-base focus-visible:ring-2 focus-visible:ring-accent;
   }
 }

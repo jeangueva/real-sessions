@@ -14,17 +14,18 @@ import { applyTheme, resolveTheme, storedChoice } from "../src/lib/theme";
  */
 
 describe("storedChoice", () => {
-  it("reads a stored side", () => {
+  it("reads a stored choice", () => {
     expect(storedChoice("dark")).toBe("dark");
     expect(storedChoice("light")).toBe("light");
+    expect(storedChoice("system")).toBe("system");
   });
 
-  it("treats nothing, and anything unrecognised, as following the system", () => {
+  it("treats nothing, and anything unrecognised, as the product's own light", () => {
     // A stale value from an older build must not leave someone stuck in a
     // theme with no way to name what they are in.
-    expect(storedChoice(null)).toBe("system");
-    expect(storedChoice("")).toBe("system");
-    expect(storedChoice("solarized")).toBe("system");
+    expect(storedChoice(null)).toBe("light");
+    expect(storedChoice("")).toBe("light");
+    expect(storedChoice("solarized")).toBe("light");
   });
 });
 
