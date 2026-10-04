@@ -626,6 +626,18 @@ const ZH: Record<MessageKey, string> = {
   "feedback.listen": "听一听",
   "feedback.stepsNote": "每一条都是更好说法之前的一步。把自然的说法大声说一遍。",
   "share.toPath": "返回你的进程",
+  "area.engineering": "工程",
+  "area.product": "产品",
+  "area.design": "设计",
+  "area.data": "数据",
+  "area.growth": "增长",
+  "area.marketing": "市场营销",
+  "area.finance": "财务",
+  "area.legal": "法务",
+  "area.people": "人力资源",
+  "area.sales": "销售",
+  "area.customerSuccess": "客户成功",
+  "area.operations": "运营",
 };
 
 export default ZH;

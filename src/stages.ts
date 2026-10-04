@@ -1,4 +1,5 @@
 import { ROLES, findRole } from "./roles.js";
+import type { AreaId } from "./roles.js";
 
 /**
  * The rounds an interview can be.
@@ -249,6 +250,54 @@ const STANDUP: Stage = {
   solo: true,
 };
 
+/**
+ * The job itself, as a problem to work through.
+ *
+ * Every other skill-specific round here was written for one kind of work —
+ * a system to design, a portfolio to defend, a dataset to question. A
+ * paralegal, an account executive or a finance manager had none of them, so
+ * their only rounds were the ones every role shares, and the part of their
+ * interview that actually tests the job had nothing to rehearse against.
+ *
+ * Generic in the brief on purpose: the interviewer already has the role, the
+ * company and the industry, and is far better at choosing a realistic
+ * situation for a compliance analyst from those than a list written here.
+ */
+const ROLE_CASE: Stage = {
+  id: "role-case",
+  label: "Role case",
+  summary: "A real problem from the job, worked through out loud.",
+  brief:
+    "This is a case round built from the job itself. Give the candidate one realistic situation they would meet in their first months in this role — a forecast that missed, a clause a client refuses to sign, a campaign that underperformed, an upset customer, a process that keeps breaking — and have them work through it out loud. For a customer-facing role, play the customer or the counterpart in character for part of it. Follow up on the step they skipped, and ask what they would do if their first move did not work.",
+  rubric:
+    "Weigh judgement and reasoning over domain trivia. Whether they clarified the situation before acting, named the risk and who they would involve, and could explain their call plainly to someone outside their function matters more than reaching the answer you had in mind.",
+  minTurns: 5,
+  maxTurns: 8,
+  titles: [...ENGINEERING_LEADS, ...SENIOR_IC],
+};
+
+/**
+ * The rounds an area sits, for any role in it without its own list.
+ *
+ * Screen, behavioural, values, the offer call and the stand-up are on every
+ * list, as before. What changes is the middle: the round that tests the work.
+ */
+const BY_AREA: Record<AreaId, Stage[]> = {
+  engineering: [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  product: [SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, STANDUP],
+  design: [SCREEN, BEHAVIORAL, PORTFOLIO, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  data: [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
+  growth: [SCREEN, BEHAVIORAL, CASE_STUDY, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  marketing: [SCREEN, BEHAVIORAL, PORTFOLIO, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  finance: [SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, STANDUP],
+  legal: [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  people: [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  sales: [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  "customer-success": [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
+  operations: [SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, STANDUP],
+};
+
+/** Roles whose rounds differ from their area's. The original six keep theirs exactly. */
 const BY_ROLE: Record<string, Stage[]> = {
   "product-designer": [SCREEN, BEHAVIORAL, PORTFOLIO, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
   "backend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
@@ -256,6 +305,11 @@ const BY_ROLE: Record<string, Stage[]> = {
   "growth-pm": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
   "data-analyst": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
   "engineering-manager": [SCREEN, BEHAVIORAL, PEOPLE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  // A pipeline is a system, and the round that tests it is the engineers' one.
+  "data-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  // Managers of people sit the people round, in whatever function.
+  "finance-manager": [SCREEN, BEHAVIORAL, ROLE_CASE, PEOPLE, VALUES, NEGOTIATION, STANDUP],
+  "operations-manager": [SCREEN, BEHAVIORAL, ROLE_CASE, PEOPLE, VALUES, NEGOTIATION, STANDUP],
 };
 
 /** Every stage that exists, deduplicated, for lookup by id or label. */
@@ -268,6 +322,7 @@ export const STAGES: Stage[] = [
   PORTFOLIO,
   CASE_STUDY,
   PEOPLE,
+  ROLE_CASE,
   VALUES,
   NEGOTIATION,
   STANDUP,
@@ -279,7 +334,8 @@ const BY_LABEL = new Map(STAGES.map((stage) => [stage.label.toLowerCase(), stage
 /** The rounds offered for a role. Falls back to the common set. */
 export function stagesFor(role: string | null | undefined): Stage[] {
   const resolved = findRole(role);
-  return (resolved && BY_ROLE[resolved.id]) ?? [BEHAVIORAL, DEEP_DIVE];
+  if (!resolved) return [BEHAVIORAL, DEEP_DIVE];
+  return BY_ROLE[resolved.id] ?? BY_AREA[resolved.area];
 }
 
 /**

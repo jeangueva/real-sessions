@@ -627,6 +627,18 @@ const IT: Record<MessageKey, string> = {
   "feedback.listen": "Ascolta",
   "feedback.stepsNote": "Ognuno è il passo prima della versione migliore. Di' quella naturale ad alta voce una volta.",
   "share.toPath": "Torna al tuo percorso",
+  "area.engineering": "Ingegneria",
+  "area.product": "Prodotto",
+  "area.design": "Design",
+  "area.data": "Dati",
+  "area.growth": "Growth",
+  "area.marketing": "Marketing",
+  "area.finance": "Finanza",
+  "area.legal": "Legale",
+  "area.people": "Persone e HR",
+  "area.sales": "Vendite",
+  "area.customerSuccess": "Customer success",
+  "area.operations": "Operazioni",
 };
 
 export default IT;

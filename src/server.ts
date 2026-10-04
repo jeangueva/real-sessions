@@ -196,7 +196,7 @@ import {
   unsubscribeUrl,
 } from "./lifecycle.js";
 import { createLifecycleStore, type LifecycleStore } from "./lifecycle-store.js";
-import { ROLES, roleIdFor } from "./roles.js";
+import { AREAS, ROLES, interviewerTitle, roleIdFor } from "./roles.js";
 import {
   MAX_COMBINED,
   resolveStages,
@@ -2649,6 +2649,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       await recordQuietly(recordTranscript(sessionId, session.transcript));
     };
 
+    // The interviewer as the candidate will meet them: same person, with the
+    // job title their area gives them. The prompt introduces them by this
+    // title, so the call screen has to say the same thing.
+    const introduced = { ...persona, title: interviewerTitle(persona.title, context.targetRole) };
+
     if (wantsStream(req)) {
       openStream(res);
       // The context goes back, not just the id. On the free plan the employer
@@ -2656,7 +2661,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // "Stripe" would tell a free candidate they rehearsed against Stripe.
       sendEvent(res, "session", {
         sessionId,
-        persona,
+        persona: introduced,
         context: shown(context),
         maxTurns: session.maxTurnCount,
         language: language.id,
@@ -2676,7 +2681,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     json(res, 201, {
       sessionId,
       turn,
-      persona,
+      persona: introduced,
       context: shown(context),
       maxTurns: session.maxTurnCount,
       language: language.id,
@@ -3138,6 +3143,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       companies: COMPANIES,
       personas: PERSONAS,
       roles: ROLES,
+      // The areas roles are grouped by, with the job title each interviewer
+      // carries in that area. The picker groups by these and the call screen
+      // introduces the interviewer by the same title the prompt uses.
+      areas: AREAS,
       // Which rounds each role can sit. Sent as a map rather than a flat list
       // because offering an engineer's system design round to a designer is
       // the thing this replaces.

@@ -5,8 +5,10 @@ import { Action, Panel, Eyebrow } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
 import { Lock, X } from "lucide-react";
-import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences } from "@/lib/api";
+import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences, titleInArea } from "@/lib/api";
+import { areaLabel } from "@/lib/areas";
 import type {
+  Area,
   Capabilities,
   CatalogueCompany,
   Language,
@@ -19,7 +21,7 @@ import type {
   Sector,
 } from "@/lib/api";
 import { SetupSearch, type SetupChoice } from "./SetupSearch";
-import { FilterOption, FilterRow, FilterSegment } from "./FilterBar";
+import { FilterHeading, FilterOption, FilterRow, FilterSegment } from "./FilterBar";
 import { Tour } from "./Tour";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
@@ -58,6 +60,7 @@ export function SessionSetup() {
   const navigate = useNavigate();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
   const [stagesByRole, setStagesByRole] = useState<
     { roleId: string; stages: Stage[] }[]
   >([]);
@@ -227,6 +230,7 @@ export function SessionSetup() {
         setPersonas(result.personas);
         setGenericCompany(result.genericCompany ?? "");
         setRoles(result.roles ?? []);
+        setAreas(result.areas ?? []);
         setStagesByRole(result.stagesByRole ?? []);
         setMaxCombined(result.maxCombinedStages ?? 3);
         setLanguages(result.languages ?? []);
@@ -273,6 +277,39 @@ export function SessionSetup() {
   const roleLabels = useMemo(
     () => (roles.length > 0 ? roles.map((entry) => entry.label) : FALLBACK_ROLES),
     [roles],
+  );
+
+  /**
+   * The roles, grouped by area in the order the server lists the areas.
+   *
+   * Without areas (an older server) it is one unlabelled group, which is the
+   * flat list this replaced.
+   */
+  const roleGroups = useMemo(() => {
+    if (areas.length === 0) return [{ id: "all", label: "", labels: roleLabels }];
+    return areas
+      .map((area) => ({
+        id: area.id,
+        label: areaLabel(t, area),
+        labels: roles.filter((entry) => entry.area === area.id).map((entry) => entry.label),
+      }))
+      .filter((group) => group.labels.length > 0);
+  }, [areas, roles, roleLabels, t]);
+
+  /**
+   * The area of the chosen role, for the interviewers' job titles.
+   *
+   * The same person interviews an accountant and an engineer, but not with
+   * the same title: the Director of Engineering is the Finance Director in a
+   * finance round. The prompt introduces them that way, so the picker does.
+   */
+  const roleArea = useMemo(
+    () => areas.find((area) => area.id === roles.find((entry) => entry.label === role)?.area),
+    [areas, roles, role],
+  );
+  const shownPersonas = useMemo(
+    () => personas.map((entry) => ({ ...entry, title: titleInArea(entry.title, roleArea) })),
+    [personas, roleArea],
   );
 
   /**
@@ -516,17 +553,22 @@ export function SessionSetup() {
                     hint={t("field.roleHint")}
                   >
                     {(close) =>
-                      roleLabels.map((option) => (
-                        <FilterOption
-                          key={option}
-                          label={option}
-                          detail={roles.find((r) => r.label === option)?.focus}
-                          selected={role === option}
-                          onSelect={() => {
-                            setRole(option);
-                            close();
-                          }}
-                        />
+                      roleGroups.map((group) => (
+                        <div key={group.id} role="group" aria-label={group.label}>
+                          {group.label && <FilterHeading>{group.label}</FilterHeading>}
+                          {group.labels.map((option) => (
+                            <FilterOption
+                              key={option}
+                              label={option}
+                              detail={roles.find((r) => r.label === option)?.focus}
+                              selected={role === option}
+                              onSelect={() => {
+                                setRole(option);
+                                close();
+                              }}
+                            />
+                          ))}
+                        </div>
                       ))
                     }
                   </FilterSegment>
@@ -713,7 +755,7 @@ export function SessionSetup() {
                         {eligiblePersonas.map((entry) => (
                           <FilterOption
                             key={entry.id}
-                            label={`${entry.name} · ${entry.title}`}
+                            label={`${entry.name} · ${titleInArea(entry.title, roleArea)}`}
                             detail={entry.summary}
                             selected={personaId === entry.id}
                             onSelect={() => {
@@ -920,7 +962,7 @@ export function SessionSetup() {
               roles={roleLabels}
               stages={visibleStages.map((entry) => entry.label)}
               sectors={sectors}
-              personas={personas}
+              personas={shownPersonas}
               genericCompany={genericCompany}
               onChoose={applyChoice}
             />

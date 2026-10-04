@@ -626,6 +626,18 @@ const AR: Record<MessageKey, string> = {
   "feedback.listen": "استمع",
   "feedback.stepsNote": "كل واحدة هي الخطوة التي تسبق النسخة الأفضل. قل الصيغة الطبيعية بصوت عالٍ مرة واحدة.",
   "share.toPath": "العودة إلى مسارك",
+  "area.engineering": "الهندسة",
+  "area.product": "المنتج",
+  "area.design": "التصميم",
+  "area.data": "البيانات",
+  "area.growth": "النمو",
+  "area.marketing": "التسويق",
+  "area.finance": "المالية",
+  "area.legal": "الشؤون القانونية",
+  "area.people": "الموارد البشرية",
+  "area.sales": "المبيعات",
+  "area.customerSuccess": "نجاح العملاء",
+  "area.operations": "العمليات",
 };
 
 export default AR;

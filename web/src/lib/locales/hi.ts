@@ -626,6 +626,18 @@ const HI: Record<MessageKey, string> = {
   "feedback.listen": "सुनें",
   "feedback.stepsNote": "हर एक बेहतर रूप से पहले का कदम है। स्वाभाविक वाला एक बार ज़ोर से बोलें।",
   "share.toPath": "अपने सफ़र पर वापस",
+  "area.engineering": "इंजीनियरिंग",
+  "area.product": "प्रोडक्ट",
+  "area.design": "डिज़ाइन",
+  "area.data": "डेटा",
+  "area.growth": "ग्रोथ",
+  "area.marketing": "मार्केटिंग",
+  "area.finance": "फ़ाइनेंस",
+  "area.legal": "लीगल",
+  "area.people": "पीपल और HR",
+  "area.sales": "सेल्स",
+  "area.customerSuccess": "कस्टमर सक्सेस",
+  "area.operations": "ऑपरेशंस",
 };
 
 export default HI;

@@ -5,6 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { LOCALES } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n";
+import { areaLabel } from "@/lib/areas";
 import { resetTour } from "@/lib/tour";
 import { PageBody, PageHeader } from "./AppShell";
 import { Billing } from "./Billing";
@@ -20,6 +21,7 @@ import {
 import type {
   CatalogueCompany,
   Level,
+  Area,
   Role,
   Preferences,
   Sector,
@@ -72,6 +74,7 @@ export function Settings() {
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
 
   useEffect(() => {
     fetchCatalogue()
@@ -80,6 +83,7 @@ export function Settings() {
         setCompanies(result.companies);
         setLevels(result.levels ?? []);
         setRoles(result.roles ?? []);
+        setAreas(result.areas ?? []);
       })
       .catch(() => undefined);
   }, []);
@@ -326,14 +330,29 @@ export function Settings() {
                   onChange={(event) => update({ defaultRole: event.target.value })}
                   className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
                 >
-                  {(roles.length > 0
-                    ? roles.map((entry) => entry.label)
-                    : FALLBACK_ROLES
-                  ).map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
+                  {/* Grouped by area, like the setup picker: forty roles in one
+                      flat native list is a scroll with no landmarks. */}
+                  {areas.length > 0 && roles.length > 0
+                    ? areas.map((area) => {
+                        const inArea = roles.filter((entry) => entry.area === area.id);
+                        return inArea.length === 0 ? null : (
+                          <optgroup key={area.id} label={areaLabel(t, area)}>
+                            {inArea.map((entry) => (
+                              <option key={entry.id} value={entry.label}>
+                                {entry.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })
+                    : (roles.length > 0
+                        ? roles.map((entry) => entry.label)
+                        : FALLBACK_ROLES
+                      ).map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
                 </select>
               </Field>
 

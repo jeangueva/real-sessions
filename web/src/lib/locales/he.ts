@@ -626,6 +626,18 @@ const HE: Record<MessageKey, string> = {
   "feedback.listen": "האזנה",
   "feedback.stepsNote": "כל אחד הוא הצעד שלפני הגרסה הטובה יותר. אמרו את הגרסה הטבעית בקול פעם אחת.",
   "share.toPath": "חזרה לדרך שלך",
+  "area.engineering": "הנדסה",
+  "area.product": "מוצר",
+  "area.design": "עיצוב",
+  "area.data": "דאטה",
+  "area.growth": "צמיחה",
+  "area.marketing": "שיווק",
+  "area.finance": "כספים",
+  "area.legal": "משפטי",
+  "area.people": "משאבי אנוש",
+  "area.sales": "מכירות",
+  "area.customerSuccess": "הצלחת לקוחות",
+  "area.operations": "תפעול",
 };
 
 export default HE;
