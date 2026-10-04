@@ -149,4 +149,4 @@ def render(cues, seed=3):
            + low * db(-14)
            + reverb(perc, ir, 0.12) * db(-15))
     mix = mix[:, : int(dur * SR)]
-    return fade(mix, fin=2.0, fout=1.2)
+    return fade(mix, fin=cues.get("music_fade_in", 2.0), fout=1.2)

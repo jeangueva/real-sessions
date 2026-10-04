@@ -48,3 +48,24 @@ Set at the top of `mix.py`, measured against the voice while it speaks:
 
 Stems (`voice`, `music`, `sfx`) are written next to the output for anyone who
 wants to finish the mix in an editor.
+
+## Instagram story cut
+
+A shorter version (about 21 s in English, 25 s in Spanish) that keeps the
+voice and the scenes as they are and drops the setup. It opens on "The
+interview was in English, out loud", which is on screen from the first frame,
+and goes straight to the turn, the twelve attempts, the report and the logo.
+
+```sh
+python cut.py introducing-mockio-en.mp4 out/story/raw-en.mp4 9.1-13.4 18.0-27.3 30.9-end
+python cut.py introducing-mockio-es.mp4 out/story/raw-es.mp4 9.5-14.6 20.7-30.8 35.0-44.9
+```
+
+Every cut point sits in a pause between lines. On the short cut the opening
+is the posting, so the music's sections move up one scene: write the cues,
+set `sections` to the first cut (turn), the second cut (pulse) and the logo,
+add `"music_fade_in": 0.4` so the music is there from the first frame, and run
+`mix.py` with `--cues`.
+
+The text stays clear of the top 250 px and the bottom 340 px, which Instagram
+covers with the profile bar and the reply field.
