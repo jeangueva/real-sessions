@@ -83,3 +83,36 @@ music is there from the first frame, and run `mix.py` with `--cues`.
 
 The text stays clear of the top 250 px and the bottom 340 px, which Instagram
 covers with the profile bar and the reply field.
+
+## Story, direct script (current)
+
+The story that ships: a new script, recorded in Google AI Studio with a Gemini
+voice, over stock footage and the product screens. About 20 s.
+
+> ¿Tienes una entrevista de trabajo en inglés? Practícala antes, en voz alta,
+> con Mockio. Te pregunta según tu puesto y la etapa del proceso, y hasta según
+> la empresa a la que postulas. Al final ves qué mejorar y cómo vas avanzando.
+> Empieza gratis en getmockio.com.
+
+"Empieza gratis" rather than "pruébalo gratis": the company-specific interview
+is a paid feature (`targetCompany`), and the line should not read as if the
+free plan had it.
+
+Each shot sits on the words it shows (`edl/story2-*.json`): a real interview
+on the question, someone practising at a laptop on "practícala", the
+interviewer, the posting, the report, the progress bars, the logo on the URL.
+The voice is padded so the logo holds after the last word.
+
+```sh
+ffmpeg -i voice-es.wav -af apad=whole_dur=20.2 -ar 48000 -ac 2 out/media/voice-es-padded.wav
+python broll.py edl/story2-es.json out/media/voice-es-padded.wav out/story/broll2-es.mp4 --media out/media
+python mix.py out/story/broll2-es.mp4 out/story/mockio-story-es.mp4 \
+  --voice out/media/voice-es-padded.wav --cues out/story/story2-es.cues.json
+```
+
+The cues for this cut take the scene changes from the edit list rather than
+detecting them (two stock shots in a row have no dark frame between them).
+
+Stock footage, all from Pexels (free licence, no attribution required):
+7644024 (the interview), 9198832 (practising at a laptop). Also on hand and
+unused: 7844862, 8513143, 8555732.

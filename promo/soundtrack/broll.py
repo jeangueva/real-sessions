@@ -67,7 +67,7 @@ def main():
         ["ffmpeg", "-v", "error", "-y", *inputs, "-i", args.voice,
          "-filter_complex", ";".join(graph), "-map", "[v]", "-map", f"{n}:a",
          "-c:v", "libx264", "-crf", "17", "-preset", "slow", "-pix_fmt", "yuv420p",
-         "-c:a", "copy", "-shortest", args.out], check=True)
+         "-c:a", "aac", "-b:a", "256k", "-shortest", args.out], check=True)
     print(f"{args.out}: {n} shots, {total:.2f}s", file=sys.stderr)
 
 

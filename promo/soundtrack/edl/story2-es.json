@@ -1,0 +1,12 @@
+{
+  "voice": "out/media/voice-es.wav (padded to 20.2 s)",
+  "shots": [
+    {"src": "pexels-7644024.mp4", "in": 2.0,  "dur": 2.75, "stock": true, "note": "¿Tienes una entrevista de trabajo en inglés?"},
+    {"src": "pexels-9198832.mp4", "in": 15.0, "dur": 3.5,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "Practícala antes, en voz alta, con Mockio."},
+    {"src": "introducing-mockio-es.mp4", "in": 30.8, "dur": 3.4, "note": "Te pregunta según tu puesto y la etapa del proceso"},
+    {"src": "introducing-mockio-es.mp4", "in": 10.3, "dur": 2.85, "note": "y hasta según la empresa a la que postulas"},
+    {"src": "introducing-mockio-es.mp4", "in": 36.0, "dur": 2.1, "note": "Al final ves qué mejorar"},
+    {"src": "introducing-mockio-es.mp4", "in": 27.3, "dur": 1.5, "note": "y cómo vas avanzando"},
+    {"src": "introducing-mockio-es.mp4", "in": 39.4, "dur": 4.1, "note": "Empieza gratis en getmockio.com"}
+  ]
+}
