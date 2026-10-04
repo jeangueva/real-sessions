@@ -4,6 +4,7 @@ import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, resolveStages } from "../stages.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
+import { interviewerTitle } from "../roles.js";
 import { PRESSURE_BRIEF } from "../pressure.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
@@ -242,7 +243,9 @@ export function buildInterviewerPrompt(
       ? PRESSURE_BRIEF
       : "Run this as an ordinary interview. Let them finish their answers.",
     interviewer_name: persona.name,
-    interviewer_title: persona.title,
+    // The temperament is the persona's; the job title follows the room. An
+    // accountant is not interviewed by a Director of Engineering.
+    interviewer_title: interviewerTitle(persona.title, context.targetRole),
     stage_brief: composeBrief(
       resolveStages(context.targetRole, options.stages ?? context.interviewStage),
       maxTurns,

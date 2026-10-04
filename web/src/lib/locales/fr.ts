@@ -627,6 +627,18 @@ const FR: Record<MessageKey, string> = {
   "feedback.listen": "Écouter",
   "feedback.stepsNote": "Chacune est l'étape avant la meilleure version. Dites la version naturelle à voix haute une fois.",
   "share.toPath": "Retour à votre parcours",
+  "area.engineering": "Ingénierie",
+  "area.product": "Produit",
+  "area.design": "Design",
+  "area.data": "Data",
+  "area.growth": "Growth",
+  "area.marketing": "Marketing",
+  "area.finance": "Finance",
+  "area.legal": "Juridique",
+  "area.people": "RH",
+  "area.sales": "Ventes",
+  "area.customerSuccess": "Succès client",
+  "area.operations": "Opérations",
 };
 
 export default FR;

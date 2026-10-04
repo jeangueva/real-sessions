@@ -626,6 +626,18 @@ const TH: Record<MessageKey, string> = {
   "feedback.listen": "ฟัง",
   "feedback.stepsNote": "ทุกข้อคือก้าวก่อนถึงเวอร์ชันที่ดีกว่า ลองพูดแบบเป็นธรรมชาติออกเสียงสักครั้ง",
   "share.toPath": "กลับไปที่เส้นทางของคุณ",
+  "area.engineering": "วิศวกรรม",
+  "area.product": "โปรดักต์",
+  "area.design": "ดีไซน์",
+  "area.data": "ข้อมูล",
+  "area.growth": "Growth",
+  "area.marketing": "การตลาด",
+  "area.finance": "การเงิน",
+  "area.legal": "กฎหมาย",
+  "area.people": "ทรัพยากรบุคคล",
+  "area.sales": "ฝ่ายขาย",
+  "area.customerSuccess": "ความสำเร็จของลูกค้า",
+  "area.operations": "ปฏิบัติการ",
 };
 
 export default TH;

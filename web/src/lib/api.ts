@@ -139,6 +139,23 @@ export interface Role {
   id: string;
   label: string;
   focus: string;
+  /** The function it belongs to. Optional so an older server still parses. */
+  area?: string;
+}
+
+/**
+ * A function roles are grouped by, and the job title each interviewer carries
+ * in it — keyed by their engineering title. Mirrors `Area` in src/roles.ts.
+ */
+export interface Area {
+  id: string;
+  label: string;
+  titles: Partial<Record<string, string>>;
+}
+
+/** The title an interviewer is introduced by for a role in this area. */
+export function titleInArea(baseTitle: string, area: Area | undefined): string {
+  return area?.titles[baseTitle] ?? baseTitle;
 }
 
 /** A round of the process. Which ones exist depends on the role. */
@@ -1115,6 +1132,8 @@ export function fetchCatalogue() {
       languages: Language[];
       levels: Level[];
       roles: Role[];
+      /** Absent on a server older than areas. */
+      areas?: Area[];
     }>("/api/catalogue", { method: "GET" }),
   );
 }

@@ -61,7 +61,7 @@ export function Journey({ sessions }: { sessions: SessionSummary[] }) {
         {/* Two days at least. One day is not a streak, it is today, and a
             badge that says "1" reads as a count of how little was done. */}
         {streak >= 2 && (
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-step-soft px-3 py-1 text-xs text-step-text">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs text-accent-text">
             <Flame className="h-3.5 w-3.5" aria-hidden />
             {t("streak.days", { count: streak })}
           </p>

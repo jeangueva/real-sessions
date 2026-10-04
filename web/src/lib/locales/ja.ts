@@ -626,6 +626,18 @@ const JA: Record<MessageKey, string> = {
   "feedback.listen": "聞く",
   "feedback.stepsNote": "どれも、より良い言い方の一歩手前です。自然な言い方を一度声に出してみましょう。",
   "share.toPath": "歩みに戻る",
+  "area.engineering": "エンジニアリング",
+  "area.product": "プロダクト",
+  "area.design": "デザイン",
+  "area.data": "データ",
+  "area.growth": "グロース",
+  "area.marketing": "マーケティング",
+  "area.finance": "ファイナンス",
+  "area.legal": "法務",
+  "area.people": "人事",
+  "area.sales": "セールス",
+  "area.customerSuccess": "カスタマーサクセス",
+  "area.operations": "オペレーション",
 };
 
 export default JA;

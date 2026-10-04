@@ -737,6 +737,18 @@ const EN = {
   "feedback.listen": "Listen",
   "feedback.stepsNote": "Each one is the step before the better version. Say the natural one out loud once.",
   "share.toPath": "Back to your path",
+  "area.engineering": "Engineering",
+  "area.product": "Product",
+  "area.design": "Design",
+  "area.data": "Data",
+  "area.growth": "Growth",
+  "area.marketing": "Marketing",
+  "area.finance": "Finance",
+  "area.legal": "Legal",
+  "area.people": "People and HR",
+  "area.sales": "Sales",
+  "area.customerSuccess": "Customer success",
+  "area.operations": "Operations",
 } as const;
 
 export type MessageKey = keyof typeof EN;

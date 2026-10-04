@@ -329,3 +329,18 @@ export function FilterOption({
     </button>
   );
 }
+
+/**
+ * A heading between groups of options in one panel.
+ *
+ * The role panel went from six options to forty. A flat list that long is
+ * read by scrolling until something looks familiar; grouped by area, a
+ * finance analyst skips straight past engineering and design.
+ */
+export function FilterHeading({ children }: { children: ReactNode }) {
+  return (
+    <p className="px-3 pb-1 pt-4 text-xs text-accent-text first:pt-1" role="presentation">
+      {children}
+    </p>
+  );
+}

@@ -64,26 +64,27 @@
      * Three roles, each with a job, and never used for decoration:
      *
      *   accent  The way forward. The button that starts talking, the step you
-     *           are on, the voice of the interviewer. A sunrise coral: warm,
-     *           awake, and nowhere near the red of a mistake.
+     *           are on, the voice of the interviewer. Violet: awake and
+     *           confident, nowhere near the red of a mistake, and clear of
+     *           the coral another product already owns.
      *   grow    Something that got better. A score that rose, the natural way
      *           to say it, a step completed.
-     *   step    Something to work on. Amber, not red: what you said is the
+     *   step    Something to work on. Yellow, not red: what you said is the
      *           step before the better version, not a wrong answer.
      *
      * Each has an ink for text on its fill (`-ink`), a text shade that clears
      * 4.5:1 on every surface (`-text`), and a soft wash for chips and rows.
      */
-    --accent: 240 138 98;
+    --accent: 168 151 255;
     --accent-ink: 23 19 15;
-    --accent-text: 240 138 98;
-    --accent-soft: 62 36 26;
+    --accent-text: 168 151 255;
+    --accent-soft: 40 34 72;
     --grow: 95 208 168;
     --grow-text: 95 208 168;
     --grow-soft: 24 50 41;
-    --step: 242 182 97;
-    --step-text: 242 182 97;
-    --step-soft: 56 43 24;
+    --step: 240 207 92;
+    --step-text: 240 207 92;
+    --step-soft: 58 50 20;
   }
 
   /**
@@ -109,18 +110,18 @@
     --line-strong: rgba(31, 27, 22, 0.49);
     --scrim: rgba(31, 27, 22, 0.32);
 
-    /* #C4461F carries white text at 4.95:1 and reads as text on paper at
-       4.6:1 — the lightest coral that does both. */
-    --accent: 196 70 31;
+    /* #6246EA carries white text at 5.9:1, reads as text on paper at 5.5:1
+       and on its own soft wash at 4.9:1. */
+    --accent: 98 70 234;
     --accent-ink: 255 255 255;
-    --accent-text: 196 70 31;
-    --accent-soft: 250 228 217;
+    --accent-text: 98 70 234;
+    --accent-soft: 236 232 255;
     --grow: 29 158 117;
     --grow-text: 15 110 86;
     --grow-soft: 221 242 233;
-    --step: 239 159 39;
-    --step-text: 138 90 30;
-    --step-soft: 251 233 204;
+    --step: 224 177 0;
+    --step-text: 115 88 0;
+    --step-soft: 251 240 194;
   }
 
   * {
@@ -257,9 +258,9 @@
     --surface-base: 0 0 0;
     --line: rgba(240, 230, 214, 0.14);
     --line-strong: rgba(240, 230, 214, 0.42);
-    --accent: 240 138 98;
+    --accent: 168 151 255;
     --accent-ink: 23 19 15;
-    --accent-text: 240 138 98;
+    --accent-text: 168 151 255;
   }
 
   /* Liquid glass. The only surface treatment allowed to float over video. */

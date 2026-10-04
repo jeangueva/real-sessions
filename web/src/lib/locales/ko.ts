@@ -626,6 +626,18 @@ const KO: Record<MessageKey, string> = {
   "feedback.listen": "듣기",
   "feedback.stepsNote": "모두 더 나은 표현으로 가는 한 걸음이에요. 자연스러운 표현을 한 번 소리 내어 말해 보세요.",
   "share.toPath": "여정으로 돌아가기",
+  "area.engineering": "엔지니어링",
+  "area.product": "프로덕트",
+  "area.design": "디자인",
+  "area.data": "데이터",
+  "area.growth": "그로스",
+  "area.marketing": "마케팅",
+  "area.finance": "재무",
+  "area.legal": "법무",
+  "area.people": "인사",
+  "area.sales": "영업",
+  "area.customerSuccess": "고객 성공",
+  "area.operations": "운영",
 };
 
 export default KO;

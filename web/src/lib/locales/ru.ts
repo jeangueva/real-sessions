@@ -626,6 +626,18 @@ const RU: Record<MessageKey, string> = {
   "feedback.listen": "Послушать",
   "feedback.stepsNote": "Каждая фраза — шаг перед лучшей версией. Произнесите естественный вариант вслух один раз.",
   "share.toPath": "Назад к вашему пути",
+  "area.engineering": "Разработка",
+  "area.product": "Продукт",
+  "area.design": "Дизайн",
+  "area.data": "Данные",
+  "area.growth": "Рост",
+  "area.marketing": "Маркетинг",
+  "area.finance": "Финансы",
+  "area.legal": "Юриспруденция",
+  "area.people": "HR",
+  "area.sales": "Продажи",
+  "area.customerSuccess": "Работа с клиентами",
+  "area.operations": "Операции",
 };
 
 export default RU;
