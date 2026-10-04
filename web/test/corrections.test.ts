@@ -25,6 +25,23 @@ describe("parseCorrection", () => {
     });
   });
 
+  it("reads the older \"(should be …)\" shape from stored reports", () => {
+    expect(parseCorrection("assist to meetings (should be attend or participate in)")).toEqual({
+      kind: "pair",
+      said: "assist to meetings",
+      natural: "attend or participate in",
+    });
+    expect(parseCorrection("depends of (should be depends on or is based on)")).toEqual({
+      kind: "pair",
+      said: "depends of",
+      natural: "depends on or is based on",
+    });
+  });
+
+  it("leaves an ordinary parenthesis alone", () => {
+    expect(parseCorrection("Used “leverage” (a little stiff) where “use” fits").kind).toBe("note");
+  });
+
   it("does not guess when there is more than one arrow", () => {
     expect(parseCorrection("a → b → c").kind).toBe("note");
   });

@@ -51,7 +51,9 @@ export function FeedbackReport() {
   const [meta, setMeta] = useState(
     state?.company
       ? `${state.company} · ${state.role} · ${state.stage}`
-      : t("feedback.sample"),
+      : sessionId || historyId
+        ? ""
+        : t("feedback.sample"),
   );
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
