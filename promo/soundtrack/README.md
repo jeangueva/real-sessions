@@ -134,3 +134,18 @@ under the voice instead of 13 (`music_under: -6`, `duck: 4` in the cues).
 Stock footage, all from Pexels (free licence, no attribution required):
 7644024 (the interview), 9198832 (practising at a laptop). Also on hand and
 unused: 7844862, 8513143, 8555732.
+
+## Early-access code story
+
+`promo_story.py` draws a 10 s story for the `EARLY100` code (30 days of the
+paid plan, 100 seats, as set in `REALSESSIONS_PROMO_CODES`) and a still of its
+last frame:
+
+```sh
+python promo_story.py es out/promo/early100-es.mp4   # also writes early100-es.png
+python promo_story.py en out/promo/early100-en.mp4
+```
+
+The "how" is shown, not only told: the promotion field from Settings → Plan,
+with the app's own strings, the code typing itself in, Apply pressed, "Código
+aplicado." The bottom of the frame is left clear for the link sticker.
