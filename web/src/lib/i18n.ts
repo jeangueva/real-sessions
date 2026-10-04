@@ -66,21 +66,21 @@ export const LOCALE_KEY = "realsessions.locale";
 
 /** English is the source of truth: every other dictionary answers to its keys. */
 const EN = {
-  "nav.new": "New session",
+  "nav.new": "Practice",
   "nav.context": "Your context",
-  "nav.progress": "Progress",
+  "nav.progress": "Your path",
   "nav.history": "History",
   "nav.settings": "Settings",
   "nav.review": "Review",
   "nav.signOut": "Sign out",
-  "nav.newShort": "New",
+  "nav.newShort": "Practice",
   "nav.contextShort": "Context",
   "nav.accountShort": "Account",
   "nav.settingsShort": "Settings",
   "nav.sections": "Sections",
   "nav.onPaidPlan": "On the paid plan",
 
-  "setup.title": "Start an interview",
+  "setup.title": "Get it wrong here, not in the interview",
   "setup.meta": "Seven turns, about ten minutes. You can stop at any point.",
   "setup.eyebrow": "Run an interview",
   "setup.begin": "Begin",
@@ -192,7 +192,7 @@ const EN = {
     "Your transcript is not lost — evaluation can be retried from history once the service recovers.",
   "feedback.back": "Back to sessions",
   "feedback.reading": "Reading your transcript. This usually takes under a minute.",
-  "feedback.again": "Practice again",
+  "feedback.again": "Again, no fear",
   "feedback.overall": "Overall",
   "feedback.sample": "Sample report",
   "feedback.vocabulary": "Vocabulary",
@@ -200,7 +200,7 @@ const EN = {
   "feedback.againstBar":
     "Scores compare you against the bar for this role and stage, not against other candidates.",
   "feedback.worked": "What worked",
-  "feedback.toFix": "What to fix",
+  "feedback.toFix": "What to work on next",
   "feedback.language": "Language",
   "feedback.usedWell": "Used well",
   "feedback.corrections": "Corrections",
@@ -219,7 +219,7 @@ const EN = {
   "feedback.thinking": "Thinking time",
   "feedback.speaking": "Speaking",
 
-  "progress.title": "Progress",
+  "progress.title": "Your path",
   "progress.nothing": "Nothing to plot yet",
   "progress.score": "Score",
 
@@ -228,7 +228,7 @@ const EN = {
   "profile.meta": "What the interviewer knows before the call",
   "profile.onePerLine": "One per line",
 
-  "history.title": "History",
+  "history.title": "Every interview you have done",
   "review.title": "Review",
 
   "cta.startInterview": "Start an interview",
@@ -718,6 +718,25 @@ const EN = {
   "settings.tourHint": "The walkthrough shown the first time you open a session.",
   "settings.tourAgain": "Show it again",
   "settings.tourReset": "It will run next time",
+  "nav.progressShort": "Path",
+  "nav.you": "You",
+  "nav.youShort": "You",
+  "journey.title": "Your path to a job in English",
+  "journey.first": "First interview",
+  "journey.practice": "{done} of {goal} practice interviews",
+  "journey.real": "A real interview",
+  "journey.offer": "An offer",
+  "journey.done": "Done",
+  "journey.now": "You are here",
+  "journey.ahead": "Ahead",
+  "streak.days": "{count} days in a row speaking English",
+  "feedback.spoke": "You spoke {time} in English",
+  "feedback.steps": "Your steps from this interview",
+  "feedback.youSaid": "What you said",
+  "feedback.natural": "How it sounds natural",
+  "feedback.listen": "Listen",
+  "feedback.stepsNote": "Each one is the step before the better version. Say the natural one out loud once.",
+  "share.toPath": "Back to your path",
 } as const;
 
 export type MessageKey = keyof typeof EN;

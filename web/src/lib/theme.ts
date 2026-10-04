@@ -16,9 +16,16 @@ export type Theme = "dark" | "light";
 
 export const THEME_KEY = "realsessions.theme";
 
-/** Reads the stored choice. Anything unrecognised means "follow the system". */
+/**
+ * Reads the stored choice. Nothing stored means light.
+ *
+ * It used to mean "follow the system", which on most laptops after dark meant
+ * black — and the product is designed in light now: warm paper, the room you
+ * rehearse in with the lights on. Following the machine is still on offer,
+ * but as something a person picks, so it is stored like the other two.
+ */
 export function storedChoice(raw: string | null): ThemeChoice {
-  return raw === "dark" || raw === "light" ? raw : "system";
+  return raw === "dark" || raw === "light" || raw === "system" ? raw : "light";
 }
 
 /** What a choice actually renders as, given what the machine prefers. */
@@ -32,13 +39,13 @@ export function readChoice(): ThemeChoice {
     return storedChoice(localStorage.getItem(THEME_KEY));
   } catch {
     // Private windows and blocked site data both throw here.
-    return "system";
+    return "light";
   }
 }
 
 export function saveChoice(choice: ThemeChoice): void {
   try {
-    if (choice === "system") localStorage.removeItem(THEME_KEY);
+    if (choice === "light") localStorage.removeItem(THEME_KEY);
     else localStorage.setItem(THEME_KEY, choice);
   } catch {
     // The theme still applies for this visit; it just will not be remembered.

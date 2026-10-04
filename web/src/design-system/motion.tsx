@@ -231,7 +231,7 @@ export function Typewriter({
       {!done && (
         <span
           aria-hidden
-          className="ml-[2px] inline-block h-[1.1em] w-[2px] bg-cream align-middle animate-blink"
+          className="ml-[2px] inline-block h-[1.1em] w-[2px] bg-accent align-middle animate-blink"
         />
       )}
     </p>

@@ -14,6 +14,12 @@
  *
  * Everything else from those references (their brand names, their CDN assets,
  * their nav copy) was dropped — it belonged to other products.
+ *
+ * Then the palette moved off black. Cream on black read as a film about
+ * interviews; the product is a place to get things wrong out loud until you
+ * stop being afraid of it. Warm paper is the ground now, black is the night
+ * option, and three meaning colours (accent, grow, step) do the work one
+ * cream used to do alone.
  */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
@@ -63,6 +69,28 @@ export default {
         "line-strong": "var(--line-strong)",
         // The dim behind a spotlight or a modal. Softer on a light ground.
         scrim: "var(--scrim)",
+        /**
+         * The three colours that carry meaning — see the block in index.css.
+         * `accent` is the way forward, `grow` is what improved, `step` is
+         * what to work on next. None of them is red: nothing in this product
+         * marks a person wrong.
+         */
+        accent: {
+          DEFAULT: "rgb(var(--accent) / <alpha-value>)",
+          ink: "rgb(var(--accent-ink) / <alpha-value>)",
+          text: "rgb(var(--accent-text) / <alpha-value>)",
+          soft: "rgb(var(--accent-soft) / <alpha-value>)",
+        },
+        grow: {
+          DEFAULT: "rgb(var(--grow) / <alpha-value>)",
+          text: "rgb(var(--grow-text) / <alpha-value>)",
+          soft: "rgb(var(--grow-soft) / <alpha-value>)",
+        },
+        step: {
+          DEFAULT: "rgb(var(--step) / <alpha-value>)",
+          text: "rgb(var(--step-text) / <alpha-value>)",
+          soft: "rgb(var(--step-soft) / <alpha-value>)",
+        },
       },
       fontFamily: {
         sans: ['"Almarai"', "system-ui", "sans-serif"],

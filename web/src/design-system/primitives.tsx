@@ -16,7 +16,7 @@ interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const TONE: Record<Tone, string> = {
-  solid: "bg-cream text-surface-base hover:gap-3",
+  solid: "bg-accent text-accent-ink shadow-[0_6px_20px_-8px_rgb(var(--accent)/0.6)] hover:-translate-y-0.5 hover:gap-3 active:translate-y-0",
   glass: "liquid-glass text-cream-bright hover:bg-surface-lift",
   ghost: "text-cream-dim hover:text-cream-bright",
 };
@@ -65,7 +65,7 @@ export function Eyebrow({
   className?: string;
 }) {
   return (
-    <p className={`text-xs tracking-[0.14em] text-cream ${className}`}>
+    <p className={`text-xs tracking-[0.14em] text-accent-text ${className}`}>
       {children}
     </p>
   );
@@ -96,7 +96,7 @@ export function Panel({
       ? "liquid-glass"
       : variant === "raised"
         ? "bg-surface-raised"
-        : "bg-surface-card";
+        : "border border-line bg-surface-card";
   return (
     <div
       id={id}
@@ -160,7 +160,7 @@ export function CheckItem({ children }: { children: ReactNode }) {
     <li className="flex items-start gap-2 text-xs text-cream-dim sm:text-sm">
       <span
         aria-hidden
-        className="mt-[0.35em] h-1 w-1 shrink-0 rounded-full bg-cream"
+        className="mt-[0.35em] h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
       />
       {children}
     </li>
@@ -198,10 +198,10 @@ export function Meter({
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label}
-        className="h-1 w-full overflow-hidden rounded-full bg-line"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-line"
       >
         <div
-          className="h-full rounded-full bg-cream transition-[width] duration-700 ease-cinematic"
+          className="h-full rounded-full bg-accent transition-[width] duration-700 ease-cinematic"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -220,7 +220,7 @@ export function Badge({
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-cream-dim">
       {tone === "live" && (
-        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-cream animate-blink" />
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent animate-blink" />
       )}
       {children}
     </span>

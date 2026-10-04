@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
@@ -386,11 +387,18 @@ export function ShareCard() {
         title={t("share.title")}
         meta={t("share.meta")}
         actions={
+          /* Off the nav now, so the way out is drawn here: the first step
+             leads back to the path it was opened from, the later ones step
+             back through the card. */
           step !== "ground" ? (
             <Action tone="glass" onClick={() => setStep(step === "ready" ? "crop" : "ground")}>
               {t("share.back")}
             </Action>
-          ) : undefined
+          ) : (
+            <Link to="/app/progress">
+              <Action tone="glass">{t("share.toPath")}</Action>
+            </Link>
+          )
         }
       />
 

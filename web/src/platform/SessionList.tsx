@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { Action, FadeRise, Panel } from "@/design-system";
-import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, fetchHistory } from "@/lib/api";
 import { formatFiller, formatSessionDate, formatWpm } from "@/lib/format";
@@ -10,8 +10,13 @@ import type { SessionSummary } from "@/lib/api";
 /**
  * Past sessions, newest first. The trend is the point — one score means
  * little, four in a row is the reason to keep practising.
+ *
+ * It was its own screen, beside Progress in the rail. The two answered the
+ * same question — how am I doing — one as a curve and one as a list, so the
+ * list is the bottom half of the path now. `/app/history` still resolves and
+ * lands here, for every link and bookmark that points at it.
  */
-export function SessionHistory() {
+export function SessionList() {
   const t = useT();
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,25 +41,23 @@ export function SessionHistory() {
   const best = scored.length > 0 ? Math.max(...scored.map((s) => s.score)) : null;
 
   return (
-    <>
-      <PageHeader
-        title={t("history.title")}
-        meta={
-          sessions === null
-            ? t("history.loading")
-            : sessions.length === 0
-              ? t("history.none")
-              : t("history.completed", { count: scored.length }) +
-                (best === null ? "" : ` · ${t("history.best", { score: best })}`)
-        }
-        actions={
-          <Link to="/app">
-            <Action tone="glass">{t("history.new")}</Action>
-          </Link>
-        }
-      />
+    <section id="sessions" aria-labelledby="sessions-title" className="scroll-mt-6">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 id="sessions-title" className="font-serif text-title text-cream-bright">
+            {t("history.title")}
+          </h2>
+          <p className="mt-1 text-xs text-cream-dim">
+            {sessions === null
+              ? t("history.loading")
+              : sessions.length === 0
+                ? t("history.none")
+                : t("history.completed", { count: scored.length }) +
+                  (best === null ? "" : ` · ${t("history.best", { score: best })}`)}
+          </p>
+        </div>
+      </div>
 
-      <PageBody>
         {error && (
           <Panel variant="glass" className="max-w-2xl p-6">
             <p role="alert" className="text-sm text-cream-bright">
@@ -122,9 +125,10 @@ export function SessionHistory() {
                     <Link
                       to="/app/feedback"
                       state={{ historyId: session.id }}
-                      className="focus-ring rounded px-1 py-1 text-xs text-cream-dim underline underline-offset-4 transition-colors hover:text-cream-bright"
+                      className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-cream-bright transition-colors hover:border-accent hover:text-accent-text"
                     >
                       {t("history.view")}
+                      <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
                     </Link>
                   )}
                 </div>
@@ -132,7 +136,6 @@ export function SessionHistory() {
             </FadeRise>
           ))}
         </ul>
-      </PageBody>
-    </>
+    </section>
   );
 }

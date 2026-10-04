@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Action,
   Eyebrow,
@@ -29,6 +29,8 @@ import type {
   SessionSummary,
 } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
+import { Journey } from "./Journey";
+import { SessionList } from "./SessionList";
 
 const AXIS_LABEL: Record<Axis, MessageKey> = {
   fluency: "axis.fluency",
@@ -88,6 +90,17 @@ export function Progress() {
     fetchLeaderboard().then(setLeague).catch(() => undefined);
   }, []);
 
+  /**
+   * `/app/history` lands here with `#sessions`. The list loads after the
+   * page, so the browser's own jump to the anchor finds nothing yet; this
+   * waits for the data and then makes the same jump.
+   */
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash !== "#sessions" || sessions === null) return;
+    document.getElementById("sessions")?.scrollIntoView({ block: "start" });
+  }, [hash, sessions]);
+
   const labelFor = (session: SessionSummary) =>
     `${session.company} · ${formatSessionDate(session.completedAt)}`;
 
@@ -140,7 +153,8 @@ export function Progress() {
       <>
         <PageHeader title={t("progress.title")} meta={t("progress.nothing")} />
         <PageBody>
-          <Panel variant="raised" className="flex max-w-2xl flex-col gap-5 p-6">
+          <Journey sessions={[]} />
+          <Panel variant="raised" className="mt-4 flex max-w-2xl flex-col gap-5 p-6">
             {/* The first form, shown rather than described. The copy beside
                 this used to promise that the shape starts meaning something
                 around the third session while showing no shape at all, which
@@ -176,8 +190,8 @@ export function Progress() {
         title={t("progress.title")}
         meta={
           sessions === null
-            ? "Loading…"
-            : `${sessions.length} completed session${sessions.length === 1 ? "" : "s"}`
+            ? t("history.loading")
+            : t("history.completed", { count: sessions.length })
         }
         actions={
           /* Here because this is the screen somebody opens when they want to
@@ -191,6 +205,10 @@ export function Progress() {
       />
 
       <PageBody className="flex flex-col gap-4">
+        <FadeRise>
+          <Journey sessions={sessions ?? []} />
+        </FadeRise>
+
         {profile && (
           <FadeRise>
             <Panel variant="raised" className="flex flex-wrap items-center gap-8 p-6">
@@ -303,7 +321,7 @@ export function Progress() {
                     <li
                       key={badge.id}
                       className={`rounded-2xl border px-4 py-3 ${
-                        held ? "border-cream/40" : "border-line opacity-50"
+                        held ? "border-grow/50 bg-grow-soft" : "border-line opacity-60"
                       }`}
                     >
                       <p className="text-sm text-cream-bright">{badge.label}</p>
@@ -322,6 +340,9 @@ export function Progress() {
             </Panel>
           </FadeRise>
         )}
+        <div className="mt-8">
+          <SessionList />
+        </div>
       </PageBody>
     </>
   );

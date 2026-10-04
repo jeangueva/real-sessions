@@ -24,6 +24,7 @@ import { Tour } from "./Tour";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import { RecentSessions } from "./RecentSessions";
+import { Journey } from "./Journey";
 
 /**
  * Whether the briefing has been dismissed. Per-device and low stakes, so it
@@ -451,6 +452,9 @@ export function SessionSetup() {
         {/* `pb-20 md:pb-0` clears the fixed Begin bar, the same way the shell
             reserves the height of the mobile nav under it. */}
         <div className="flex flex-col gap-6 pb-20 md:pb-0">
+        {/* Where this practice leads. First on the screen, so the reason to
+            press Begin is read before the form that asks what to practise. */}
+        <Journey sessions={sessions} />
         {/* The nudge sits above the bar it changes, so accepting it and
             seeing the level field move are one glance apart. Dismissing is
             local and for this visit only: the condition that raised it is a

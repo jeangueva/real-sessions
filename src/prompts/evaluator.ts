@@ -43,6 +43,13 @@ Grade the answers they gave at the level they were speaking at. This adjusts the
 ### FEEDBACK STYLE:
 Address the candidate in the second person ("you"), be specific, and make every item in \`actionable_next_steps\` something they can practice this week.
 
+Be direct about the answer and never about the person. The reader is rehearsing in a language that is not theirs so that the real interview goes better; a report that reads as a verdict on them makes them practise less, not more. Write "that answer moved to salary when the question was about standards", never "you lack situational awareness" or "a significant inability to". Do not soften the score or leave out what to fix — say it plainly, about what was said.
+
+### CORRECTIONS:
+Each item in \`vocabulary_feedback.missed_opportunities_or_errors\` is one correction in exactly this shape, and nothing else:
+"what they actually said" → "how a fluent speaker would say it"
+Quote their own words on the left, a natural version on the right, both in straight double quotes, joined by the → character. One correction per item, no explanation after it. The report draws these as a step from one sentence to the next, and anything outside that shape is shown as a plain note.
+
 ### OUTPUT FORMAT:
 Every string you return is rendered as plain text. Write plain prose only — no markdown, no asterisks for emphasis, no bold, no headings, no numbered or bulleted lists inside a field. A sentence like "skipped the **S**ituation" reaches the candidate with the asterisks still in it.`;
 

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { MotionConfig } from "framer-motion";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Hero } from "@/components/Hero";
 import { LandingNav } from "@/components/LandingNav";
 import { Privacy, Terms } from "@/legal/LegalPage";
@@ -33,7 +33,6 @@ const AppShell = lazy(() => import("@/platform/AppShell").then((m) => ({ default
 const SessionSetup = lazy(() => import("@/platform/SessionSetup").then((m) => ({ default: m.SessionSetup })));
 const LiveInterview = lazy(() => import("@/platform/LiveInterview").then((m) => ({ default: m.LiveInterview })));
 const FeedbackReport = lazy(() => import("@/platform/FeedbackReport").then((m) => ({ default: m.FeedbackReport })));
-const SessionHistory = lazy(() => import("@/platform/SessionHistory").then((m) => ({ default: m.SessionHistory })));
 const Progress = lazy(() => import("@/platform/Progress").then((m) => ({ default: m.Progress })));
 const Profile = lazy(() => import("@/platform/Profile").then((m) => ({ default: m.Profile })));
 const Review = lazy(() => import("@/platform/Review").then((m) => ({ default: m.Review })));
@@ -144,7 +143,9 @@ export function App() {
           <Route index element={<Suspense fallback={null}><SessionSetup /></Suspense>} />
           <Route path="session" element={<Suspense fallback={null}><LiveInterview /></Suspense>} />
           <Route path="feedback" element={<Suspense fallback={null}><FeedbackReport /></Suspense>} />
-          <Route path="history" element={<Suspense fallback={null}><SessionHistory /></Suspense>} />
+          {/* History is the bottom half of the path now. Kept as a route so
+              old links and bookmarks still land somewhere true. */}
+          <Route path="history" element={<Navigate to="/app/progress#sessions" replace />} />
           <Route path="progress" element={<Suspense fallback={null}><Progress /></Suspense>} />
           <Route path="profile" element={<Suspense fallback={null}><Profile /></Suspense>} />
           <Route path="review" element={<Suspense fallback={null}><Review /></Suspense>} />

@@ -150,6 +150,7 @@ export function TrendChart({
             d={path}
             fill="none"
             stroke="currentColor"
+            className="text-accent"
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -164,8 +165,9 @@ export function TrendChart({
             r={hover === point.index ? 7 : 5.5}
             fill="currentColor"
             // A 2px ring in the colour of the card the chart sits on keeps
-            // overlapping markers legible.
-            className="stroke-surface-card"
+            // overlapping markers legible. The data is the accent; the ruler
+            // around it stays ink, so the eye lands on what moved.
+            className="stroke-surface-card text-accent"
             strokeWidth={2}
           />
         ))}
@@ -436,8 +438,9 @@ export function RadarChart({
 
         <polygon
           points={polygon}
+          className="text-accent"
           fill="currentColor"
-          fillOpacity={0.16}
+          fillOpacity={0.18}
           stroke="currentColor"
           strokeOpacity={0.85}
           strokeWidth={2}
@@ -453,6 +456,7 @@ export function RadarChart({
               cx={x}
               cy={y}
               r={value === null ? 2.5 : 4}
+              className="text-accent"
               fill="currentColor"
               fillOpacity={value === null ? 0.35 : 1}
             />

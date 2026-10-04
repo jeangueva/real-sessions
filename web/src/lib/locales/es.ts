@@ -12,21 +12,21 @@ import type { MessageKey } from "../i18n";
  * `language-neutral-spanish.test.ts` holds that line.
  */
 const ES: Record<MessageKey, string> = {
-  "nav.new": "Nueva sesión",
+  "nav.new": "Practicar",
   "nav.context": "Tu contexto",
-  "nav.progress": "Progreso",
+  "nav.progress": "Tu camino",
   "nav.history": "Historial",
   "nav.settings": "Ajustes",
   "nav.review": "Revisión",
   "nav.signOut": "Cerrar sesión",
-  "nav.newShort": "Nueva",
+  "nav.newShort": "Practicar",
   "nav.contextShort": "Contexto",
   "nav.accountShort": "Cuenta",
   "nav.settingsShort": "Ajustes",
   "nav.sections": "Secciones",
   "nav.onPaidPlan": "Del plan pago",
 
-  "setup.title": "Empezar una entrevista",
+  "setup.title": "Equivócate aquí, no en la entrevista",
   "setup.meta": "Siete turnos, unos diez minutos. Puedes parar cuando quieras.",
   "setup.eyebrow": "Realizar una entrevista",
   "setup.begin": "Empezar",
@@ -138,7 +138,7 @@ const ES: Record<MessageKey, string> = {
     "Tu transcripción no se perdió — la evaluación se puede reintentar desde el historial cuando el servicio se recupere.",
   "feedback.back": "Volver a las sesiones",
   "feedback.reading": "Leyendo tu transcripción. Suele tardar menos de un minuto.",
-  "feedback.again": "Practicar de nuevo",
+  "feedback.again": "Otra vez, sin miedo",
   "feedback.overall": "General",
   "feedback.sample": "Informe de ejemplo",
   "feedback.vocabulary": "Vocabulario",
@@ -146,7 +146,7 @@ const ES: Record<MessageKey, string> = {
   "feedback.againstBar":
     "Los puntajes te comparan contra la vara de este rol y esta ronda, no contra otros candidatos.",
   "feedback.worked": "Qué funcionó",
-  "feedback.toFix": "Qué corregir",
+  "feedback.toFix": "En qué trabajar ahora",
   "feedback.language": "Idioma",
   "feedback.usedWell": "Bien usadas",
   "feedback.corrections": "Correcciones",
@@ -165,7 +165,7 @@ const ES: Record<MessageKey, string> = {
   "feedback.thinking": "Tiempo de pensar",
   "feedback.speaking": "Hablando",
 
-  "progress.title": "Progreso",
+  "progress.title": "Tu camino",
   "progress.nothing": "Todavía no hay nada que graficar",
   "progress.score": "Puntaje",
 
@@ -174,7 +174,7 @@ const ES: Record<MessageKey, string> = {
   "profile.meta": "Lo que el entrevistador sabe antes de la llamada",
   "profile.onePerLine": "Uno por línea",
 
-  "history.title": "Historial",
+  "history.title": "Todas tus entrevistas",
   "review.title": "Revisión",
 
   "cta.startInterview": "Empezar una entrevista",
@@ -664,6 +664,25 @@ const ES: Record<MessageKey, string> = {
   "settings.tourHint": "El recorrido que se muestra la primera vez que abres una sesión.",
   "settings.tourAgain": "Mostrarlo de nuevo",
   "settings.tourReset": "Se va a mostrar la próxima vez",
+  "nav.progressShort": "Camino",
+  "nav.you": "Tú",
+  "nav.youShort": "Tú",
+  "journey.title": "Tu camino a un trabajo en inglés",
+  "journey.first": "Primera entrevista",
+  "journey.practice": "{done} de {goal} entrevistas de práctica",
+  "journey.real": "Una entrevista real",
+  "journey.offer": "Una oferta",
+  "journey.done": "Hecho",
+  "journey.now": "Estás aquí",
+  "journey.ahead": "Por delante",
+  "streak.days": "{count} días seguidos hablando inglés",
+  "feedback.spoke": "Hablaste {time} en inglés",
+  "feedback.steps": "Tus pasos de esta entrevista",
+  "feedback.youSaid": "Lo que dijiste",
+  "feedback.natural": "Cómo sonaría natural",
+  "feedback.listen": "Escúchalo",
+  "feedback.stepsNote": "Cada uno es el paso antes de la versión mejor. Di la natural en voz alta una vez.",
+  "share.toPath": "Volver a tu camino",
 };
 
 export default ES;

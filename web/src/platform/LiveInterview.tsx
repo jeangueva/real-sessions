@@ -438,13 +438,24 @@ export function LiveInterview() {
     voice.startListening();
   };
 
+  /**
+   * What the report's subtitle names. Without it a report opened straight
+   * from a finished interview fell back to the sample's label and called a
+   * real interview "Sample report".
+   */
+  const reportLabel = () => ({
+    company: running?.companyName ?? company,
+    role: running?.targetRole ?? role,
+    stage: running?.interviewStage ?? stage,
+  });
+
   const leave = () => {
     voice.cancelSpeech();
     voice.stopListening();
     camera.stop();
     screen.stop();
     navigate(finished && sessionId ? `/app/feedback` : "/app", {
-      state: finished && sessionId ? { sessionId } : undefined,
+      state: finished && sessionId ? { sessionId, ...reportLabel() } : undefined,
     });
   };
 
@@ -521,7 +532,7 @@ export function LiveInterview() {
                     level={voice.micLevel}
                     measured={voice.micMeasured}
                     label={t("call.micLive")}
-                    className="mt-0.5 shrink-0 text-cream-bright"
+                    className="mt-0.5 shrink-0 text-grow"
                   />
                   <p className="text-sm text-cream-dim" aria-live="polite">
                     {voice.transcript || t("call.listening")}
@@ -554,7 +565,7 @@ export function LiveInterview() {
                   withArrow
                   className="self-start"
                   onClick={() =>
-                    navigate("/app/feedback", { state: { sessionId } })
+                    navigate("/app/feedback", { state: { sessionId, ...reportLabel() } })
                   }
                 >
                   {t("call.seeFeedback")}

@@ -83,7 +83,7 @@ export function InterviewerPresence({
           width: size * 1.9,
           height: size * 1.9,
           background:
-            "radial-gradient(circle, rgb(var(--cream) / 0.18) 0%, rgb(var(--cream) / 0) 68%)",
+            "radial-gradient(circle, rgb(var(--accent) / 0.28) 0%, rgb(var(--accent) / 0) 68%)",
           opacity: glow,
           scale: swell,
         }}
@@ -95,7 +95,7 @@ export function InterviewerPresence({
         <motion.span
           aria-hidden
           key={ring}
-          className="absolute rounded-full border border-cream/25"
+          className="absolute rounded-full border-2 border-accent/40"
           style={{ width: size, height: size }}
           animate={
             still
@@ -119,7 +119,7 @@ export function InterviewerPresence({
       <motion.span
         aria-hidden
         className={`relative grid place-items-center rounded-full font-medium tracking-wide transition-colors duration-500 ${
-          speaking ? "bg-cream text-surface-base" : "bg-cream/10 text-cream-bright"
+          speaking ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
         }`}
         style={{
           width: size * 0.74,
