@@ -1,0 +1,13 @@
+{
+  "voice": "out/story/raw-es.mp4",
+  "shots": [
+    {"src": "pexels-9198832.mp4", "in": 0.0,  "dur": 5.3,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "a Daniela le llega el correo"},
+    {"src": "pexels-8555732.mp4", "in": 0.5,  "dur": 5.1,  "stock": true, "note": "la entrevista, alguien del otro lado"},
+    {"src": "pexels-9198832.mp4", "in": 29.0, "dur": 5.9,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "seis años leyendo, nunca lo había hablado"},
+    {"src": "pexels-9198832.mp4", "in": 15.0, "dur": 2.3,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "lo dijo acá"},
+    {"src": "introducing-mockio-es.mp4", "in": 26.4, "dur": 3.0, "note": "Intento 12, las barras suben"},
+    {"src": "introducing-mockio-es.mp4", "in": 35.0, "dur": 4.0, "note": "el reporte"},
+    {"src": "pexels-9198832.mp4", "in": 12.0, "dur": 2.6,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "la última vez, ya no"},
+    {"src": "introducing-mockio-es.mp4", "in": 41.6, "dur": 3.3, "note": "logo"}
+  ]
+}

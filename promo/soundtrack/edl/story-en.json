@@ -1,0 +1,13 @@
+{
+  "voice": "out/story/raw-en.mp4",
+  "shots": [
+    {"src": "pexels-9198832.mp4", "in": 0.0,  "dur": 4.9,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "Daniela reads the email"},
+    {"src": "pexels-8555732.mp4", "in": 1.0,  "dur": 3.7,  "stock": true, "note": "the interview, somebody on the other side"},
+    {"src": "pexels-9198832.mp4", "in": 30.0, "dur": 4.7,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "six years reading, never spoken"},
+    {"src": "pexels-9198832.mp4", "in": 15.0, "dur": 2.0,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "she says it here"},
+    {"src": "introducing-mockio-en.mp4", "in": 23.3, "dur": 2.8, "note": "Attempt 12, the bars fill"},
+    {"src": "introducing-mockio-en.mp4", "in": 30.9, "dur": 3.7, "note": "the report"},
+    {"src": "pexels-9198832.mp4", "in": 12.4, "dur": 1.6,  "stock": true, "zoom": 1.15, "anchor_y": 1.0, "note": "the last time, she did not"},
+    {"src": "introducing-mockio-en.mp4", "in": 36.1, "dur": 2.733, "note": "logo"}
+  ]
+}
