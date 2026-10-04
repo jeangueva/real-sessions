@@ -107,11 +107,29 @@ The voice is padded so the logo holds after the last word.
 ffmpeg -i voice-es.wav -af apad=whole_dur=20.2 -ar 48000 -ac 2 out/media/voice-es-padded.wav
 python broll.py edl/story2-es.json out/media/voice-es-padded.wav out/story/broll2-es.mp4 --media out/media
 python mix.py out/story/broll2-es.mp4 out/story/mockio-story-es.mp4 \
-  --voice out/media/voice-es-padded.wav --cues out/story/story2-es.cues.json
+  --voice out/media/voice-es-padded.wav --cues cues/story2-es.json
 ```
 
 The cues for this cut take the scene changes from the edit list rather than
 detecting them (two stock shots in a row have no dark frame between them).
+
+**On-screen text.** The two stock shots carry the hook as text, line by line on
+the words: "¿Entrevista de trabajo en inglés?", then "Practícala antes. / En
+voz alta. / Con Mockio." Inter, the face of the product screens (fetched from
+npm `@fontsource/inter` into `out/fonts/` as TTF; OFL licence). On the laptop
+shot the text sits in the dark band of the frame, above her head, never on a
+face.
+
+**Sounds.** Each moment has its own sound and none plays more than twice
+(`sfx.MAX_USES`): a thump on the opening question, a whoosh into practising, a
+pop on "Con Mockio", a swish to the interviewer, paper as the posting lands, a
+whoosh to the report, a counter while the score climbs, a swish to the bars, a
+pop as the last bar lands, then riser, bell and shimmer on the logo. The plan
+is in the cues (`sfx`) and `sfx.plan` refuses one that repeats a sound a third
+time.
+
+**Music.** A story is heard on a phone speaker, so the score sits about 9 dB
+under the voice instead of 13 (`music_under: -6`, `duck: 4` in the cues).
 
 Stock footage, all from Pexels (free licence, no attribution required):
 7644024 (the interview), 9198832 (practising at a laptop). Also on hand and

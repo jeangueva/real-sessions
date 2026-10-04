@@ -1,0 +1,91 @@
+{
+  "duration": 19.3,
+  "lines": [
+    [
+      0.33,
+      1.81
+    ],
+    [
+      2.21,
+      10.9
+    ],
+    [
+      11.38,
+      14.92
+    ],
+    [
+      15.37,
+      17.78
+    ]
+  ],
+  "scenes": [
+    2.0,
+    5.15,
+    8.65,
+    11.0,
+    13.4,
+    15.2
+  ],
+  "ui": [
+    14.3
+  ],
+  "logo": 16.3,
+  "sections": {
+    "turn": 2.0,
+    "pulse": 5.15,
+    "resolve": 16.3
+  },
+  "music_fade_in": 0.3,
+  "sfx": [
+    {
+      "t": 0.05,
+      "sound": "thump"
+    },
+    {
+      "t": 2.0,
+      "sound": "whoosh"
+    },
+    {
+      "t": 4.05,
+      "sound": "pop"
+    },
+    {
+      "t": 5.15,
+      "sound": "swish"
+    },
+    {
+      "t": 8.65,
+      "sound": "paper"
+    },
+    {
+      "t": 11.0,
+      "sound": "whoosh"
+    },
+    {
+      "t": 11.1,
+      "sound": "counter"
+    },
+    {
+      "t": 13.4,
+      "sound": "swish"
+    },
+    {
+      "t": 14.3,
+      "sound": "pop"
+    },
+    {
+      "t": 16.3,
+      "sound": "riser"
+    },
+    {
+      "t": 16.3,
+      "sound": "bell"
+    },
+    {
+      "t": 16.3,
+      "sound": "shimmer"
+    }
+  ],
+  "music_under": -6,
+  "duck": 4
+}

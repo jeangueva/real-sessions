@@ -22,7 +22,7 @@ import sfx
 from dsp import SR, db, highpass, soft_limit
 
 # Levels relative to the voice while it speaks, in dB.
-MUSIC_UNDER = -9    # music between lines
+MUSIC_UNDER = -9    # music between lines (a cut can set its own in the cues)
 DUCK = 5            # how far music dips while somebody is talking
 SFX_PEAK = -5.5     # loudest audible effect (the logo), against the voice
 TARGET_LUFS = -14   # what Instagram, TikTok and YouTube normalise to
@@ -121,9 +121,9 @@ def main():
 
     m = music.render(c)[:, :n]
     m = np.pad(m, ((0, 0), (0, n - m.shape[1])))
-    m *= v_rms * db(MUSIC_UNDER) / (np.sqrt((m ** 2).mean()) + 1e-12)
+    m *= v_rms * db(c.get("music_under", MUSIC_UNDER)) / (np.sqrt((m ** 2).mean()) + 1e-12)
     talking = np.clip((env_db - gate) / 10, 0, 1)
-    gain = db(-DUCK * talking)
+    gain = db(-c.get("duck", DUCK) * talking)
     m *= np.interp(np.arange(n), np.arange(len(gain)) * b + b / 2, gain).astype(np.float32)
 
     s = sfx.render(c)[:, :n]
