@@ -51,21 +51,35 @@ wants to finish the mix in an editor.
 
 ## Instagram story cut
 
-A shorter version (about 21 s in English, 25 s in Spanish) that keeps the
-voice and the scenes as they are and drops the setup. It opens on "The
-interview was in English, out loud", which is on screen from the first frame,
-and goes straight to the turn, the twelve attempts, the report and the logo.
+A shorter version (26 s in English, 31 s in Spanish) with the same voice and
+scenes. It keeps the lines the story cannot be followed without, and drops the
+ones it can:
+
+| Kept | Why it cannot go |
+| --- | --- |
+| Three months ago, Daniela got an email from a company in Rotterdam. | Who she is. Without it every "she" after points at nobody |
+| The interview was in English, out loud, with somebody on the other side. | The problem |
+| Six years reading and writing English. She had never spoken it for ten minutes straight. | Why it is a problem, and what "it" is in the next line |
+| She said it here, a Tuesday night, twelve times. | What she did, over the practice screen |
+| But at the end, somebody told her exactly where she got stuck. | What Mockio gave her |
+| The last time, she did not. Mockio. | The result, and the name |
+
+Dropped: "she read it four times", "she was not short of English…" (it
+restates the line before it as an aphorism) and "nobody interrupted her".
+
+A first story cut kept the aphorism and dropped the setup, and nobody could
+tell who "she" was or what "it" meant. Cut for comprehension first and length
+second.
 
 ```sh
-python cut.py introducing-mockio-en.mp4 out/story/raw-en.mp4 9.1-13.4 18.0-27.3 30.9-end
-python cut.py introducing-mockio-es.mp4 out/story/raw-es.mp4 9.5-14.6 20.7-30.8 35.0-44.9
+python cut.py introducing-mockio-en.mp4 out/story/raw-en.mp4 0-4.9 9.1-17.6 22.5-27.3 30.9-end
+python cut.py introducing-mockio-es.mp4 out/story/raw-es.mp4 0-5.3 9.5-20.5 25.5-30.8 35.0-44.9
 ```
 
-Every cut point sits in a pause between lines. On the short cut the opening
-is the posting, so the music's sections move up one scene: write the cues,
-set `sections` to the first cut (turn), the second cut (pulse) and the logo,
-add `"music_fade_in": 0.4` so the music is there from the first frame, and run
-`mix.py` with `--cues`.
+Every cut point sits in a pause between lines. On the short cut the music's
+sections follow its own scenes: write the cues, set `sections` to the first cut
+(turn), the second cut (pulse) and the logo, add `"music_fade_in": 0.4` so the
+music is there from the first frame, and run `mix.py` with `--cues`.
 
 The text stays clear of the top 250 px and the bottom 340 px, which Instagram
 covers with the profile bar and the reply field.

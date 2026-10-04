@@ -27,6 +27,7 @@ DUCK = 5            # how far music dips while somebody is talking
 SFX_PEAK = -5.5     # loudest audible effect (the logo), against the voice
 TARGET_LUFS = -14   # what Instagram, TikTok and YouTube normalise to
 TRUE_PEAK = -2.0
+ENCODED_CEILING = -1.0  # true peak of the AAC that ships
 
 
 def load_audio(path, n):
@@ -84,6 +85,13 @@ def loudnorm(src, dst):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-af", second, "-ar", str(SR), dst], check=True)
 
 
+def encoded_peak(path):
+    log = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-i", path, "-vn", "-af", "ebur128=peak=true", "-f", "null", "-"],
+        capture_output=True, text=True).stderr
+    return float(re.findall(r"Peak:\s+(-?[\d.]+|-inf) dBFS", log)[-1])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
@@ -126,10 +134,20 @@ def main():
     for name, x in (("voice", voice), ("music", m), ("sfx", s), ("premaster", mix)):
         wavfile.write(f"{base}.{name}.wav", SR, x.T.astype(np.float32))
     loudnorm(f"{base}.premaster.wav", f"{base}.mix.wav")
-    subprocess.run(
-        ["ffmpeg", "-v", "error", "-y", "-i", args.video, "-i", f"{base}.mix.wav",
-         "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-         "-shortest", "-movflags", "+faststart", args.out], check=True)
+    # AAC can overshoot the peaks loudnorm left, by 2 dB on a dense mix. Measure
+    # what was actually encoded and pull it back under the ceiling if it went over.
+    gain = 0.0
+    for _ in range(2):
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-y", "-i", args.video, "-i", f"{base}.mix.wav",
+             "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+             "-af", f"alimiter=limit={db(TRUE_PEAK - 1):.3f}:attack=1:release=40:level=disabled,volume={gain}dB",
+             "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", args.out],
+            check=True)
+        peak = encoded_peak(args.out)
+        if peak <= ENCODED_CEILING:
+            break
+        gain -= peak - ENCODED_CEILING + 0.2
     os.remove(f"{base}.premaster.wav")
     print(args.out)
 
