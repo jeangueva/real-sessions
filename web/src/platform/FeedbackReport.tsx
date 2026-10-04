@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Action, DotMatrix, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
+import { ArrowUpRight, Check } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
+import { CorrectionSteps } from "./CorrectionSteps";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import { SAMPLE_EVALUATION } from "@/lib/evaluation";
@@ -323,10 +325,24 @@ function FeedbackBody({
   return (
     <>
       <PageHeader
-        title={t("feedback.title")}
+        /* The first thing said after an interview is what they did, not
+           how it scored: minutes spoken in a language that is not theirs is
+           the fact that was hard, and it is true whatever the score says.
+           Typed sessions have no speaking time, so they keep the plain
+           title rather than a claim the numbers cannot back. */
+        title={
+          metrics?.fromSpeech && metrics.speakingMs
+            ? t("feedback.spoke", { time: formatMinutes(metrics.speakingMs) })
+            : t("feedback.title")
+        }
         meta={meta}
         actions={
           <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">
+            {/* The way forward is the loudest thing on the page. Going again
+                straight away is what turns a bad answer into a practised one. */}
+            <Link to="/app">
+              <Action>{t("feedback.again")}</Action>
+            </Link>
             {share?.historyId && (
               <ShareControl
                 historyId={share.historyId}
@@ -339,9 +355,6 @@ function FeedbackBody({
                 later is offering it to somebody who has stopped feeling it. */}
             <Link to="/app/share">
               <Action tone="glass">{t("feedback.shareProgress")}</Action>
-            </Link>
-            <Link to="/app">
-              <Action tone="glass">{t("feedback.again")}</Action>
             </Link>
           </div>
         }
@@ -381,7 +394,10 @@ function FeedbackBody({
               <Eyebrow>{t("feedback.worked")}</Eyebrow>
               <ul className="mt-3 flex flex-col gap-3">
                 {evaluation.strengths.map((item) => (
-                  <li key={item} className="text-sm leading-relaxed text-cream-bright">
+                  <li key={item} className="flex gap-3 text-sm leading-relaxed text-cream-bright">
+                    <span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-grow-soft text-grow-text">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
                     {item}
                   </li>
                 ))}
@@ -391,7 +407,10 @@ function FeedbackBody({
               <Eyebrow>{t("feedback.toFix")}</Eyebrow>
               <ul className="mt-3 flex flex-col gap-3">
                 {evaluation.areas_for_improvement.map((item) => (
-                  <li key={item} className="text-sm leading-relaxed text-cream-dim">
+                  <li key={item} className="flex gap-3 text-sm leading-relaxed text-cream-bright">
+                    <span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-step-soft text-step-text">
+                      <ArrowUpRight className="h-3 w-3" strokeWidth={3} />
+                    </span>
                     {item}
                   </li>
                 ))}
@@ -416,18 +435,9 @@ function FeedbackBody({
                 ))}
               </div>
             </div>
-            <div>
-              <p className="text-xs text-cream-faint">{t("feedback.corrections")}</p>
-              <ul className="mt-2 flex flex-col gap-2">
-                {evaluation.vocabulary_feedback.missed_opportunities_or_errors.map(
-                  (item) => (
-                    <li key={item} className="text-sm text-cream-dim">
-                      {item}
-                    </li>
-                  ),
-                )}
-              </ul>
-            </div>
+            {evaluation.vocabulary_feedback.missed_opportunities_or_errors.length > 0 && (
+              <CorrectionSteps items={evaluation.vocabulary_feedback.missed_opportunities_or_errors} />
+            )}
             <p className="border-t border-line pt-5 text-sm leading-relaxed text-cream-dim">
               {evaluation.structure_feedback.feedback_text}
             </p>

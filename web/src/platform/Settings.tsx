@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Eyebrow, Field, Panel, Action } from "@/design-system";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
@@ -140,7 +140,18 @@ export function Settings() {
 
   return (
     <>
-      <PageHeader title={t("settings.title")} meta={t("settings.meta")} />
+      <PageHeader
+        title={t("settings.title")}
+        meta={t("settings.meta")}
+        /* On a phone the account is one tab, and it opens here. Context —
+           the CV the interviewer reads — has no tab of its own any more, so
+           it is offered from the page that tab lands on. */
+        actions={
+          <Link to="/app/profile" className="md:hidden">
+            <Action tone="glass">{t("nav.context")}</Action>
+          </Link>
+        }
+      />
       <PageBody>
         <div
           role="tablist"

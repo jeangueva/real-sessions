@@ -4,15 +4,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Briefcase,
   FileUser,
-  History,
-  ImageUp,
-  LineChart,
   Lock,
   LogIn,
   Mic,
   Play,
+  Route,
   Settings,
   ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { fetchPlan, fetchSession, signOut } from "@/lib/api";
@@ -50,24 +49,10 @@ const NAV = [
     end: true,
   },
   {
-    to: "/app/profile",
-    key: "nav.context" as const,
-    short: "nav.contextShort" as const,
-    icon: FileUser,
-    end: false,
-  },
-  {
     to: "/app/progress",
     key: "nav.progress" as const,
-    short: "nav.progress" as const,
-    icon: LineChart,
-    end: false,
-  },
-  {
-    to: "/app/history",
-    key: "nav.history" as const,
-    short: "nav.history" as const,
-    icon: History,
+    short: "nav.progressShort" as const,
+    icon: Route,
     end: false,
   },
   {
@@ -77,19 +62,29 @@ const NAV = [
     icon: Briefcase,
     end: false,
   },
+];
+
+/**
+ * Three places, in the order the product is for: practise, see that it is
+ * working, take it to a real job.
+ *
+ * The rail used to list eight things side by side — History beside Progress,
+ * Share beside both — which made every one of them read as equally important
+ * and none of them as the point. History is the bottom half of the path now;
+ * sharing is offered on the report and on the path, where there is something
+ * worth sharing; context, settings and review are about the account, not
+ * about the practice, so they sit with the account at the foot of the rail.
+ */
+const ACCOUNT = [
   {
-    to: "/app/share",
-    key: "nav.share" as const,
-    short: "nav.shareShort" as const,
-    icon: ImageUp,
-    end: false,
+    to: "/app/profile",
+    key: "nav.context" as const,
+    icon: FileUser,
   },
   {
     to: "/app/settings",
     key: "nav.settings" as const,
-    short: "nav.settings" as const,
     icon: Settings,
-    end: false,
   },
 ];
 
@@ -155,57 +150,44 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen bg-surface-deep">
-      <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col items-center gap-2 border-r border-line py-6 md:flex lg:w-56 lg:items-stretch lg:px-4">
-        <div className="mb-6 flex items-center gap-2 px-2">
-          <Mic className="h-5 w-5 text-cream" aria-hidden />
-          <Wordmark className="hidden text-base font-semibold text-cream-bright lg:inline" />
+      <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col items-center gap-2 border-r border-line py-6 md:flex lg:w-60 lg:items-stretch lg:px-4">
+        <div className="mb-8 flex items-center gap-2.5 px-2">
+          {/* The mark is the accent's own disc: the one place the colour sits
+              at rest, so the eye learns it means "this product, speaking". */}
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-accent-ink">
+            <Mic className="h-4 w-4" aria-hidden />
+          </span>
+          <Wordmark className="hidden text-lg font-semibold text-cream-bright lg:inline" />
         </div>
 
-        <nav className="flex flex-col gap-1">
-          {[
-            ...NAV,
-            ...(reviewer
-              ? [
-                  {
-                    to: "/app/review",
-                    key: "nav.review" as const,
-                    icon: ShieldCheck,
-                    end: false,
-                  },
-                ]
-              : []),
-          ].map(({ to, key, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              title={t(key)}
-              // The tour points at Progress; marking every item keeps that
-              // selector honest if the list is ever reordered.
-              data-tour={to.split("/").pop()}
-              className={({ isActive }) =>
-                `focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-300 ${
-                  isActive
-                    ? "bg-surface-lift text-cream-bright"
-                    : "text-cream-dim hover:text-cream-bright"
-                }`
-              }
-            >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden />
-              {locked.includes(to) && (
-                <Lock
-                  className="hidden h-3 w-3 shrink-0 text-cream-faint lg:inline"
-                  aria-label={t("nav.onPaidPlan")}
-                />
-              )}
-              <span className="hidden lg:inline">{t(key)}</span>
-            </NavLink>
+        <nav aria-label={t("nav.sections")} className="flex flex-col gap-1">
+          {NAV.map(({ to, key, icon: Icon, end }) => (
+            <RailLink key={to} to={to} end={end} label={t(key)} icon={Icon} />
           ))}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-2 border-t border-line pt-4">
+        <div className="mt-auto flex flex-col gap-1 border-t border-line pt-4">
+          <p className="hidden px-3 pb-1 text-xs text-cream-faint lg:block">{t("nav.you")}</p>
+          <nav aria-label={t("nav.you")} className="flex flex-col gap-1">
+            {[
+              ...ACCOUNT,
+              ...(reviewer
+                ? [{ to: "/app/review", key: "nav.review" as const, icon: ShieldCheck }]
+                : []),
+            ].map(({ to, key, icon }) => (
+              <RailLink
+                key={to}
+                to={to}
+                end={false}
+                label={t(key)}
+                icon={icon}
+                quiet
+                locked={locked.includes(to) ? t("nav.onPaidPlan") : undefined}
+              />
+            ))}
+          </nav>
           <p
-            className="hidden truncate px-3 text-xs text-cream-dim lg:block"
+            className="hidden truncate px-3 pt-3 text-xs text-cream-dim lg:block"
             title={session.email ?? undefined}
           >
             {session.email}
@@ -215,7 +197,7 @@ export function AppShell() {
               void signOut().then(() => window.location.assign("/"));
             }}
             title={t("nav.signOut")}
-            className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-cream-dim transition-colors hover:text-cream-bright"
+            className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-cream-dim transition-colors hover:text-cream-bright"
           >
             <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
             <span className="hidden lg:inline">{t("nav.signOut")}</span>
@@ -259,38 +241,86 @@ export function AppShell() {
         </AnimatePresence>
       </div>
 
-      <MobileNav signedIn={session?.kind === "user"} />
+      <MobileNav />
     </div>
+  );
+}
+
+/**
+ * One entry in the rail.
+ *
+ * The three destinations carry weight: the active one sits on the accent's
+ * soft wash with the accent's ink, so where you are is the warmest thing on
+ * the left of the screen. Account entries are `quiet` — same shape, no colour
+ * — because they are places you visit, not places you work.
+ */
+function RailLink({
+  to,
+  end,
+  label,
+  icon: Icon,
+  quiet = false,
+  locked,
+}: {
+  to: string;
+  end: boolean;
+  label: string;
+  icon: typeof Play;
+  quiet?: boolean;
+  locked?: string;
+}) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      title={label}
+      // The tour points at the path; marking every item keeps that selector
+      // honest if the list is ever reordered.
+      data-tour={to.split("/").pop()}
+      className={({ isActive }) =>
+        `focus-ring flex items-center gap-3 rounded-xl px-3 transition-colors duration-300 ${
+          quiet ? "py-2 text-sm" : "py-2.5 text-base"
+        } ${
+          isActive
+            ? quiet
+              ? "bg-surface-lift text-cream-bright"
+              : "bg-accent-soft text-accent-text"
+            : "text-cream-dim hover:bg-surface-lift hover:text-cream-bright"
+        }`
+      }
+    >
+      <Icon className={`${quiet ? "h-4 w-4" : "h-5 w-5"} shrink-0`} aria-hidden />
+      <span className="hidden lg:inline">{label}</span>
+      {locked && (
+        <Lock className="ml-auto hidden h-3 w-3 shrink-0 text-cream-faint lg:inline" aria-label={locked} />
+      )}
+    </NavLink>
   );
 }
 
 /**
  * Bottom bar, below `md` only.
  *
- * Four destinations plus a fifth, because five 78px targets is already the
- * limit on a 390px screen. Settings drops out of the list and comes back as
- * that fifth tab, which is the only slot it fits in.
- *
- * The fifth tab used to send a guest to sign-in instead, which left settings
- * unreachable on a phone for exactly the people most likely to need it — the
- * interface language lives there. It also repeated a pattern the rail had
- * already abandoned: a guest reading the last slot of a nav expects a way to
- * their own settings, not a sign-up CTA. That prompt still exists inside
- * Settings under Account, which is where the rail's own comment says people
- * go to look for it, so this reaches it in one more tap rather than losing
- * it.
+ * The three destinations and a fourth tab for the account. Four 97px targets
+ * on a 390px screen, where the old bar squeezed five and still had to drop
+ * settings to fit. "You" opens settings, which links on to context; it lights
+ * up on any account screen so a person always knows which tab they are under.
  */
-const MOBILE_NAV = NAV.filter(({ to }) => to !== "/app/settings");
-
-function MobileNav({ signedIn }: { signedIn: boolean }) {
+function MobileNav() {
   const t = useT();
+  const { pathname } = useLocation();
+  const onAccount = ACCOUNT.some(({ to }) => pathname.startsWith(to)) || pathname.startsWith("/app/review");
+  const tab = (active: boolean) =>
+    `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs transition-colors ${
+      active ? "text-accent-text" : "text-cream-dim"
+    }`;
   return (
     <nav
       aria-label={t("nav.sections")}
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface-deep/95 backdrop-blur md:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
-        {MOBILE_NAV.map(({ to, short, icon: Icon, end }) => (
+        {NAV.map(({ to, short, icon: Icon, end }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -299,11 +329,7 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
               // zero-sized box. Marking this one too means the tour has a
               // real target to point at rather than the rail's empty rect.
               data-tour={to.split("/").pop()}
-              className={({ isActive }) =>
-                `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs transition-colors ${
-                  isActive ? "text-cream-bright" : "text-cream-dim"
-                }`
-              }
+              className={({ isActive }) => tab(isActive)}
             >
               <Icon className="h-5 w-5" aria-hidden />
               {t(short)}
@@ -311,23 +337,9 @@ function MobileNav({ signedIn }: { signedIn: boolean }) {
           </li>
         ))}
         <li className="flex-1">
-          <NavLink
-            to="/app/settings"
-            className={({ isActive }) =>
-              `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs transition-colors ${
-                isActive ? "text-cream-bright" : "text-cream-dim"
-              }`
-            }
-          >
-            {/* Signed in, this is where the account lives, so it keeps that
-                name and the sign-out mark. A guest has no account to manage
-                and gets the tab for what it is. */}
-            {signedIn ? (
-              <LogIn className="h-5 w-5 rotate-180" aria-hidden />
-            ) : (
-              <Settings className="h-5 w-5" aria-hidden />
-            )}
-            {t(signedIn ? "nav.accountShort" : "nav.settingsShort")}
+          <NavLink to="/app/settings" className={() => tab(onAccount)}>
+            <UserRound className="h-5 w-5" aria-hidden />
+            {t("nav.youShort")}
           </NavLink>
         </li>
       </ul>
@@ -383,7 +395,12 @@ export function PageHeader({
           under it at every width. */}
       <div className="mx-auto flex w-full max-w-[110rem] flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
-          <h1 className="text-title font-normal text-cream-bright">{title}</h1>
+          {/* Serif for the headline: the one line on each screen that is
+              written to the person rather than labelling a control, set in
+              the face that reads as a voice rather than as an interface. */}
+          <h1 className="font-serif text-title font-normal text-cream-bright sm:text-[2.5rem] sm:leading-[1.05]">
+            {title}
+          </h1>
           {meta && <p className="mt-1 text-xs text-cream-dim">{meta}</p>}
         </div>
         {actions}
