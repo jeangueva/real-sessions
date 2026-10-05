@@ -640,6 +640,9 @@ const JA: Record<MessageKey, string> = {
   "area.operations": "オペレーション",
   "price.estimateNote": "お住まいの通貨での目安です。カードには {price}（{name}）が請求され、最終金額はカード会社が決定します。",
   "price.chargedIn": "{name}（{code}）で請求されます。お住まいの通貨への換算はカード会社が行います。",
+  "price.taxIncluded": "税込み。決済パートナーの Paddle が {name}（{code}）で請求します。",
+  "billing.subscribeRegional": "有料プランにする — {price}",
+  "billing.confirming": "お支払いを受け付けました。プランを有効にしています…",
 };
 
 export default JA;

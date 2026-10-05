@@ -640,6 +640,9 @@ const DE: Record<MessageKey, string> = {
   "area.operations": "Operations",
   "price.estimateNote": "Eine Schätzung in deiner Währung. Deine Karte wird mit {price} ({name}) belastet; den Endbetrag legt deine Bank fest.",
   "price.chargedIn": "Abgerechnet in {name} ({code}). Deine Bank rechnet in deine Währung um.",
+  "price.taxIncluded": "Steuern inklusive. Abgerechnet in {name} ({code}) über Paddle, unseren Zahlungspartner.",
+  "billing.subscribeRegional": "Upgraden — {price}",
+  "billing.confirming": "Zahlung erhalten. Dein Tarif wird aktiviert…",
 };
 
 export default DE;

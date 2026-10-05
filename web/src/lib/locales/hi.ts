@@ -640,6 +640,9 @@ const HI: Record<MessageKey, string> = {
   "area.operations": "ऑपरेशंस",
   "price.estimateNote": "यह आपकी मुद्रा में अनुमान है। आपके कार्ड से {price} ({name}) लिया जाएगा; अंतिम राशि आपका बैंक तय करता है।",
   "price.chargedIn": "शुल्क {name} ({code}) में लिया जाता है। आपका बैंक इसे आपकी मुद्रा में बदलता है।",
+  "price.taxIncluded": "कर सहित। हमारे भुगतान साझेदार Paddle द्वारा {name} ({code}) में शुल्क लिया जाता है।",
+  "billing.subscribeRegional": "अपग्रेड करें — {price}",
+  "billing.confirming": "भुगतान मिल गया। आपका प्लान चालू हो रहा है…",
 };
 
 export default HI;

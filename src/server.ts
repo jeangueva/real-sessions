@@ -198,6 +198,15 @@ import {
 import { createLifecycleStore, type LifecycleStore } from "./lifecycle-store.js";
 import { AREAS, ROLES, interviewerTitle, roleIdFor } from "./roles.js";
 import { ratesFrom } from "./fx.js";
+import { regionFor } from "./billing/regions.js";
+import {
+  cancelPaddleSubscription,
+  fetchPaddleSubscription,
+  paddleConfig,
+  parseSubscriptionEvent,
+  verifyPaddleSignature,
+} from "./billing/paddle.js";
+import type { PaddleSubscription } from "./billing/paddle.js";
 import {
   MAX_COMBINED,
   resolveStages,
@@ -935,6 +944,84 @@ async function reconcileSubscription(externalId: string): Promise<Plan | null> {
   return PLANS.planFor(ownerId);
 }
 
+/** Cancels with whichever provider holds the subscription. */
+async function cancelAtProvider(held: { provider: "mercadopago" | "paddle"; externalId: string }) {
+  if (held.provider === "paddle") {
+    const config = paddleConfig();
+    if (!config) throw new Error("Paddle subscription held but Paddle is not configured.");
+    await cancelPaddleSubscription(config, held.externalId);
+    return;
+  }
+  await cancelPreapproval(held.externalId);
+}
+
+/** Reads the provider's current view of a held subscription and applies it. */
+async function reconcileAtProvider(held: {
+  provider: "mercadopago" | "paddle";
+  externalId: string;
+}): Promise<Plan | null> {
+  if (held.provider === "paddle") {
+    const config = paddleConfig();
+    if (!config) return null;
+    const sub = await fetchPaddleSubscription(config, held.externalId);
+    return sub ? applyPaddleSubscription(sub) : null;
+  }
+  return reconcileSubscription(held.externalId);
+}
+
+/**
+ * The Paddle twin of `reconcileSubscription`: same store, same grant, same
+ * mails, driven by what Paddle's notification says rather than by a read.
+ *
+ * The owner comes from `custom_data`, which the checkout sets to our account
+ * id; a later event without it (Paddle does not always repeat it) is matched
+ * through the stored row instead.
+ */
+async function applyPaddleSubscription(sub: PaddleSubscription): Promise<Plan | null> {
+  const known = await SUBSCRIPTIONS.byExternalId(sub.id);
+  const ownerId = sub.ownerId ?? known?.ownerId ?? null;
+  if (!ownerId) return null;
+
+  const previousStatus = known?.status ?? null;
+  await SUBSCRIPTIONS.put({
+    ownerId,
+    provider: "paddle",
+    externalId: sub.id,
+    status: sub.status,
+    periodEnd: sub.periodEnd,
+  });
+  await notifySubscription(ownerId, previousStatus, sub.status, sub.periodEnd);
+
+  if (grantsAccess(sub.status)) {
+    await PLANS.grant(ownerId, "premium", "subscription", sub.periodEnd);
+    return "premium";
+  }
+  if (sub.status === "cancelled" && !sub.periodEnd) await PLANS.revoke(ownerId, "subscription");
+  return PLANS.planFor(ownerId);
+}
+
+/** Reads a request body as text, for webhooks whose signature covers the raw bytes. */
+async function readRaw(req: IncomingMessage, limit = 256 * 1024): Promise<string> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) throw new Error("Request body too large.");
+    chunks.push(chunk as Buffer);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+/**
+ * The reader's country: Cloudflare's, when the request came through it, and
+ * otherwise what the browser said about itself. Only ever used to choose
+ * which price and checkout to show — Paddle charges by the billing address it
+ * collects, so a wrong guess here costs nobody anything.
+ */
+function readerCountry(req: IncomingMessage, url: URL): string | null {
+  return header(req, "cf-ipcountry") ?? url.searchParams.get("country");
+}
+
 /** Defaults to practice: live coaching on, which is the gentler surprise. */
 function readMode(value: unknown): SessionMode {
   return value === "real" ? "real" : "practice";
@@ -1458,7 +1545,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // unreachable — the page then shows only what is charged.
     const plan = planConfig();
     const rates = plan ? await ratesFrom(plan.currency) : null;
-    json(res, 200, { plan, offer: planOffer(), rates });
+    // Which checkout and price this reader gets. Peru — and every country
+    // while Paddle is not configured — is Mercado Pago in soles, exactly as
+    // before; elsewhere it is the regional price in local currency.
+    const region = regionFor(readerCountry(req, url), paddleConfig() !== null);
+    json(res, 200, { plan, offer: planOffer(), rates, region });
     return;
   }
 
@@ -1627,6 +1718,40 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return json(res, 200, { ok: true });
   }
 
+  if (req.method === "POST" && path === "/api/billing/paddle/webhook") {
+    // Public by necessity, like Mercado Pago's: the signature over the raw
+    // body is the authentication, checked before the body is parsed.
+    const config = paddleConfig();
+    if (!config) return json(res, 503, { error: "Paddle is not configured." });
+    const raw = await readRaw(req);
+    const check = verifyPaddleSignature({
+      header: header(req, "paddle-signature"),
+      rawBody: raw,
+      secret: config.webhookSecret,
+    });
+    if (!check.ok) {
+      console.warn(`[mockio] rejected Paddle webhook: ${check.reason}`);
+      return json(res, 401, { error: "Invalid signature." });
+    }
+    let sub: PaddleSubscription | null = null;
+    try {
+      sub = parseSubscriptionEvent(JSON.parse(raw));
+    } catch {
+      return json(res, 400, { error: "Unreadable body." });
+    }
+    // Events this product does not act on (transactions, customers) are
+    // acknowledged so Paddle stops sending them.
+    if (!sub) return json(res, 200, { ok: true, handled: false });
+    try {
+      const plan = await applyPaddleSubscription(sub);
+      if (plan === null) console.warn(`[mockio] Paddle webhook for ${sub.id} with no owner; ignored`);
+      return json(res, 200, { ok: true });
+    } catch (error) {
+      console.error("[mockio] Paddle webhook failed:", error);
+      return json(res, 500, { error: "We could not record that just now." });
+    }
+  }
+
   if (req.method === "GET" && path === "/api/voice/config") {
     // Deliberately in front of the authentication gate: it is asked before the
     // microphone is opened, the answer is identical for everyone, and making
@@ -1766,6 +1891,25 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // looks exactly like the right one until money does or does not move.
       mode: billingMode(),
       subscription: await SUBSCRIPTIONS.forOwner(identity.id),
+      // Where this reader is sold from, and what the browser needs to open
+      // Paddle's checkout. The client token and price ids are public by
+      // design; the API key and webhook secret never leave the server.
+      region: regionFor(readerCountry(req, url), paddleConfig() !== null),
+      paddle: (() => {
+        const paddle = paddleConfig();
+        return paddle
+          ? {
+              env: paddle.env,
+              clientToken: paddle.clientToken,
+              priceMonthly: paddle.priceMonthly,
+              priceYearly: paddle.priceYearly,
+              // Round-trips through Paddle as custom_data so the webhook
+              // knows whose subscription it is. Someone editing it can only
+              // pay for another account's premium.
+              ownerId: identity.id,
+            }
+          : null;
+      })(),
     });
     return;
   }
@@ -1807,7 +1951,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 200, { plan: await PLANS.planFor(identity.id) });
     }
     try {
-      const settled = await reconcileSubscription(held.externalId);
+      const settled = await reconcileAtProvider(held);
       return json(res, 200, { plan: settled ?? (await PLANS.planFor(identity.id)) });
     } catch (error) {
       console.warn("[mockio] could not reconcile:", error);
@@ -1858,7 +2002,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const subscription = await SUBSCRIPTIONS.forOwner(identity.id).catch(() => null);
     if (subscription && subscription.status !== "cancelled") {
       try {
-        await cancelPreapproval(subscription.externalId);
+        await cancelAtProvider(subscription);
       } catch (error) {
         console.error("[mockio] cancel before delete failed:", error);
         return json(res, 502, {
@@ -2165,10 +2309,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const held = await SUBSCRIPTIONS.forOwner(identity.id);
     if (!held) return json(res, 404, { error: "There is no subscription to cancel." });
 
-    await cancelPreapproval(held.externalId);
+    await cancelAtProvider(held);
     // Reconciled rather than assumed: the provider is the authority on what
     // just happened, including how long the paid period still runs.
-    const resolved = await reconcileSubscription(held.externalId);
+    const resolved = await reconcileAtProvider(held);
     json(res, 200, { plan: resolved ?? "free" });
     return;
   }

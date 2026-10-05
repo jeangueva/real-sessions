@@ -640,6 +640,9 @@ const ZH: Record<MessageKey, string> = {
   "area.operations": "运营",
   "price.estimateNote": "这是按你所在货币的估算。你的卡将被收取 {price}（{name}），最终金额由你的银行决定。",
   "price.chargedIn": "以{name}（{code}）收费，由你的银行换算成你的货币。",
+  "price.taxIncluded": "含税。由我们的支付合作方 Paddle 以{name}（{code}）收费。",
+  "billing.subscribeRegional": "升级 — {price}",
+  "billing.confirming": "已收到付款，正在开通你的方案…",
 };
 
 export default ZH;

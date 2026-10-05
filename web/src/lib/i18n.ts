@@ -751,6 +751,9 @@ const EN = {
   "area.operations": "Operations",
   "price.estimateNote": "An estimate in your currency. Your card is charged {price} ({name}); your bank sets the final amount.",
   "price.chargedIn": "Charged in {name} ({code}). Your bank converts it to your currency.",
+  "price.taxIncluded": "Tax included. Charged in {name} ({code}) by Paddle, our payment partner.",
+  "billing.subscribeRegional": "Upgrade — {price}",
+  "billing.confirming": "Payment received. Switching on your plan…",
 } as const;
 
 export type MessageKey = keyof typeof EN;

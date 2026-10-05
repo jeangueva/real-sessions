@@ -3,7 +3,7 @@
  *
  * Deliberately separate from `entitlements`. An entitlement answers "does this
  * identity have premium right now"; a subscription answers "does this identity
- * have a billing relationship, and what is Mercado Pago saying about it". They
+ * have a billing relationship, and what is the provider saying about it". They
  * diverge in the case that matters most: someone cancels on the 3rd having paid
  * through the 30th. The subscription is cancelled, the grant runs to the end of
  * the period, and collapsing them would either cut them off early or leave them
@@ -12,8 +12,12 @@
 import type { DbPool } from "../db/index.js";
 import type { PreapprovalStatus } from "./mercadopago.js";
 
+/** Which provider holds the subscription. Peru is Mercado Pago, elsewhere Paddle. */
+export type BillingProvider = "mercadopago" | "paddle";
+
 export interface Subscription {
   ownerId: string;
+  provider: BillingProvider;
   externalId: string;
   status: PreapprovalStatus;
   periodEnd: string | null;
@@ -24,6 +28,8 @@ export interface SubscriptionStore {
   /** Inserts or replaces the row for an owner. One subscription each. */
   put(input: {
     ownerId: string;
+    /** Defaults to Mercado Pago, which every row predating Paddle is. */
+    provider?: BillingProvider;
     externalId: string;
     status: PreapprovalStatus;
     periodEnd: Date | null;
@@ -40,25 +46,27 @@ class PostgresSubscriptionStore implements SubscriptionStore {
 
   async put(input: {
     ownerId: string;
+    provider?: BillingProvider;
     externalId: string;
     status: PreapprovalStatus;
     periodEnd: Date | null;
   }) {
     await this.pool.query(
-      `INSERT INTO subscriptions (owner_id, external_id, status, period_end, updated_at)
-       VALUES ($1, $2, $3, $4, now())
+      `INSERT INTO subscriptions (owner_id, provider, external_id, status, period_end, updated_at)
+       VALUES ($1, $2, $3, $4, $5, now())
        ON CONFLICT (owner_id) DO UPDATE SET
+         provider = EXCLUDED.provider,
          external_id = EXCLUDED.external_id,
          status = EXCLUDED.status,
          period_end = EXCLUDED.period_end,
          updated_at = now()`,
-      [input.ownerId, input.externalId, input.status, input.periodEnd],
+      [input.ownerId, input.provider ?? "mercadopago", input.externalId, input.status, input.periodEnd],
     );
   }
 
   async forOwner(ownerId: string): Promise<Subscription | null> {
     const { rows } = await this.pool.query(
-      `SELECT owner_id, external_id, status, period_end, updated_at
+      `SELECT owner_id, provider, external_id, status, period_end, updated_at
          FROM subscriptions WHERE owner_id = $1`,
       [ownerId],
     );
@@ -67,7 +75,7 @@ class PostgresSubscriptionStore implements SubscriptionStore {
 
   async byExternalId(externalId: string): Promise<Subscription | null> {
     const { rows } = await this.pool.query(
-      `SELECT owner_id, external_id, status, period_end, updated_at
+      `SELECT owner_id, provider, external_id, status, period_end, updated_at
          FROM subscriptions WHERE external_id = $1`,
       [externalId],
     );
@@ -94,6 +102,7 @@ class PostgresSubscriptionStore implements SubscriptionStore {
 function toSubscription(row: Record<string, unknown>): Subscription {
   return {
     ownerId: row.owner_id as string,
+    provider: row.provider === "paddle" ? "paddle" : "mercadopago",
     externalId: row.external_id as string,
     status: row.status as PreapprovalStatus,
     periodEnd: row.period_end ? new Date(row.period_end as string).toISOString() : null,
@@ -106,12 +115,14 @@ class MemorySubscriptionStore implements SubscriptionStore {
 
   async put(input: {
     ownerId: string;
+    provider?: BillingProvider;
     externalId: string;
     status: PreapprovalStatus;
     periodEnd: Date | null;
   }) {
     this.byOwner.set(input.ownerId, {
       ownerId: input.ownerId,
+      provider: input.provider ?? "mercadopago",
       externalId: input.externalId,
       status: input.status,
       periodEnd: input.periodEnd ? input.periodEnd.toISOString() : null,

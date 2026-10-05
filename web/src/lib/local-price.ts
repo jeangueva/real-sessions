@@ -74,6 +74,24 @@ const REGION_BY_ZONE: Record<string, string> = {
   "Europe/Dublin": "IE",
 };
 
+/** The country the browser says it is in: its language's region, then its timezone. */
+export function countryFor(languages: readonly string[], timeZone: string | undefined): string | null {
+  for (const tag of languages) {
+    const region = tag.split(/[-_]/)[1]?.toUpperCase();
+    if (region && /^[A-Z]{2}$/.test(region)) return region;
+  }
+  return (timeZone && REGION_BY_ZONE[timeZone]) || null;
+}
+
+export function visitorCountry(): string | null {
+  try {
+    const languages = typeof navigator === "undefined" ? [] : [...(navigator.languages ?? []), navigator.language];
+    return countryFor(languages.filter(Boolean), Intl.DateTimeFormat().resolvedOptions().timeZone);
+  } catch {
+    return null;
+  }
+}
+
 export function currencyFor(languages: readonly string[], timeZone: string | undefined): string | null {
   for (const tag of languages) {
     const region = tag.split(/[-_]/)[1]?.toUpperCase();

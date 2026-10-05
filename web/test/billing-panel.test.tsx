@@ -91,14 +91,14 @@ describe("the plan panel, on load", () => {
   it("asks the server to settle, and reads again once it answers", async () => {
     serve("pending", "free");
     await waitFor(() =>
-      expect(asked.filter((url) => url.endsWith("/api/billing"))).toHaveLength(2),
+      expect(asked.filter((url) => url.split("?")[0]!.endsWith("/api/billing"))).toHaveLength(2),
     );
     // One read before settling, so a provider that hangs cannot leave this
     // panel blank, and one after, because settling is what turns a payment
     // into a plan.
     expect(asked.filter((url) => url.includes("/api/billing/reconcile"))).toHaveLength(1);
     const settled = asked.findIndex((url) => url.includes("/api/billing/reconcile"));
-    const reads = asked.flatMap((url, at) => (url.endsWith("/api/billing") ? [at] : []));
+    const reads = asked.flatMap((url, at) => (url.split("?")[0]!.endsWith("/api/billing") ? [at] : []));
     expect(reads[0]).toBeLessThan(settled);
     expect(reads[1]).toBeGreaterThan(settled);
   });

@@ -1,3 +1,5 @@
+import { visitorCountry } from "./local-price";
+import type { PaddleClient } from "./paddle";
 /**
  * Client for the Mockio API. No credentials live here — the provider key
  * stays on the server, which is the whole reason this boundary exists.
@@ -758,6 +760,23 @@ export interface BillingState {
    */
   publicKey: string | null;
   subscription: Subscription | null;
+  /** Where this reader is sold from. Absent on servers older than regions. */
+  region?: Region;
+  /** What the browser needs to open Paddle's checkout; null when Paddle is off. */
+  paddle?: PaddleClient | null;
+}
+
+/**
+ * The reader's price and checkout. Mirrors `Region` in src/billing/regions.ts.
+ *
+ * `paddle` means the regional price below, charged by Paddle in that currency;
+ * `mercadopago` means the plan in soles, as it always was.
+ */
+export interface Region {
+  country: string | null;
+  tier: 1 | 2 | 3 | 4;
+  provider: "mercadopago" | "paddle";
+  price: { currency: string; monthly: number; yearly: number } | null;
 }
 
 export function subscribeWithCard(cardTokenId: string, cycle: BillingCycle = "monthly") {
@@ -784,7 +803,7 @@ export function reconcileBilling() {
 
 export function fetchBilling() {
   return withIdentity(() =>
-    request<BillingState>("/api/billing", { method: "GET" }),
+    request<BillingState>(`/api/billing${countryQuery()}`, { method: "GET" }),
   );
 }
 
@@ -1006,13 +1025,23 @@ export interface PlanOffer {
   savingPercent: number | null;
 }
 
+/**
+ * The browser's own guess at its country, for the server to use when
+ * Cloudflare does not say. Empty when the browser does not know either.
+ */
+function countryQuery(): string {
+  const country = visitorCountry();
+  return country ? `?country=${country}` : "";
+}
+
 export function fetchPricing() {
   return request<{
     plan: { amount: number; currency: string } | null;
     offer: PlanOffer | null;
     /** Indicative rates from the charged currency. Absent on older servers. */
     rates?: { base: string; values: Record<string, number>; asOf: string } | null;
-  }>("/api/pricing", { method: "GET" });
+    region?: Region;
+  }>(`/api/pricing${countryQuery()}`, { method: "GET" });
 }
 
 export function fetchEarlyAccessState() {
