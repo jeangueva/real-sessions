@@ -1010,6 +1010,8 @@ export function fetchPricing() {
   return request<{
     plan: { amount: number; currency: string } | null;
     offer: PlanOffer | null;
+    /** Indicative rates from the charged currency. Absent on older servers. */
+    rates?: { base: string; values: Record<string, number>; asOf: string } | null;
   }>("/api/pricing", { method: "GET" });
 }
 

@@ -639,6 +639,8 @@ const IT: Record<MessageKey, string> = {
   "area.sales": "Vendite",
   "area.customerSuccess": "Customer success",
   "area.operations": "Operazioni",
+  "price.estimateNote": "È una stima nella tua valuta. Alla tua carta vengono addebitati {price} ({name}); l'importo finale lo stabilisce la tua banca.",
+  "price.chargedIn": "Addebitato in {name} ({code}). La tua banca lo converte nella tua valuta.",
 };
 
 export default IT;

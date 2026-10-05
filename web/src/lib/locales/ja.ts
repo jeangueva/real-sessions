@@ -638,6 +638,8 @@ const JA: Record<MessageKey, string> = {
   "area.sales": "セールス",
   "area.customerSuccess": "カスタマーサクセス",
   "area.operations": "オペレーション",
+  "price.estimateNote": "お住まいの通貨での目安です。カードには {price}（{name}）が請求され、最終金額はカード会社が決定します。",
+  "price.chargedIn": "{name}（{code}）で請求されます。お住まいの通貨への換算はカード会社が行います。",
 };
 
 export default JA;

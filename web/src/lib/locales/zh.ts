@@ -638,6 +638,8 @@ const ZH: Record<MessageKey, string> = {
   "area.sales": "销售",
   "area.customerSuccess": "客户成功",
   "area.operations": "运营",
+  "price.estimateNote": "这是按你所在货币的估算。你的卡将被收取 {price}（{name}），最终金额由你的银行决定。",
+  "price.chargedIn": "以{name}（{code}）收费，由你的银行换算成你的货币。",
 };
 
 export default ZH;

@@ -638,6 +638,8 @@ const RU: Record<MessageKey, string> = {
   "area.sales": "Продажи",
   "area.customerSuccess": "Работа с клиентами",
   "area.operations": "Операции",
+  "price.estimateNote": "Это примерная сумма в вашей валюте. С карты будет списано {price} ({name}); итоговую сумму определяет ваш банк.",
+  "price.chargedIn": "Списание в валюте {name} ({code}). Ваш банк конвертирует сумму в вашу валюту.",
 };
 
 export default RU;

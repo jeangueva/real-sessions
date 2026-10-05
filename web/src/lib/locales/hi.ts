@@ -638,6 +638,8 @@ const HI: Record<MessageKey, string> = {
   "area.sales": "सेल्स",
   "area.customerSuccess": "कस्टमर सक्सेस",
   "area.operations": "ऑपरेशंस",
+  "price.estimateNote": "यह आपकी मुद्रा में अनुमान है। आपके कार्ड से {price} ({name}) लिया जाएगा; अंतिम राशि आपका बैंक तय करता है।",
+  "price.chargedIn": "शुल्क {name} ({code}) में लिया जाता है। आपका बैंक इसे आपकी मुद्रा में बदलता है।",
 };
 
 export default HI;

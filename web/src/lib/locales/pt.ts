@@ -685,6 +685,8 @@ const PT: Record<MessageKey, string> = {
   "area.sales": "Vendas",
   "area.customerSuccess": "Sucesso do cliente",
   "area.operations": "Operações",
+  "price.estimateNote": "É uma estimativa na sua moeda. Seu cartão é cobrado em {price} ({name}); o valor final é definido pelo seu banco.",
+  "price.chargedIn": "Cobrado em {name} ({code}). Seu banco converte para a sua moeda.",
 };
 
 export default PT;

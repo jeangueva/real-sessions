@@ -749,6 +749,8 @@ const EN = {
   "area.sales": "Sales",
   "area.customerSuccess": "Customer success",
   "area.operations": "Operations",
+  "price.estimateNote": "An estimate in your currency. Your card is charged {price} ({name}); your bank sets the final amount.",
+  "price.chargedIn": "Charged in {name} ({code}). Your bank converts it to your currency.",
 } as const;
 
 export type MessageKey = keyof typeof EN;
