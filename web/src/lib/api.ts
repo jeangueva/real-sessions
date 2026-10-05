@@ -1034,6 +1034,20 @@ function countryQuery(): string {
   return country ? `?country=${country}` : "";
 }
 
+/**
+ * Asks the server to settle a finished Paddle checkout by its transaction,
+ * for when the webhook has not arrived yet. 202 means Paddle has the payment
+ * but not yet the subscription — ask again in a moment.
+ */
+export function syncPaddleCheckout(transactionId: string) {
+  return withIdentity(() =>
+    request<{ plan: Plan; settled: boolean }>("/api/billing/paddle/sync", {
+      method: "POST",
+      body: JSON.stringify({ transactionId }),
+    }),
+  );
+}
+
 export function fetchPricing() {
   return request<{
     plan: { amount: number; currency: string } | null;

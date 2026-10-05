@@ -238,3 +238,29 @@ export async function fetchPaddleSubscription(
   const body = (await response.json()) as { data?: unknown };
   return parseSubscription(body.data);
 }
+
+/**
+ * A completed checkout's transaction: whose it was and which subscription it
+ * opened. `subscriptionId` is null for the few seconds between the payment
+ * and Paddle creating the subscription.
+ */
+export async function fetchPaddleTransaction(
+  config: PaddleConfig,
+  id: string,
+  fetcher: typeof fetch = fetch,
+): Promise<{ ownerId: string | null; subscriptionId: string | null } | null> {
+  const response = await fetcher(`${paddleApiBase(config.env)}/transactions/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${config.apiKey}` },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Paddle transaction read failed (${response.status})`);
+  const body = (await response.json()) as {
+    data?: { subscription_id?: unknown; custom_data?: Record<string, unknown> | null };
+  };
+  const data = body.data;
+  if (!data) return null;
+  return {
+    ownerId: typeof data.custom_data?.ownerId === "string" ? data.custom_data.ownerId : null,
+    subscriptionId: typeof data.subscription_id === "string" ? data.subscription_id : null,
+  };
+}

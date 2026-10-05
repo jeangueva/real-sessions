@@ -202,6 +202,7 @@ import { regionFor } from "./billing/regions.js";
 import {
   cancelPaddleSubscription,
   fetchPaddleSubscription,
+  fetchPaddleTransaction,
   paddleConfig,
   parseSubscriptionEvent,
   verifyPaddleSignature,
@@ -2303,6 +2304,41 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     json(res, 201, { initPoint: created.initPoint });
     return;
+  }
+
+  /**
+   * Settles a Paddle checkout from the browser's side.
+   *
+   * The webhook is what normally switches the plan on, and a webhook is a
+   * promise from someone else's server: late, lost, or — on a developer's
+   * machine — unable to reach us at all. The checkout tells the page which
+   * transaction it completed; this asks Paddle about it directly and applies
+   * the subscription it opened. The transaction has to carry this account's
+   * id, so nobody can claim someone else's payment.
+   */
+  if (req.method === "POST" && path === "/api/billing/paddle/sync") {
+    const config = paddleConfig();
+    if (!config) return json(res, 503, { error: "Paddle is not configured." });
+    if (await limited(res, `paddle-sync:${identity.id}`, RULES.checkout)) return;
+    const body = await readJson(req);
+    const transactionId = typeof body["transactionId"] === "string" ? body["transactionId"] : "";
+    if (!/^txn_[a-z0-9]+$/i.test(transactionId)) {
+      return json(res, 400, { error: "That is not a checkout we recognise." });
+    }
+    try {
+      const txn = await fetchPaddleTransaction(config, transactionId);
+      if (!txn || txn.ownerId !== identity.id) {
+        return json(res, 404, { error: "That is not a checkout we recognise." });
+      }
+      if (!txn.subscriptionId) return json(res, 202, { plan: await PLANS.planFor(identity.id), settled: false });
+      const sub = await fetchPaddleSubscription(config, txn.subscriptionId);
+      if (!sub) return json(res, 202, { plan: await PLANS.planFor(identity.id), settled: false });
+      const plan = await applyPaddleSubscription({ ...sub, ownerId: identity.id });
+      return json(res, 200, { plan: plan ?? "free", settled: true });
+    } catch (error) {
+      console.error("[mockio] Paddle sync failed:", error);
+      return json(res, 502, { error: "We could not check your payment just now. Your access has not changed." });
+    }
   }
 
   if (req.method === "POST" && path === "/api/billing/cancel") {

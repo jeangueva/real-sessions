@@ -18,7 +18,7 @@
 import "../src/env.js";
 import { COUNTRIES, PADDLE_EXCLUDED, TIER_PRICES } from "../src/billing/regions.js";
 import type { Tier } from "../src/billing/regions.js";
-import { minorUnits, overridesFor, paddleApiBase } from "../src/billing/paddle.js";
+import { overridesFor, paddleApiBase } from "../src/billing/paddle.js";
 import type { PaddleEnv } from "../src/billing/paddle.js";
 
 const dryRun = process.argv.includes("--dry-run");
@@ -96,6 +96,17 @@ for (const [country, [tier, currency]] of Object.entries(COUNTRIES)) {
   if (!sample.has(chosen)) sample.set(chosen, country);
 }
 
+/**
+ * The whole-unit amount in a formatted price, whatever the locale: drops a
+ * trailing two-digit decimal part ("3.290,00 Ft", "NT$320.00"), then reads
+ * every remaining digit, so thousands separators of either kind are ignored.
+ */
+function wholeUnits(formatted: string): number {
+  const body = formatted.replace(/[^\d.,]/g, "");
+  const withoutCents = body.replace(/[.,]\d{2}$/, "");
+  return Number(withoutCents.replace(/[.,]/g, ""));
+}
+
 let failed = false;
 for (const [currency, country] of sample) {
   const [tier] = COUNTRIES[country]!;
@@ -104,13 +115,21 @@ for (const [currency, country] of sample) {
     items: [{ price_id: created.monthly, quantity: 1 }],
     address: { country_code: country },
   });
-  const details = preview.details as { line_items: { totals: { total: string } }[] };
-  const total = details.line_items[0]?.totals.total;
-  const want = minorUnits(expected.monthly, currency);
+  const details = preview.details as {
+    line_items: { totals: { total: string }; formatted_totals: { total: string } }[];
+  };
+  const formatted = details.line_items[0]?.formatted_totals.total ?? "";
   const shown = (preview.currency_code as string | undefined) ?? "?";
-  const ok = total === want && shown === currency;
+  /**
+   * The raw total is no check at all — it is the number this script sent,
+   * echoed back. The formatted total is how Paddle reads it: "3.290,00 Ft"
+   * is 3290 forints, "329.000 Ft" would be a hundred times that. So the
+   * whole-unit part of the formatted string has to equal the table's price.
+   */
+  const whole = wholeUnits(formatted);
+  const ok = whole === expected.monthly && shown === currency;
   if (!ok) failed = true;
-  console.log(`${ok ? "ok  " : "FAIL"} ${country} ${currency}: Paddle ${total} ${shown}, table ${want} ${currency}`);
+  console.log(`${ok ? "ok  " : "FAIL"} ${country} ${currency}: Paddle shows ${formatted}, table ${expected.monthly}`);
 }
 
 if (failed) {

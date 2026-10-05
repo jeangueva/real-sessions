@@ -14,7 +14,7 @@ declare global {
       Environment: { set: (env: "sandbox") => void };
       Initialize: (options: {
         token: string;
-        eventCallback?: (event: { name?: string }) => void;
+        eventCallback?: (event: { name?: string; data?: { transaction_id?: string } }) => void;
       }) => void;
       Checkout: {
         open: (options: {
@@ -39,7 +39,7 @@ export interface PaddleClient {
 const SCRIPT = "https://cdn.paddle.com/paddle/v2/paddle.js";
 let loading: Promise<void> | null = null;
 let initialised = false;
-let onCompleted: (() => void) | null = null;
+let onCompleted: ((transactionId: string | null) => void) | null = null;
 
 function load(): Promise<void> {
   if (window.Paddle) return Promise.resolve();
@@ -67,7 +67,7 @@ export async function openPaddleCheckout(input: {
   locale: string;
   theme: "light" | "dark";
   /** Called once the payment goes through, before the webhook has landed. */
-  completed: () => void;
+  completed: (transactionId: string | null) => void;
 }): Promise<void> {
   await load();
   const paddle = window.Paddle!;
@@ -77,7 +77,7 @@ export async function openPaddleCheckout(input: {
     paddle.Initialize({
       token: input.paddle.clientToken,
       eventCallback: (event) => {
-        if (event.name === "checkout.completed") onCompleted?.();
+        if (event.name === "checkout.completed") onCompleted?.(event.data?.transaction_id ?? null);
       },
     });
     initialised = true;

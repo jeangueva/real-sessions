@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
   fetchPricing,
+  syncPaddleCheckout,
   ApiError,
   cancelSubscription,
   fetchBilling,
@@ -221,15 +222,19 @@ export function Billing() {
         email: session?.email ?? null,
         locale,
         theme: document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark",
-        completed: () => {
-          // Paddle has the money; the plan switches on when its webhook
-          // reaches us, usually within seconds. Asked a few times rather than
-          // once, so a slow webhook still ends on the right screen.
+        completed: (transactionId) => {
+          // Paddle has the money. The plan switches on when its webhook
+          // reaches us — or, if that is slow, when the server asks Paddle
+          // about this transaction itself. Asked a few times rather than
+          // once, so either path ends on the right screen.
           setConfirming(true);
           let tries = 0;
           const check = () => {
             tries += 1;
-            fetchPlan()
+            (transactionId
+              ? syncPaddleCheckout(transactionId).catch(() => fetchPlan())
+              : fetchPlan()
+            )
               .then((result) => {
                 if (result.plan === "premium") {
                   setConfirming(false);
