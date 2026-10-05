@@ -145,6 +145,31 @@ describe("InterviewSession", () => {
     expect(lastCandidateTurn.text).toContain("final turn of the interview");
   });
 
+  it("ends the interview on the last allowed turn even without the flag", async () => {
+    // The model said goodbye but forgot the flag. In production that left the
+    // candidate with no report button and a hang-up that went to the start
+    // screen, after an interview they had finished.
+    const { provider } = stubProvider([
+      { text: "Q1" },
+      { text: "Thanks for your time, we will be in touch." },
+    ]);
+    const session = new InterviewSession(context, { provider, maxTurns: 2 });
+    await session.start();
+    const last = await session.submitAnswer("My answer.");
+
+    expect(last.isComplete).toBe(true);
+    expect(session.isComplete).toBe(true);
+  });
+
+  it("does not end early just because the flag is missing", async () => {
+    const { provider } = stubProvider([{ text: "Q1" }, { text: "Q2" }]);
+    const session = new InterviewSession(context, { provider, maxTurns: 3 });
+    await session.start();
+    const second = await session.submitAnswer("My answer.");
+
+    expect(second.isComplete).toBe(false);
+  });
+
   it("surfaces a refusal as a typed error", async () => {
     const { provider } = stubProvider([{ text: "", refused: true }]);
     const session = new InterviewSession(context, { provider });
