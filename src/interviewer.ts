@@ -384,9 +384,21 @@ export class InterviewSession {
     this.turnLatencies.push(response.latency.totalMs);
     if (response.latency.ttftMs !== null) this.ttfts.push(response.latency.ttftMs);
 
-    const { text, isComplete } = splitCompletionFlag(response.text);
+    const split = splitCompletionFlag(response.text);
+    const text = split.text;
     this.messages.push({ role: "assistant", text: response.text });
     this.interviewerTurns += 1;
+    /**
+     * The last allowed turn ends the interview whether or not the model said
+     * so.
+     *
+     * Completion used to rest entirely on the model writing the flag. When it
+     * said goodbye without it, the client never learned the interview was
+     * over: no report button, and the only way out — hanging up — went back to
+     * the start screen. Candidates finished interviews and never saw a report.
+     * The turn budget is ours, so the end of it is ours to call.
+     */
+    const isComplete = split.isComplete || this.interviewerTurns >= this.maxTurns;
     this.complete = isComplete;
 
     return {

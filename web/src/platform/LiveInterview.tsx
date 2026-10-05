@@ -406,6 +406,17 @@ export function LiveInterview() {
 
   const showCoaching = mode === "practice";
   const finished = Boolean(turn?.isComplete);
+  /**
+   * Whether there is enough said to write a report about.
+   *
+   * The second interviewer turn only exists because the candidate answered
+   * the first. Leaving after that used to go back to the start screen with
+   * nothing, which read as the product cutting them off — they had answered
+   * real questions and saw no feedback at all. The evaluator already handles
+   * a short transcript honestly, so leaving early now leads to a report on
+   * what there is.
+   */
+  const reportable = finished || (turn?.turnNumber ?? 0) >= 2;
   const heading = running?.generic
     ? `${running.targetRole} · ${running.interviewStage}`
     : `${running?.companyName ?? company} · ${running?.interviewStage ?? stage}`;
@@ -454,8 +465,8 @@ export function LiveInterview() {
     voice.stopListening();
     camera.stop();
     screen.stop();
-    navigate(finished && sessionId ? `/app/feedback` : "/app", {
-      state: finished && sessionId ? { sessionId, ...reportLabel() } : undefined,
+    navigate(reportable && sessionId ? `/app/feedback` : "/app", {
+      state: reportable && sessionId ? { sessionId, ...reportLabel() } : undefined,
     });
   };
 
@@ -609,7 +620,7 @@ export function LiveInterview() {
               panelOpen={panelOpen}
               onTogglePanel={() => setPanelOpen((open) => !open)}
               onLeave={leave}
-              leaveLabel={finished ? t("call.endAndSee") : t("call.leave")}
+              leaveLabel={reportable ? t("call.endAndSee") : t("call.leave")}
             />
           </div>
 
