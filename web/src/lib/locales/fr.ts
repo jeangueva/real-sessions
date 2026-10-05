@@ -639,6 +639,8 @@ const FR: Record<MessageKey, string> = {
   "area.sales": "Ventes",
   "area.customerSuccess": "Succès client",
   "area.operations": "Opérations",
+  "price.estimateNote": "Estimation dans votre devise. Votre carte est débitée de {price} ({name}) ; le montant final dépend de votre banque.",
+  "price.chargedIn": "Débité en {name} ({code}). Votre banque le convertit dans votre devise.",
 };
 
 export default FR;

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
+  fetchPricing,
   ApiError,
   cancelSubscription,
   fetchBilling,
@@ -16,6 +17,8 @@ import { formatSessionDate } from "@/lib/format";
 import { track } from "@/lib/analytics";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { CardForm, refusalMessage } from "./CardForm";
+import { useLocalPrice } from "@/hooks/useLocalPrice";
+import type { Rates } from "@/lib/local-price";
 import type { MessageKey } from "@/lib/i18n";
 
 const STATUS_COPY: Record<string, MessageKey> = {
@@ -94,6 +97,19 @@ export function Billing() {
   };
 
   useEffect(load, []);
+
+  /**
+   * Indicative rates, so a reader outside Peru is told before paying what the
+   * charge is in their own currency and which currency the card sees. Fetched
+   * from the same public price endpoint the landing page reads.
+   */
+  const [rates, setRates] = useState<Rates | null>(null);
+  useEffect(() => {
+    fetchPricing()
+      .then((result) => setRates(result.rates ?? null))
+      .catch(() => undefined);
+  }, []);
+  const price = useLocalPrice(state?.plan?.amount, state?.plan?.currency, rates);
 
   // Reaching the plan panel at all, which is the step before any decision
   // about paying. Sent once per mount, and only once the first answer is in,
@@ -253,6 +269,18 @@ export function Billing() {
                   })
                 : t("billing.upgrade")}
           </Action>
+        )}
+
+        {(!active || lapsing) && state.configured && canBeBilled && price?.charged && (
+          <p className="w-full text-xs text-cream-dim">
+            {price.charged.estimated
+              ? `${price.headline} · ${t("price.estimateNote", {
+                  price: price.charged.price,
+                  name: price.charged.name,
+                  code: price.charged.code,
+                })}`
+              : t("price.chargedIn", { name: price.charged.name, code: price.charged.code })}
+          </p>
         )}
 
         {!active && !state.configured && (

@@ -638,6 +638,8 @@ const KO: Record<MessageKey, string> = {
   "area.sales": "영업",
   "area.customerSuccess": "고객 성공",
   "area.operations": "운영",
+  "price.estimateNote": "현지 통화 기준 예상 금액입니다. 카드에는 {price}({name})가 청구되며, 최종 금액은 카드사가 정합니다.",
+  "price.chargedIn": "{name}({code})로 청구됩니다. 현지 통화로의 환산은 카드사가 합니다.",
 };
 
 export default KO;

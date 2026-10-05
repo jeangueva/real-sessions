@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
 import { fetchPricing, type BillingCycle, type PlanOffer } from "@/lib/api";
-import { formatPrice } from "@/lib/format";
-import { useLocale, useT } from "@/hooks/useLocale";
+import { useLocalPrice } from "@/hooks/useLocalPrice";
+import type { Rates } from "@/lib/local-price";
+import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
 /**
@@ -39,7 +40,6 @@ const PREMIUM: MessageKey[] = [
 
 export function Pricing() {
   const t = useT();
-  const { locale } = useLocale();
   /**
    * The price comes from the server, which is what the checkout charges.
    *
@@ -58,6 +58,7 @@ export function Pricing() {
    * looking: the cycle travels to the checkout, which validates it again.
    */
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
+  const [rates, setRates] = useState<Rates | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +66,7 @@ export function Pricing() {
       .then((result) => {
         if (cancelled) return;
         setOffer(result.offer);
+        setRates(result.rates ?? null);
         if (result.offer?.yearly) setCycle("yearly");
       })
       .catch(() => !cancelled && setOffer(null));
@@ -74,6 +76,7 @@ export function Pricing() {
   }, []);
 
   const shown = cycle === "yearly" ? offer?.yearly : offer?.monthly;
+  const price = useLocalPrice(shown?.amount, shown?.currency, rates);
 
   return (
     <Section id="pricing" className="bg-surface-base">
@@ -159,9 +162,9 @@ export function Pricing() {
               {/* Reserves its line whether or not the price has arrived, so
                   the card does not jump when it does. */}
               <p className="mt-3 min-h-[1.6em] text-title text-cream-bright">
-                {shown ? (
+                {price ? (
                   <>
-                    {formatPrice(shown.amount, shown.currency, locale)}
+                    {price.headline}
                     <span className="text-sm text-cream-faint">
                       {t(cycle === "yearly" ? "land.perYear" : "land.perMonth")}
                     </span>
@@ -171,10 +174,21 @@ export function Pricing() {
               {/* What a year works out to each month — the comparison somebody
                   is making in their head anyway, done for them rather than
                   left as arithmetic beside a decision about money. */}
-              {cycle === "yearly" && shown && (
+              {cycle === "yearly" && shown && price && (
                 <p className="mt-1 text-xs text-cream-faint">
                   {t("land.perMonthEquivalent", {
-                    price: formatPrice(shown.amount / 12, shown.currency, locale),
+                    price: price.format(shown.amount / 12),
+                  })}
+                </p>
+              )}
+              {/* Outside Peru: the figure above is an estimate, and this says
+                  what the card is actually charged and in which currency. */}
+              {price?.charged && (
+                <p className="mt-2 text-xs text-cream-dim">
+                  {t(price.charged.estimated ? "price.estimateNote" : "price.chargedIn", {
+                    price: price.charged.price,
+                    name: price.charged.name,
+                    code: price.charged.code,
                   })}
                 </p>
               )}

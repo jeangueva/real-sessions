@@ -197,6 +197,7 @@ import {
 } from "./lifecycle.js";
 import { createLifecycleStore, type LifecycleStore } from "./lifecycle-store.js";
 import { AREAS, ROLES, interviewerTitle, roleIdFor } from "./roles.js";
+import { ratesFrom } from "./fx.js";
 import {
   MAX_COMBINED,
   resolveStages,
@@ -1452,7 +1453,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // has an identity, and it is the same `planConfig()` the checkout charges
     // from. A price written into the page instead would be a second source of
     // truth, and the one people read before deciding.
-    json(res, 200, { plan: planConfig(), offer: planOffer() });
+    // The rates come along so the page can show the price in the reader's
+    // currency beside the one the card is charged. Null when the provider is
+    // unreachable — the page then shows only what is charged.
+    const plan = planConfig();
+    const rates = plan ? await ratesFrom(plan.currency) : null;
+    json(res, 200, { plan, offer: planOffer(), rates });
     return;
   }
 

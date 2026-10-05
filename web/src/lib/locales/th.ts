@@ -638,6 +638,8 @@ const TH: Record<MessageKey, string> = {
   "area.sales": "ฝ่ายขาย",
   "area.customerSuccess": "ความสำเร็จของลูกค้า",
   "area.operations": "ปฏิบัติการ",
+  "price.estimateNote": "นี่คือราคาโดยประมาณในสกุลเงินของคุณ บัตรของคุณจะถูกเรียกเก็บ {price} ({name}) และธนาคารของคุณเป็นผู้กำหนดยอดสุดท้าย",
+  "price.chargedIn": "เรียกเก็บเป็น{name} ({code}) ธนาคารของคุณจะแปลงเป็นสกุลเงินของคุณ",
 };
 
 export default TH;

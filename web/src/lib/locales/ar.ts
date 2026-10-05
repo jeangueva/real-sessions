@@ -638,6 +638,8 @@ const AR: Record<MessageKey, string> = {
   "area.sales": "المبيعات",
   "area.customerSuccess": "نجاح العملاء",
   "area.operations": "العمليات",
+  "price.estimateNote": "هذا تقدير بعملتك. تُخصم من بطاقتك {price} ({name})، ويحدد مصرفك المبلغ النهائي.",
+  "price.chargedIn": "يُحصَّل بـ{name} ({code})، ويحوّله مصرفك إلى عملتك.",
 };
 
 export default AR;
