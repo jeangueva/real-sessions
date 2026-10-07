@@ -206,7 +206,14 @@ export interface ProgressStore {
    * of this reaches a stranger's screen — this returns the session, not a
    * public view of it.
    */
-  sessionByShareToken(token: string): Promise<SessionDetail | null>;
+  /**
+   * The report a share link resolves to, with who owns it.
+   *
+   * The owner rides along because what a link may show depends on the
+   * owner's plan, and the token is the only key a stranger arrives with. It
+   * never leaves the server: `publicReport` builds the response by whitelist.
+   */
+  sessionByShareToken(token: string): Promise<(SessionDetail & { ownerId: string }) | null>;
   createApplication(application: NewApplication): Promise<void>;
   /** Newest first, each with its rehearsal count and best score. */
   listApplications(ownerId: string): Promise<ApplicationSummary[]>;
@@ -435,7 +442,9 @@ class PostgresProgressStore implements ProgressStore {
     );
   }
 
-  async sessionByShareToken(token: string): Promise<SessionDetail | null> {
+  async sessionByShareToken(
+    token: string,
+  ): Promise<(SessionDetail & { ownerId: string }) | null> {
     const { rows } = await this.pool.query(
       `SELECT s.*, m.*,
               (s.evaluation->'vocabulary_feedback'->>'score_out_of_10')::real AS vocabulary_score,
@@ -447,7 +456,7 @@ class PostgresProgressStore implements ProgressStore {
     );
     const row = rows[0];
     if (!row) return null;
-    return this.withTurns(row);
+    return { ...(await this.withTurns(row)), ownerId: String(row.owner_id) };
   }
 
   async createApplication(application: NewApplication): Promise<void> {
@@ -909,12 +918,15 @@ class MemoryProgressStore implements ProgressStore {
     session.shareToken = null;
   }
 
-  async sessionByShareToken(token: string): Promise<SessionDetail | null> {
+  async sessionByShareToken(
+    token: string,
+  ): Promise<(SessionDetail & { ownerId: string }) | null> {
     const session = [...this.sessions.values()].find(
       (candidate) => candidate.shareToken === token,
     );
     if (!session) return null;
     return {
+      ownerId: session.ownerId,
       ...summarize(session),
       evaluation: session.evaluation,
       turns: [...session.turns.values()].sort((a, b) => a.idx - b.idx),

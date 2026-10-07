@@ -615,11 +615,17 @@ function readContext(
  * a question. Not the internal session id, which would let a reader try it
  * against the authenticated endpoints.
  *
- * The evaluation goes out whole, including the next steps and the metrics.
- * Somebody sharing their report is sharing their report; withholding half of
- * it from the mentor they sent it to would make the feature pointless.
+ * The evaluation goes out as its owner sees it. A premium owner's link carries
+ * the next steps and the metrics — somebody sharing their report is sharing
+ * their report. A free owner's link carries the free half, through the same
+ * `shapeFeedback` the owner's own screen uses: sharing is free so that the
+ * product spreads, and it must not become a way round the paywall, where a
+ * free candidate opens their own link and reads what they did not pay for.
  */
-function publicReport(record: SessionDetail): {
+function publicReport(
+  record: SessionDetail,
+  advanced: boolean,
+): {
   company: string;
   role: string;
   stage: string;
@@ -628,14 +634,18 @@ function publicReport(record: SessionDetail): {
   evaluation: Evaluation | null;
   metrics: SessionMetrics | null;
 } {
+  const shaped = shapeFeedback(
+    { evaluation: record.evaluation, metrics: record.metrics },
+    advanced,
+  );
   return {
     company: record.company,
     role: record.role,
     stage: record.stage,
     completedAt: record.completedAt,
     score: record.score,
-    evaluation: record.evaluation,
-    metrics: record.metrics,
+    evaluation: shaped.evaluation,
+    metrics: shaped.metrics,
   };
 }
 
@@ -1788,7 +1798,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!record || record.completedAt === null) {
       return json(res, 404, { error: "This report is not available." });
     }
-    json(res, 200, { report: publicReport(record) });
+    // The owner's plan now, not at the time of sharing: a link from someone
+    // who has since subscribed shows what they now have, and one from a lapsed
+    // subscriber stops showing what they no longer pay for.
+    const advanced = capabilitiesFor(await PLANS.planFor(record.ownerId)).advancedFeedback;
+    json(res, 200, { report: publicReport(record, advanced) });
     return;
   }
 

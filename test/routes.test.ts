@@ -1319,11 +1319,38 @@ describe("the interviewer's voice", () => {
 });
 
 describe("sharing a report", () => {
-  it("refuses to mint a link on the free plan", async () => {
+  it("lets a free account share, and its link carries only the free half", async () => {
+    // Sharing is how a stranger first hears of the product, so it is on
+    // both plans. What it must not become is a way round the paywall: a free
+    // candidate opening their own link and reading the paid half of it.
     await api.authenticate();
     const id = await completeInterview(api);
     const response = await api.call(`/api/history/${id}/share`, post({}));
-    expect(response.status).toBe(402);
+    expect(response.status).toBe(200);
+    const { shared } = (await response.json()) as { shared: { token: string } };
+
+    api.forget();
+    const { report } = await api.json<{
+      report: { metrics: unknown; evaluation: { actionable_next_steps: unknown[] } | null };
+    }>(`/api/shared/${shared.token}`);
+    expect(report.evaluation).toBeTruthy();
+    expect(report.evaluation?.actionable_next_steps).toEqual([]);
+    expect(report.metrics).toBeNull();
+  });
+
+  it("gives a premium owner's link the whole report", async () => {
+    await api.authenticate();
+    await api.makePremium();
+    const id = await completeInterview(api);
+    const { shared } = await api.json<{ shared: { token: string } }>(
+      `/api/history/${id}/share`,
+      post({}),
+    );
+    api.forget();
+    const { report } = await api.json<{
+      report: { evaluation: { actionable_next_steps: unknown[] } | null };
+    }>(`/api/shared/${shared.token}`);
+    expect(report.evaluation?.actionable_next_steps.length).toBeGreaterThan(0);
   });
 
   it("serves a shared report to a caller with no identity at all", async () => {

@@ -68,11 +68,13 @@ export interface Capabilities {
   /**
    * Publish one finished report at a link anybody can open.
    *
-   * Paid because of who it is for. A candidate sends this to a mentor, a
-   * recruiter, or the friend who is also job-hunting, and what comes back is
-   * the paid half of the report — the metrics and the next steps. Free
-   * sharing would hand that away to a reader who never signed up, which is
-   * the one thing the paywall exists to prevent.
+   * On both plans, because a shared report is how a stranger first hears of
+   * Mockio: every link a candidate sends a friend is the product explaining
+   * itself to someone who has not signed up.
+   *
+   * What the link carries follows the owner's plan, not this flag. A free
+   * owner's link shows the free half of the report, so sharing never becomes
+   * a way to read the paid half — see `publicReport` in server.ts.
    */
   shareReport: boolean;
   /**
@@ -98,7 +100,7 @@ const FREE: Capabilities = {
   historyLimit: 3,
   interviewLanguage: false,
   weeklySessions: 5,
-  shareReport: false,
+  shareReport: true,
   trackApplications: false,
 };
 
