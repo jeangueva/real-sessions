@@ -243,6 +243,7 @@ const HE: Record<MessageKey, string> = {
   "auth.signsOutOthers": "הגדרת סיסמה חדשה מנתקת את כל שאר המכשירים.",
   "auth.setPassword": "לשמור סיסמה",
   "auth.couldNotReset": "לא הצלחנו לאפס את הסיסמה.",
+  "auth.requestNewLink": "בקש קישור חדש",
   "confirm.working": "מאשרים…",
   "confirm.done": "האימייל שלך אושר.",
   "confirm.earlyAccess": "ששת החודשים שלך בתוכנית בתשלום נפתחו.",

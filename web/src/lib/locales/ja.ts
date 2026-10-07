@@ -243,6 +243,7 @@ const JA: Record<MessageKey, string> = {
   "auth.signsOutOthers": "新しいパスワードを設定すると、他のすべての端末からログアウトします。",
   "auth.setPassword": "パスワードを保存",
   "auth.couldNotReset": "パスワードを再設定できませんでした。",
+  "auth.requestNewLink": "新しいリンクをリクエスト",
   "confirm.working": "確認中…",
   "confirm.done": "メールアドレスを確認しました。",
   "confirm.earlyAccess": "有料プランの6か月が解放されました。",

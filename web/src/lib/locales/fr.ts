@@ -244,6 +244,7 @@ const FR: Record<MessageKey, string> = {
   "auth.signsOutOthers": "Définir un nouveau mot de passe déconnecte tous les autres appareils.",
   "auth.setPassword": "Enregistrer le mot de passe",
   "auth.couldNotReset": "Impossible de réinitialiser le mot de passe.",
+  "auth.requestNewLink": "Demander un nouveau lien",
   "confirm.working": "Confirmation…",
   "confirm.done": "Votre e-mail est confirmé.",
   "confirm.earlyAccess": "Vos six mois du plan payant sont débloqués.",

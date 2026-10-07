@@ -243,6 +243,7 @@ const RU: Record<MessageKey, string> = {
   "auth.signsOutOthers": "Новый пароль выходит из аккаунта на всех остальных устройствах.",
   "auth.setPassword": "Сохранить пароль",
   "auth.couldNotReset": "Не удалось сбросить пароль.",
+  "auth.requestNewLink": "Запросить новую ссылку",
   "confirm.working": "Подтверждаем…",
   "confirm.done": "Ваша почта подтверждена.",
   "confirm.earlyAccess": "Ваши шесть месяцев платного тарифа открыты.",

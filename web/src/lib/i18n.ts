@@ -338,6 +338,7 @@ const EN = {
   "auth.signsOutOthers": "Setting a new password signs out every other device.",
   "auth.setPassword": "Set password",
   "auth.couldNotReset": "Could not reset password.",
+  "auth.requestNewLink": "Request a new link",
 
   "confirm.working": "Confirming…",
   "confirm.done": "Your email is confirmed.",

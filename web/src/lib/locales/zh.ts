@@ -243,6 +243,7 @@ const ZH: Record<MessageKey, string> = {
   "auth.signsOutOthers": "设置新密码会让其他所有设备退出登录。",
   "auth.setPassword": "保存密码",
   "auth.couldNotReset": "无法重置密码。",
+  "auth.requestNewLink": "重新申请链接",
   "confirm.working": "确认中…",
   "confirm.done": "你的邮箱已确认。",
   "confirm.earlyAccess": "你的付费方案六个月已解锁。",

@@ -274,6 +274,7 @@ const PT: Record<MessageKey, string> = {
   "auth.signsOutOthers": "Definir uma senha nova desconecta todos os outros dispositivos.",
   "auth.setPassword": "Salvar senha",
   "auth.couldNotReset": "Não foi possível redefinir a senha.",
+  "auth.requestNewLink": "Pedir um novo link",
 
   "confirm.working": "Confirmando…",
   "confirm.done": "Seu e-mail está confirmado.",

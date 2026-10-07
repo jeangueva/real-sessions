@@ -243,6 +243,7 @@ const DE: Record<MessageKey, string> = {
   "auth.signsOutOthers": "Ein neues Passwort meldet alle anderen Geräte ab.",
   "auth.setPassword": "Passwort speichern",
   "auth.couldNotReset": "Passwort konnte nicht zurückgesetzt werden.",
+  "auth.requestNewLink": "Neuen Link anfordern",
   "confirm.working": "Bestätige…",
   "confirm.done": "Deine E-Mail ist bestätigt.",
   "confirm.earlyAccess": "Deine sechs Monate Bezahltarif sind freigeschaltet.",

@@ -243,6 +243,7 @@ const TH: Record<MessageKey, string> = {
   "auth.signsOutOthers": "การตั้งรหัสผ่านใหม่จะออกจากระบบบนอุปกรณ์อื่นทั้งหมด",
   "auth.setPassword": "บันทึกรหัสผ่าน",
   "auth.couldNotReset": "ตั้งรหัสผ่านใหม่ไม่สำเร็จ",
+  "auth.requestNewLink": "ขอลิงก์ใหม่",
   "confirm.working": "กำลังยืนยัน…",
   "confirm.done": "ยืนยันอีเมลของคุณแล้ว",
   "confirm.earlyAccess": "แพ็กเกจเสียเงินหกเดือนของคุณเปิดใช้งานแล้ว",

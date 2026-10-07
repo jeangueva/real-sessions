@@ -93,6 +93,8 @@ function SetNewPassword({ token }: { token: string }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** The link itself is spent or expired — no password will fix that. */
+  const [deadLink, setDeadLink] = useState(false);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -106,6 +108,7 @@ function SetNewPassword({ token }: { token: string }) {
       setError(
         caught instanceof ApiError ? caught.message : t("auth.couldNotReset"),
       );
+      setDeadLink(caught instanceof ApiError && caught.code === "resetInvalid");
     } finally {
       setBusy(false);
     }
@@ -130,12 +133,26 @@ function SetNewPassword({ token }: { token: string }) {
           />
         </Field>
         {error && <Notice tone="error">{error}</Notice>}
+        {/* "Request a new one" with the way to do it beside it: the link is
+            single-use and lives thirty minutes, so this is the common case,
+            and the old page left the reader to find the form themselves. */}
+        {deadLink && (
+          <Link to="/reset" replace className="self-start">
+            <Action type="button" withArrow>
+              {t("auth.requestNewLink")}
+            </Action>
+          </Link>
+        )}
         <p className="text-xs text-cream-faint">
           {t("auth.signsOutOthers")}
         </p>
-        <Action type="submit" disabled={busy} className="w-full py-3">
-          {busy ? "…" : t("auth.setPassword")}
-        </Action>
+        {/* A spent link cannot be saved against, so the only way forward
+            left on the screen is the one that works. */}
+        {!deadLink && (
+          <Action type="submit" disabled={busy} className="w-full py-3">
+            {busy ? "…" : t("auth.setPassword")}
+          </Action>
+        )}
       </form>
     </Shell>
   );

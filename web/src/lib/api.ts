@@ -235,6 +235,8 @@ export class ApiError extends Error {
      * whoever is wiring the integration up.
      */
     readonly detail?: string,
+    /** The server's machine-readable code, when it sent one. */
+    readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -621,6 +623,7 @@ async function request<T>(
         ? payload.retryAfterSeconds
         : undefined,
       typeof payload.detail === "string" ? payload.detail : undefined,
+      payload.code,
     );
   }
   return payload;

@@ -243,6 +243,7 @@ const KO: Record<MessageKey, string> = {
   "auth.signsOutOthers": "새 비밀번호를 설정하면 다른 모든 기기에서 로그아웃됩니다.",
   "auth.setPassword": "비밀번호 저장",
   "auth.couldNotReset": "비밀번호를 재설정할 수 없습니다.",
+  "auth.requestNewLink": "새 링크 요청",
   "confirm.working": "확인 중…",
   "confirm.done": "이메일이 확인되었습니다.",
   "confirm.earlyAccess": "유료 플랜 6개월이 열렸습니다.",

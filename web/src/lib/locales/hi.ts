@@ -243,6 +243,7 @@ const HI: Record<MessageKey, string> = {
   "auth.signsOutOthers": "नया पासवर्ड सेट करने पर बाकी सभी डिवाइस से साइन आउट हो जाता है।",
   "auth.setPassword": "पासवर्ड सहेजें",
   "auth.couldNotReset": "पासवर्ड रीसेट नहीं हो सका।",
+  "auth.requestNewLink": "नया लिंक मंगाएँ",
   "confirm.working": "पुष्टि हो रही है…",
   "confirm.done": "आपका ईमेल सत्यापित हो गया।",
   "confirm.earlyAccess": "सशुल्क प्लान के आपके छह महीने खुल गए हैं।",

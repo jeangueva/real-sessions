@@ -244,6 +244,7 @@ const IT: Record<MessageKey, string> = {
   "auth.signsOutOthers": "Impostare una nuova password disconnette tutti gli altri dispositivi.",
   "auth.setPassword": "Salva la password",
   "auth.couldNotReset": "Non è stato possibile reimpostare la password.",
+  "auth.requestNewLink": "Richiedi un nuovo link",
   "confirm.working": "Conferma in corso…",
   "confirm.done": "La tua e-mail è confermata.",
   "confirm.earlyAccess": "I tuoi sei mesi del piano a pagamento sono sbloccati.",

@@ -284,6 +284,7 @@ const ES: Record<MessageKey, string> = {
   "auth.signsOutOthers": "Poner una contraseña nueva cierra la sesión en todos los demás dispositivos.",
   "auth.setPassword": "Guardar contraseña",
   "auth.couldNotReset": "No se pudo restablecer la contraseña.",
+  "auth.requestNewLink": "Pedir un enlace nuevo",
 
   "confirm.working": "Confirmando…",
   "confirm.done": "Tu email está confirmado.",

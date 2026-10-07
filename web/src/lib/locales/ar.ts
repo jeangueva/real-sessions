@@ -243,6 +243,7 @@ const AR: Record<MessageKey, string> = {
   "auth.signsOutOthers": "تعيين كلمة مرور جديدة يسجّل الخروج من كل الأجهزة الأخرى.",
   "auth.setPassword": "حفظ كلمة المرور",
   "auth.couldNotReset": "تعذّرت إعادة تعيين كلمة المرور.",
+  "auth.requestNewLink": "اطلب رابطًا جديدًا",
   "confirm.working": "جارٍ التأكيد…",
   "confirm.done": "تم تأكيد بريدك.",
   "confirm.earlyAccess": "تم فتح أشهرك الستة من الخطة المدفوعة.",
