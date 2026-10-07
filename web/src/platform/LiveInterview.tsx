@@ -498,15 +498,11 @@ export function LiveInterview() {
         }
       />
 
-      <PageBody className="flex flex-1 flex-col">
-        {/* A bounded height, not a floor. `min-h` let the stage grow with the
-            transcript, so a long interview scrolled the whole page and the
-            interviewer's face drifted off the top — while the panel's own
-            `overflow-y-auto` never engaged, because its parent always had room
-            for one more line. Capped, the scroll happens where the words are. */}
-        <div className="flex flex-1 flex-col gap-4 lg:h-[calc(100vh-13rem)]">
-          <div className="relative flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
-            <div className="flex min-h-[320px] flex-1 flex-col gap-3 sm:min-h-[380px] lg:min-h-0">
+      <PageBody className="flex flex-1 flex-col pb-4 pt-3 sm:py-6 lg:py-10">
+        {/* A bounded height on desktop and mobile. */}
+        <div className="flex flex-1 flex-col gap-3 lg:h-[calc(100vh-13rem)] lg:gap-4">
+          <div className="relative flex min-h-0 flex-1 flex-col gap-3 lg:flex-row lg:gap-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:gap-3">
               <CallStage
                 initials={persona?.initials ?? "…"}
                 name={persona?.name ?? "Your interviewer"}
@@ -520,26 +516,26 @@ export function LiveInterview() {
                 status={status}
                 caption={voice.transcript}
                 listening={voice.listening}
+                turnText={turn?.text || streaming || undefined}
               />
 
-              {/* What the interviewer just asked, under the tile — the one
-                  thing a candidate needs in front of them while answering,
-                  and the one thing a scrolling transcript is bad at holding
-                  still. */}
-              <p
-                className="min-h-[3.5rem] text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
-                aria-live="polite"
-                aria-busy={busy}
-              >
-                {turn?.text || streaming || (
-                  <span className="text-cream-faint">
-                    {error ? "—" : t("call.connectingTo")}
-                  </span>
-                )}
-              </p>
+              {/* Desktop subtitle text under stage */}
+              <div className="hidden sm:block">
+                <p
+                  className="min-h-[3.5rem] text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
+                  aria-live="polite"
+                  aria-busy={busy}
+                >
+                  {turn?.text || streaming || (
+                    <span className="text-cream-faint">
+                      {error ? "—" : t("call.connectingTo")}
+                    </span>
+                  )}
+                </p>
+              </div>
 
               {voice.listening && (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2.5 sm:gap-3">
                   <Waveform
                     active
                     level={voice.micLevel}
@@ -547,7 +543,7 @@ export function LiveInterview() {
                     label={t("call.micLive")}
                     className="mt-0.5 shrink-0 text-grow"
                   />
-                  <p className="text-sm text-cream-dim" aria-live="polite">
+                  <p className="line-clamp-2 text-xs text-cream-dim sm:text-sm" aria-live="polite">
                     {voice.transcript || t("call.listening")}
                   </p>
                 </div>

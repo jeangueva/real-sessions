@@ -28,6 +28,7 @@ export function CallStage({
   status,
   caption,
   listening,
+  turnText,
 }: {
   initials: string;
   name: string;
@@ -41,17 +42,14 @@ export function CallStage({
   screenStream: MediaStream | null;
   /**
    * What the candidate is saying, as it is being said.
-   *
-   * Drawn here rather than only in the transcript panel, which fills in whole
-   * turns after they close. Someone speaking looks at the person they are
-   * speaking to, so the words have to appear under the face — the same place
-   * a video call puts its captions, for the same reason.
    */
   caption?: string;
   /** Whether the microphone is open, which is what makes the caption line appear. */
   listening?: boolean;
   /** "Connecting", "Turn 3 of 7" — whatever the header would have said. */
   status: string;
+  /** The current interviewer question to display inside the stage on mobile. */
+  turnText?: string;
 }) {
   const t = useT();
   const self = useRef<HTMLVideoElement>(null);
@@ -76,7 +74,7 @@ export function CallStage({
   const sharing = screenStream !== null;
 
   return (
-    <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface-sunken p-6">
+    <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface-sunken p-4 sm:p-6">
       {/* Sharing rearranges the room rather than adding to it, the way a
           call does: what you are presenting is the thing worth the space, and
           the interviewer shrinks to a strip that still shows them talking. */}
@@ -98,7 +96,7 @@ export function CallStage({
             // is invisible. It sits over arbitrary shared content, so it
             // stays mostly opaque.
             ? "absolute left-4 top-14 flex items-center gap-3 rounded-2xl border border-line bg-surface-deep/90 p-3 backdrop-blur"
-            : "flex flex-col items-center gap-4 text-center"
+            : "flex flex-col items-center gap-2.5 sm:gap-4 text-center"
         }
       >
         {/* Small and flat while sharing a screen — the presence is for the
@@ -121,7 +119,7 @@ export function CallStage({
             // halo frozen flat while somebody talks is worse than none.
             level={voiceMeasured() ? voiceLevel : undefined}
             size={128}
-            className="sm:scale-110"
+            className="scale-90 sm:scale-110"
           />
         )}
         <div className={sharing ? "text-left" : ""}>
@@ -141,12 +139,21 @@ export function CallStage({
         />
       </div>
 
+      {/* Subtitles on mobile inside the stage container */}
+      {turnText && (
+        <div className="absolute inset-x-3 bottom-3 z-10 max-h-24 overflow-y-auto rounded-2xl border border-line bg-surface-deep/85 p-2.5 backdrop-blur sm:hidden">
+          <p className="text-xs leading-relaxed text-cream-bright" aria-live="polite">
+            {turnText}
+          </p>
+        </div>
+      )}
+
       {listening && (
         /* Reserved height, so the stage does not jump the moment the first
            word lands. `aria-live` is deliberately absent: a screen reader
            announcing every revision of an interim transcript would talk over
            the person it belongs to. */
-        <p className="pointer-events-none absolute inset-x-6 bottom-6 min-h-[1.5rem] text-center text-sm text-cream-dim">
+        <p className="pointer-events-none absolute inset-x-6 bottom-6 hidden min-h-[1.5rem] text-center text-sm text-cream-dim sm:block">
           {caption}
         </p>
       )}
