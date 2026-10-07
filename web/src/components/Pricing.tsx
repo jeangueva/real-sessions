@@ -92,6 +92,7 @@ export function Pricing() {
   const saving = regional
     ? Math.round((1 - regional.yearly / (regional.monthly * 12)) * 100)
     : (offer?.savingPercent ?? null);
+  const freeCurrency = regional?.currency ?? shown?.currency ?? "USD";
 
   return (
     <Section id="pricing" className="bg-surface-base">
@@ -134,7 +135,7 @@ export function Pricing() {
             <div>
               <p className="text-sm text-cream-dim">{t("land.free")}</p>
               <p className="mt-1 text-xs text-cream-faint">{t("land.billedNever")}</p>
-              <p className="mt-3 text-title text-cream-bright">$0</p>
+              <p className="mt-3 text-title text-cream-bright">{formatPrice(0, freeCurrency, locale)}</p>
               <p className="mt-2 text-sm text-cream-dim">
                 {t("land.freeBlurb")}
               </p>
