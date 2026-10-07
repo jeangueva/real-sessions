@@ -39,7 +39,7 @@ describe("the email shell", () => {
     // A client that paints its own background behind a transparent message
     // would otherwise put cream text on white.
     const html = shellHtml({ heading: "x", body: ["y"] });
-    expect(html).toContain("background:#17181c");
+    expect(html).toContain("background:#f5f5f7");
     expect(html).toContain('name="color-scheme"');
   });
 
