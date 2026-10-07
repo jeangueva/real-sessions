@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
-import { Action, Eyebrow, FadeRise, Field, Panel, Section } from "@/design-system";
-import { ApiError, contributeQuestion, fetchCatalogue } from "@/lib/api";
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  MessageSquarePlus,
+  Route,
+  ShieldCheck,
+  UserCheck,
+} from "lucide-react";
+import { Action, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
+import { ApiError, NotSignedIn, contributeQuestion, fetchCatalogue } from "@/lib/api";
 import type { CatalogueCompany, Role, Sector } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
@@ -11,6 +22,16 @@ const STAGES: { value: string; label: MessageKey }[] = [
   { value: "Technical deep dive", label: "land.stageTechnical" },
   { value: "System design", label: "land.stageSystem" },
   { value: "Other", label: "land.stageOther" },
+];
+
+/** The bounds the server enforces (`readQuestion`), mirrored for the counter. */
+const MIN_QUESTION = 12;
+const MAX_QUESTION = 400;
+
+const PROMISES: { icon: typeof ShieldCheck; title: MessageKey; body: MessageKey }[] = [
+  { icon: ShieldCheck, title: "land.contribAnonTitle", body: "land.contribAnonBody" },
+  { icon: UserCheck, title: "land.contribCheckTitle", body: "land.contribCheckBody" },
+  { icon: Route, title: "land.contribNextTitle", body: "land.contribNextBody" },
 ];
 
 /**
@@ -39,6 +60,8 @@ export function Contribute() {
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** No account: the lists cannot load and nothing could be stored. */
+  const [signedOut, setSignedOut] = useState(false);
 
   useEffect(() => {
     fetchCatalogue()
@@ -48,7 +71,9 @@ export function Contribute() {
         setRoles(result.roles);
         setCompanyId(result.companies[0]?.id ?? "");
       })
-      .catch(() => undefined);
+      .catch((caught: unknown) => {
+        if (caught instanceof NotSignedIn) setSignedOut(true);
+      });
   }, []);
 
   const visible = sector
@@ -85,155 +110,227 @@ export function Contribute() {
     }
   };
 
+  const length = question.trim().length;
+  const ready = length >= MIN_QUESTION && Boolean(companyId);
+
   return (
     <Section id="contribute" className="bg-surface-base">
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 [&>*]:min-w-0">
-        <FadeRise>
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-20 [&>*]:min-w-0">
+        <FadeRise className="lg:pt-4">
           <Eyebrow>{t("land.contribEyebrow")}</Eyebrow>
-          <h2 className="mt-4 text-headline font-semibold text-cream-bright">
+          <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">
             {t("land.contribTitle")}
           </h2>
-          <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">
+          <p className="mt-5 max-w-xl text-base text-cream-dim sm:text-lg">
             {t("land.contribBody")}
           </p>
-          <p className="mt-4 max-w-xl text-sm text-cream-dim">
-            {t("land.contribBank")}
-          </p>
+          <p className="mt-3 max-w-xl text-sm text-cream-faint">{t("land.contribBank")}</p>
 
-          <dl className="mt-8 flex flex-col gap-5 border-t border-line pt-6">
-            <div>
-              <dt className="text-sm text-cream-bright">{t("land.contribAnonTitle")}</dt>
-              <dd className="mt-1 text-xs text-cream-dim">
-                {t("land.contribAnonBody")}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-cream-bright">{t("land.contribCheckTitle")}</dt>
-              <dd className="mt-1 text-xs text-cream-dim">
-                {t("land.contribCheckBody")}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-cream-bright">{t("land.contribNextTitle")}</dt>
-              <dd className="mt-1 text-xs text-cream-dim">
-                {t("land.contribNextBody")}
-              </dd>
-            </div>
-          </dl>
+          {/* Three promises, each with its own mark — the way Apple lists
+              what a feature guarantees. No rule above them: the space and the
+              icons already say "a list starts here". */}
+          <ul className="mt-10 flex flex-col gap-6">
+            {PROMISES.map(({ icon: Icon, title, body: text }) => (
+              <li key={title} className="flex gap-4">
+                <span
+                  aria-hidden
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text"
+                >
+                  <Icon className="h-5 w-5" strokeWidth={2} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-base font-semibold text-cream-bright">{t(title)}</span>
+                  <span className="mt-0.5 block text-sm text-cream-dim">{t(text)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
         </FadeRise>
 
         <FadeRise delay={0.12}>
-        <Panel className="p-6 sm:p-8">
-          <form onSubmit={submit} className="flex flex-col gap-5">
-            <div className="grid gap-5 sm:grid-cols-2 [&>*]:min-w-0">
-              <Field label={t("land.contribSector")} htmlFor="c-sector">
-                <select
-                  id="c-sector"
-                  value={sector}
-                  onChange={(event) => setSector(event.target.value)}
-                  className="field-control text-sm text-cream-bright"
+          <Panel variant="raised" className="p-6 shadow-lift sm:p-8">
+            {signedOut ? (
+              /* The bank keys every question to an account — that is how one
+                 person is kept from flooding a company — so a visitor gets the
+                 way in instead of a form whose lists could never load. */
+              <div className="flex flex-col items-start gap-5 py-4">
+                <span
+                  aria-hidden
+                  className="grid h-12 w-12 place-items-center rounded-2xl bg-accent-soft text-accent-text"
                 >
-                  <option value="">{t("land.contribAllSectors")}</option>
-                  {sectors.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+                  <MessageSquarePlus className="h-6 w-6" />
+                </span>
+                <p className="max-w-sm text-lg font-semibold leading-snug text-cream-bright">
+                  {t("land.contribSignIn")}
+                </p>
+                <Link to="/signin" state={{ from: "/#contribute" }}>
+                  <Action withArrow>{t("land.signIn")}</Action>
+                </Link>
+              </div>
+            ) : (
+              <form onSubmit={submit} className="flex flex-col gap-6">
+                {/* The question first. It is the only thing here that cannot
+                    be picked from a list, and the reason the form exists. */}
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="c-question" className="text-sm font-semibold text-cream-bright">
+                    {t("land.contribQuestion")}
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      id="c-question"
+                      required
+                      rows={4}
+                      maxLength={MAX_QUESTION}
+                      value={question}
+                      onChange={(event) => setQuestion(event.target.value)}
+                      placeholder="Walk me through a time you had to ship with incomplete data."
+                      className="field-control resize-none pb-9 text-base leading-relaxed text-cream-bright placeholder:text-cream-faint"
+                    />
+                    {/* Why the button is waiting, without a sentence: the count
+                        turns from grey to green the moment it is long enough. */}
+                    <span
+                      aria-hidden
+                      className={`pointer-events-none absolute bottom-3 right-4 text-xs font-medium tabular-nums transition-colors duration-200 ${
+                        length >= MIN_QUESTION ? "text-grow-text" : "text-cream-faint"
+                      }`}
+                    >
+                      {length}/{MAX_QUESTION}
+                    </span>
+                  </div>
+                  <p className="text-xs text-cream-faint">{t("land.contribQuestionHint")}</p>
+                </div>
 
-              <Field label={t("land.contribCompany")} htmlFor="c-company">
-                <select
-                  id="c-company"
-                  value={companyId}
-                  onChange={(event) => setCompanyId(event.target.value)}
-                  className="field-control text-sm text-cream-bright"
-                >
-                  {visible.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.name}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+                <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
+                  <SelectField
+                    id="c-sector"
+                    label={t("land.contribSector")}
+                    value={sector}
+                    onChange={setSector}
+                  >
+                    <option value="">{t("land.contribAllSectors")}</option>
+                    {sectors.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </SelectField>
 
-              <Field label={t("land.contribStage")} htmlFor="c-stage">
-                <select
-                  id="c-stage"
-                  value={stage}
-                  onChange={(event) => setStage(event.target.value)}
-                  className="field-control text-sm text-cream-bright"
-                >
-                  {STAGES.map((entry) => (
-                    <option key={entry.value} value={entry.value}>
-                      {t(entry.label)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+                  <SelectField
+                    id="c-company"
+                    label={t("land.contribCompany")}
+                    value={companyId}
+                    onChange={setCompanyId}
+                  >
+                    {visible.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.name}
+                      </option>
+                    ))}
+                  </SelectField>
 
-              <Field
-                label={t("land.contribRole")}
-                hint={t("land.contribRoleHint")}
-                htmlFor="c-role"
-              >
-                <select
-                  id="c-role"
-                  value={role}
-                  onChange={(event) => setRole(event.target.value)}
-                  className="field-control text-sm text-cream-bright"
-                >
-                  {/* A list rather than free text, because these are filtered
-                      by role: "Backend Engineer", "backend engineer" and "BE"
-                      as separate values would make that filter useless. */}
-                  <option value="">{t("land.contribAnyRole")}</option>
-                  {roles.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
+                  <SelectField
+                    id="c-stage"
+                    label={t("land.contribStage")}
+                    value={stage}
+                    onChange={setStage}
+                  >
+                    {STAGES.map((entry) => (
+                      <option key={entry.value} value={entry.value}>
+                        {t(entry.label)}
+                      </option>
+                    ))}
+                  </SelectField>
 
-            <Field
-              label={t("land.contribQuestion")}
-              hint={t("land.contribQuestionHint")}
-              htmlFor="c-question"
-            >
-              <textarea
-                id="c-question"
-                required
-                rows={3}
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder="Walk me through a time you had to ship with incomplete data."
-                className="focus-ring resize-none rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
-              />
-            </Field>
+                  <SelectField
+                    id="c-role"
+                    label={t("land.contribRole")}
+                    hint={t("land.contribRoleHint")}
+                    value={role}
+                    onChange={setRole}
+                  >
+                    {/* A list rather than free text, because these are filtered
+                        by role: "Backend Engineer", "backend engineer" and "BE"
+                        as separate values would make that filter useless. */}
+                    <option value="">{t("land.contribAnyRole")}</option>
+                    {roles.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
 
-            {notice && (
-              <p role="status" className="text-sm text-cream-dim">
-                {notice}
-              </p>
+                {notice && (
+                  <p
+                    role="status"
+                    className="flex items-start gap-2.5 rounded-2xl bg-grow-soft px-4 py-3 text-sm text-cream-bright"
+                  >
+                    <CheckCircle2 aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-grow-text" />
+                    {notice}
+                  </p>
+                )}
+                {error && (
+                  <p
+                    role="alert"
+                    className="flex items-start gap-2.5 rounded-2xl bg-step-soft px-4 py-3 text-sm text-cream-bright"
+                  >
+                    <AlertCircle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-step-text" />
+                    {error}
+                  </p>
+                )}
+
+                <Action type="submit" disabled={state === "sending" || !ready} className="w-full py-3">
+                  {state === "sending" ? t("land.contribSending") : t("land.contribSubmit")}
+                </Action>
+              </form>
             )}
-            {error && (
-              <p role="alert" className="text-sm text-cream-bright">
-                {error}
-              </p>
-            )}
-
-            <Action
-              type="submit"
-              disabled={state === "sending" || question.trim().length < 12}
-              className="self-start"
-            >
-              {state === "sending" ? t("land.contribSending") : t("land.contribSubmit")}
-            </Action>
-          </form>
-        </Panel>
+          </Panel>
         </FadeRise>
       </div>
     </Section>
+  );
+}
+
+/**
+ * A select drawn like the rest of the fields: the same well, the same halo,
+ * and one chevron in the product's ink instead of each browser's own arrow.
+ * Still a native <select> underneath, so a phone opens its own wheel.
+ */
+function SelectField({
+  id,
+  label,
+  hint,
+  value,
+  onChange,
+  children,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  value: string;
+  onChange: (next: string) => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className="text-xs font-medium text-cream">
+        {label}
+      </label>
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="field-control cursor-pointer appearance-none truncate pr-10 text-sm text-cream-bright"
+        >
+          {children}
+        </select>
+        <ChevronDown
+          aria-hidden
+          className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cream-dim"
+        />
+      </div>
+      {hint && <p className="text-xs text-cream-faint">{hint}</p>}
+    </div>
   );
 }
