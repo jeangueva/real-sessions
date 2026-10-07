@@ -53,6 +53,9 @@ export default defineConfig({
   },
   server: {
     // Keeps the provider key server-side: the browser only ever calls /api.
-    proxy: { "/api": { target: "http://localhost:8787", changeOrigin: true } },
+    // `ws` because live transcription is a WebSocket at /api/voice: without
+    // it the dev server swallows the upgrade, the socket never opens, and the
+    // microphone appears to work while nothing it hears reaches the server.
+    proxy: { "/api": { target: "http://localhost:8787", changeOrigin: true, ws: true } },
   },
 });
