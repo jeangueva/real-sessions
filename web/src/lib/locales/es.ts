@@ -287,9 +287,9 @@ const ES: Record<MessageKey, string> = {
   "confirm.toSessions": "Ir a tus sesiones",
 
   "billing.plan": "Plan",
-  "billing.onPaid": "Estás en el plan pago.",
+  "billing.onPaid": "Estás en el plan Premium.",
   "billing.onFree": "Estás en el plan gratuito.",
-  "billing.granted": "Otorgado, no facturado: no hay nada que pagar.",
+  "billing.granted": "Acceso de cortesía: disfruta de todas las funciones sin costo.",
   "billing.statusPending": "Esperando que se acredite el primer pago.",
   "billing.statusAuthorized": "Activo.",
   "billing.statusPaused": "El pago no pasó: Mercado Pago está reintentando.",

@@ -98,6 +98,7 @@ export function AppShell() {
    * hides a link, and the route itself is 404 for anyone not on the allowlist.
    */
   const [reviewer, setReviewer] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   /**
    * Whether the CV screen is reachable on this plan.
    *
@@ -110,6 +111,7 @@ export function AppShell() {
   useEffect(() => {
     fetchPlan()
       .then((result) => {
+        setIsPremium(result.plan === "premium");
         setReviewer(result.reviewer);
         setLocked(result.capabilities.candidateProfile ? [] : ["/app/profile"]);
       })
@@ -151,13 +153,20 @@ export function AppShell() {
   return (
     <div className="flex min-h-screen bg-surface-deep">
       <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col items-center gap-2 border-r border-line py-6 md:flex lg:w-60 lg:items-stretch lg:px-4">
-        <div className="mb-8 flex items-center gap-2.5 px-2">
-          {/* The mark is the accent's own disc: the one place the colour sits
-              at rest, so the eye learns it means "this product, speaking". */}
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-accent-ink">
-            <Mic className="h-4 w-4" aria-hidden />
-          </span>
-          <Wordmark className="hidden text-lg font-semibold text-cream-bright lg:inline" />
+        <div className="mb-8 flex items-center justify-between gap-2 px-2">
+          <div className="flex items-center gap-2.5">
+            {/* The mark is the accent's own disc: the one place the colour sits
+                at rest, so the eye learns it means "this product, speaking". */}
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-accent-ink">
+              <Mic className="h-4 w-4" aria-hidden />
+            </span>
+            <Wordmark className="hidden text-lg font-semibold text-cream-bright lg:inline" />
+          </div>
+          {isPremium && (
+            <span className="hidden rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-accent lg:inline-flex">
+              Premium
+            </span>
+          )}
         </div>
 
         <nav aria-label={t("nav.sections")} className="flex flex-col gap-1">
@@ -241,7 +250,7 @@ export function AppShell() {
         </AnimatePresence>
       </div>
 
-      <MobileNav />
+      <MobileNav isPremium={isPremium} />
     </div>
   );
 }
@@ -306,7 +315,7 @@ function RailLink({
  * settings to fit. "You" opens settings, which links on to context; it lights
  * up on any account screen so a person always knows which tab they are under.
  */
-function MobileNav() {
+function MobileNav({ isPremium }: { isPremium: boolean }) {
   const t = useT();
   const { pathname } = useLocation();
   const onAccount = ACCOUNT.some(({ to }) => pathname.startsWith(to)) || pathname.startsWith("/app/review");
@@ -338,7 +347,12 @@ function MobileNav() {
         ))}
         <li className="flex-1">
           <NavLink to="/app/settings" className={() => tab(onAccount)}>
-            <UserRound className="h-5 w-5" aria-hidden />
+            <div className="relative inline-flex items-center justify-center">
+              <UserRound className="h-5 w-5" aria-hidden />
+              {isPremium && (
+                <span className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-accent" />
+              )}
+            </div>
             {t("nav.youShort")}
           </NavLink>
         </li>

@@ -341,9 +341,9 @@ const EN = {
   "confirm.toSessions": "Go to your sessions",
 
   "billing.plan": "Plan",
-  "billing.onPaid": "You are on the paid plan.",
+  "billing.onPaid": "You are on the Premium plan.",
   "billing.onFree": "You are on the free plan.",
-  "billing.granted": "Granted, not billed — nothing to pay.",
+  "billing.granted": "Complimentary access: enjoy all features at no cost.",
   "billing.statusPending": "Waiting for the first payment to clear.",
   "billing.statusAuthorized": "Active.",
   "billing.statusPaused": "Payment did not go through — Mercado Pago is retrying.",
