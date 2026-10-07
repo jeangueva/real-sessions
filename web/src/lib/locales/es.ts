@@ -384,7 +384,7 @@ const ES: Record<MessageKey, string> = {
   "land.navPricing": "Precios",
   "land.navContribute": "Aportar",
   "land.signIn": "Iniciar sesión",
-  "land.heroBlurb": "Entrevistas reales en inglés, en voz alta — y después te decimos qué corregir.",
+  "land.heroBlurb": "Practica tus entrevistas en inglés y consigue el trabajo que buscas.",
 
   "land.previewEyebrow": "Simulación en vivo",
   "land.previewAsks": "Hace una pregunta,",

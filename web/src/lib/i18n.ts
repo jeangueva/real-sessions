@@ -438,7 +438,7 @@ const EN = {
   "land.navPricing": "Pricing",
   "land.navContribute": "Contribute",
   "land.signIn": "Sign in",
-  "land.heroBlurb": "Real job interviews in English, out loud — then told exactly what to fix.",
+  "land.heroBlurb": "Ace your English job interviews and land the role you want.",
 
   "land.previewEyebrow": "Live simulation",
   "land.previewAsks": "It asks one question,",

@@ -34,23 +34,25 @@ export function Hero() {
     <InsetFrame className="on-media bg-surface-base">
       <HeroVideo src={HERO_VIDEO} poster={HERO_POSTER} />
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 grid grid-cols-1 gap-6 p-6 md:grid-cols-12 md:items-end md:gap-4 md:p-10">
-        <h1 className="relative col-span-1 font-mark text-display font-semibold lowercase tracking-[-0.04em] text-cream-bright md:col-span-8">
+      <div className="absolute bottom-0 left-0 right-0 z-10 grid grid-cols-1 gap-6 p-6 md:grid-cols-12 md:items-end md:gap-6 md:p-12 lg:p-14">
+        <h1 className="relative col-span-1 font-mark text-display font-semibold lowercase tracking-[-0.04em] text-cream-bright md:col-span-7 lg:col-span-8">
           {/* `w-full`, not a max-width in `em`: an em-based cap scales with the
               font size, so at display size it can never constrain the text.
               Full width makes the flex-wrap break inside the h1's columns. */}
           <WordsPullUp className="w-full">mockio</WordsPullUp>
         </h1>
 
-        <div className="col-span-1 flex flex-col gap-5 pb-2 md:col-span-4">
-          <FadeRise delay={0.5}>
-            <p className="text-xs leading-tight text-cream-dim sm:text-sm md:text-base">
+        <div className="col-span-1 flex flex-col gap-6 pb-2 md:col-span-5 lg:col-span-4">
+          <FadeRise delay={0.4}>
+            <p className="font-medium text-cream-bright text-base sm:text-lg md:text-xl lg:text-2xl leading-snug">
               {t("land.heroBlurb")}
             </p>
           </FadeRise>
-          <FadeRise delay={0.7}>
+          <FadeRise delay={0.6}>
             <Link to="/app" className="self-start">
-              <Action withArrow>{t("cta.startInterview")}</Action>
+              <Action withArrow className="px-7 py-3 text-base sm:text-lg">
+                {t("cta.startInterview")}
+              </Action>
             </Link>
           </FadeRise>
         </div>
