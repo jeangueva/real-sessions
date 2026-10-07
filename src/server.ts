@@ -532,6 +532,9 @@ function shown(context: InterviewContext): {
   };
 }
 
+/** The longest company, role or stage name a session will store. */
+const CONTEXT_FIELD_MAX = 120;
+
 function readContext(
   body: Record<string, unknown>,
   targetCompany = true,
@@ -545,8 +548,14 @@ function readContext(
     throw new Error(`Missing or empty field(s): ${missing.join(", ")}`);
   }
 
+  /**
+   * Trimmed and capped. Company and role had no upper bound: whatever the
+   * client sent was stored and then rendered on every card and report that
+   * names the session. 120 is longer than any real job title or legal name
+   * and short enough that a pasted paragraph cannot become a "role".
+   */
   const text = (key: string): string =>
-    typeof body[key] === "string" ? (body[key] as string).trim() : "";
+    typeof body[key] === "string" ? (body[key] as string).trim().slice(0, CONTEXT_FIELD_MAX) : "";
 
   // On the free plan the requested employer is replaced, not rejected: the
   // interview still runs, it just does not know who it is for.
