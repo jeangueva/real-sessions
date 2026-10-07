@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
-import { Action, Eyebrow, Field } from "@/design-system";
+import { Action, Eyebrow, Field, Notice } from "@/design-system";
 import { ApiError, requestPasswordReset, resetPassword } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -129,15 +129,11 @@ function SetNewPassword({ token }: { token: string }) {
             className="field-control text-sm text-cream-bright"
           />
         </Field>
-        {error && (
-          <p role="alert" className="text-sm text-cream-bright">
-            {error}
-          </p>
-        )}
+        {error && <Notice tone="error">{error}</Notice>}
         <p className="text-xs text-cream-faint">
           {t("auth.signsOutOthers")}
         </p>
-        <Action type="submit" disabled={busy} className="self-start">
+        <Action type="submit" disabled={busy} className="w-full py-3">
           {busy ? "…" : t("auth.setPassword")}
         </Action>
       </form>

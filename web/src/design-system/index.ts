@@ -22,6 +22,7 @@ export {
   Badge,
   Field,
   PremiumMark,
+  Notice,
 } from "./primitives";
 
 export { Wordmark } from "./wordmark";

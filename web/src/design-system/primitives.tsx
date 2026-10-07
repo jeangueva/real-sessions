@@ -3,7 +3,7 @@
  * these — a new screen should compose them, not restyle from scratch.
  */
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { ArrowRight, Check, Crown } from "lucide-react";
+import { AlertCircle, ArrowRight, Check, CheckCircle2, Crown, Info } from "lucide-react";
 
 type Tone = "solid" | "neutral" | "glass" | "ghost";
 
@@ -20,7 +20,10 @@ interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const TONE: Record<Tone, string> = {
-  solid: "bg-accent text-accent-ink hover:bg-accent/90",
+  // Disabled is grey, Apple's way, rather than the accent at 40%: a pale
+  // violet pill still reads as "press me", just faintly.
+  solid:
+    "bg-accent text-accent-ink hover:bg-accent/90 disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100",
   neutral: "bg-cream-bright text-surface-base hover:bg-cream-bright/85",
   glass: "liquid-glass text-cream-bright hover:bg-surface-lift",
   ghost: "text-cream-dim hover:bg-surface-lift hover:text-cream-bright",
@@ -287,5 +290,38 @@ export function PremiumMark({
     >
       <Crown aria-hidden className="h-3 w-3" strokeWidth={2.5} fill="currentColor" />
     </span>
+  );
+}
+
+/**
+ * A message about what just happened, in a tinted box with its mark.
+ *
+ * An error used to be a bare paragraph in the body's ink — the same weight
+ * as the instructions around it, so "that link has expired" read as one
+ * more line of copy. The box and the icon make it read as the answer to
+ * what you just did. Never red: `step` is "what to do next", not "wrong".
+ */
+export function Notice({
+  tone = "info",
+  children,
+  className = "",
+}: {
+  tone?: "error" | "success" | "info";
+  children: ReactNode;
+  className?: string;
+}) {
+  const look = {
+    error: { box: "bg-step-soft", icon: "text-step-text", Icon: AlertCircle },
+    success: { box: "bg-grow-soft", icon: "text-grow-text", Icon: CheckCircle2 },
+    info: { box: "bg-surface-lift", icon: "text-cream-dim", Icon: Info },
+  }[tone];
+  return (
+    <p
+      role={tone === "error" ? "alert" : "status"}
+      className={`flex items-start gap-2.5 rounded-2xl px-4 py-3 text-sm leading-relaxed text-cream-bright ${look.box} ${className}`}
+    >
+      <look.Icon aria-hidden className={`mt-0.5 h-4 w-4 shrink-0 ${look.icon}`} />
+      <span className="min-w-0">{children}</span>
+    </p>
   );
 }

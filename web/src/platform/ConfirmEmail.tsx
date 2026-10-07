@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
-import { Action, Eyebrow } from "@/design-system";
+import { Action, Eyebrow, Notice } from "@/design-system";
 import { ApiError, confirmEmail } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -61,9 +61,9 @@ export function ConfirmEmail() {
     </h1>
 
     {state === "failed" && (
-      <p role="alert" className="mt-4 text-sm text-cream-dim">
+      <Notice tone="error" className="mt-4">
         {error} {t("confirm.retry")}
-      </p>
+      </Notice>
     )}
 
     {state === "done" && earlyAccess && (

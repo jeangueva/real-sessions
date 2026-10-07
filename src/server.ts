@@ -1473,6 +1473,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!accountId) {
       return json(res, 400, {
         error: "That reset link is invalid or has expired. Request a new one.",
+        code: "resetInvalid",
       });
     }
 
@@ -1508,6 +1509,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!accountId) {
       return json(res, 400, {
         error: "That confirmation link is invalid or has expired.",
+        code: "verifyInvalid",
       });
     }
 

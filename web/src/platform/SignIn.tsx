@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { GoogleButton } from "./GoogleButton";
-import { Action, Eyebrow, Field } from "@/design-system";
+import { Action, Eyebrow, Field, Notice } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { privacyFor, termsFor, legalLocale } from "@/legal/content";
@@ -93,9 +93,7 @@ export function SignIn() {
       </Field>
 
       {error && (
-        <p role="alert" className="text-sm text-cream-bright">
-          {error}
-        </p>
+        <Notice tone="error">{error}</Notice>
       )}
 
       <Action type="submit" disabled={busy} className="w-full py-3">
