@@ -163,7 +163,7 @@ export function AppShell() {
             <Wordmark className="hidden text-lg font-semibold text-cream-bright lg:inline" />
           </div>
           {isPremium && (
-            <span className="hidden rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-accent lg:inline-flex">
+            <span className="hidden rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent lg:inline-flex">
               Premium
             </span>
           )}
