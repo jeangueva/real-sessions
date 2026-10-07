@@ -160,7 +160,7 @@ export function Settings() {
         <div
           role="tablist"
           aria-label={t("settings.sections")}
-          className="mb-6 flex flex-wrap gap-2 border-b border-line pb-4"
+          className="mb-6 inline-flex flex-wrap items-center gap-1.5 rounded-full border border-line bg-surface-card p-1.5"
         >
           {TABS.map(({ id, key }) => (
             <button
@@ -175,10 +175,10 @@ export function Settings() {
                 // through the four rather than leaving the page.
                 history.pushState(null, "", `#${id}`);
               }}
-              className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
+              className={`focus-ring rounded-full px-4 py-2 text-xs font-medium transition-all duration-200 sm:text-sm ${
                 tab === id
-                  ? "border-cream bg-cream text-surface-base"
-                  : "border-line text-cream-dim hover:text-cream-bright"
+                  ? "bg-cream text-surface-base shadow-sm"
+                  : "text-cream-dim hover:text-cream-bright hover:bg-surface-lift"
               }`}
             >
               {t(key)}

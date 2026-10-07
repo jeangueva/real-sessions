@@ -181,7 +181,13 @@ export function Applications() {
                   id={`status-${row.id}`}
                   value={row.status}
                   onChange={(event) => void move(row.id, event.target.value as ApplicationStatus)}
-                  className="focus-ring rounded-xl border border-line bg-surface-card px-3 py-2 text-xs text-cream-bright"
+                  className={`focus-ring rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
+                    row.status === "offer"
+                      ? "border-grow/50 bg-grow/10 text-grow"
+                      : row.status === "interviewing"
+                        ? "border-accent/50 bg-accent/10 text-accent"
+                        : "border-line bg-surface-card text-cream-bright"
+                  }`}
                 >
                   {APPLICATION_STATUSES.map((status) => (
                     <option key={status} value={status}>

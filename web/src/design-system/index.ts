@@ -32,3 +32,5 @@ export { Waveform } from "./waveform";
 export { InterviewerPresence } from "./presence";
 export { SpotlightBorder } from "./spotlight-border";
 export { AnimatedCounter } from "./animated-counter";
+export { DecryptedText } from "./decrypted-text";
+export { Magnetic } from "./magnetic";

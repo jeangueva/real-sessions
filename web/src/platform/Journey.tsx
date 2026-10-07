@@ -137,7 +137,7 @@ function Stop({
     return (
       <motion.span
         aria-hidden
-        className="relative grid h-8 w-8 place-items-center rounded-full bg-grow text-surface-raised"
+        className="relative grid h-8 w-8 place-items-center rounded-full bg-grow text-surface-raised shadow-[0_0_12px_rgba(95,208,168,0.4)]"
         initial={still ? false : { scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 + index * 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -154,11 +154,11 @@ function Stop({
         {!still && (
           <motion.span
             className="absolute inset-0 rounded-full bg-accent"
-            animate={{ scale: [1, 1.5, 1], opacity: [0.35, 0, 0.35] }}
+            animate={{ scale: [1, 1.6, 1], opacity: [0.45, 0, 0.45] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
-        <span className="relative grid h-8 w-8 place-items-center rounded-full bg-accent text-accent-ink">
+        <span className="relative grid h-8 w-8 place-items-center rounded-full bg-accent text-accent-ink shadow-[0_0_16px_rgba(168,151,255,0.45)]">
           {offer ? <Briefcase className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-accent-ink" />}
         </span>
       </span>

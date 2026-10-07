@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame } from "@/design-system";
+import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame, Magnetic } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 
 /**
@@ -49,11 +49,13 @@ export function Hero() {
             </p>
           </FadeRise>
           <FadeRise delay={0.6}>
-            <Link to="/app" className="self-start">
-              <Action withArrow className="px-7 py-3 text-base sm:text-lg">
-                {t("cta.startInterview")}
-              </Action>
-            </Link>
+            <Magnetic strength={0.2}>
+              <Link to="/app" className="self-start">
+                <Action withArrow className="px-7 py-3 text-base sm:text-lg">
+                  {t("cta.startInterview")}
+                </Action>
+              </Link>
+            </Magnetic>
           </FadeRise>
         </div>
       </div>
