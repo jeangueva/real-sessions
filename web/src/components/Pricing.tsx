@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
-import { fetchPricing, type BillingCycle, type PlanOffer } from "@/lib/api";
+import { fetchPricing, type BillingCycle, type PlanOffer, type Region } from "@/lib/api";
 import { useLocalPrice } from "@/hooks/useLocalPrice";
 import type { Rates } from "@/lib/local-price";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
+import { formatPrice } from "@/lib/format";
+import { currencyName } from "@/lib/local-price";
 import type { MessageKey } from "@/lib/i18n";
 
 /**
@@ -59,6 +61,13 @@ export function Pricing() {
    */
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [rates, setRates] = useState<Rates | null>(null);
+  /**
+   * The reader's regional price, when they are sold through Paddle: the exact
+   * figure in their own currency, tax included. Null for Peru and for any
+   * deployment without Paddle, which show the plan in soles as before.
+   */
+  const [region, setRegion] = useState<Region | null>(null);
+  const { locale } = useLocale();
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +76,8 @@ export function Pricing() {
         if (cancelled) return;
         setOffer(result.offer);
         setRates(result.rates ?? null);
-        if (result.offer?.yearly) setCycle("yearly");
+        setRegion(result.region ?? null);
+        if (result.offer?.yearly || result.region?.provider === "paddle") setCycle("yearly");
       })
       .catch(() => !cancelled && setOffer(null));
     return () => {
@@ -77,6 +87,11 @@ export function Pricing() {
 
   const shown = cycle === "yearly" ? offer?.yearly : offer?.monthly;
   const price = useLocalPrice(shown?.amount, shown?.currency, rates);
+  const regional = region?.provider === "paddle" ? region.price : null;
+  const yearlyOffered = Boolean(offer?.yearly || regional);
+  const saving = regional
+    ? Math.round((1 - regional.yearly / (regional.monthly * 12)) * 100)
+    : (offer?.savingPercent ?? null);
 
   return (
     <Section id="pricing" className="bg-surface-base">
@@ -88,7 +103,7 @@ export function Pricing() {
       {/* Only when there is a year to switch to. A toggle with one position
           is a control that teaches somebody the product has choices it does
           not have. */}
-      {offer?.yearly && (
+      {yearlyOffered && (
         <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-line bg-surface-card p-1">
           {(["monthly", "yearly"] as const).map((option) => (
             <button
@@ -103,9 +118,9 @@ export function Pricing() {
               }`}
             >
               {t(option === "monthly" ? "land.billMonthly" : "land.billYearly")}
-              {option === "yearly" && offer.savingPercent !== null && (
+              {option === "yearly" && saving !== null && (
                 <span className="ml-2 opacity-80">
-                  {t("land.savePercent", { percent: String(offer.savingPercent) })}
+                  {t("land.savePercent", { percent: String(saving) })}
                 </span>
               )}
             </button>
@@ -162,7 +177,14 @@ export function Pricing() {
               {/* Reserves its line whether or not the price has arrived, so
                   the card does not jump when it does. */}
               <p className="mt-3 min-h-[1.6em] text-title text-cream-bright">
-                {price ? (
+                {regional ? (
+                  <>
+                    {formatPrice(regional[cycle], regional.currency, locale)}
+                    <span className="text-sm text-cream-faint">
+                      {t(cycle === "yearly" ? "land.perYear" : "land.perMonth")}
+                    </span>
+                  </>
+                ) : price ? (
                   <>
                     {price.headline}
                     <span className="text-sm text-cream-faint">
@@ -174,7 +196,24 @@ export function Pricing() {
               {/* What a year works out to each month — the comparison somebody
                   is making in their head anyway, done for them rather than
                   left as arithmetic beside a decision about money. */}
-              {cycle === "yearly" && shown && price && (
+              {regional && (
+                <>
+                  {cycle === "yearly" && (
+                    <p className="mt-1 text-xs text-cream-faint">
+                      {t("land.perMonthEquivalent", {
+                        price: formatPrice(regional.yearly / 12, regional.currency, locale),
+                      })}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-cream-dim">
+                    {t("price.taxIncluded", {
+                      name: currencyName(regional.currency, locale),
+                      code: regional.currency,
+                    })}
+                  </p>
+                </>
+              )}
+              {!regional && cycle === "yearly" && shown && price && (
                 <p className="mt-1 text-xs text-cream-faint">
                   {t("land.perMonthEquivalent", {
                     price: price.format(shown.amount / 12),
@@ -183,7 +222,7 @@ export function Pricing() {
               )}
               {/* Outside Peru: the figure above is an estimate, and this says
                   what the card is actually charged and in which currency. */}
-              {price?.charged && (
+              {!regional && price?.charged && (
                 <p className="mt-2 text-xs text-cream-dim">
                   {t(price.charged.estimated ? "price.estimateNote" : "price.chargedIn", {
                     price: price.charged.price,

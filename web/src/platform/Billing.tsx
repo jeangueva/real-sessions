@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Action, Eyebrow, Panel } from "@/design-system";
 import {
   fetchPricing,
+  syncPaddleCheckout,
   ApiError,
   cancelSubscription,
   fetchBilling,
@@ -13,11 +14,13 @@ import {
   startCheckout,
 } from "@/lib/api";
 import type { BillingState, Plan, Session } from "@/lib/api";
-import { formatSessionDate } from "@/lib/format";
+import { formatPrice, formatSessionDate } from "@/lib/format";
 import { track } from "@/lib/analytics";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { CardForm, refusalMessage } from "./CardForm";
 import { useLocalPrice } from "@/hooks/useLocalPrice";
+import { openPaddleCheckout } from "@/lib/paddle";
+import { currencyName } from "@/lib/local-price";
 import type { Rates } from "@/lib/local-price";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -67,6 +70,8 @@ export function Billing() {
    */
   const [session, setSession] = useState<Session | null>(null);
   const [busy, setBusy] = useState(false);
+  /** Between Paddle saying "paid" and our webhook switching the plan on. */
+  const [confirming, setConfirming] = useState(false);
   /** Opens the on-site card form. Only reachable when a public key exists. */
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +153,9 @@ export function Billing() {
   useEffect(() => {
     if (hash !== "#plan" || !state || paying) return;
     if (!state.configured || !state.publicKey || plan === "premium") return;
+    // A reader sold through Paddle never sees Mercado Pago's card form: it
+    // would charge soles at the Peruvian price, which is not their price.
+    if (state.region?.provider === "paddle" && state.paddle) return;
     if (session?.kind !== "user") return;
     setPaying(true);
   }, [hash, state, plan, session, paying]);
@@ -194,6 +202,57 @@ export function Billing() {
    * changed their mind the next day — is easiest to win back.
    */
   const lapsing = subscription?.status === "cancelled";
+  /**
+   * Sold through Paddle: a reader outside Peru, on a deployment with Paddle
+   * configured. They get one button, at their country's price in their own
+   * currency, and Mercado Pago's two are not shown.
+   */
+  const regional =
+    state.region?.provider === "paddle" && state.paddle && state.region.price
+      ? { paddle: state.paddle, price: state.region.price }
+      : null;
+
+  const payWithPaddle = async () => {
+    if (!regional) return;
+    setBusy(true);
+    try {
+      await openPaddleCheckout({
+        paddle: regional.paddle,
+        cycle,
+        email: session?.email ?? null,
+        locale,
+        theme: document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark",
+        completed: (transactionId) => {
+          // Paddle has the money. The plan switches on when its webhook
+          // reaches us — or, if that is slow, when the server asks Paddle
+          // about this transaction itself. Asked a few times rather than
+          // once, so either path ends on the right screen.
+          setConfirming(true);
+          let tries = 0;
+          const check = () => {
+            tries += 1;
+            (transactionId
+              ? syncPaddleCheckout(transactionId).catch(() => fetchPlan())
+              : fetchPlan()
+            )
+              .then((result) => {
+                if (result.plan === "premium") {
+                  setConfirming(false);
+                  load();
+                } else if (tries < 20) setTimeout(check, 2000);
+                else setConfirming(false);
+              })
+              .catch(() => (tries < 20 ? setTimeout(check, 2000) : setConfirming(false)));
+          };
+          check();
+        },
+      });
+    } catch {
+      setError(t("billing.couldNotOpen"));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div ref={panel} id="plan">
@@ -243,7 +302,28 @@ export function Billing() {
             sent to Mercado Pago's own page. Both end in the same subscription,
             and the redirect stays because a deployment that has not been given
             a public key must still be able to sell. */}
-        {(!active || lapsing) && state.configured && canBeBilled && state.publicKey && !paying && (
+        {(!active || lapsing) && regional && canBeBilled && (
+          <Action withArrow onClick={() => void payWithPaddle()} disabled={busy || confirming}>
+            {confirming
+              ? t("billing.confirming")
+              : t("billing.subscribeRegional", {
+                  price: `${formatPrice(regional.price[cycle], regional.price.currency, locale)}${t(
+                    cycle === "yearly" ? "land.perYear" : "land.perMonth",
+                  )}`,
+                })}
+          </Action>
+        )}
+
+        {(!active || lapsing) && regional && canBeBilled && (
+          <p className="w-full text-xs text-cream-dim">
+            {t("price.taxIncluded", {
+              name: currencyName(regional.price.currency, locale),
+              code: regional.price.currency,
+            })}
+          </p>
+        )}
+
+        {(!active || lapsing) && !regional && state.configured && canBeBilled && state.publicKey && !paying && (
           <Action withArrow onClick={() => setPaying(true)} disabled={busy}>
             {lapsing
               ? t("billing.resume")
@@ -256,7 +336,7 @@ export function Billing() {
           </Action>
         )}
 
-        {(!active || lapsing) && state.configured && canBeBilled && !state.publicKey && (
+        {(!active || lapsing) && !regional && state.configured && canBeBilled && !state.publicKey && (
           <Action withArrow onClick={() => void upgrade()} disabled={busy}>
             {busy
               ? t("billing.opening")
@@ -271,7 +351,7 @@ export function Billing() {
           </Action>
         )}
 
-        {(!active || lapsing) && state.configured && canBeBilled && price?.charged && (
+        {(!active || lapsing) && !regional && state.configured && canBeBilled && price?.charged && (
           <p className="w-full text-xs text-cream-dim">
             {price.charged.estimated
               ? `${price.headline} · ${t("price.estimateNote", {
@@ -283,7 +363,7 @@ export function Billing() {
           </p>
         )}
 
-        {!active && !state.configured && (
+        {!active && !regional && !state.configured && (
           // Said plainly rather than showing a button that 503s. Nothing to
           // offer beside it: with payments off, an existing early-access grant
           // is the only way onto the paid plan and the people who have one
@@ -310,7 +390,7 @@ export function Billing() {
           charged and comped at once is not a thing anybody wants. */}
       {plan !== "premium" && <PromoField onRedeemed={load} />}
 
-      {paying && state.publicKey && state.plan && (
+      {paying && !regional && state.publicKey && state.plan && (
         <div className="mt-6 border-t border-line pt-6">
           <CardForm
             cycle={cycle}

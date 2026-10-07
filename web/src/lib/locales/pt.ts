@@ -687,6 +687,9 @@ const PT: Record<MessageKey, string> = {
   "area.operations": "Operações",
   "price.estimateNote": "É uma estimativa na sua moeda. Seu cartão é cobrado em {price} ({name}); o valor final é definido pelo seu banco.",
   "price.chargedIn": "Cobrado em {name} ({code}). Seu banco converte para a sua moeda.",
+  "price.taxIncluded": "Impostos incluídos. Cobrado em {name} ({code}) pela Paddle, nossa parceira de pagamentos.",
+  "billing.subscribeRegional": "Assinar — {price}",
+  "billing.confirming": "Pagamento recebido. Ativando seu plano…",
 };
 
 export default PT;

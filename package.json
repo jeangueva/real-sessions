@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Mockio — AI interview simulator: live interviewer, async evaluator, and the API behind them.",
+  "description": "Mockio \u2014 AI interview simulator: live interviewer, async evaluator, and the API behind them.",
   "main": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -14,7 +14,8 @@
     "persona-compare": "tsx examples/persona-compare.ts",
     "evaluator-probe": "tsx examples/evaluator-probe.ts",
     "benchmark": "tsx examples/benchmark.ts",
-    "serve": "tsx src/server.ts"
+    "serve": "tsx src/server.ts",
+    "paddle:prices": "tsx scripts/paddle-prices.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",

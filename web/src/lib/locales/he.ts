@@ -640,6 +640,9 @@ const HE: Record<MessageKey, string> = {
   "area.operations": "תפעול",
   "price.estimateNote": "זו הערכה במטבע שלך. הכרטיס שלך יחויב ב־{price} ({name}); הסכום הסופי נקבע על ידי הבנק שלך.",
   "price.chargedIn": "החיוב ב{name} ({code}). הבנק שלך ממיר למטבע שלך.",
+  "price.taxIncluded": "כולל מס. החיוב ב{name} ({code}) דרך Paddle, שותפת התשלומים שלנו.",
+  "billing.subscribeRegional": "שדרוג — {price}",
+  "billing.confirming": "התשלום התקבל. מפעילים את התוכנית שלך…",
 };
 
 export default HE;

@@ -641,6 +641,9 @@ const IT: Record<MessageKey, string> = {
   "area.operations": "Operazioni",
   "price.estimateNote": "È una stima nella tua valuta. Alla tua carta vengono addebitati {price} ({name}); l'importo finale lo stabilisce la tua banca.",
   "price.chargedIn": "Addebitato in {name} ({code}). La tua banca lo converte nella tua valuta.",
+  "price.taxIncluded": "Tasse incluse. Addebitato in {name} ({code}) tramite Paddle, il nostro partner di pagamento.",
+  "billing.subscribeRegional": "Passa al piano a pagamento — {price}",
+  "billing.confirming": "Pagamento ricevuto. Attivazione del piano…",
 };
 
 export default IT;

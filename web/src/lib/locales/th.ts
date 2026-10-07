@@ -640,6 +640,9 @@ const TH: Record<MessageKey, string> = {
   "area.operations": "ปฏิบัติการ",
   "price.estimateNote": "นี่คือราคาโดยประมาณในสกุลเงินของคุณ บัตรของคุณจะถูกเรียกเก็บ {price} ({name}) และธนาคารของคุณเป็นผู้กำหนดยอดสุดท้าย",
   "price.chargedIn": "เรียกเก็บเป็น{name} ({code}) ธนาคารของคุณจะแปลงเป็นสกุลเงินของคุณ",
+  "price.taxIncluded": "รวมภาษีแล้ว เรียกเก็บเป็น{name} ({code}) ผ่าน Paddle พาร์ทเนอร์ด้านการชำระเงินของเรา",
+  "billing.subscribeRegional": "อัปเกรด — {price}",
+  "billing.confirming": "ได้รับการชำระเงินแล้ว กำลังเปิดใช้แพ็กเกจของคุณ…",
 };
 
 export default TH;

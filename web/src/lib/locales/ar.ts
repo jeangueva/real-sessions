@@ -640,6 +640,9 @@ const AR: Record<MessageKey, string> = {
   "area.operations": "العمليات",
   "price.estimateNote": "هذا تقدير بعملتك. تُخصم من بطاقتك {price} ({name})، ويحدد مصرفك المبلغ النهائي.",
   "price.chargedIn": "يُحصَّل بـ{name} ({code})، ويحوّله مصرفك إلى عملتك.",
+  "price.taxIncluded": "شامل الضرائب. تُحصِّله Paddle، شريكنا في الدفع، بـ{name} ({code}).",
+  "billing.subscribeRegional": "الترقية — {price}",
+  "billing.confirming": "تم استلام الدفع. جارٍ تفعيل خطتك…",
 };
 
 export default AR;

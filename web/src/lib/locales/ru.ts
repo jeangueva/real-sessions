@@ -640,6 +640,9 @@ const RU: Record<MessageKey, string> = {
   "area.operations": "Операции",
   "price.estimateNote": "Это примерная сумма в вашей валюте. С карты будет списано {price} ({name}); итоговую сумму определяет ваш банк.",
   "price.chargedIn": "Списание в валюте {name} ({code}). Ваш банк конвертирует сумму в вашу валюту.",
+  "price.taxIncluded": "Налоги включены. Списание в валюте {name} ({code}) через Paddle, нашего платёжного партнёра.",
+  "billing.subscribeRegional": "Перейти на платный — {price}",
+  "billing.confirming": "Оплата получена. Включаем ваш тариф…",
 };
 
 export default RU;

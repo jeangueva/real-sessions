@@ -640,6 +640,9 @@ const KO: Record<MessageKey, string> = {
   "area.operations": "운영",
   "price.estimateNote": "현지 통화 기준 예상 금액입니다. 카드에는 {price}({name})가 청구되며, 최종 금액은 카드사가 정합니다.",
   "price.chargedIn": "{name}({code})로 청구됩니다. 현지 통화로의 환산은 카드사가 합니다.",
+  "price.taxIncluded": "세금 포함. 결제 파트너 Paddle이 {name}({code})로 청구합니다.",
+  "billing.subscribeRegional": "유료로 전환 — {price}",
+  "billing.confirming": "결제가 완료되었습니다. 플랜을 활성화하는 중…",
 };
 
 export default KO;
