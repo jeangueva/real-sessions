@@ -105,7 +105,7 @@ export function SessionList() {
                       {session.metrics.fromSpeech &&
                         `${formatWpm(session.metrics.wpm)} · `}
                       {t("history.fillers", {
-                        rate: formatFiller(session.metrics.fillerPer100),
+                        rate: formatFiller(session.metrics.fillerPer100, t("feedback.fillerUnit")),
                       })}
                     </p>
                   )}

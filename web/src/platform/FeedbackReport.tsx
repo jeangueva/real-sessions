@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { Action, AnimatedCounter, DotMatrix, Eyebrow, FadeRise, Meter, Panel, PremiumMark } from "@/design-system";
+import { EASE_OUT } from "@/design-system/motion";
 import { ArrowUpRight, Check } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
@@ -18,6 +20,7 @@ import {
 } from "@/lib/api";
 import type { Badge as BadgeInfo, SessionMetrics, XpAward } from "@/lib/api";
 import {
+  formatCount,
   formatFiller,
   formatSeconds,
   formatSessionDate,
@@ -284,11 +287,24 @@ function ShareControl({
     <div className="flex flex-col items-stretch gap-2 sm:items-end">
       <div className="flex flex-wrap gap-2">
         <Action tone="glass" onClick={share} disabled={busy}>
-          {copied
-            ? t("feedback.shareCopied")
-            : link
-              ? t("feedback.shareCopy")
-              : t("feedback.shareReport")}
+          {/* The label crossfades through a 2px blur instead of swapping in
+              one frame, so "Copied" reads as the same button answering rather
+              than a different button appearing. */}
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={copied ? "copied" : link ? "copy" : "share"}
+              initial={{ opacity: 0, filter: "blur(2px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(2px)" }}
+              transition={{ duration: 0.18, ease: EASE_OUT }}
+            >
+              {copied
+                ? t("feedback.shareCopied")
+                : link
+                  ? t("feedback.shareCopy")
+                  : t("feedback.shareReport")}
+            </motion.span>
+          </AnimatePresence>
         </Action>
         {link && (
           <Action tone="glass" onClick={stop} disabled={busy}>
@@ -379,7 +395,10 @@ function FeedbackBody({
         }
       />
 
-      <PageBody className="grid gap-4 lg:grid-cols-3">
+      {/* `minmax(0,1fr)` columns and `min-w-0` cells: a grid cell is as wide
+          as its widest unbreakable word by default, and one long URL in a
+          next step stretched the whole report to 477px on a 320px phone. */}
+      <PageBody className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-3 [&>*]:min-w-0">
         <FadeRise className="lg:col-span-1">
           <Panel variant="raised" className="flex h-full flex-col gap-6 p-6 sm:p-8">
             <Eyebrow>{t("feedback.overall")}</Eyebrow>
@@ -415,7 +434,7 @@ function FeedbackBody({
               <Eyebrow>{t("feedback.worked")}</Eyebrow>
               <ul className="mt-3 flex flex-col gap-3">
                 {evaluation.strengths.map((item) => (
-                  <li key={item} className="flex gap-3 text-sm leading-relaxed text-cream-bright">
+                  <li key={item} className="flex min-w-0 gap-3 text-sm leading-relaxed text-cream-bright [overflow-wrap:anywhere]">
                     <span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-grow-soft text-grow-text">
                       <Check className="h-3 w-3" strokeWidth={3} />
                     </span>
@@ -428,7 +447,7 @@ function FeedbackBody({
               <Eyebrow>{t("feedback.toFix")}</Eyebrow>
               <ul className="mt-3 flex flex-col gap-3">
                 {evaluation.areas_for_improvement.map((item) => (
-                  <li key={item} className="flex gap-3 text-sm leading-relaxed text-cream-bright">
+                  <li key={item} className="flex min-w-0 gap-3 text-sm leading-relaxed text-cream-bright [overflow-wrap:anywhere]">
                     <span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-step-soft text-step-text">
                       <ArrowUpRight className="h-3 w-3" strokeWidth={3} />
                     </span>
@@ -449,7 +468,7 @@ function FeedbackBody({
                 {evaluation.vocabulary_feedback.good_usage.map((word) => (
                   <span
                     key={word}
-                    className="rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-bright"
+                    className="max-w-full rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-bright [overflow-wrap:anywhere]"
                   >
                     {word}
                   </span>
@@ -459,9 +478,12 @@ function FeedbackBody({
             {evaluation.vocabulary_feedback.missed_opportunities_or_errors.length > 0 && (
               <CorrectionSteps items={evaluation.vocabulary_feedback.missed_opportunities_or_errors} />
             )}
-            <p className="border-t border-line pt-5 text-sm leading-relaxed text-cream-dim">
-              {evaluation.structure_feedback.feedback_text}
-            </p>
+            {/* No rule with nothing under it when the evaluator left this empty. */}
+            {evaluation.structure_feedback.feedback_text.trim() !== "" && (
+              <p className="border-t border-line pt-5 text-sm leading-relaxed text-cream-dim">
+                {evaluation.structure_feedback.feedback_text}
+              </p>
+            )}
           </Panel>
         </FadeRise>
 
@@ -491,9 +513,14 @@ function FeedbackBody({
                 </p>
               </div>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
-                <Stat label={t("feedback.words")} value={String(metrics.words)} />
-                <Stat label={t("feedback.fillers")} value={formatFiller(metrics.fillerPer100)} />
-                <Stat label={t("feedback.shareReport")} value={formatShare(metrics.wordShare)} />
+                <Stat label={t("feedback.words")} value={formatCount(metrics.words)} />
+                <Stat
+                  label={t("feedback.fillers")}
+                  value={formatFiller(metrics.fillerPer100, t("feedback.fillerUnit"))}
+                />
+                {/* "Your share" of the talking — it used to borrow the share
+                    button's label and read "Share this report: 100%". */}
+                <Stat label={t("feedback.share")} value={formatShare(metrics.wordShare)} />
                 <Stat label={t("feedback.pace")} value={formatWpm(metrics.wpm)} />
                 <Stat
                   label={t("feedback.thinking")}
@@ -560,7 +587,7 @@ function FeedbackBody({
             )}
             <ol className="flex flex-col gap-4">
               {evaluation.actionable_next_steps.map((step, index) => (
-                <li key={step} className="flex gap-3 text-sm text-cream-bright">
+                <li key={step} className="flex min-w-0 gap-3 text-sm text-cream-bright [overflow-wrap:anywhere]">
                   <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-semibold tabular-nums text-accent-text">
                     {index + 1}
                   </span>

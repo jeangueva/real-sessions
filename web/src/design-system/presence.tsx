@@ -118,7 +118,7 @@ export function InterviewerPresence({
           face at rest moves, but it does not bob. */}
       <motion.span
         aria-hidden
-        className={`relative grid place-items-center rounded-full font-semibold transition-colors duration-500 ${
+        className={`relative grid place-items-center rounded-full font-semibold transition-colors duration-300 ${
           speaking ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
         }`}
         style={{

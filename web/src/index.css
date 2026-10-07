@@ -19,6 +19,11 @@
    * compile to `rgb(var(--x) / 0.5)`, which needs the raw numbers.
    */
   :root {
+    /* The UI ease-out, as a variable for the hand-written rules below. The
+       same curve as Tailwind's `ease-press` and motion.tsx's EASE_OUT. */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
     /**
      * Dark — Apple's, not a cinema's.
      *
@@ -130,6 +135,9 @@
 
   html {
     @apply font-sans;
+    /* The grey flash iOS and Android paint over anything tapped. Every
+       control has its own :active state instead. */
+    -webkit-tap-highlight-color: transparent;
     /* SF and Inter both ship an optical-size axis; let the browser pick the
        cut that matches the size instead of one drawing for every size. */
     font-optical-sizing: auto;
@@ -154,21 +162,51 @@
     font-family: inherit;
   }
 
+  /* A control answers the tap at once (no double-tap-zoom wait) and a long
+     press does not select its label or pop the link callout. Text that is
+     content stays selectable — this is only on things you press. */
+  button, a, [role="button"], [role="tab"], [role="option"], summary, label[for] {
+    touch-action: manipulation;
+  }
+
+  button, [role="button"], [role="tab"], [role="option"], summary {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* iOS zooms into any field under 16px and never zooms back out. */
+  @media (pointer: coarse) {
+    input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select {
+      font-size: max(16px, 1em);
+    }
+  }
+
   /* The landing nav scrolls the page rather than routing, so smooth it —
      the reduced-motion block below puts it back to an instant jump. */
   html {
     scroll-behavior: smooth;
   }
 
-  /* Every reference direction leaned on motion. None of them are worth
-     inducing nausea over — honor the OS setting globally. */
+  /**
+   * Reduced motion is fewer, gentler animations — not none.
+   *
+   * Loops and keyframes stop. Transitions keep running, but only on the
+   * properties that carry meaning without moving anything: opacity and
+   * colour. Position and scale change instantly. The first version zeroed
+   * every transition, which also took away the fade that tells you a popover
+   * opened and the tint that tells you a button was pressed.
+   */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-property: opacity, color, background-color, border-color, box-shadow,
+        fill, stroke !important;
     }
 
     html {
@@ -383,13 +421,56 @@
    * thing saying "this is a field" (WCAG 1.4.11).
    */
   .field-control {
-    @apply rounded-xl border border-line-strong bg-surface-card px-4 py-3 outline-none;
-    transition: border-color 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
+    /* `w-full min-w-0`: a select is as wide as its longest option by
+       default, and the question form's sector list pushed the landing page
+       to 366px on a 320px phone. A width utility on the field still wins. */
+    @apply w-full min-w-0 rounded-xl border border-line-strong bg-surface-card px-4 py-3 outline-none;
+    transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
   }
 
   .field-control:focus-visible {
     border-color: rgb(var(--accent));
     box-shadow: 0 0 0 4px rgb(var(--accent) / 0.18);
+  }
+
+  /**
+   * A popover arriving: from 97% and transparent, never from nothing, over
+   * 160ms on a strong ease-out. `transform-origin` is set per popover to
+   * the edge facing its trigger, so it grows out of the thing you pressed.
+   * `@starting-style` needs no JavaScript and a browser without it simply
+   * shows the popover at once, which is the right fallback.
+   */
+  .pop-in {
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+
+  @starting-style {
+    .pop-in {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
+  /**
+   * The call's transcript on a phone: a sheet rising from the bottom edge on
+   * iOS's own curve, so it reads as coming from where the controls are. On a
+   * desktop it is a column beside the call and simply appears.
+   */
+  @media (max-width: 1023px) {
+    .sheet-in {
+      transition:
+        transform 320ms var(--ease-drawer),
+        opacity 200ms var(--ease-out);
+    }
+
+    @starting-style {
+      .sheet-in {
+        opacity: 0;
+        transform: translateY(100%);
+      }
+    }
   }
 
   /* Focus is never removed, only restyled — this is an accessibility product. */

@@ -1,4 +1,5 @@
 import { visitorCountry } from "./local-price";
+import { devEmail, devHistory, devHistoryEntry } from "./worst-case";
 import type { PaddleClient } from "./paddle";
 /**
  * Client for the Mockio API. No credentials live here — the provider key
@@ -358,9 +359,12 @@ async function postStream(
   if (!response.ok || !response.body) {
     const payload = (await response.json().catch(() => ({}))) as {
       error?: string;
+      code?: string;
     };
+    // Through `localise` like every other path: the opening turn is where
+    // the weekly limit is refused, and it reached the call screen in English.
     throw new ApiError(
-      payload.error ?? `Request failed (${response.status}).`,
+      localise(payload.code, payload.error ?? `Request failed (${response.status}).`),
       response.status,
     );
   }
@@ -605,12 +609,13 @@ async function request<T>(
   }
   const payload = (await response.json().catch(() => ({}))) as {
     error?: string;
+    code?: string;
     retryAfterSeconds?: number;
     detail?: string;
   } & T;
   if (!response.ok) {
     throw new ApiError(
-      payload.error ?? `Request failed (${response.status}).`,
+      localise(payload.code, payload.error ?? `Request failed (${response.status}).`),
       response.status,
       typeof payload.retryAfterSeconds === "number"
         ? payload.retryAfterSeconds
@@ -628,7 +633,10 @@ export interface Session {
 }
 
 export function fetchSession() {
-  return request<Session>("/api/auth/me", { method: "GET" });
+  return request<Session>("/api/auth/me", { method: "GET" }).then((session) => {
+    const email = devEmail();
+    return email && session.kind === "user" ? { ...session, email } : session;
+  });
 }
 
 export function signUp(email: string, password: string) {
@@ -680,6 +688,8 @@ export function signOut() {
 }
 
 export function fetchHistory() {
+  const fixture = devHistory();
+  if (fixture) return Promise.resolve(fixture);
   return withIdentity(() =>
     request<{
       sessions: SessionSummary[];
@@ -693,6 +703,8 @@ export function fetchHistory() {
 }
 
 export function fetchHistoryEntry(id: string) {
+  const fixture = devHistoryEntry(id);
+  if (fixture) return Promise.resolve(fixture);
   return withIdentity(() =>
     request<{
       session: SessionSummary & {

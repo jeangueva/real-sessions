@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import {
   Section,
   Panel,
+  SegmentThumb,
   FadeRise,
   WordsPullUp,
   Waveform,
@@ -155,13 +156,12 @@ export function Features() {
                         key={company}
                         type="button"
                         onClick={() => setActiveTab(company)}
-                        className={`focus-ring flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-[background-color,color,box-shadow] duration-200 ease-press ${
-                          activeTab === company
-                            ? "bg-surface-card text-cream-bright shadow-card"
-                            : "text-cream-dim hover:text-cream-bright"
+                        className={`focus-ring relative flex-1 rounded-full py-1.5 text-xs font-medium capitalize transition-colors duration-200 ease-press ${
+                          activeTab === company ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
                         }`}
                       >
-                        {company}
+                        {activeTab === company && <SegmentThumb id="culture-tab" />}
+                        <span className="relative">{company}</span>
                       </button>
                     ))}
                   </div>
@@ -205,7 +205,7 @@ export function Features() {
                       <span className="tabular-nums font-semibold text-grow">92%</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift">
-                      <div className="h-full w-[92%] rounded-full bg-grow transition-all" />
+                      <div className="h-full w-[92%] rounded-full bg-grow" />
                     </div>
                   </div>
 
@@ -215,7 +215,7 @@ export function Features() {
                       <span className="tabular-nums font-semibold text-accent">138 wpm</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift">
-                      <div className="h-full w-[85%] rounded-full bg-accent transition-all" />
+                      <div className="h-full w-[85%] rounded-full bg-accent" />
                     </div>
                   </div>
 
@@ -225,7 +225,7 @@ export function Features() {
                       <span className="tabular-nums font-semibold text-cream-bright">1.2%</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift">
-                      <div className="h-full w-[20%] rounded-full bg-cream transition-all" />
+                      <div className="h-full w-[20%] rounded-full bg-cream" />
                     </div>
                   </div>
                 </div>

@@ -195,10 +195,10 @@ export function Tour() {
 
       <div
         style={{ ...card, width: 340, maxWidth: "calc(100vw - 24px)" }}
-        className="absolute rounded-3xl bg-surface-raised p-5 shadow-float"
+        className="pop-in absolute rounded-3xl bg-surface-raised p-5 shadow-float"
       >
         <div className="flex items-start justify-between gap-4">
-          <p className="text-sm text-cream-bright">{step.title}</p>
+          <p className="text-base font-semibold text-cream-bright">{step.title}</p>
           <button
             onClick={close}
             aria-label={t("tour.close")}

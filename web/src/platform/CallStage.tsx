@@ -78,7 +78,10 @@ export function CallStage({
        thing being watched, and a call on white reads as a form with a face on
        it. `on-media` pins the light ink and the dark accent, so everything
        inside — presence, waveform, captions — reads on black. */
-    <div className="on-media relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[1.75rem] bg-surface-base p-4 shadow-float sm:p-6">
+    /* Half the screen at least on a phone — the column it sits in has no
+       fixed height there, so `flex-1` alone left a 185px strip with the room
+       empty below it. On desktop the row's fixed height decides instead. */
+    <div className="on-media relative flex min-h-[50svh] flex-1 items-center justify-center overflow-hidden rounded-[1.75rem] bg-surface-base p-4 shadow-float sm:p-6 lg:min-h-0">
       {/* Sharing rearranges the room rather than adding to it, the way a
           call does: what you are presenting is the thing worth the space, and
           the interviewer shrinks to a strip that still shows them talking. */}
@@ -109,7 +112,7 @@ export function CallStage({
         {sharing ? (
           <span
             aria-hidden
-            className={`grid h-10 w-10 place-items-center rounded-full text-sm font-semibold transition-colors duration-500 ${
+            className={`grid h-10 w-10 place-items-center rounded-full text-sm font-semibold transition-colors duration-300 ${
               speaking ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
             }`}
           >

@@ -16,6 +16,7 @@ import { Unsubscribe } from "@/platform/Unsubscribe";
 import { ConfirmEmail } from "@/platform/ConfirmEmail";
 import { LocaleProvider } from "@/hooks/useLocale";
 import { pageView, startAnalytics } from "@/lib/analytics";
+import { DevDataToggle } from "@/platform/DevDataToggle";
 
 /**
  * The signed-in half, fetched when someone goes there.
@@ -105,6 +106,8 @@ export function App() {
     <LocaleProvider>
     <BrowserRouter>
       <RouteViews />
+      {/* Worst-case data for break-ui — a dev build only. */}
+      {import.meta.env.DEV && <DevDataToggle />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signin" element={<SignIn />} />

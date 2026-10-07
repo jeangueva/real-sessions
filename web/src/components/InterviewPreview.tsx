@@ -54,7 +54,7 @@ export function InterviewPreview() {
             <span className="flex items-center gap-2 text-xs text-cream-dim">
               <span
                 aria-hidden
-                className="h-1.5 w-1.5 rounded-full bg-accent animate-blink"
+                className="h-1.5 w-1.5 rounded-full bg-accent animate-live"
               />
               {t("land.previewTurn", { turn: turn + 1, total: TURNS.length })}
             </span>

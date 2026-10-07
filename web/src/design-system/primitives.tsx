@@ -229,7 +229,7 @@ export function Badge({
   return (
     <span className="inline-flex items-center gap-2 rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-dim">
       {tone === "live" && (
-        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent animate-blink" />
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent animate-live" />
       )}
       {children}
     </span>

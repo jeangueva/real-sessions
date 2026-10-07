@@ -70,12 +70,12 @@ export function SharedReport() {
   }, [token]);
 
   if (state === "loading") {
-    return <main className="min-h-screen bg-surface-base" aria-busy="true" />;
+    return <main className="min-h-dvh bg-surface-base" aria-busy="true" />;
   }
 
   if (state === "missing" || !report?.evaluation) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-surface-base px-6">
+      <main className="flex min-h-dvh items-center justify-center bg-surface-base px-6">
         <Panel variant="raised" className="flex w-full max-w-md flex-col gap-5 p-8">
           <h1 className="text-title font-semibold text-cream-bright">
             {t("shared.goneTitle")}
@@ -101,7 +101,7 @@ export function SharedReport() {
     : "";
 
   return (
-    <main className="min-h-screen bg-surface-base px-4 py-10 sm:px-6">
+    <main className="min-h-dvh bg-surface-base px-4 py-10 sm:px-6">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
         <FadeRise>
           <div className="flex flex-col gap-2">

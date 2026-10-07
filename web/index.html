@@ -2,7 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `viewport-fit=cover` paints under the notch and the home indicator;
+         the safe-area insets pad the content back out. `resizes-content`
+         makes Android's keyboard shrink the layout the way iOS's does. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <!-- The status bar takes the colour of the top of the page. Two values,
+         one per scheme; the script below and theme.ts correct them when the
+         theme was chosen in the app rather than by the OS. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
     <title>Mockio — practise the interview in English</title>
     <meta
       name="description"
@@ -54,6 +65,10 @@
               window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (light) document.documentElement.setAttribute("data-theme", "light");
           document.documentElement.style.colorScheme = light ? "light" : "dark";
+          var bar = light ? "#ffffff" : "#000000";
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (tag) {
+            tag.setAttribute("content", bar);
+          });
         } catch (error) {
           document.documentElement.setAttribute("data-theme", "light");
         }

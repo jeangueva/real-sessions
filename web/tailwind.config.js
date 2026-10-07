@@ -156,8 +156,12 @@ export default {
         // One easing curve for the whole product. Decelerating, cinematic.
         cinematic: "cubic-bezier(0.16, 1, 0.3, 1)",
         settle: "cubic-bezier(0.22, 1, 0.36, 1)",
-        // A press: in fast, nothing lingering. Apple's button feedback.
-        press: "cubic-bezier(0.2, 0, 0, 1)",
+        // Every UI response — a press, a popover, a field's halo, a screen
+        // change. One strong ease-out (Emil Kowalski's), so nothing in the
+        // product answers at a slightly different speed from the rest.
+        press: "cubic-bezier(0.23, 1, 0.32, 1)",
+        // iOS's sheet curve, for things that slide up from the bottom edge.
+        drawer: "cubic-bezier(0.32, 0.72, 0, 1)",
       },
       keyframes: {
         fadeRise: {
@@ -169,6 +173,10 @@ export default {
           to: { opacity: "1", transform: "translateY(0)" },
         },
         blink: { "0%,100%": { opacity: "1" }, "50%": { opacity: "0" } },
+        // "Live": a breath rather than a blink. A hard on/off every second
+        // beside text someone is reading is the one motion that cannot be
+        // ignored, which is the opposite of what a status dot is for.
+        livePulse: { "0%,100%": { opacity: "1" }, "50%": { opacity: "0.35" } },
         /**
          * The backdrop drift. Deliberately enormous periods — a minute is fast
          * enough to notice and slow enough that nothing on top of it appears
@@ -192,6 +200,7 @@ export default {
         "fade-rise": "fadeRise 0.8s cubic-bezier(0.16,1,0.3,1) both",
         "fade-in": "fadeIn 0.5s ease both",
         blink: "blink 1s step-end infinite",
+        live: "livePulse 2s cubic-bezier(0.45, 0, 0.55, 1) infinite",
         "drift-slow": "driftSlow 34s cubic-bezier(0.45,0,0.55,1) infinite",
         "drift-wide": "driftWide 46s cubic-bezier(0.45,0,0.55,1) infinite",
         "drift-counter": "driftCounter 58s cubic-bezier(0.45,0,0.55,1) infinite",
@@ -199,4 +208,10 @@ export default {
     },
   },
   plugins: [],
+  /**
+   * Every `hover:` utility only on a device that can hover. On a phone a tap
+   * fires hover and leaves it stuck on — a card stays lifted, a button stays
+   * tinted — after the finger has gone.
+   */
+  future: { hoverOnlyWhenSupported: true },
 };

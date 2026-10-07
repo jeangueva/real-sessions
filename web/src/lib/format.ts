@@ -8,7 +8,29 @@
  *
  * When the interface is translated, this is the single place that changes.
  */
-const LOCALE = "en-US";
+/**
+ * The interface language, read from `<html lang>` (useLocale keeps it in
+ * step). Dates used to be pinned to en-US so they never mixed with English
+ * sentences; the interface is translated now, and "Oct 7" in a Spanish
+ * sentence is the same mismatch the pin was written to avoid, turned round.
+ * Falls back to en-US where there is no document — the tests, the server.
+ */
+function uiLocale(): string {
+  if (typeof document === "undefined") return "en-US";
+  return document.documentElement.lang || "en-US";
+}
+
+/** A count in the reader's grouping: 12.840 in Spanish, 12,840 in English. */
+export function formatCount(value: number): string {
+  return new Intl.NumberFormat(uiLocale()).format(value);
+}
+
+function oneDecimal(value: number): string {
+  return new Intl.NumberFormat(uiLocale(), {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
 
 /**
  * "Aug 31" for this year, "Aug 31, 2025" for any other.
@@ -22,7 +44,7 @@ export function formatSessionDate(iso: string | null): string {
   if (Number.isNaN(date.getTime())) return "";
 
   const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString(LOCALE, {
+  return date.toLocaleDateString(uiLocale(), {
     month: "short",
     day: "numeric",
     // Dropping the year only when it is the current one keeps recent rows
@@ -60,18 +82,24 @@ export function formatWpm(value: number | null): string {
   return value === null ? ABSENT : `${Math.round(value)} wpm`;
 }
 
-export function formatFiller(value: number | null): string {
-  return value === null ? ABSENT : `${value.toFixed(1)} / 100 words`;
+/** Per hundred words. `unit` is the translated "/ 100 words". */
+export function formatFiller(value: number | null, unit = "/ 100 words"): string {
+  return value === null ? ABSENT : `${oneDecimal(value)} ${unit}`;
 }
 
 export function formatSeconds(ms: number | null): string {
-  return ms === null ? ABSENT : `${(ms / 1000).toFixed(1)}s`;
+  return ms === null ? ABSENT : `${oneDecimal(ms / 1000)}s`;
 }
 
 export function formatMinutes(ms: number | null): string {
   if (ms === null) return ABSENT;
   const minutes = Math.floor(ms / 60_000);
   const seconds = Math.round((ms % 60_000) / 1000);
+  // Rolls up to hours: "77040m 0s" was the first version's answer to a
+  // long session, and nobody reads minutes in the tens of thousands.
+  if (minutes >= 60) {
+    return `${formatCount(Math.floor(minutes / 60))}h ${minutes % 60}m`;
+  }
   return minutes === 0 ? `${seconds}s` : `${minutes}m ${seconds}s`;
 }
 

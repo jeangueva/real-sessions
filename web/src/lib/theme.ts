@@ -72,4 +72,11 @@ export function applyTheme(theme: Theme, root: HTMLElement): void {
   // Native controls — scrollbars, form widgets, the caret — read this rather
   // than our variables, and a dark scrollbar on a white page is a giveaway.
   root.style.colorScheme = theme;
+  // The phone's status bar, which follows `theme-color` rather than the page.
+  // Both tags get the chosen theme's colour: a theme picked in the app
+  // overrides the OS scheme the tags were written for.
+  const bar = theme === "light" ? "#ffffff" : "#000000";
+  root.ownerDocument
+    ?.querySelectorAll('meta[name="theme-color"]')
+    .forEach((tag) => tag.setAttribute("content", bar));
 }

@@ -87,7 +87,7 @@ export function Contribute() {
 
   return (
     <Section id="contribute" className="bg-surface-base">
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 [&>*]:min-w-0">
         <FadeRise>
           <Eyebrow>{t("land.contribEyebrow")}</Eyebrow>
           <h2 className="mt-4 text-headline font-semibold text-cream-bright">
@@ -125,7 +125,7 @@ export function Contribute() {
         <FadeRise delay={0.12}>
         <Panel className="p-6 sm:p-8">
           <form onSubmit={submit} className="flex flex-col gap-5">
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2 [&>*]:min-w-0">
               <Field label={t("land.contribSector")} htmlFor="c-sector">
                 <select
                   id="c-sector"

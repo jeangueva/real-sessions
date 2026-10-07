@@ -42,7 +42,7 @@ export function LandingNav() {
 
   return (
     <header
-      className={`nav-lifted fixed inset-x-0 top-0 z-50 transition-[border-color] duration-300 ${
+      className={`nav-lifted fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top)] transition-[border-color] duration-300 ${
         scrolled ? "" : "!border-transparent"
       }`}
     >

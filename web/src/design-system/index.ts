@@ -4,6 +4,7 @@ export {
   ScrollRevealText,
   Typewriter,
   useTypewriter,
+  SegmentThumb,
 } from "./motion";
 export type { StyledSegment } from "./motion";
 export { Accordion } from "./accordion";

@@ -86,7 +86,7 @@ export function FilterRow({
             under it, and the setup screen reserves the space so nothing ends
             up hidden behind it. From `md` it is back in the row, where the
             nav bar itself disappears. */}
-        <div className="nav-lifted fixed inset-x-0 bottom-16 z-20 !border-b-0 border-t border-line px-4 py-3 [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:py-3 md:static md:z-auto md:w-auto md:shrink-0 md:!border-0 md:!bg-transparent md:p-0 md:![backdrop-filter:none] md:[&>*]:w-auto md:[&_button]:w-auto md:[&_button]:px-7 md:[&_button]:py-4">
+        <div className="nav-lifted fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-20 !border-b-0 border-t border-line px-4 py-3 [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:py-3 md:static md:z-auto md:w-auto md:shrink-0 md:!border-0 md:!bg-transparent md:p-0 md:![backdrop-filter:none] md:[&>*]:w-auto md:[&_button]:w-auto md:[&_button]:px-7 md:[&_button]:py-4">
           {begin}
         </div>
       </div>
@@ -276,8 +276,11 @@ export function FilterSegment({
               width: at.width,
               maxHeight: at.maxHeight,
               ...(at.top === undefined ? { bottom: at.bottom } : { top: at.top }),
+              // Grows out of the segment it belongs to: down from its top edge
+              // when it opens below, up from its bottom edge when above.
+              transformOrigin: at.top === undefined ? "bottom left" : "top left",
             }}
-            className="fixed z-50 overflow-y-auto rounded-3xl bg-surface-raised p-2 shadow-float"
+            className="pop-in fixed z-50 overflow-y-auto rounded-3xl bg-surface-raised p-2 shadow-float"
           >
             {disabled ? (
               <p className="p-3 text-sm text-cream-dim">{disabledReason}</p>

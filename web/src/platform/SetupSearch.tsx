@@ -276,7 +276,7 @@ export function SetupSearch({
           // bg-surface-deep, not bg-ink: there is no `ink` in the palette, so the
           // class resolved to nothing and the setup panel showed straight
           // through the suggestions. Opaque, and above the panel.
-          className="absolute z-30 mt-2 max-h-80 w-full overflow-y-auto rounded-3xl bg-surface-raised p-2 shadow-float"
+          className="pop-in absolute z-30 mt-2 max-h-80 w-full origin-top overflow-y-auto rounded-3xl bg-surface-raised p-2 shadow-float"
         >
           {choices.map((choice, index) => {
             const key =

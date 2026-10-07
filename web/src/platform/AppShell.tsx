@@ -17,6 +17,7 @@ import { fetchPlan, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import { PremiumMark, Wordmark } from "@/design-system";
+import { EASE_OUT } from "@/design-system/motion";
 
 /**
  * The signed-in shell. It sits on `surface-deep` rather than pure black so the
@@ -150,12 +151,12 @@ export function AppShell() {
   if (session === null || session.kind !== "user") return null;
 
   return (
-    <div className="flex min-h-screen bg-surface-deep">
+    <div className="flex min-h-dvh bg-surface-deep">
       {/* Apple's sidebar: on the shell's own grey, no panel of its own, a
           hairline where it meets the content. Selection is a white tile with
           the card's shadow — the row lifts toward you, the way a selected row
           in Music or Settings does — rather than a coloured wash. */}
-      <aside className="sticky top-0 hidden h-screen w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-64 lg:items-stretch lg:px-3">
+      <aside className="sticky top-0 hidden h-dvh w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-64 lg:items-stretch lg:px-3">
         <div className="mb-7 flex items-center justify-between gap-2 px-2.5">
           <div className="flex items-center gap-2.5">
             {/* The mark is the accent's own disc: the one place the colour sits
@@ -219,7 +220,7 @@ export function AppShell() {
 
       {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is fixed
           and would otherwise sit on top of the last element on the page. */}
-      <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
+      <div className="flex min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
         {/**
          * One screen gives way to the next instead of being replaced.
          *
@@ -243,10 +244,28 @@ export function AppShell() {
           <motion.div
             key={location.pathname}
             className="flex min-w-0 flex-1 flex-col"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            /* A full `transform` string rather than `y`: Motion's shorthands
+               run on the main thread, and this plays while the next screen's
+               chunk is loading — the moment the main thread is busiest.
+               Out faster than in: the old screen is leaving, nobody is
+               reading it. */
+            initial={{ opacity: 0, transform: "translateY(8px)" }}
+            animate={{
+              opacity: 1,
+              transform: "translateY(0px)",
+              transition: { duration: 0.22, ease: EASE_OUT },
+              // Back to no transform at all once it lands. Any transform, even
+              // a zero one, makes this element the containing block for every
+              // `position: fixed` inside the screen — the Begin bar and the
+              // phone's transcript sheet were pinned to this box, a full page
+              // below the viewport, instead of to the screen.
+              transitionEnd: { transform: "none" },
+            }}
+            exit={{
+              opacity: 0,
+              transform: "translateY(-4px)",
+              transition: { duration: 0.12, ease: EASE_OUT },
+            }}
           >
             <Outlet />
           </motion.div>

@@ -269,7 +269,7 @@ export function LiveInterview() {
         setTurn(result);
         addLine("interviewer", result.text);
       })
-      .catch((caught: unknown) => setError(describe(caught)))
+      .catch((caught: unknown) => setError(describe(caught, t)))
       .finally(() => setBusy(false));
   }, [company, role, stage, mode, personaId, pressure, jobPosting, applicationId, stages.join(",")]);
 
@@ -400,7 +400,7 @@ export function LiveInterview() {
       fetchCoaching(sessionId);
     } catch (caught) {
       // The answer stays in the box so a retry costs nothing to the candidate.
-      setError(describe(caught));
+      setError(describe(caught, t));
     } finally {
       setBusy(false);
     }
@@ -478,12 +478,12 @@ export function LiveInterview() {
         title={heading}
         meta={
           running?.generic
-            ? "General role interview · targeting a company is on the paid plan"
+            ? t("field.generalRole")
             : (running?.targetRole ?? role)
         }
         actions={
           <div className="flex items-center gap-3">
-            <Badge>{mode === "real" ? "Real" : "Practice"}</Badge>
+            <Badge>{mode === "real" ? t("field.real") : t("field.practice")}</Badge>
             {/* Said out loud, because the interruptions that follow are the
                 exercise. Without this the first time it talks over an answer
                 reads as the product glitching. */}
@@ -499,14 +499,18 @@ export function LiveInterview() {
       />
 
       <PageBody className="flex flex-1 flex-col pb-4 pt-3 sm:py-6 lg:py-10">
-        {/* A bounded height on desktop and mobile. */}
-        <div className="flex flex-1 flex-col gap-3 lg:h-[calc(100vh-13rem)] lg:gap-4">
-          <div className="relative flex min-h-0 flex-1 flex-col gap-3 lg:flex-row lg:gap-4">
+        <div className="flex flex-1 flex-col gap-3 lg:gap-4">
+          {/* The call and the transcript share one fixed height on desktop.
+              It used to sit on the outer column, where `flex-1` overrode it,
+              so every new line of transcript made the whole room taller and
+              pushed the controls down the page. Bounded here, the transcript
+              scrolls inside its own card and nothing around it moves. */}
+          <div className="relative flex min-h-0 flex-1 flex-col gap-3 lg:h-[clamp(26rem,calc(100svh-16rem),46rem)] lg:flex-none lg:flex-row lg:gap-4">
             <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:gap-3">
               <CallStage
                 initials={persona?.initials ?? "…"}
-                name={persona?.name ?? "Your interviewer"}
-                title={persona?.title ?? "Joining…"}
+                name={persona?.name ?? t("call.interviewerFallback")}
+                title={persona?.title ?? t("call.joining")}
                 speaking={voice.speaking}
                 voiceLevel={voice.voiceLevel}
                 voiceMeasured={voice.voiceMeasured}
@@ -519,7 +523,10 @@ export function LiveInterview() {
                 turnText={turn?.text || streaming || undefined}
               />
 
-              {/* Desktop subtitle text under stage */}
+              {/* Desktop subtitle text under stage. Not drawn at all on an
+                  error: the alert below says what happened, and a lone "—"
+                  in the subtitle's place read as a glitch. */}
+              {!error && (
               <div className="hidden sm:block">
                 <p
                   className="min-h-[3.5rem] text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
@@ -527,12 +534,11 @@ export function LiveInterview() {
                   aria-busy={busy}
                 >
                   {turn?.text || streaming || (
-                    <span className="text-cream-faint">
-                      {error ? "—" : t("call.connectingTo")}
-                    </span>
+                    <span className="text-cream-faint">{t("call.connectingTo")}</span>
                   )}
                 </p>
               </div>
+              )}
 
               {voice.listening && (
                 <div className="flex items-start gap-2.5 sm:gap-3">
@@ -583,7 +589,7 @@ export function LiveInterview() {
             </div>
 
             {panelOpen && (
-              <div className="fixed inset-x-4 bottom-24 top-20 z-40 flex flex-col shadow-float lg:static lg:inset-auto lg:z-auto lg:h-auto lg:w-[26rem] lg:shadow-none">
+              <div className="sheet-in fixed inset-x-4 bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] top-[calc(5rem+env(safe-area-inset-top,0px))] z-40 flex min-h-0 flex-col shadow-float lg:static lg:inset-auto lg:z-auto lg:h-full lg:w-[26rem] lg:shrink-0 lg:shadow-none">
                 <TranscriptPanel
                   lines={lines}
                   pending={busy ? streaming : ""}
@@ -695,14 +701,14 @@ function CoachPanel({
   );
 }
 
-function describe(error: unknown): string {
+/** What went wrong, in the reader's language. */
+function describe(error: unknown, t: ReturnType<typeof useT>): string {
   if (error instanceof ApiError) {
-    if (error.status === 404) return "This session expired. Start a new interview.";
-    if (error.status === 429) {
-      return "You have started a lot of interviews recently. Try again in a little while.";
-    }
-    if (error.status === 403) return "This beta needs an access code.";
+    if (error.status === 404) return t("call.expired");
+    if (error.status === 429) return t("call.tooMany");
+    // Everything else arrives already localised by the API layer when the
+    // server sent a code, and as the server's own sentence when it did not.
     return error.message;
   }
-  return "Something went wrong. Try again.";
+  return t("call.failed");
 }

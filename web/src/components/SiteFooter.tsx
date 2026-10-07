@@ -63,7 +63,7 @@ export function SiteFooter() {
             <select
               value={locale}
               onChange={(event) => setLocale(event.target.value as Locale)}
-              className="focus-ring cursor-pointer rounded-full border border-line-strong bg-transparent px-3 py-1 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+              className="focus-ring cursor-pointer rounded-full border border-line-strong bg-transparent px-3 py-1 text-sm text-cream-dim transition-colors hover:text-cream-bright"
             >
               {LOCALES.map((entry) => (
                 <option key={entry.id} value={entry.id}>

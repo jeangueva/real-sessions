@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
+import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section, SegmentThumb } from "@/design-system";
 import { fetchPricing, type BillingCycle, type PlanOffer, type Region } from "@/lib/api";
 import { useLocalPrice } from "@/hooks/useLocalPrice";
 import type { Rates } from "@/lib/local-price";
@@ -89,18 +89,19 @@ export function Pricing() {
               type="button"
               aria-pressed={cycle === option}
               onClick={() => setCycle(option)}
-              className={`focus-ring rounded-full px-4 py-2 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 ease-press ${
-                cycle === option
-                  ? "bg-surface-card text-cream-bright shadow-card"
-                  : "text-cream-dim hover:text-cream-bright"
+              className={`focus-ring relative rounded-full px-4 py-2 text-xs font-medium transition-colors duration-200 ease-press ${
+                cycle === option ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
               }`}
             >
-              {t(option === "monthly" ? "land.billMonthly" : "land.billYearly")}
-              {option === "yearly" && saving !== null && (
-                <span className="ml-2 text-grow-text">
-                  {t("land.savePercent", { percent: String(saving) })}
-                </span>
-              )}
+              {cycle === option && <SegmentThumb id="billing-cycle" />}
+              <span className="relative">
+                {t(option === "monthly" ? "land.billMonthly" : "land.billYearly")}
+                {option === "yearly" && saving !== null && (
+                  <span className="ml-2 text-grow-text">
+                    {t("land.savePercent", { percent: String(saving) })}
+                  </span>
+                )}
+              </span>
             </button>
           ))}
         </div>

@@ -461,8 +461,8 @@ export function SessionSetup() {
          */
         actions={
           can && (!can.targetCompany || left !== null) ? (
-            <div className="flex min-w-0 items-center gap-3">
-              <p className="flex items-center gap-1.5 rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-dim">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+              <p className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-dim">
                 <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span className={left === 0 ? "text-cream-bright" : undefined}>
                   {left === 0

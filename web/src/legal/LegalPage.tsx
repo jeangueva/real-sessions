@@ -67,7 +67,7 @@ function Shell({ document: doc }: { document: LegalDocument }) {
   const t = useT();
 
   return (
-    <main className="min-h-screen bg-surface-base">
+    <main className="min-h-dvh bg-surface-base">
       <div className="mx-auto flex max-w-2xl flex-col gap-10 px-6 py-16">
         <Link
           to="/"

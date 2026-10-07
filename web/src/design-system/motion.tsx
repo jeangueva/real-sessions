@@ -12,7 +12,9 @@ import {
 } from "framer-motion";
 import type { ReactNode } from "react";
 
-const CINEMATIC = [0.16, 1, 0.3, 1] as const;
+export const CINEMATIC = [0.16, 1, 0.3, 1] as const;
+/** The UI ease-out — the same curve as `ease-press` and `--ease-out`. */
+export const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 const WORD_STAGGER = 0.08;
 
 /** One text segment with its own styling, for mixed-weight headlines. */
@@ -82,8 +84,15 @@ export function WordsPullUp({
         <motion.span
           key={`${item.word}-${index}`}
           className={`inline-block ${item.className}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: inView ? 1 : 0, y: inView ? 0 : 20 }}
+          // `transform` strings, not `y`: Motion's shorthands run on the main
+          // thread, and these play while the hero video is still loading.
+          initial={{ opacity: 0, transform: "translateY(20px)" }}
+          animate={{
+            opacity: inView ? 1 : 0,
+            transform: inView ? "translateY(0px)" : "translateY(20px)",
+            // No transform left behind once visible — see FadeRise.
+            ...(inView ? { transitionEnd: { transform: "none" } } : {}),
+          }}
           transition={{
             duration: 0.7,
             delay: delay + index * WORD_STAGGER,
@@ -119,11 +128,17 @@ export function FadeRise({
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, transform: "translateY(24px)" }}
       // Animating to an explicit visible state either way: passing `undefined`
       // leaves the element parked at `initial`, so anything whose entrance
       // never fires stays invisible rather than merely un-animated.
-      animate={{ opacity: inView ? 1 : 0, y: inView ? 0 : 24 }}
+      animate={{
+        opacity: inView ? 1 : 0,
+        transform: inView ? "translateY(0px)" : "translateY(24px)",
+        // A resting transform would make this block the containing block for
+        // anything `position: fixed` inside it, so it is cleared on arrival.
+        ...(inView ? { transitionEnd: { transform: "none" } } : {}),
+      }}
       transition={{ duration: 0.8, delay, ease: CINEMATIC }}
     >
       {children}
@@ -235,5 +250,32 @@ export function Typewriter({
         />
       )}
     </p>
+  );
+}
+
+/**
+ * The raised pill under the chosen segment of a segmented control.
+ *
+ * It slides between segments instead of teleporting, the way Apple's
+ * segmented control does: the eye follows the selection rather than having
+ * to find it again. `layoutId` animates a transform, and a spring with no
+ * bounce retargets cleanly when someone taps back before it lands.
+ * The button that owns it must be `relative`, with its label above it.
+ */
+export function SegmentThumb({
+  id,
+  className = "bg-surface-card shadow-card",
+}: {
+  /** One per control, shared by its segments. */
+  id: string;
+  className?: string;
+}) {
+  return (
+    <motion.span
+      layoutId={id}
+      aria-hidden
+      className={`absolute inset-0 rounded-full ${className}`}
+      transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+    />
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { SegmentThumb } from "@/design-system";
 import { Send, X } from "lucide-react";
 import { useT } from "@/hooks/useLocale";
 
@@ -66,13 +67,17 @@ export function TranscriptPanel({
 }) {
   const t = useT();
   const words = { you: t("call.you"), interviewer: t("call.interviewer") };
-  const foot = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
 
   // Follows the conversation down. A transcript that has to be scrolled by
   // hand while someone is talking to you is a transcript nobody reads.
+  //
+  // The list's own scroll, not `scrollIntoView`: that scrolls every ancestor
+  // too, so each new line dragged the whole page down under the call.
   useEffect(() => {
-    foot.current?.scrollIntoView({ block: "end" });
-  }, [lines.length, pending]);
+    const box = list.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [lines.length, pending, tab]);
 
   return (
     <aside className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[1.75rem] bg-surface-card shadow-card">
@@ -87,13 +92,14 @@ export function TranscriptPanel({
             role="tab"
             aria-selected={tab === name}
             onClick={() => onTab(name)}
-            className={`focus-ring flex-1 rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-[background-color,color,box-shadow] duration-200 ease-press sm:text-sm ${
-              tab === name
-                ? "bg-surface-lift text-cream-bright"
-                : "text-cream-dim hover:text-cream-bright"
+            className={`focus-ring relative flex-1 rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors duration-200 ease-press sm:text-sm ${
+              tab === name ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
             }`}
           >
-            {name === "transcript" ? t("panel.transcript") : t("panel.chat")}
+            {tab === name && <SegmentThumb id="call-panel-tab" className="bg-surface-lift" />}
+            <span className="relative">
+              {name === "transcript" ? t("panel.transcript") : t("panel.chat")}
+            </span>
           </button>
         ))}
         {onClose && (
@@ -109,7 +115,7 @@ export function TranscriptPanel({
       </div>
 
       {tab === "transcript" ? (
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div ref={list} className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {lines.length === 0 && pending === "" ? (
             <p className="text-xs text-cream-faint">
               {t("panel.empty")}
@@ -146,7 +152,6 @@ export function TranscriptPanel({
               )}
             </ol>
           )}
-          <div ref={foot} />
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">

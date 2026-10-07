@@ -45,10 +45,30 @@ export function companyLabel(
 }
 
 /** "12 Aug" — enough to place an attempt without a timestamp's precision. */
-export function shortDate(iso: string): string {
+export function shortDate(iso: string, withTime = false): string {
   const when = new Date(iso);
   if (Number.isNaN(when.getTime())) return "";
-  return when.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  // The interface language, not the browser's, so the card and the report
+  // agree on how a date reads.
+  const locale =
+    typeof document !== "undefined" && document.documentElement.lang
+      ? document.documentElement.lang
+      : undefined;
+  return when.toLocaleString(locale, {
+    day: "numeric",
+    month: "short",
+    // Two cards with the same role, company and day were indistinguishable;
+    // the time tells them apart, and only appears when it has to.
+    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  });
+}
+
+/** Whether another session in the list started on the same calendar day. */
+function sharesDay(session: SessionSummary, all: SessionSummary[]): boolean {
+  const day = new Date(session.startedAt).toDateString();
+  return all.some(
+    (other) => other.id !== session.id && new Date(other.startedAt).toDateString() === day,
+  );
 }
 
 export function RecentSessions({
@@ -87,19 +107,25 @@ export function RecentSessions({
               className="focus-ring flex h-full w-60 flex-col justify-between gap-3 rounded-card bg-surface-card p-4 text-left shadow-card transition-[box-shadow,transform] duration-200 ease-press hover:shadow-lift active:scale-[0.98]"
             >
               <span>
-                <span className="block truncate text-sm font-semibold text-cream-bright">
+                {/* Truncated to keep the cards one size, so each line carries
+                    its full text as a title — a cut-off name with no way to
+                    read it is a name the candidate cannot check. */}
+                <span title={session.role} className="block truncate text-sm font-semibold text-cream-bright">
                   {session.role}
                 </span>
-                <span className="block truncate text-xs text-cream-dim">
+                <span title={session.stage} className="block truncate text-xs text-cream-dim">
                   {session.stage}
                 </span>
-                <span className="mt-1 block truncate text-xs text-cream-faint">
+                <span
+                  title={companyLabel(session, genericCompany, t("field.generalRole"))}
+                  className="mt-1 block truncate text-xs text-cream-faint"
+                >
                   {companyLabel(session, genericCompany, t("field.generalRole"))}
                 </span>
               </span>
               <span className="flex items-baseline justify-between gap-2">
                 <span className="text-xs text-cream-faint">
-                  {shortDate(session.startedAt)}
+                  {shortDate(session.startedAt, sharesDay(session, recent))}
                 </span>
                 {/* A blank would read as zero, which is a much worse thing to
                     tell someone about their own interview. */}

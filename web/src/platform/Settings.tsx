@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Eyebrow, Field, Panel, Action } from "@/design-system";
+import { Eyebrow, Field, Panel, Action, SegmentThumb } from "@/design-system";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { LOCALES } from "@/lib/i18n";
@@ -175,13 +175,12 @@ export function Settings() {
                 // through the four rather than leaving the page.
                 history.pushState(null, "", `#${id}`);
               }}
-              className={`focus-ring rounded-full px-4 py-1.5 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 ease-press sm:text-sm ${
-                tab === id
-                  ? "bg-surface-card text-cream-bright shadow-card"
-                  : "text-cream-dim hover:text-cream-bright"
+              className={`focus-ring relative rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200 ease-press sm:text-sm ${
+                tab === id ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
               }`}
             >
-              {t(key)}
+              {tab === id && <SegmentThumb id="settings-tab" />}
+              <span className="relative">{t(key)}</span>
             </button>
           ))}
         </div>

@@ -16,7 +16,7 @@ import { useT } from "@/hooks/useLocale";
 export function AuthLayout({ children }: { children: ReactNode }) {
   const t = useT();
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-surface-deep px-6 py-10">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-surface-deep px-6 py-10">
       <div className="w-full max-w-md">
         <Link
           to="/"

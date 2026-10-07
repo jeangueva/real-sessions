@@ -54,7 +54,7 @@ export function Unsubscribe() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-base px-6">
+    <main className="flex min-h-dvh items-center justify-center bg-surface-base px-6">
       <Panel variant="raised" className="flex w-full max-w-md flex-col gap-5 p-8">
         <h1 className="text-title font-semibold text-cream-bright">{t("unsub.title")}</h1>
 
