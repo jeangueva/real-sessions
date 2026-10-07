@@ -166,7 +166,7 @@ export function Progress() {
             <div className="flex items-center gap-4">
               <Avatar
                 level={1}
-                size={56}
+                size={88}
                 className="shrink-0 text-cream-dim"
               />
               <p className="text-xs text-cream-faint">
@@ -221,7 +221,7 @@ export function Progress() {
                 <Avatar
                   level={profile.level}
                   axis={dominantAxis(axisLatest)}
-                  size={72}
+                  size={104}
                   className="shrink-0 text-cream-bright"
                 />
                 <div>
