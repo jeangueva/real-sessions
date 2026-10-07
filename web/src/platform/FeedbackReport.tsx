@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Action, DotMatrix, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
+import { Action, AnimatedCounter, DotMatrix, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
 import { ArrowUpRight, Check } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
@@ -367,7 +367,7 @@ function FeedbackBody({
           <Panel variant="raised" className="flex h-full flex-col gap-6 p-6">
             <Eyebrow>{t("feedback.overall")}</Eyebrow>
             <p className="text-display text-cream-bright" style={{ fontSize: "clamp(3rem,8vw,5rem)" }}>
-              {evaluation.overall_score_percentage}
+              <AnimatedCounter value={evaluation.overall_score_percentage} />
               <span className="text-cream-faint">%</span>
             </p>
             <div className="flex flex-col gap-4">

@@ -30,3 +30,5 @@ export { Backdrop } from "./backdrop";
 export { HeroVideo } from "./hero-video";
 export { Waveform } from "./waveform";
 export { InterviewerPresence } from "./presence";
+export { SpotlightBorder } from "./spotlight-border";
+export { AnimatedCounter } from "./animated-counter";

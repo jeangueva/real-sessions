@@ -100,7 +100,7 @@ export function TranscriptPanel({
           <button
             type="button"
             onClick={onClose}
-            aria-label={t("cta.close")}
+            aria-label={t("tour.close")}
             className="focus-ring grid h-8 w-8 place-items-center rounded-full text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright lg:hidden"
           >
             <X className="h-4 w-4" aria-hidden />

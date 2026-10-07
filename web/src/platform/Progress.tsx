@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Action,
+  AnimatedCounter,
   Eyebrow,
   FadeRise,
   Meter,
@@ -225,7 +226,9 @@ export function Progress() {
                 />
                 <div>
                   <Eyebrow>{t("progress.level")}</Eyebrow>
-                  <p className="mt-2 text-title text-cream-bright">{profile.level}</p>
+                  <p className="mt-2 text-title text-cream-bright">
+                    <AnimatedCounter value={profile.level} />
+                  </p>
                   <p className="mt-1 text-xs text-cream-faint">
                     {nextEvolution(profile.level) === null
                       ? t("avatar.final")
