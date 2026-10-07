@@ -35,6 +35,7 @@ export function HeroVideo({
   src,
   poster,
   bare = false,
+  focus,
 }: {
   src?: string;
   poster?: string;
@@ -44,6 +45,8 @@ export function HeroVideo({
    * video, and without copy they only make the picture murkier.
    */
   bare?: boolean;
+  /** Where the crop holds the picture, as an `object-position` class. */
+  focus?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<number | null>(null);
@@ -199,7 +202,7 @@ export function HeroVideo({
          * a phone the hero is taller than the footage, so the cover crop runs
          * horizontally and this has nothing to do.
          */
-        className={`absolute inset-0 h-full w-full object-cover ${bare ? "object-center" : "object-[50%_82%]"}`}
+        className={`absolute inset-0 h-full w-full object-cover ${focus ?? (bare ? "object-center" : "object-[50%_82%]")}`}
       />
 
       {!bare && <div className="noise-overlay absolute inset-0 opacity-[0.35] mix-blend-overlay" />}
