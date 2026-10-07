@@ -531,7 +531,7 @@ export function SessionSetup() {
             was competing with the fields for it. Out of the card, the row
             reflows against the page itself. */}
         <div className="flex min-w-0 flex-col gap-4">
-          <Eyebrow>{t("setup.eyebrow")}</Eyebrow>
+          <h2 className="text-base font-semibold text-cream-bright">{t("setup.eyebrow")}</h2>
 
           {/* One bar of selectors rather than six rows of pills. The bar
               shows what is chosen — the thing a person rereads before
