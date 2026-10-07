@@ -218,7 +218,7 @@ export function SetupSearch({
 
   return (
     <div ref={box} className="relative">
-      <div className="focus-within:border-cream flex items-center gap-3 rounded-full border border-line px-4 py-3 transition-colors">
+      <div className="flex items-center gap-3 rounded-full border border-line-strong bg-surface-card px-5 py-3 transition-[border-color,box-shadow] duration-200 ease-press focus-within:border-accent focus-within:shadow-[0_0_0_4px_rgb(var(--accent)/0.18)]">
         <Search className="h-4 w-4 shrink-0 text-cream-faint" aria-hidden />
         <input
           type="search"
@@ -276,7 +276,7 @@ export function SetupSearch({
           // bg-surface-deep, not bg-ink: there is no `ink` in the palette, so the
           // class resolved to nothing and the setup panel showed straight
           // through the suggestions. Opaque, and above the panel.
-          className="absolute z-30 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-line bg-surface-deep p-1 shadow-2xl"
+          className="absolute z-30 mt-2 max-h-80 w-full overflow-y-auto rounded-3xl bg-surface-raised p-2 shadow-float"
         >
           {choices.map((choice, index) => {
             const key =
@@ -293,8 +293,8 @@ export function SetupSearch({
                   aria-selected={index === active}
                   onMouseEnter={() => setActive(index)}
                   onClick={() => choose(choice)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors ${
-                    index === active ? "bg-cream/10" : ""
+                  className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-surface-lift ${
+                    index === active ? "bg-surface-lift" : ""
                   }`}
                 >
                   {choice.kind === "session" ? (

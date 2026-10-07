@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Action,
   Section,
   Eyebrow,
   Panel,
@@ -26,26 +27,28 @@ export function InterviewPreview() {
   const [turn, setTurn] = useState(0);
 
   return (
-    <Section id="how-it-works" className="bg-surface-base">
+    /* Sections alternate white and #F5F5F7, Apple's way of saying "new
+       subject" without a rule or a heading colour. */
+    <Section id="how-it-works" className="bg-surface-deep">
       <FadeRise className="mx-auto max-w-3xl text-center">
         <Eyebrow>{t("land.previewEyebrow")}</Eyebrow>
-        <h2 className="mt-4 text-headline">
-          <span className="font-normal text-cream-bright">
+        <h2 className="mt-3 text-balance text-headline">
+          <span className="text-cream-bright">
             {t("land.previewAsks")}
           </span>{" "}
-          <span className="font-serif italic text-accent-text">
+          <span className="text-accent-text">
             {t("land.previewWaits")}
           </span>{" "}
-          <span className="font-normal text-cream-bright">
+          <span className="text-cream-bright">
             {t("land.previewCharacter")}
           </span>
         </h2>
       </FadeRise>
 
       <FadeRise className="mx-auto mt-12 max-w-3xl">
-        <Panel variant="raised" className="p-6 sm:p-10">
-          <div className="flex items-center justify-between border-b border-line pb-4">
-            <span className="text-xs text-cream-dim">
+        <Panel variant="raised" className="p-6 shadow-float sm:p-10">
+          <div className="flex items-center justify-between gap-4 border-b border-line pb-4">
+            <span className="text-xs font-medium text-cream-dim">
               {t("land.previewMeta")}
             </span>
             <span className="flex items-center gap-2 text-xs text-cream-dim">
@@ -60,12 +63,13 @@ export function InterviewPreview() {
           {/* Remount on change so the reveal replays for the new turn. */}
           <SpokenTurn key={turn} text={TURNS[turn]!} />
 
-          <button
+          <Action
+            tone="glass"
+            withArrow
             onClick={() => setTurn((current) => (current + 1) % TURNS.length)}
-            className="focus-ring rounded-full border border-line px-4 py-2 text-sm text-cream-bright transition-colors hover:border-accent hover:text-accent-text"
           >
             {t("land.previewNext")}
-          </button>
+          </Action>
         </Panel>
       </FadeRise>
     </Section>
@@ -99,7 +103,7 @@ function SpokenTurn({ text }: { text: string }) {
           className="text-accent"
         />
       </div>
-      <p className="min-h-[7rem] text-title font-normal text-cream-bright" aria-label={text}>
+      <p className="min-h-[7rem] text-title font-medium text-cream-bright" aria-label={text}>
         <span aria-hidden>{displayed}</span>
         {!done && (
           <span

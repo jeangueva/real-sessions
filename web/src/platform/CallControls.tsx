@@ -43,10 +43,12 @@ function ControlButton({
   children: ReactNode;
 }) {
   const tone = danger
-    ? "bg-rose-500/90 text-white hover:bg-rose-500 shadow-[0_4px_16px_-4px_rgba(244,63,94,0.4)]"
+    ? /* FaceTime's red for hanging up: the one place a red belongs in this
+         product, because it is a convention every caller already knows. */
+      "bg-rose-500 text-white hover:bg-rose-600"
     : active
-      ? "bg-cream text-surface-base shadow-[0_4px_16px_-4px_rgba(240,230,214,0.4)]"
-      : "border border-line bg-surface-card/60 text-cream-dim hover:border-line-strong hover:text-cream-bright hover:bg-surface-lift";
+      ? "bg-cream-bright text-surface-base"
+      : "bg-surface-lift text-cream-bright hover:bg-cream/15";
 
   return (
     <button
@@ -56,7 +58,7 @@ function ControlButton({
       aria-label={label}
       aria-pressed={danger || disabled ? undefined : active}
       title={title ?? label}
-      className={`focus-ring grid h-12 w-12 place-items-center rounded-full transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 ${tone}`}
+      className={`focus-ring grid h-12 w-12 place-items-center rounded-full transition-[transform,background-color,color,opacity] duration-200 ease-press active:scale-[0.94] active:duration-100 disabled:cursor-not-allowed disabled:opacity-35 ${tone}`}
     >
       {children}
     </button>
@@ -94,7 +96,9 @@ export function CallControls({
 }) {
   const t = useT();
   return (
-    <div className="flex items-center justify-center gap-3">
+    /* FaceTime's control tray: the buttons sit together on one floating
+       surface, so they read as one instrument rather than five loose dots. */
+    <div className="mx-auto flex w-fit items-center justify-center gap-2 rounded-full bg-surface-card p-2 shadow-lift">
       <ControlButton
         label={micOn ? t("call.mute") : t("call.unmute")}
         active={micOn}

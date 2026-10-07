@@ -20,117 +20,138 @@
    */
   :root {
     /**
-     * Dark, now a warm night rather than a black room.
+     * Dark — Apple's, not a cinema's.
      *
-     * The first palette was cream on pure black — cinematic, and also the
-     * colour of a product that takes itself seriously. The person on the other
-     * side is about to get something wrong out loud, in a language that is not
-     * theirs; a room with the lights off is the wrong room for that. The ink
-     * keeps its warmth and the ground picks it up, so the dark theme reads as
-     * a lamp-lit desk at night, not as a cinema.
+     * True black for the page, the way iOS draws its own dark mode: on an
+     * OLED phone it is the pixel switched off, and the grouped greys above it
+     * (#1C1C1E, #2C2C2E) read as surfaces rather than as fog. The ink is a
+     * cool off-white so nothing on the page looks yellowed next to the accent.
      */
-    --cream: 240 230 214;
-    --cream-bright: 250 244 233;
-    --surface-base: 23 19 15;
-    --surface-raised: 33 28 23;
-    --surface-card: 40 34 28;
-    /* The ground the signed-in shell sits on: a step away from the base, in
-       the same family, so panels on it read as one product. */
-    --surface-deep: 28 23 19;
+    --cream: 245 245 247;
+    --cream-bright: 250 250 252;
+    --surface-base: 0 0 0;
+    --surface-raised: 22 22 24;
+    --surface-card: 28 28 30;
+    /* The signed-in ground: a step off black, so cards on it still lift. */
+    --surface-deep: 12 12 13;
     /* Recessed panels inside a surface — transcript, call stage. */
     --surface-sunken: 0 0 0;
-    --surface-sunken-alpha: 0.22;
+    --surface-sunken-alpha: 0.32;
     /* A barely-there lift, for a row that is hovered or selected. */
     --surface-lift: 255 255 255;
-    --surface-lift-alpha: 0.06;
-    --line: rgba(240, 230, 214, 0.14);
+    --surface-lift-alpha: 0.07;
+    --line: rgba(245, 245, 247, 0.12);
     /* 0.42 is the lowest that clears 3:1 against every dark surface. */
-    --line-strong: rgba(240, 230, 214, 0.42);
-    /**
-     * The dim behind a spotlight or a modal.
-     *
-     * Sixty percent black over a dark page is barely a change of tone. Over
-     * a light one it turns the whole screen mid-grey, which reads as broken
-     * rather than as focused — so the light theme dims by half as much and
-     * still separates the highlighted control from everything else.
-     */
+    --line-strong: rgba(245, 245, 247, 0.42);
     --scrim: rgba(0, 0, 0, 0.6);
 
+    /* Shadows barely register on black; the hairline does the separating. */
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-lift: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.5);
+    --shadow-float: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 64px rgba(0, 0, 0, 0.6);
+
     /**
-     * The colours that mean something.
+     * The colours that mean something — three roles, never decoration:
      *
-     * Until now the product had one hue — cream — and every state wore it,
-     * which is why a finished interview and a settings page felt the same.
-     * Three roles, each with a job, and never used for decoration:
-     *
-     *   accent  The way forward. The button that starts talking, the step you
-     *           are on, the voice of the interviewer. Violet: awake and
-     *           confident, nowhere near the red of a mistake, and clear of
-     *           the coral another product already owns.
-     *   grow    Something that got better. A score that rose, the natural way
-     *           to say it, a step completed.
-     *   step    Something to work on. Yellow, not red: what you said is the
+     *   accent  The way forward. Apple's indigo: confident, nowhere near the
+     *           red of a mistake, and continuous with the violet the brand
+     *           already wore.
+     *   grow    Something that got better.
+     *   step    Something to work on. Orange, not red: what you said is the
      *           step before the better version, not a wrong answer.
      *
      * Each has an ink for text on its fill (`-ink`), a text shade that clears
      * 4.5:1 on every surface (`-text`), and a soft wash for chips and rows.
+     * On dark the fill and the text part ways: #5E5CE6 carries white at 5:1
+     * but is only 3.4:1 as text on a card, so text takes the lighter step.
      */
-    --accent: 168 151 255;
-    --accent-ink: 23 19 15;
-    --accent-text: 168 151 255;
-    --accent-soft: 40 34 72;
-    --grow: 95 208 168;
-    --grow-text: 95 208 168;
-    --grow-soft: 24 50 41;
-    --step: 240 207 92;
-    --step-text: 240 207 92;
-    --step-soft: 58 50 20;
+    --accent: 94 92 230;
+    --accent-ink: 255 255 255;
+    --accent-text: 125 122 255;
+    --accent-soft: 30 30 62;
+    --grow: 48 209 88;
+    --grow-text: 48 209 88;
+    --grow-soft: 16 44 26;
+    --step: 255 159 10;
+    --step-text: 255 159 10;
+    --step-soft: 56 38 8;
+    --premium: 255 204 0;
+    --premium-soft: 58 46 8;
   }
 
   /**
-   * Light — the product's own theme now, not the alternative.
+   * Light — the product's own theme.
    *
-   * Paper, not white: a warm off-white that reads as a notebook rather than a
-   * form, with white cards lifted off it. The ink is a warm near-black so the
-   * page keeps the warmth the accent brings instead of fighting it.
+   * White, the way both references draw their ground: the content is the
+   * colour, the page is not. Ink is Apple's #1D1D1F rather than black, which
+   * keeps large type from vibrating on a bright screen. The signed-in shell
+   * sits on #F5F5F7 so white cards on it read as cards without a border.
    */
   :root[data-theme="light"] {
-    --cream: 31 27 22;
-    --cream-bright: 23 19 15;
-    --surface-base: 251 246 238;
+    --cream: 29 29 31;
+    --cream-bright: 17 17 19;
+    --surface-base: 255 255 255;
     --surface-raised: 255 255 255;
     --surface-card: 255 255 255;
-    --surface-deep: 251 246 238;
-    --surface-sunken: 31 27 22;
+    --surface-deep: 245 245 247;
+    --surface-sunken: 29 29 31;
     --surface-sunken-alpha: 0.04;
-    --surface-lift: 31 27 22;
+    --surface-lift: 29 29 31;
     --surface-lift-alpha: 0.05;
-    --line: rgba(31, 27, 22, 0.12);
+    --line: rgba(29, 29, 31, 0.11);
     /* The light surfaces are brighter, so the same rule costs more alpha. */
-    --line-strong: rgba(31, 27, 22, 0.49);
-    --scrim: rgba(31, 27, 22, 0.32);
+    --line-strong: rgba(29, 29, 31, 0.49);
+    --scrim: rgba(29, 29, 31, 0.32);
 
-    /* #6246EA carries white text at 5.9:1, reads as text on paper at 5.5:1
-       and on its own soft wash at 4.9:1. */
-    --accent: 98 70 234;
+    /* Airbnb's card: a hairline you barely see and a wide, soft fall-off. */
+    --shadow-card: 0 0 0 1px rgba(29, 29, 31, 0.06), 0 2px 4px rgba(29, 29, 31, 0.04),
+      0 8px 24px rgba(29, 29, 31, 0.06);
+    --shadow-lift: 0 0 0 1px rgba(29, 29, 31, 0.06), 0 6px 12px rgba(29, 29, 31, 0.06),
+      0 18px 40px rgba(29, 29, 31, 0.1);
+    --shadow-float: 0 0 0 1px rgba(29, 29, 31, 0.05), 0 12px 24px rgba(29, 29, 31, 0.08),
+      0 32px 72px rgba(29, 29, 31, 0.14);
+
+    /* #5856D6 carries white at 5.6:1, reads as text on white at 5.6:1 and on
+       #F5F5F7 at 5.2:1. */
+    --accent: 88 86 214;
     --accent-ink: 255 255 255;
-    --accent-text: 98 70 234;
-    --accent-soft: 236 232 255;
-    --grow: 29 158 117;
-    --grow-text: 15 110 86;
-    --grow-soft: 221 242 233;
-    --step: 224 177 0;
-    --step-text: 115 88 0;
-    --step-soft: 251 240 194;
+    --accent-text: 88 86 214;
+    --accent-soft: 238 238 252;
+    --grow: 52 199 89;
+    --grow-text: 30 123 52;
+    --grow-soft: 226 246 231;
+    --step: 255 159 10;
+    --step-text: 178 80 0;
+    --step-soft: 255 243 224;
+    /* #A16A00 clears 4.5:1 on white; the crown sits on its own soft wash. */
+    --premium: 161 106 0;
+    --premium-soft: 255 244 204;
   }
 
-  * {
-    font-family: "Almarai", -apple-system, BlinkMacSystemFont, "Segoe UI",
-      Roboto, sans-serif;
+  html {
+    @apply font-sans;
+    /* SF and Inter both ship an optical-size axis; let the browser pick the
+       cut that matches the size instead of one drawing for every size. */
+    font-optical-sizing: auto;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     @apply bg-surface-base text-cream-bright antialiased;
+    /* Inter's single-storey a and open digits — closer to SF's shapes. */
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  /* Headings carry weight, not size alone: hierarchy is weight, size and
+     leading as a set. Screens that need a lighter heading say so. */
+  h1, h2, h3 {
+    font-weight: 600;
+  }
+
+  /* Form controls do not inherit type by default. */
+  button, input, select, textarea {
+    font-family: inherit;
   }
 
   /* The landing nav scrolls the page rather than routing, so smooth it —
@@ -193,15 +214,33 @@
    */
   .nav-floating {
     background: rgb(0 0 0 / 0.72);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
 
+  /* Apple's toolbar material: translucent, saturated, content scrolling
+     underneath rather than a fixed opaque strip. */
   .nav-lifted {
-    background: rgb(var(--surface-raised) / 0.82);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgb(var(--surface-raised) / 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--line);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .nav-lifted {
+      background: rgb(var(--surface-raised));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    /* The floating pill carries light ink in both themes, so its solid
+       fallback is the dark it was standing in for. */
+    .nav-floating {
+      background: rgb(0 0 0);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
   }
 
   /**
@@ -253,14 +292,17 @@
    * nothing about the hero — comes out right.
    */
   .on-media {
-    --cream: 240 230 214;
-    --cream-bright: 250 244 233;
+    --cream: 245 245 247;
+    --cream-bright: 250 250 252;
     --surface-base: 0 0 0;
-    --line: rgba(240, 230, 214, 0.14);
-    --line-strong: rgba(240, 230, 214, 0.42);
-    --accent: 168 151 255;
-    --accent-ink: 23 19 15;
-    --accent-text: 168 151 255;
+    --line: rgba(245, 245, 247, 0.14);
+    --line-strong: rgba(245, 245, 247, 0.42);
+    --accent: 94 92 230;
+    --accent-ink: 255 255 255;
+    --accent-text: 125 122 255;
+    /* The idle avatar on a dark stage: a dark indigo disc rather than the
+       light theme's near-white wash, which glared off black. */
+    --accent-soft: 30 30 62;
   }
 
   /* Liquid glass. The only surface treatment allowed to float over video. */
@@ -331,6 +373,23 @@
 
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /**
+   * A text field, Apple's way: a white well with a border you can see, and on
+   * focus the border takes the accent and a soft halo spreads around it — the
+   * field answers the click instead of a ring appearing a few pixels away.
+   * The border stays `line-strong` at rest because on white it is the only
+   * thing saying "this is a field" (WCAG 1.4.11).
+   */
+  .field-control {
+    @apply rounded-xl border border-line-strong bg-surface-card px-4 py-3 outline-none;
+    transition: border-color 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .field-control:focus-visible {
+    border-color: rgb(var(--accent));
+    box-shadow: 0 0 0 4px rgb(var(--accent) / 0.18);
   }
 
   /* Focus is never removed, only restyled — this is an accessibility product. */

@@ -139,7 +139,7 @@ export function Progress() {
       <>
         <PageHeader title={t("progress.title")} />
         <PageBody>
-          <Panel variant="glass" className="max-w-2xl p-6">
+          <Panel variant="glass" className="max-w-2xl p-6 sm:p-8">
             <p role="alert" className="text-sm text-cream-bright">
               {error}
             </p>
@@ -155,7 +155,7 @@ export function Progress() {
         <PageHeader title={t("progress.title")} meta={t("progress.nothing")} />
         <PageBody>
           <Journey sessions={[]} />
-          <Panel variant="raised" className="mt-4 flex max-w-2xl flex-col gap-5 p-6">
+          <Panel variant="raised" className="mt-4 flex max-w-2xl flex-col gap-5 p-6 sm:p-8">
             {/* The first form, shown rather than described. The copy beside
                 this used to promise that the shape starts meaning something
                 around the third session while showing no shape at all, which
@@ -212,7 +212,7 @@ export function Progress() {
 
         {profile && (
           <FadeRise>
-            <Panel variant="raised" className="flex flex-wrap items-center gap-8 p-6">
+            <Panel variant="raised" className="flex flex-wrap items-center gap-8 p-6 sm:p-8">
               {/* The avatar sits with the level rather than in a panel of its
                   own: the number is what it is derived from, and separating
                   them would make it look like a decoration instead of a
@@ -226,7 +226,7 @@ export function Progress() {
                 />
                 <div>
                   <Eyebrow>{t("progress.level")}</Eyebrow>
-                  <p className="mt-2 text-title text-cream-bright">
+                  <p className="mt-2 text-title font-semibold tabular-nums text-cream-bright">
                     <AnimatedCounter value={profile.level} />
                   </p>
                   <p className="mt-1 text-xs text-cream-faint">
@@ -253,7 +253,7 @@ export function Progress() {
               {league?.you && (
                 <div>
                   <Eyebrow>{t("progress.thisWeek")}</Eyebrow>
-                  <p className="mt-2 text-title text-cream-bright">
+                  <p className="mt-2 text-title font-semibold tabular-nums text-cream-bright">
                     #{league.you}
                   </p>
                   <p className="mt-1 text-xs text-cream-faint">
@@ -267,7 +267,7 @@ export function Progress() {
 
         <div className="grid gap-4 xl:grid-cols-3">
           <FadeRise delay={0.05} className="xl:col-span-1">
-            <Panel className="flex h-full flex-col p-6">
+            <Panel className="flex h-full flex-col p-6 sm:p-8">
               <Eyebrow>{t("progress.overall")}</Eyebrow>
               <p className="mt-2 text-xs text-cream-faint">
                 {t("progress.overallNote")}
@@ -279,7 +279,7 @@ export function Progress() {
           </FadeRise>
 
           <FadeRise delay={0.1} className="xl:col-span-2">
-            <Panel className="flex h-full flex-col p-6">
+            <Panel className="flex h-full flex-col p-6 sm:p-8">
               <Eyebrow>{t("progress.byFront")}</Eyebrow>
               <p className="mt-2 max-w-3xl text-xs text-cream-faint">
                 {t("progress.byFrontNote")}
@@ -323,11 +323,11 @@ export function Progress() {
                   return (
                     <li
                       key={badge.id}
-                      className={`rounded-2xl border px-4 py-3 ${
-                        held ? "border-grow/50 bg-grow-soft" : "border-line opacity-60"
+                      className={`rounded-2xl px-4 py-3 ${
+                        held ? "bg-grow-soft" : "bg-surface-lift opacity-60"
                       }`}
                     >
-                      <p className="text-sm text-cream-bright">{badge.label}</p>
+                      <p className="text-sm font-semibold text-cream-bright">{badge.label}</p>
                       <p className="mt-1 text-xs text-cream-faint">
                         {badge.description}
                       </p>

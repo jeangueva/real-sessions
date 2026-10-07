@@ -93,8 +93,8 @@ export function Applications() {
         <PageHeader title={t("apps.title")} meta={t("apps.meta")} />
         <PageBody>
           <Panel variant="raised" className="flex max-w-xl flex-col gap-4 p-6">
-            <p className="text-sm leading-relaxed text-cream-bright">{t("apps.paid")}</p>
-            <p className="text-xs text-cream-dim">{t("apps.paidWhy")}</p>
+            <p className="text-lg font-semibold leading-snug text-cream-bright">{t("apps.paid")}</p>
+            <p className="text-sm text-cream-dim">{t("apps.paidWhy")}</p>
             <Link to="/app/settings#plan" className="self-start">
               <Action>{t("apps.seePlans")}</Action>
             </Link>
@@ -264,7 +264,7 @@ function AddApplication({ onAdded }: { onAdded: () => void }) {
           onChange={(event) => setPosting(event.target.value.slice(0, 4000))}
           rows={5}
           placeholder={t("apps.postingPlaceholder")}
-          className="focus-ring resize-y rounded-xl border border-line-strong bg-transparent px-4 py-3 text-sm text-cream-bright placeholder:text-cream-faint"
+          className="field-control resize-y text-sm text-cream-bright placeholder:text-cream-faint"
         />
       </label>
       <Action
@@ -293,7 +293,7 @@ function Field({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value.slice(0, 120))}
-        className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright"
+        className="field-control text-sm text-cream-bright"
       />
     </label>
   );

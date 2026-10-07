@@ -6,55 +6,56 @@ the system, not the screen.
 
 ## Where it came from
 
-Five reference directions were given. Each contributed exactly one idea, kept
-only where it does a job this product needs:
+Two references, each for what it does best:
 
-| Reference | Kept | Why it earned a place |
+| Reference | Kept | Why |
 | --- | --- | --- |
-| Prisma | Warm cream on black, inset hero frame, word pull-up | The only palette of the five that reads human rather than corporate. People use this product while nervous. |
-| Velorah | Deep navy as a second surface | Depth without introducing a second hue. |
-| Asme | Liquid glass | The one treatment that survives over moving footage. |
-| Mainframe | Typewriter reveal | Here it is literal: the interviewer is speaking a turn at a time. |
-| Kollektiva | Portrait picker | Repurposed as the company selector — same interaction, real job. |
+| Apple | System type with per-size tracking, one accent, translucent toolbar material, large titles, segmented controls, feedback on press | The product is used while nervous; nothing should compete with the sentence on the screen. |
+| Airbnb | White ground, near-black ink, soft-shadowed cards with generous radii, pill controls, a ring (not a glow) on the selected card | Surfaces that feel calm and trustworthy, and separate without borders. |
 
-Dropped deliberately: every brand name, nav label, and CDN asset URL in those
-prompts. They belong to other products, and several were AI-generated media
-for unrelated creative studios. **No external asset is referenced anywhere in
-this build.** Hero and card visuals are built from tokens, so they can be
-swapped for real footage without touching layout.
+Dropped deliberately: spotlight borders, film grain on content sections, italic
+serif accents, spaced uppercase labels, coloured glows. Each read as decoration
+a first-time visitor has to look past.
 
-## Tokens (`tailwind.config.js`)
+## Tokens (`tailwind.config.js`, values in `index.css`)
 
 **Color.** Named by role, never by shade.
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `cream` | `#DEDBC8` | Primary text and accents |
-| `cream-bright` | `#E1E0CC` | Headlines, the brightest note |
-| `cream-dim` | 70% cream | Body copy, secondary labels |
-| `cream-faint` | 45% cream | Numbering, de-emphasis |
-| `surface-base` | `#000000` | Page background |
-| `surface-raised` | `#101010` | A single centered block |
-| `surface-card` | `#212121` | Cards inside a grid |
-| `surface-deep` | `#04212E` | App shell, focus contexts |
-| `line` | 14% cream | Dividers |
+| Token | Light | Dark | Use |
+| --- | --- | --- | --- |
+| `cream` / `cream-bright` | `#1D1D1F` / `#111113` | `#F5F5F7` / `#FAFAFC` | Ink |
+| `cream-dim` / `cream-faint` | 85% / 65% ink | same | Secondary / tertiary text |
+| `surface-base` | `#FFFFFF` | `#000000` | Page |
+| `surface-raised`, `surface-card` | `#FFFFFF` | `#161618`, `#1C1C1E` | Cards |
+| `surface-deep` | `#F5F5F7` | `#0C0C0D` | App shell, alternating landing sections |
+| `accent` | `#5856D6` | `#5E5CE6` (text `#7D7AFF`) | The way forward |
+| `grow` | `#34C759` (text `#1E7B34`) | `#30D158` | What improved |
+| `step` | `#FF9F0A` (text `#B25000`) | `#FF9F0A` | What to work on next |
 
 Never introduce a raw hex in a component. If a shade is missing, add a token.
 
-**Type.** `font-sans` (Almarai) everywhere; `font-serif` (Instrument Serif
-italic) for one accent phrase per headline at most — it stops working when it
-is everywhere. Three fluid sizes: `text-display` (the wordmark), `text-headline`
-(section), `text-title` (card and subsection).
+**Elevation.** `shadow-card` (resting), `shadow-lift` (hover), `shadow-float`
+(dialogs, the hero frame). Each carries its own hairline, so cards need no border.
 
-**Motion.** One easing curve, `ease-cinematic`. `ease-settle` only for card
-entrances. Anything else drifts.
+**Radius.** `rounded-card` (20px) for panels, `rounded-xl` for fields,
+`rounded-full` for every button and chip, `rounded-inset` for media frames.
+
+**Type.** One family: SF on Apple devices, Inter elsewhere, Almarai as the
+Arabic fallback. Headings are semibold (set in `index.css`); tracking tightens
+as size grows. Three fluid sizes: `text-display`, `text-headline`, `text-title`.
+
+**Fields.** `.field-control` — white well, visible border, accent border plus a
+soft halo on focus.
+
+**Motion.** `ease-cinematic` for entrances, `ease-press` for anything answering
+a press (`active:scale-[0.97]`). No lift-on-hover.
 
 ## Primitives (`design-system/primitives.tsx`)
 
 - `Action` — the only button. It is `inline-flex`, so inside a stretch-aligned
   flex column it will span the full width; add `self-start` when that is not
   what you want. `tone="solid"` for the single primary action per
-  view, `"glass"` over video, `"ghost"` for tertiary. `withArrow` marks the
+  view, `"neutral"` for an ink pill, `"glass"` as the secondary, `"ghost"` for tertiary. `withArrow` marks the
   primary path forward; more than one per screen makes it meaningless.
 - `Panel` — raised surface. `card` inside grids, `raised` for one centered
   block, `glass` over motion.

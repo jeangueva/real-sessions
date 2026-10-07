@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Briefcase,
   FileUser,
-  Lock,
   LogIn,
   Mic,
   Play,
@@ -17,7 +16,7 @@ import type { ReactNode } from "react";
 import { fetchPlan, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
-import { Wordmark } from "@/design-system";
+import { PremiumMark, Wordmark } from "@/design-system";
 
 /**
  * The signed-in shell. It sits on `surface-deep` rather than pure black so the
@@ -152,32 +151,36 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen bg-surface-deep">
-      <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col items-center gap-2 border-r border-line py-6 md:flex lg:w-60 lg:items-stretch lg:px-4">
-        <div className="mb-8 flex items-center justify-between gap-2 px-2">
+      {/* Apple's sidebar: on the shell's own grey, no panel of its own, a
+          hairline where it meets the content. Selection is a white tile with
+          the card's shadow — the row lifts toward you, the way a selected row
+          in Music or Settings does — rather than a coloured wash. */}
+      <aside className="sticky top-0 hidden h-screen w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-64 lg:items-stretch lg:px-3">
+        <div className="mb-7 flex items-center justify-between gap-2 px-2.5">
           <div className="flex items-center gap-2.5">
             {/* The mark is the accent's own disc: the one place the colour sits
                 at rest, so the eye learns it means "this product, speaking". */}
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-accent-ink">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[0.6rem] bg-accent text-accent-ink shadow-card">
               <Mic className="h-4 w-4" aria-hidden />
             </span>
             <Wordmark className="hidden text-lg font-semibold text-cream-bright lg:inline" />
           </div>
           {isPremium && (
-            <span className="hidden rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent lg:inline-flex">
+            <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text lg:inline-flex">
               Premium
             </span>
           )}
         </div>
 
-        <nav aria-label={t("nav.sections")} className="flex flex-col gap-1">
+        <nav aria-label={t("nav.sections")} className="flex flex-col gap-0.5">
           {NAV.map(({ to, key, icon: Icon, end }) => (
             <RailLink key={to} to={to} end={end} label={t(key)} icon={Icon} />
           ))}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-1 border-t border-line pt-4">
-          <p className="hidden px-3 pb-1 text-xs text-cream-faint lg:block">{t("nav.you")}</p>
-          <nav aria-label={t("nav.you")} className="flex flex-col gap-1">
+        <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-4">
+          <p className="hidden px-3 pb-1.5 text-xs font-semibold text-cream-faint lg:block">{t("nav.you")}</p>
+          <nav aria-label={t("nav.you")} className="flex flex-col gap-0.5">
             {[
               ...ACCOUNT,
               ...(reviewer
@@ -206,7 +209,7 @@ export function AppShell() {
               void signOut().then(() => window.location.assign("/"));
             }}
             title={t("nav.signOut")}
-            className="focus-ring flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-cream-dim transition-colors hover:text-cream-bright"
+            className="focus-ring flex items-center gap-3 rounded-[0.625rem] px-3 py-2 text-sm text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright"
           >
             <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
             <span className="hidden lg:inline">{t("nav.signOut")}</span>
@@ -287,21 +290,28 @@ function RailLink({
       // honest if the list is ever reordered.
       data-tour={to.split("/").pop()}
       className={({ isActive }) =>
-        `focus-ring flex items-center gap-3 rounded-xl px-3 transition-colors duration-300 ${
-          quiet ? "py-2 text-sm" : "py-2.5 text-base"
+        `focus-ring group/rail flex items-center gap-3 rounded-[0.625rem] px-3 text-sm transition-[background-color,color,box-shadow] duration-200 ease-press active:scale-[0.98] ${
+          quiet ? "py-2" : "py-2.5 font-medium"
         } ${
           isActive
-            ? quiet
-              ? "bg-surface-lift text-cream-bright"
-              : "bg-accent-soft text-accent-text"
+            ? "bg-surface-card text-cream-bright shadow-card"
             : "text-cream-dim hover:bg-surface-lift hover:text-cream-bright"
         }`
       }
     >
-      <Icon className={`${quiet ? "h-4 w-4" : "h-5 w-5"} shrink-0`} aria-hidden />
+      {({ isActive }) => (
+        <>
+      <Icon
+        className={`${quiet ? "h-4 w-4" : "h-[1.125rem] w-[1.125rem]"} shrink-0 ${
+          isActive && !quiet ? "text-accent-text" : ""
+        }`}
+        aria-hidden
+      />
       <span className="hidden lg:inline">{label}</span>
       {locked && (
-        <Lock className="ml-auto hidden h-3 w-3 shrink-0 text-cream-faint lg:inline" aria-label={locked} />
+        <PremiumMark label={locked} className="ml-auto hidden lg:inline-grid" />
+      )}
+        </>
       )}
     </NavLink>
   );
@@ -320,13 +330,15 @@ function MobileNav({ isPremium }: { isPremium: boolean }) {
   const { pathname } = useLocation();
   const onAccount = ACCOUNT.some(({ to }) => pathname.startsWith(to)) || pathname.startsWith("/app/review");
   const tab = (active: boolean) =>
-    `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs transition-colors ${
-      active ? "text-accent-text" : "text-cream-dim"
+    `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors ${
+      active ? "text-accent-text" : "text-cream-faint"
     }`;
   return (
     <nav
       aria-label={t("nav.sections")}
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface-deep/95 backdrop-blur md:hidden"
+      /* Apple's tab bar material: translucent, with the page scrolling under
+         it, and the safe-area inset so the labels clear the home indicator. */
+      className="nav-lifted fixed inset-x-0 bottom-0 z-30 !border-b-0 border-t border-line pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
         {NAV.map(({ to, short, icon: Icon, end }) => (
@@ -404,18 +416,17 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="border-b border-line px-4 py-5 sm:px-6 lg:px-10">
+    /* Apple's large title: no rule under it — the size and the space after
+       it already end the header, and a line would only box it in. */
+    <header className="px-4 pb-2 pt-8 sm:px-6 lg:px-10 lg:pt-10">
       {/* Same container as PageBody, so the title lines up with the content
           under it at every width. */}
       <div className="mx-auto flex w-full max-w-[110rem] flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
-          {/* Serif for the headline: the one line on each screen that is
-              written to the person rather than labelling a control, set in
-              the face that reads as a voice rather than as an interface. */}
-          <h1 className="font-serif text-title font-normal text-cream-bright sm:text-[2.5rem] sm:leading-[1.05]">
+          <h1 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright sm:text-[2.5rem]">
             {title}
           </h1>
-          {meta && <p className="mt-1 text-xs text-cream-dim">{meta}</p>}
+          {meta && <p className="mt-1.5 text-sm text-cream-dim">{meta}</p>}
         </div>
         {actions}
       </div>

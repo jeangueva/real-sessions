@@ -3,34 +3,18 @@ import { Link } from "react-router-dom";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
+import { Wordmark } from "@/design-system";
 
 /**
- * The landing nav, fixed to the top of the page.
+ * The landing nav: one translucent bar, pinned, the same at every scroll
+ * position.
  *
- * It used to hang off the top edge of the hero frame and scroll away with it,
- * which meant the only way back to a section was to scroll all the way up. It
- * also sat flush against that edge — square-cornered against a rounded frame,
- * with no room above it — so on a laptop it read as clipped rather than as
- * placed.
- *
- * Fixed solves the first problem and creates a second one: a bar pinned over
- * the hero would cover the footage it is sitting on. So it carries no surface
- * while the hero is behind it, and takes one only once there is text
- * underneath — where a transparent bar would be unreadable instead.
- *
- * While it floats it carries its own scrim. `on-media` gives the labels cream
- * ink because it assumes a dark ground, and pinned to the top the ground was
- * not the footage at all — it was the page's margin above the hero frame,
- * which is cream on a light page. Cream on cream measured 1.32:1, so the whole
- * nav was invisible in light mode while reading a correct 15:1 in dark. That is
- * why nothing caught it: both colours are right on their own, and only the
- * surface they landed on was wrong.
- *
- * The scrim rather than an offset matched to the frame's inset, which was the
- * first attempt: the frame does not start where its padding says it does, and
- * a bar positioned from a number copied out of another component breaks again
- * the moment either one moves. A ground the bar brings with it cannot be wrong
- * about what is behind it.
+ * It used to be two things — a floating dark pill over the footage and a bar
+ * once past it — because the hero was footage edge to edge. The hero is on
+ * the page's own ground now, so the bar has one job and one look: Apple's
+ * toolbar material, with the content scrolling underneath it. The name on the
+ * left goes home, the sections sit in the middle, and the way in is on the
+ * right where both references put it.
  */
 
 const NAV: { label: MessageKey; href: string }[] = [
@@ -40,63 +24,51 @@ const NAV: { label: MessageKey; href: string }[] = [
   { label: "land.navContribute", href: "#contribute" },
 ];
 
-/**
- * How far down the page the bar stops being over the hero.
- *
- * The hero is one viewport tall inside its own padding, so most of a screen
- * height is the honest boundary. Read from `innerHeight` at scroll time rather
- * than captured once, because a phone's viewport changes when the URL bar
- * retracts and a value measured at mount is wrong by then.
- */
-function pastHero(scrollY: number, viewportHeight: number): boolean {
-  return scrollY > viewportHeight * 0.75;
-}
-
 export function LandingNav() {
   const t = useT();
-  const [lifted, setLifted] = useState(false);
+  /* The hairline under the bar appears only once something has scrolled
+     beneath it — a divider with nothing to divide is just a line. */
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setLifted(pastHero(window.scrollY, window.innerHeight));
-    onScroll(); // A reload partway down the page starts in the right state.
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const link =
-    "focus-ring whitespace-nowrap rounded-lg px-2.5 py-2 text-xs transition-colors sm:text-sm";
+    "focus-ring whitespace-nowrap rounded-full px-3 py-1.5 text-xs text-cream-dim transition-colors duration-200 hover:text-cream-bright";
 
   return (
-    <div
-      /* `on-media` while it floats over the footage, so the labels stay light
-         whatever the page theme is; `nav-floating` is the scrim that
-         guarantees them a dark ground to be light against. Once lifted it
-         drops both and takes the page's own ink and surface. */
-      className={`fixed inset-x-0 z-50 transition-[background-color,border-color,top] duration-300 ${
-        lifted ? "top-0 nav-lifted" : "top-2 on-media md:top-3"
+    <header
+      className={`nav-lifted fixed inset-x-0 top-0 z-50 transition-[border-color] duration-300 ${
+        scrolled ? "" : "!border-transparent"
       }`}
     >
-      <nav
-        className={`mx-auto flex max-w-6xl items-center justify-center px-4 py-3 md:px-8 md:py-4 ${
-          lifted ? "" : "w-fit rounded-full nav-floating px-3 py-1.5 md:px-4 md:py-2"
-        }`}
-      >
-        <ul className="flex items-center gap-1 sm:gap-4 md:gap-8">
-          {/* Hidden on a phone, where five labels at a readable size do not fit
-              across the screen and every one of them is reachable by
-              scrolling. Sign in stays: scrolling does not reach it. */}
+      <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+        <a
+          href="#top"
+          aria-label="mockio"
+          className="focus-ring rounded-md"
+          onClick={(event) => {
+            event.preventDefault();
+            window.scrollTo({ top: 0 });
+          }}
+        >
+          <Wordmark className="text-xl font-semibold text-cream-bright" />
+        </a>
+
+        {/* Hidden on a phone: four labels do not fit beside the name and the
+            way in, and every one of them is reachable by scrolling. */}
+        <ul className="hidden items-center gap-1 md:flex">
           {NAV.map(({ label, href }) => (
-            <li key={label} className="hidden sm:block">
+            <li key={label}>
               {/* A real href, so it opens in a new tab, copies as a link, and
-                  works before the JS lands. The handler only takes over when
-                  it actually finds the section. */}
+                  works before the JS lands. */}
               <a
                 href={href}
-                className={`${link} text-cream-dim hover:text-cream-bright`}
+                className={link}
                 onClick={(event) => {
                   if (scrollToSection(href)) event.preventDefault();
                 }}
@@ -105,13 +77,20 @@ export function LandingNav() {
               </a>
             </li>
           ))}
-          <li>
-            <Link to="/signin" className={`${link} text-cream-dim hover:text-cream-bright`}>
-              {t("land.signIn")}
-            </Link>
-          </li>
         </ul>
+
+        <div className="flex items-center gap-1">
+          <Link to="/signin" className={link}>
+            {t("land.signIn")}
+          </Link>
+          <Link
+            to="/app"
+            className="focus-ring hidden rounded-full bg-cream-bright px-4 py-1.5 text-xs font-medium text-surface-base transition-[transform,opacity] duration-200 ease-press hover:opacity-85 active:scale-[0.97] sm:inline-flex"
+          >
+            {t("cta.startInterview")}
+          </Link>
+        </div>
       </nav>
-    </div>
+    </header>
   );
 }

@@ -106,7 +106,7 @@ export function EarlyAccess() {
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
         <FadeRise>
           <Eyebrow>{t("land.eaEyebrow")}</Eyebrow>
-          <h2 className="mt-4 text-headline font-normal text-cream-bright">
+          <h2 className="mt-4 text-headline font-semibold text-cream-bright">
             {t("land.eaTitle")}
           </h2>
           <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">
@@ -139,7 +139,7 @@ export function EarlyAccess() {
         <Panel variant="raised" className="p-6 sm:p-8">
           {state === "done" ? (
             <div role="status" className="flex flex-col gap-3">
-              <p className="text-title font-normal text-cream-bright">
+              <p className="text-title font-semibold text-cream-bright">
                 {t("land.eaDone")}
               </p>
               <p className="text-sm text-cream-dim">
@@ -150,7 +150,7 @@ export function EarlyAccess() {
             </div>
           ) : closed ? (
             <div role="status" className="flex flex-col gap-3">
-              <p className="text-title font-normal text-cream-bright">
+              <p className="text-title font-semibold text-cream-bright">
                 {t("land.eaClosedTitle")}
               </p>
               <p className="text-sm text-cream-dim">{t("land.eaClosedBody")}</p>
@@ -194,7 +194,7 @@ export function EarlyAccess() {
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@example.com"
-                    className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                    className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
                   />
                 </Field>
 
@@ -205,7 +205,7 @@ export function EarlyAccess() {
                     value={role}
                     onChange={(event) => setRole(event.target.value)}
                     placeholder="Senior Product Designer"
-                    className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                    className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
                   />
                 </Field>
 
@@ -219,7 +219,7 @@ export function EarlyAccess() {
                     value={company}
                     onChange={(event) => setCompany(event.target.value)}
                     placeholder="Nubank"
-                    className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                    className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
                   />
                 </Field>
 

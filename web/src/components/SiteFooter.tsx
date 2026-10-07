@@ -30,7 +30,7 @@ export function SiteFooter() {
     "focus-ring inline-flex items-center rounded py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright";
 
   return (
-    <footer className="border-t border-line bg-surface-base">
+    <footer className="border-t border-line bg-surface-deep">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-3 text-xs text-cream-faint">
           <Wordmark className="text-sm font-semibold text-cream-bright" />
@@ -63,7 +63,7 @@ export function SiteFooter() {
             <select
               value={locale}
               onChange={(event) => setLocale(event.target.value as Locale)}
-              className="focus-ring cursor-pointer rounded border border-line-strong bg-transparent px-2 py-1 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+              className="focus-ring cursor-pointer rounded-full border border-line-strong bg-transparent px-3 py-1 text-xs text-cream-dim transition-colors hover:text-cream-bright"
             >
               {LOCALES.map((entry) => (
                 <option key={entry.id} value={entry.id}>

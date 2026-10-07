@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
-import { Check, Lock } from "lucide-react";
+import { Check, Crown } from "lucide-react";
 
 /**
  * The setup form as one bar of selectors.
@@ -19,7 +19,9 @@ import { Check, Lock } from "lucide-react";
 
 export function FilterBar({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col divide-y divide-line rounded-3xl border border-line sm:flex-row sm:divide-x sm:divide-y-0">
+    /* Airbnb's search bar: one white pill floating on the page, segments
+       split by hairlines, each segment's label in ink and its value in grey. */
+    <div className="flex min-w-0 flex-col divide-y divide-line rounded-[1.75rem] bg-surface-card p-1 shadow-lift transition-colors duration-200 has-[[aria-expanded=true]]:bg-surface-lift sm:flex-row sm:items-center sm:divide-x sm:divide-y-0 sm:rounded-full">
       {children}
     </div>
   );
@@ -72,7 +74,7 @@ export function FilterRow({
             type="button"
             onClick={() => setShowAll((current) => !current)}
             aria-expanded={showAll}
-            className="focus-ring shrink-0 self-start rounded-full border border-line px-4 py-2.5 text-xs text-cream-dim transition-colors hover:text-cream-bright lg:self-auto sm:text-sm"
+            className="focus-ring shrink-0 self-start rounded-full bg-surface-card px-5 py-3 text-sm font-medium text-cream-bright shadow-card transition-[box-shadow,transform] duration-200 ease-press hover:shadow-lift active:scale-[0.97] lg:self-auto"
           >
             {showAll ? fewerLabel : moreLabel(hidden.length)}
           </button>
@@ -84,7 +86,7 @@ export function FilterRow({
             under it, and the setup screen reserves the space so nothing ends
             up hidden behind it. From `md` it is back in the row, where the
             nav bar itself disappears. */}
-        <div className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-surface-deep/95 px-4 py-3 backdrop-blur [&>*]:w-full [&_button]:w-full [&_button]:justify-center md:static md:z-auto md:w-auto md:shrink-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none md:[&>*]:w-auto md:[&_button]:w-auto">
+        <div className="nav-lifted fixed inset-x-0 bottom-16 z-20 !border-b-0 border-t border-line px-4 py-3 [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:py-3 md:static md:z-auto md:w-auto md:shrink-0 md:!border-0 md:!bg-transparent md:p-0 md:![backdrop-filter:none] md:[&>*]:w-auto md:[&_button]:w-auto md:[&_button]:px-7 md:[&_button]:py-4">
           {begin}
         </div>
       </div>
@@ -240,21 +242,23 @@ export function FilterSegment({
         aria-haspopup="dialog"
         {...(disabled && disabledReason ? { title: disabledReason } : {})}
         onClick={() => setOpen((current) => !current)}
-        className={`focus-ring flex w-full flex-col gap-0.5 px-4 py-3 text-left transition-colors first:rounded-t-3xl last:rounded-b-3xl sm:first:rounded-l-3xl sm:first:rounded-tr-none sm:last:rounded-r-3xl sm:last:rounded-bl-none ${
-          open ? "bg-cream/10" : "hover:bg-cream/5"
+        className={`focus-ring flex w-full flex-col gap-0.5 rounded-[1.5rem] px-5 py-2.5 text-left transition-[background-color,box-shadow] duration-200 ease-press sm:rounded-full sm:px-6 ${
+          open ? "bg-surface-card shadow-float" : "hover:bg-surface-lift"
         }`}
       >
-        <span className="flex items-center gap-1.5 text-xs text-cream-faint">
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-cream-bright">
           {/* A greyed value reads as "nothing chosen" as easily as "you cannot
               choose". The lock is what separates the two, and it sits on the
               label rather than the value because that is the part naming the
               thing being withheld. Decorative: the reason is already on the
               trigger's title and in the panel it opens. */}
-          {disabled && <Lock className="h-3 w-3 shrink-0" aria-hidden />}
+          {disabled && (
+            <Crown aria-hidden className="h-3.5 w-3.5 shrink-0 text-premium" fill="currentColor" strokeWidth={2.5} />
+          )}
           {label}
         </span>
         <span
-          className={`truncate text-sm ${disabled ? "text-cream-faint" : "text-cream-bright"}`}
+          className={`truncate text-sm ${disabled ? "text-cream-faint" : "text-cream-dim"}`}
         >
           {value}
         </span>
@@ -273,13 +277,13 @@ export function FilterSegment({
               maxHeight: at.maxHeight,
               ...(at.top === undefined ? { bottom: at.bottom } : { top: at.top }),
             }}
-            className="fixed z-50 overflow-y-auto rounded-2xl border border-line bg-surface-deep p-3 shadow-2xl"
+            className="fixed z-50 overflow-y-auto rounded-3xl bg-surface-raised p-2 shadow-float"
           >
             {disabled ? (
-              <p className="text-xs text-cream-dim">{disabledReason}</p>
+              <p className="p-3 text-sm text-cream-dim">{disabledReason}</p>
             ) : (
               <>
-                {hint && <p className="mb-3 text-xs text-cream-dim">{hint}</p>}
+                {hint && <p className="mb-2 px-3 pt-2 text-xs text-cream-dim">{hint}</p>}
                 {children(() => setOpen(false))}
               </>
             )}
@@ -317,15 +321,15 @@ export function FilterOption({
       aria-selected={selected}
       disabled={disabled}
       onClick={onSelect}
-      className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-        selected ? "bg-cream/10" : "hover:bg-cream/5"
+      className={`focus-ring flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 ${
+        selected ? "bg-surface-lift" : "hover:bg-surface-lift"
       }`}
     >
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm text-cream-bright">{label}</span>
+        <span className={`block truncate text-sm text-cream-bright ${selected ? "font-semibold" : ""}`}>{label}</span>
         {detail && <span className="block truncate text-xs text-cream-dim">{detail}</span>}
       </span>
-      {selected && <Check className="h-4 w-4 shrink-0 text-cream-bright" aria-hidden />}
+      {selected && <Check className="h-4 w-4 shrink-0 text-accent-text" strokeWidth={2.5} aria-hidden />}
     </button>
   );
 }
@@ -339,7 +343,7 @@ export function FilterOption({
  */
 export function FilterHeading({ children }: { children: ReactNode }) {
   return (
-    <p className="px-3 pb-1 pt-4 text-xs text-accent-text first:pt-1" role="presentation">
+    <p className="px-3 pb-1 pt-4 text-xs font-semibold text-cream-faint first:pt-1" role="presentation">
       {children}
     </p>
   );

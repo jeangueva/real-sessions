@@ -20,6 +20,7 @@ export {
   Meter,
   Badge,
   Field,
+  PremiumMark,
 } from "./primitives";
 
 export { Wordmark } from "./wordmark";

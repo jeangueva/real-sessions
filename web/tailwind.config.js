@@ -1,26 +1,26 @@
 /**
- * Real Sessions design tokens.
+ * Mockio design tokens.
  *
- * Distilled from five reference directions. What survived and why:
- *   Prisma      → warm cream on black. The only palette of the five that reads
- *                 as human rather than corporate, which matters for a product
- *                 people use while nervous.
- *   Velorah     → deep navy as the second surface, so screens can have depth
- *                 without a second hue.
- *   Asme        → liquid glass for anything floating over video.
- *   Mainframe   → typewriter reveal; here it is literal, since the interviewer
- *                 actually is speaking to you in real time.
- *   Kollektiva  → portrait picker, repurposed as the company/role selector.
+ * Set by two references, each for what it is best at:
+ *   Apple   → type and motion. The system face, per-size tracking, one accent,
+ *             white space doing the work borders used to do, feedback on press.
+ *   Airbnb  → surfaces. White ground, near-black ink, soft-shadowed cards with
+ *             generous radii, pill controls, and nothing decorative that a
+ *             nervous first-time user has to look past.
  *
- * Everything else from those references (their brand names, their CDN assets,
- * their nav copy) was dropped — it belonged to other products.
- *
- * Then the palette moved off black. Cream on black read as a film about
- * interviews; the product is a place to get things wrong out loud until you
- * stop being afraid of it. Warm paper is the ground now, black is the night
- * option, and three meaning colours (accent, grow, step) do the work one
- * cream used to do alone.
+ * Tokens are named by role, never by shade, and every value lives in
+ * index.css as a variable — the theme is a swap, not a rewrite.
  */
+const SANS = [
+  "-apple-system",
+  "BlinkMacSystemFont",
+  '"SF Pro Text"',
+  '"Inter"',
+  '"Almarai"',
+  "system-ui",
+  "sans-serif",
+];
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
@@ -91,13 +91,35 @@ export default {
           text: "rgb(var(--step-text) / <alpha-value>)",
           soft: "rgb(var(--step-soft) / <alpha-value>)",
         },
+        /**
+         * Premium. Only ever the crown that marks a paid option, the way Canva
+         * marks one: gold reads as "more is behind this" in every market, and
+         * keeping it off everything else keeps that reading.
+         */
+        premium: {
+          DEFAULT: "rgb(var(--premium) / <alpha-value>)",
+          soft: "rgb(var(--premium-soft) / <alpha-value>)",
+        },
       },
+      /**
+       * One family, Apple's rule: the platform's own face first.
+       *
+       * On a Mac or an iPhone that is SF, which already ships optical sizing
+       * and per-size tracking tables. Everywhere else it is Inter, the closest
+       * open face to it. Almarai stays in the stack only as the Arabic
+       * fallback — neither SF Text on the web nor Inter carries that script.
+       *
+       * `serif` is gone as a voice: an italic serif accent inside a sans
+       * headline is the editorial-magazine move, and this is a tool. The key
+       * is kept and pointed at the same stack so nothing that still names it
+       * falls back to Times.
+       */
       fontFamily: {
-        sans: ['"Almarai"', "system-ui", "sans-serif"],
-        serif: ['"Instrument Serif"', "Georgia", "serif"],
-        /* The wordmark only. Kept out of `sans` so nothing else drifts into
-           it — a logo face used for body copy stops being a logo. */
-        mark: ['"Bricolage Grotesque"', '"Almarai"', "system-ui", "sans-serif"],
+        sans: SANS,
+        serif: SANS,
+        /* The wordmark. Same family, display cut — a logo that is the product's
+           own type set tight, the way Apple and Airbnb set theirs. */
+        mark: SANS,
       },
       fontSize: {
         // The small end of the scale, lifted one step off Tailwind's defaults
@@ -113,15 +135,29 @@ export default {
         // Viewport-relative so the wordmark fills its column at any width.
         // Sized for the two-line "Real Sessions" stack: 20vw was tuned for a
         // single word and overflowed the column once the name wrapped.
-        display: ["clamp(2.5rem, 11vw, 10rem)", { lineHeight: "0.88", letterSpacing: "-0.05em" }],
-        headline: ["clamp(1.75rem, 5vw, 4.5rem)", { lineHeight: "0.95", letterSpacing: "-0.03em" }],
-        title: ["clamp(1.25rem, 2.5vw, 2.25rem)", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
+        // Tracking is per size, never one value: large type tightens as it
+        // grows, the small end stays at zero. Leading runs the other way.
+        display: ["clamp(3rem, 9vw, 8rem)", { lineHeight: "0.95", letterSpacing: "-0.045em" }],
+        headline: ["clamp(2rem, 4.6vw, 4rem)", { lineHeight: "1.04", letterSpacing: "-0.032em" }],
+        title: ["clamp(1.25rem, 2vw, 1.75rem)", { lineHeight: "1.18", letterSpacing: "-0.018em" }],
       },
-      borderRadius: { inset: "2rem" },
+      borderRadius: { inset: "1.75rem", card: "1.25rem" },
+      /**
+       * Elevation, Airbnb's way: a hairline plus a soft, wide shadow, so a card
+       * sits on the page instead of being drawn onto it. Three steps — resting,
+       * hovered, floating — and nothing in between.
+       */
+      boxShadow: {
+        card: "var(--shadow-card)",
+        lift: "var(--shadow-lift)",
+        float: "var(--shadow-float)",
+      },
       transitionTimingFunction: {
         // One easing curve for the whole product. Decelerating, cinematic.
         cinematic: "cubic-bezier(0.16, 1, 0.3, 1)",
         settle: "cubic-bezier(0.22, 1, 0.36, 1)",
+        // A press: in fast, nothing lingering. Apple's button feedback.
+        press: "cubic-bezier(0.2, 0, 0, 1)",
       },
       keyframes: {
         fadeRise: {

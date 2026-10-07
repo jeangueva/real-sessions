@@ -75,11 +75,11 @@ export function TranscriptPanel({
   }, [lines.length, pending]);
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col rounded-3xl border border-line bg-surface-sunken">
+    <aside className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[1.75rem] bg-surface-card shadow-card">
       <div
         role="tablist"
         aria-label={t("panel.label")}
-        className="flex shrink-0 items-center gap-1 border-b border-line p-2"
+        className="flex shrink-0 items-center gap-1 border-b border-line p-3"
       >
         {(["transcript", "chat"] as const).map((name) => (
           <button
@@ -87,9 +87,9 @@ export function TranscriptPanel({
             role="tab"
             aria-selected={tab === name}
             onClick={() => onTab(name)}
-            className={`focus-ring flex-1 rounded-full px-3 py-1.5 text-xs capitalize transition-colors sm:text-sm ${
+            className={`focus-ring flex-1 rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-[background-color,color,box-shadow] duration-200 ease-press sm:text-sm ${
               tab === name
-                ? "bg-cream text-surface-base"
+                ? "bg-surface-lift text-cream-bright"
                 : "text-cream-dim hover:text-cream-bright"
             }`}
           >
@@ -119,7 +119,7 @@ export function TranscriptPanel({
               {lines.map((line) => (
                 <li key={line.id}>
                   <p
-                    className={`text-xs ${
+                    className={`text-xs font-semibold ${
                       line.speaker === "interviewer"
                         ? "text-cream-bright"
                         : "text-cream-faint"
@@ -165,14 +165,14 @@ export function TranscriptPanel({
             disabled={!canSend}
             rows={6}
             placeholder={t("panel.placeholder")}
-            className="focus-ring min-h-0 flex-1 resize-none rounded-2xl border border-line-strong bg-transparent p-3 text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50"
+            className="field-control min-h-0 flex-1 resize-none text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50"
           />
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-cream-faint">{hint}</span>
             <button
               onClick={onSend}
               disabled={!canSend || answer.trim() === ""}
-              className="focus-ring flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-xs text-surface-base transition-opacity disabled:opacity-40 sm:text-sm"
+              className="focus-ring flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-medium text-accent-ink transition-[transform,opacity] duration-200 ease-press active:scale-[0.97] disabled:opacity-40 sm:text-sm"
             >
               <Send className="h-4 w-4" aria-hidden />
               {t("panel.send")}

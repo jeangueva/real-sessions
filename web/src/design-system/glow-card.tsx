@@ -119,7 +119,7 @@ export function GlowCard({
                 </p>
               )}
               {title && (
-                <h3 className="mt-2 text-title font-normal text-[#ece9d8]">{title}</h3>
+                <h3 className="mt-2 text-title font-semibold text-[#ece9d8]">{title}</h3>
               )}
             </div>
           )}

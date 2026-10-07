@@ -52,16 +52,16 @@ export function Journey({ sessions }: { sessions: SessionSummary[] }) {
   return (
     <section
       aria-labelledby="journey-title"
-      className="rounded-2xl border border-line bg-surface-card p-5 sm:p-6"
+      className="rounded-card bg-surface-card p-5 shadow-card sm:p-7"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="journey-title" className="text-sm text-cream-dim">
+        <h2 id="journey-title" className="text-base font-semibold text-cream-bright">
           {t("journey.title")}
         </h2>
         {/* Two days at least. One day is not a streak, it is today, and a
             badge that says "1" reads as a count of how little was done. */}
         {streak >= 2 && (
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs text-accent-text">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text">
             <Flame className="h-3.5 w-3.5" aria-hidden />
             {t("streak.days", { count: streak })}
           </p>
@@ -137,7 +137,7 @@ function Stop({
     return (
       <motion.span
         aria-hidden
-        className="relative grid h-8 w-8 place-items-center rounded-full bg-grow text-surface-raised shadow-[0_0_12px_rgba(95,208,168,0.4)]"
+        className="relative grid h-8 w-8 place-items-center rounded-full bg-grow text-white shadow-card"
         initial={still ? false : { scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 + index * 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -158,7 +158,7 @@ function Stop({
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
-        <span className="relative grid h-8 w-8 place-items-center rounded-full bg-accent text-accent-ink shadow-[0_0_16px_rgba(168,151,255,0.45)]">
+        <span className="relative grid h-8 w-8 place-items-center rounded-full bg-accent text-accent-ink shadow-card">
           {offer ? <Briefcase className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-accent-ink" />}
         </span>
       </span>

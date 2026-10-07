@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { WordsPullUp, FadeRise, Action, HeroVideo, InsetFrame, Magnetic } from "@/design-system";
+import { ChevronRight } from "lucide-react";
+import { WordsPullUp, FadeRise, Action, HeroVideo } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
+import { scrollToSection } from "@/lib/scroll-to-section";
 
 /**
  * The showreel the reference decks all opened on.
@@ -28,37 +30,53 @@ const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
  * megabytes, and it is the first thing painted either way.
  */
 const HERO_POSTER = "/hero-2.jpg";
+/**
+ * The hero, the way Apple opens a product page: the sentence first, centred,
+ * set large and tight; the two ways forward under it; then the picture, framed
+ * and given the width of the page.
+ *
+ * It used to be the reverse — footage edge to edge with the name in the corner
+ * — which is a film's title card. A visitor here has one question, "what is
+ * this and is it for me", and the answer belongs where the eye lands first.
+ */
 export function Hero() {
   const t = useT();
   return (
-    <InsetFrame className="on-media bg-surface-base">
-      <HeroVideo src={HERO_VIDEO} poster={HERO_POSTER} />
-
-      <div className="absolute bottom-0 left-0 right-0 z-10 grid grid-cols-1 gap-6 p-6 md:grid-cols-12 md:items-end md:gap-6 md:p-12 lg:p-14">
-        <h1 className="relative col-span-1 font-mark text-display font-semibold lowercase tracking-[-0.04em] text-cream-bright md:col-span-7 lg:col-span-8">
-          {/* `w-full`, not a max-width in `em`: an em-based cap scales with the
-              font size, so at display size it can never constrain the text.
-              Full width makes the flex-wrap break inside the h1's columns. */}
-          <WordsPullUp className="w-full">mockio</WordsPullUp>
+    <section className="relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-36 lg:px-10">
+      <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+        <h1 className="text-balance text-headline font-semibold text-cream-bright">
+          <WordsPullUp align="center" className="w-full">{t("land.heroBlurb")}</WordsPullUp>
         </h1>
-
-        <div className="col-span-1 flex flex-col gap-6 pb-2 md:col-span-5 lg:col-span-4">
-          <FadeRise delay={0.4}>
-            <p className="font-medium text-cream-bright text-base sm:text-lg md:text-xl lg:text-2xl leading-snug">
-              {t("land.heroBlurb")}
-            </p>
-          </FadeRise>
-          <FadeRise delay={0.6}>
-            <Magnetic strength={0.2}>
-              <Link to="/app" className="self-start">
-                <Action withArrow className="px-7 py-3 text-base sm:text-lg">
-                  {t("cta.startInterview")}
-                </Action>
-              </Link>
-            </Magnetic>
-          </FadeRise>
-        </div>
+        <FadeRise delay={0.35} className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <Link to="/app">
+            <Action withArrow className="px-6 py-3 text-base">
+              {t("cta.startInterview")}
+            </Action>
+          </Link>
+          <a
+            href="#how-it-works"
+            onClick={(event) => {
+              if (scrollToSection("#how-it-works")) event.preventDefault();
+            }}
+            className="focus-ring group inline-flex items-center gap-1 rounded-full px-4 py-3 text-base font-medium text-accent-text transition-opacity hover:opacity-80"
+          >
+            {t("land.navHow")}
+            <ChevronRight
+              aria-hidden
+              className="h-4 w-4 transition-transform duration-200 ease-press group-hover:translate-x-0.5 rtl:-scale-x-100"
+            />
+          </a>
+        </FadeRise>
       </div>
-    </InsetFrame>
+
+      {/* The picture, framed. Dark footage stays on a dark island in both
+          themes, so the pinned `on-media` ink keeps anything laid over it
+          legible whatever the page around it is doing. */}
+      <FadeRise delay={0.5} className="mx-auto mt-14 max-w-6xl sm:mt-20">
+        <div className="on-media relative aspect-[4/5] overflow-hidden rounded-inset bg-surface-base shadow-float sm:aspect-video">
+          <HeroVideo bare src={HERO_VIDEO} poster={HERO_POSTER} />
+        </div>
+      </FadeRise>
+    </section>
   );
 }

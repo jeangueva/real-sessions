@@ -31,7 +31,20 @@ export function fadeValue(from: number, to: number, elapsed: number): number {
   return from + (to - from) * progress;
 }
 
-export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
+export function HeroVideo({
+  src,
+  poster,
+  bare = false,
+}: {
+  src?: string;
+  poster?: string;
+  /**
+   * No scrims and no grain: for footage shown as a picture in a frame, with
+   * nothing laid over it to protect. The scrims exist for copy on top of the
+   * video, and without copy they only make the picture murkier.
+   */
+  bare?: boolean;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<number | null>(null);
   const [failed, setFailed] = useState(false);
@@ -186,19 +199,21 @@ export function HeroVideo({ src, poster }: { src?: string; poster?: string }) {
          * a phone the hero is taller than the footage, so the cover crop runs
          * horizontally and this has nothing to do.
          */
-        className="absolute inset-0 h-full w-full object-cover object-[50%_82%]"
+        className={`absolute inset-0 h-full w-full object-cover ${bare ? "object-center" : "object-[50%_82%]"}`}
       />
 
-      <div className="noise-overlay absolute inset-0 opacity-[0.35] mix-blend-overlay" />
+      {!bare && <div className="noise-overlay absolute inset-0 opacity-[0.35] mix-blend-overlay" />}
 
       {/* Two scrims, because one cannot do both jobs.
           The first is even, and only takes the overall brightness down.  */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/45" />
+      {!bare && <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/45" />}
       {/* The second is anchored to the bottom third, where every piece of hero
           content sits. Without it the copy lands on whatever the footage
           happens to be showing — in this clip, bright yellow flowers directly
           behind cream text — and contrast becomes a function of the frame. */}
-      <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+      {!bare && (
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+      )}
     </div>
   );
 }

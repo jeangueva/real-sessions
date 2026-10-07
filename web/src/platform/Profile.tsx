@@ -116,7 +116,7 @@ export function Profile() {
               a narrow card adrift on the left of a wide page reads as a
               rendering fault rather than as a decision. */}
           <Panel variant="raised" className="flex flex-col gap-4 p-6 sm:p-8">
-            <p className="max-w-prose text-sm text-cream-dim">
+            <p className="max-w-prose text-base leading-relaxed text-cream">
               {t("profile.lockedBody")}
             </p>
             <Link to="/app/settings#plan" className="self-start">
@@ -137,7 +137,7 @@ export function Profile() {
           profile?.brief && (
             <button
               onClick={() => void remove()}
-              className="focus-ring flex items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+              className="focus-ring flex items-center gap-2 rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-200 ease-press hover:bg-cream/15 active:scale-[0.97]"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
               Remove
@@ -171,7 +171,7 @@ export function Profile() {
           />
           <label
             htmlFor="cv"
-            className="focus-within:ring-2 focus-within:ring-cream flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-line px-6 py-10 text-sm text-cream-dim transition-colors hover:border-cream/40 hover:text-cream-bright"
+            className="focus-within:ring-2 focus-within:ring-accent flex cursor-pointer items-center justify-center gap-3 rounded-card border-2 border-dashed border-line px-6 py-10 text-sm font-medium text-cream-dim transition-colors hover:border-accent/50 hover:bg-surface-lift hover:text-cream-bright"
           >
             <Upload className="h-4 w-4" aria-hidden />
             {busy === "uploading" ? t("profile.reading") : t("profile.choose")}
@@ -214,7 +214,7 @@ export function Profile() {
               value={links}
               onChange={(event) => setLinks(event.target.value)}
               placeholder={"github.com/you\nlinkedin.com/in/you\nyour-portfolio.com"}
-              className="focus-ring resize-none rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+              className="field-control resize-none text-sm text-cream-bright placeholder:text-cream-faint"
             />
           </Field>
 

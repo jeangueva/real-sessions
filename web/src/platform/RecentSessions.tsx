@@ -71,23 +71,23 @@ export function RecentSessions({
     <section aria-label={t("recent.label")} className="flex min-w-0 flex-col gap-3">
       <div className="flex items-center gap-2">
         <History className="h-4 w-4 text-cream-faint" aria-hidden />
-        <h2 className="text-xs uppercase tracking-[0.18em] text-cream-faint">
+        <h2 className="text-sm font-semibold text-cream-dim">
           {t("recent.heading")}
         </h2>
       </div>
 
       {/* `-mx-1 px-1` so a focus ring on the first card is not clipped by the
           scroll container. */}
-      <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2">
+      <ul className="-mx-2 flex snap-x gap-3 overflow-x-auto px-2 pb-4 pt-1">
         {recent.map((session) => (
           <li key={session.id} className="shrink-0 snap-start">
             <button
               type="button"
               onClick={() => onPick(session)}
-              className="focus-ring flex h-full w-56 flex-col justify-between gap-3 rounded-2xl border border-line-strong p-4 text-left transition-colors hover:bg-surface-lift"
+              className="focus-ring flex h-full w-60 flex-col justify-between gap-3 rounded-card bg-surface-card p-4 text-left shadow-card transition-[box-shadow,transform] duration-200 ease-press hover:shadow-lift active:scale-[0.98]"
             >
               <span>
-                <span className="block truncate text-sm text-cream-bright">
+                <span className="block truncate text-sm font-semibold text-cream-bright">
                   {session.role}
                 </span>
                 <span className="block truncate text-xs text-cream-dim">
@@ -103,7 +103,7 @@ export function RecentSessions({
                 </span>
                 {/* A blank would read as zero, which is a much worse thing to
                     tell someone about their own interview. */}
-                <span className="text-sm text-cream-bright">
+                <span className="text-sm font-semibold tabular-nums text-cream-bright">
                   {session.score === null ? "—" : `${Math.round(session.score)}%`}
                 </span>
               </span>

@@ -52,7 +52,7 @@ export function ConfirmEmail() {
   return (
     <AuthLayout>
     <Eyebrow>{t("auth.email")}</Eyebrow>
-    <h1 className="mt-3 text-title font-normal text-cream-bright">
+    <h1 className="mt-3 text-title font-semibold text-cream-bright">
       {state === "working"
         ? t("confirm.working")
         : state === "done"

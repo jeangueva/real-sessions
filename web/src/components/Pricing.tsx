@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section, SpotlightBorder } from "@/design-system";
+import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
 import { fetchPricing, type BillingCycle, type PlanOffer, type Region } from "@/lib/api";
 import { useLocalPrice } from "@/hooks/useLocalPrice";
 import type { Rates } from "@/lib/local-price";
@@ -71,28 +71,33 @@ export function Pricing() {
 
   return (
     <Section id="pricing" className="bg-surface-base">
-      <Eyebrow>{t("land.pricingEyebrow")}</Eyebrow>
-      <h2 className="mt-4 max-w-3xl text-headline font-normal text-cream-bright">
-        {t("land.pricingTitle")}
-      </h2>
+      <div className="mx-auto max-w-3xl text-center">
+        <Eyebrow>{t("land.pricingEyebrow")}</Eyebrow>
+        <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">
+          {t("land.pricingTitle")}
+        </h2>
+      </div>
 
+      {/* Apple's segmented control: a recessed track, the chosen segment a
+          raised white pill. Reads as one control with two states rather than
+          two buttons that happen to sit together. */}
       {yearlyOffered && (
-        <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-line bg-surface-card p-1">
+        <div className="mx-auto mt-10 flex w-fit items-center gap-1 rounded-full bg-surface-lift p-1">
           {(["monthly", "yearly"] as const).map((option) => (
             <button
               key={option}
               type="button"
               aria-pressed={cycle === option}
               onClick={() => setCycle(option)}
-              className={`focus-ring rounded-full px-4 py-2 text-xs transition-colors ${
+              className={`focus-ring rounded-full px-4 py-2 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 ease-press ${
                 cycle === option
-                  ? "bg-cream text-surface-base font-semibold"
+                  ? "bg-surface-card text-cream-bright shadow-card"
                   : "text-cream-dim hover:text-cream-bright"
               }`}
             >
               {t(option === "monthly" ? "land.billMonthly" : "land.billYearly")}
               {option === "yearly" && saving !== null && (
-                <span className="ml-2 opacity-90">
+                <span className="ml-2 text-grow-text">
                   {t("land.savePercent", { percent: String(saving) })}
                 </span>
               )}
@@ -101,15 +106,16 @@ export function Pricing() {
         </div>
       )}
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+      <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
         {/* FREE TIER */}
         <FadeRise>
-          <SpotlightBorder borderRadius="1.5rem" className="h-full">
-            <Panel className="flex h-full flex-col gap-6 p-6 sm:p-8">
+            <Panel className="flex h-full flex-col gap-7 p-7 sm:p-9">
               <div>
-                <p className="text-sm font-medium text-cream-dim">{t("land.free")}</p>
+                <p className="text-title font-semibold text-cream-bright">{t("land.free")}</p>
                 <p className="mt-1 text-xs text-cream-faint">{t("land.billedNever")}</p>
-                <p className="mt-3 text-title text-cream-bright">{formatPrice(0, freeCurrency, locale)}</p>
+                <p className="mt-6 text-headline font-semibold tabular-nums text-cream-bright">
+                  {formatPrice(0, freeCurrency, locale)}
+                </p>
                 <p className="mt-2 text-sm text-cream-dim">
                   {t("land.freeBlurb")}
                 </p>
@@ -119,33 +125,27 @@ export function Pricing() {
                   <CheckItem key={item}>{t(item)}</CheckItem>
                 ))}
               </ul>
-              <Link to="/app" className="mt-auto self-start">
-                <Action tone="glass">{t("land.startPractising")}</Action>
+              <Link to="/app" className="mt-auto">
+                <Action tone="glass" className="w-full py-3">
+                  {t("land.startPractising")}
+                </Action>
               </Link>
             </Panel>
-          </SpotlightBorder>
         </FadeRise>
 
         {/* PREMIUM TIER */}
         <FadeRise delay={0.1}>
-          <SpotlightBorder
-            borderRadius="1.5rem"
-            spotlightColor="rgba(168, 151, 255, 0.45)"
-            className="h-full"
-          >
+            {/* The recommended plan is marked the way Airbnb marks a selected
+                card: a ring in the ink of the accent, not a glow. */}
             <Panel
               variant="raised"
-              className="relative flex h-full flex-col gap-6 overflow-hidden border border-accent/40 p-6 sm:p-8"
+              className="relative flex h-full flex-col gap-7 p-7 ring-2 ring-accent sm:p-9"
             >
-              <div
-                aria-hidden
-                className="plan-glow pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-accent/15 to-transparent"
-              />
               <div className="relative">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-accent">{t("land.premium")}</p>
-                  <span className="flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-medium text-cream-bright">
-                    <Sparkles className="h-3.5 w-3.5 text-accent" />
+                  <p className="text-title font-semibold text-cream-bright">{t("land.premium")}</p>
+                  <span className="flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text">
+                    <Sparkles aria-hidden className="h-3.5 w-3.5" />
                     {t("land.recommended")}
                   </span>
                 </div>
@@ -153,18 +153,18 @@ export function Pricing() {
                   {t(cycle === "yearly" ? "land.billedYearly" : "land.billedMonthly")}
                 </p>
 
-                <p className="mt-3 min-h-[1.6em] text-title text-cream-bright">
+                <p className="mt-6 min-h-[1.1em] text-headline font-semibold tabular-nums text-cream-bright">
                   {regional ? (
                     <>
                       {formatPrice(regional[cycle], regional.currency, locale)}
-                      <span className="text-sm text-cream-faint">
+                      <span className="ml-1 text-sm font-normal tracking-normal text-cream-faint">
                         {t(cycle === "yearly" ? "land.perYear" : "land.perMonth")}
                       </span>
                     </>
                   ) : price ? (
                     <>
                       {price.headline}
-                      <span className="text-sm text-cream-faint">
+                      <span className="ml-1 text-sm font-normal tracking-normal text-cream-faint">
                         {t(cycle === "yearly" ? "land.perYear" : "land.perMonth")}
                       </span>
                     </>
@@ -215,15 +215,12 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <Link
-                to="/app/settings#plan"
-                state={{ cycle }}
-                className="relative mt-auto self-start"
-              >
-                <Action withArrow>{t("cta.subscribe")}</Action>
+              <Link to="/app/settings#plan" state={{ cycle }} className="relative mt-auto">
+                <Action withArrow className="w-full py-3">
+                  {t("cta.subscribe")}
+                </Action>
               </Link>
             </Panel>
-          </SpotlightBorder>
         </FadeRise>
       </div>
     </Section>

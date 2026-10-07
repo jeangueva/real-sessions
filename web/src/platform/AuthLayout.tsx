@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
-import { Panel } from "@/design-system";
+import { Panel, Wordmark } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 
 /**
@@ -20,13 +20,16 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="w-full max-w-md">
         <Link
           to="/"
-          className="focus-ring inline-flex items-center gap-2 rounded text-xs text-cream-dim transition-colors hover:text-cream-bright"
+          className="focus-ring inline-flex items-center gap-1.5 rounded-full text-sm text-accent-text transition-opacity hover:opacity-80"
         >
           <ArrowLeft className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
           {t("auth.backHome")}
         </Link>
       </div>
-      <Panel variant="raised" className="w-full max-w-md p-8">
+      {/* The name above the card, the way Apple ID and Airbnb open their own
+          sign-in: you know whose door this is before you read the form. */}
+      <Wordmark className="text-2xl font-semibold text-cream-bright" />
+      <Panel variant="raised" className="w-full max-w-md p-8 shadow-float sm:p-10">
         {children}
       </Panel>
     </main>

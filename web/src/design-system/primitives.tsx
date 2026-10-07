@@ -3,24 +3,37 @@
  * these — a new screen should compose them, not restyle from scratch.
  */
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Crown } from "lucide-react";
 
-type Tone = "solid" | "glass" | "ghost";
+type Tone = "solid" | "neutral" | "glass" | "ghost";
 
 interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  /** solid = the one primary action per view. glass = over video. ghost = tertiary. */
+  /**
+   * solid = the one primary action per view, in the accent.
+   * neutral = a confident secondary — ink on paper, the Apple "Buy" pill.
+   * glass = over video. ghost = tertiary.
+   */
   tone?: Tone;
-  /** Adds the trailing arrow disc. Reserve it for the primary path forward. */
+  /** Adds a trailing arrow. Reserve it for the primary path forward. */
   withArrow?: boolean;
 }
 
 const TONE: Record<Tone, string> = {
-  solid: "bg-accent text-accent-ink shadow-[0_6px_20px_-8px_rgb(var(--accent)/0.6)] hover:-translate-y-0.5 hover:gap-3 active:translate-y-0",
+  solid: "bg-accent text-accent-ink hover:bg-accent/90",
+  neutral: "bg-cream-bright text-surface-base hover:bg-cream-bright/85",
   glass: "liquid-glass text-cream-bright hover:bg-surface-lift",
-  ghost: "text-cream-dim hover:text-cream-bright",
+  ghost: "text-cream-dim hover:bg-surface-lift hover:text-cream-bright",
 };
 
+/**
+ * The only button.
+ *
+ * Feedback lives on the press, not the release: `active:scale` answers the
+ * finger in 100ms, which is the difference between a control and a picture of
+ * one. No lift on hover and no coloured glow — both read as a web page trying
+ * to be noticed, and a pill in the accent is already the loudest thing here.
+ */
 export function Action({
   children,
   tone = "solid",
@@ -30,33 +43,25 @@ export function Action({
 }: ActionProps) {
   return (
     <button
-      className={`focus-ring group inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300 ease-cinematic sm:text-base ${TONE[tone]} ${className}`}
+      className={`focus-ring group inline-flex select-none items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-[-0.01em] transition-[transform,background-color,color,opacity] duration-200 ease-press active:scale-[0.97] active:duration-100 disabled:pointer-events-none disabled:opacity-40 sm:text-base ${TONE[tone]} ${className}`}
       {...props}
     >
       {children}
       {withArrow && (
-        <span /* The disc inverts with the button it sits inside: a solid Action is
-             ink-coloured, so the disc is the surface and the arrow is the ink.
-             It was `bg-black` with a `cream-bright` arrow, which on the light
-             theme drew a near-black arrow on a black disc. */
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-base transition-transform duration-300 ease-cinematic group-hover:scale-110 sm:h-10 sm:w-10">
-          <ArrowRight
-            /* Forward is leftward in Arabic and Hebrew, so the arrow turns
-               with the document. Every other mirrored thing on the page —
-               the sidebar, the alignment, the reading order — is handled by
-               `dir` on the root; a glyph that points at a direction is not,
-               because the browser has no way to know this one means "next"
-               rather than "right". */
-            className="h-4 w-4 text-cream-bright rtl:-scale-x-100"
-            aria-hidden
-          />
-        </span>
+        <ArrowRight
+          /* Forward is leftward in Arabic and Hebrew, so the arrow turns with
+             the document — the browser cannot know this glyph means "next"
+             rather than "right". It nudges toward where it points on hover,
+             which is the whole of its animation. */
+          className="h-4 w-4 transition-transform duration-200 ease-press group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+          aria-hidden
+        />
       )}
     </button>
   );
 }
 
-/** Small uppercase-ish section marker. Sets context above a headline. */
+/** The line above a headline, Apple's way: the accent, in weight, not spaced caps. */
 export function Eyebrow({
   children,
   className = "",
@@ -65,7 +70,7 @@ export function Eyebrow({
   className?: string;
 }) {
   return (
-    <p className={`text-xs tracking-[0.14em] text-accent-text ${className}`}>
+    <p className={`text-sm font-semibold text-accent-text ${className}`}>
       {children}
     </p>
   );
@@ -91,18 +96,21 @@ export function Panel({
   role?: string;
   "aria-labelledby"?: string;
 }) {
+  /* A shadow rather than a border: the shadow token carries its own hairline,
+     so a card separates from white and from #F5F5F7 alike without a grey
+     rule drawn around every panel. */
   const surface =
     variant === "glass"
       ? "liquid-glass"
       : variant === "raised"
-        ? "bg-surface-raised"
-        : "border border-line bg-surface-card";
+        ? "bg-surface-raised shadow-card"
+        : "bg-surface-card shadow-card";
   return (
     <div
       id={id}
       role={role}
       aria-labelledby={labelledBy}
-      className={`overflow-hidden rounded-2xl ${surface} ${className}`}
+      className={`overflow-hidden rounded-card ${surface} ${className}`}
     >
       {children}
     </div>
@@ -144,7 +152,7 @@ export function InsetFrame({
   className?: string;
 }) {
   return (
-    <div className="h-screen p-4 md:p-6">
+    <div className="h-[100svh] p-2 md:p-3">
       <div
         className={`relative h-full overflow-hidden rounded-2xl md:rounded-inset ${className}`}
       >
@@ -157,10 +165,11 @@ export function InsetFrame({
 /** Checklist row used across feature cards. */
 export function CheckItem({ children }: { children: ReactNode }) {
   return (
-    <li className="flex items-start gap-2 text-xs text-cream-dim sm:text-sm">
-      <span
+    <li className="flex items-start gap-2.5 text-sm text-cream-dim">
+      <Check
         aria-hidden
-        className="mt-[0.35em] h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+        strokeWidth={2.5}
+        className="mt-[0.2em] h-4 w-4 shrink-0 text-accent-text"
       />
       {children}
     </li>
@@ -187,7 +196,7 @@ export function Meter({
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
         <span className="text-xs text-cream-dim">{label}</span>
-        <span className="text-sm font-bold text-cream-bright">
+        <span className="text-sm font-semibold tabular-nums text-cream-bright">
           {value}
           {suffix}
         </span>
@@ -198,7 +207,7 @@ export function Meter({
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-line"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift"
       >
         <div
           className="h-full rounded-full bg-accent transition-[width] duration-700 ease-cinematic"
@@ -218,7 +227,7 @@ export function Badge({
   tone?: "neutral" | "live";
 }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-cream-dim">
+    <span className="inline-flex items-center gap-2 rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-dim">
       {tone === "live" && (
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent animate-blink" />
       )}
@@ -244,11 +253,39 @@ export function Field({
 }) {
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
-      <label htmlFor={htmlFor} className="text-xs text-cream-dim">
+      <label htmlFor={htmlFor} className="text-xs font-medium text-cream">
         {label}
       </label>
       {children}
       {hint && <p className="text-xs text-cream-faint">{hint}</p>}
     </div>
+  );
+}
+
+/**
+ * The crown on a paid option.
+ *
+ * One mark for everything the free plan cannot use, wherever it appears — a
+ * nav entry, a filter, a template — so a candidate learns it once. It names
+ * what is behind it rather than refusing: the option stays visible and
+ * clickable, and what happens on the click is the screen's to decide.
+ */
+export function PremiumMark({
+  label,
+  className = "",
+}: {
+  /** Read out instead of the icon, e.g. "Premium". */
+  label: string;
+  className?: string;
+}) {
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className={`inline-grid h-5 w-5 shrink-0 place-items-center rounded-full bg-premium-soft text-premium ${className}`}
+    >
+      <Crown aria-hidden className="h-3 w-3" strokeWidth={2.5} fill="currentColor" />
+    </span>
   );
 }

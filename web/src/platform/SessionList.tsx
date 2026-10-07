@@ -44,7 +44,7 @@ export function SessionList() {
     <section id="sessions" aria-labelledby="sessions-title" className="scroll-mt-6">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="sessions-title" className="font-serif text-title text-cream-bright">
+          <h2 id="sessions-title" className="text-title font-semibold text-cream-bright">
             {t("history.title")}
           </h2>
           <p className="mt-1 text-xs text-cream-dim">
@@ -84,7 +84,7 @@ export function SessionList() {
             <FadeRise key={session.id} delay={index * 0.06}>
               <Panel className="flex flex-wrap items-center justify-between gap-4 p-5">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-cream-bright">
+                  <p className="text-sm font-semibold text-cream-bright">
                     {session.company}
                     {session.mode === "real" && (
                       <span className="ml-2 text-xs font-normal text-cream-faint">
@@ -111,7 +111,7 @@ export function SessionList() {
                   )}
                 </div>
                 <div className="flex items-center gap-6">
-                  <span className="text-title text-cream-bright">
+                  <span className="text-title font-semibold tabular-nums text-cream-bright">
                     {session.score === null ? (
                       <span className="text-cream-faint">—</span>
                     ) : (
@@ -125,7 +125,7 @@ export function SessionList() {
                     <Link
                       to="/app/feedback"
                       state={{ historyId: session.id }}
-                      className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-cream-bright transition-colors hover:border-accent hover:text-accent-text"
+                      className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-surface-lift px-3.5 py-1.5 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-200 ease-press hover:bg-cream/15 active:scale-[0.97]"
                     >
                       {t("history.view")}
                       <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />

@@ -74,7 +74,11 @@ export function CallStage({
   const sharing = screenStream !== null;
 
   return (
-    <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface-sunken p-4 sm:p-6">
+    /* FaceTime's stage: a dark room in both themes. The interviewer is the
+       thing being watched, and a call on white reads as a form with a face on
+       it. `on-media` pins the light ink and the dark accent, so everything
+       inside — presence, waveform, captions — reads on black. */
+    <div className="on-media relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[1.75rem] bg-surface-base p-4 shadow-float sm:p-6">
       {/* Sharing rearranges the room rather than adding to it, the way a
           call does: what you are presenting is the thing worth the space, and
           the interviewer shrinks to a strip that still shows them talking. */}
@@ -95,7 +99,7 @@ export function CallStage({
             // colour, and on a light theme near-black text on a black plate
             // is invisible. It sits over arbitrary shared content, so it
             // stays mostly opaque.
-            ? "absolute left-4 top-14 flex items-center gap-3 rounded-2xl border border-line bg-surface-deep/90 p-3 backdrop-blur"
+            ? "absolute left-4 top-14 flex items-center gap-3 rounded-2xl bg-black/70 p-3 ring-1 ring-white/10 backdrop-blur-xl"
             : "flex flex-col items-center gap-2.5 sm:gap-4 text-center"
         }
       >
@@ -105,7 +109,7 @@ export function CallStage({
         {sharing ? (
           <span
             aria-hidden
-            className={`grid h-10 w-10 place-items-center rounded-full text-sm font-medium tracking-wide transition-colors duration-500 ${
+            className={`grid h-10 w-10 place-items-center rounded-full text-sm font-semibold transition-colors duration-500 ${
               speaking ? "bg-accent text-accent-ink" : "bg-accent-soft text-accent-text"
             }`}
           >
@@ -123,7 +127,7 @@ export function CallStage({
           />
         )}
         <div className={sharing ? "text-left" : ""}>
-          <p className={sharing ? "text-sm text-cream-bright" : "text-base text-cream-bright sm:text-lg"}>
+          <p className={sharing ? "text-sm font-semibold text-cream-bright" : "text-lg font-semibold text-cream-bright sm:text-xl"}>
             {name}
           </p>
           <p className="text-xs text-cream-dim sm:text-sm">{title}</p>
@@ -141,7 +145,7 @@ export function CallStage({
 
       {/* Subtitles on mobile inside the stage container */}
       {turnText && (
-        <div className="absolute inset-x-3 bottom-3 z-10 max-h-24 overflow-y-auto rounded-2xl border border-line bg-surface-deep/85 p-2.5 backdrop-blur sm:hidden">
+        <div className="absolute inset-x-3 bottom-3 z-10 max-h-24 overflow-y-auto rounded-2xl bg-black/60 p-3 ring-1 ring-white/10 backdrop-blur-xl sm:hidden">
           <p className="text-xs leading-relaxed text-cream-bright" aria-live="polite">
             {turnText}
           </p>
@@ -158,14 +162,14 @@ export function CallStage({
         </p>
       )}
 
-      <span className="absolute left-4 top-4 rounded-full border border-line px-3 py-1 text-xs text-cream-dim">
+      <span className="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-cream-bright backdrop-blur-xl">
         {status}
       </span>
 
       {/* The self-view. Kept small and in the corner: it is a mirror to
           glance at, not the thing being watched. */}
       {(cameraStream || cameraError) && (
-        <div className="absolute bottom-4 right-4 w-32 overflow-hidden rounded-2xl border border-line bg-surface-sunken sm:w-44">
+        <div className="absolute bottom-4 right-4 w-32 overflow-hidden rounded-2xl bg-black/40 shadow-float ring-1 ring-white/15 sm:w-44">
           {cameraStream ? (
             <video
               ref={self}

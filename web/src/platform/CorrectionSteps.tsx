@@ -35,40 +35,40 @@ export function CorrectionSteps({ items }: { items: string[] }) {
 
   return (
     <div>
-      <p className="text-sm text-cream-bright">{t("feedback.steps")}</p>
+      <p className="text-base font-semibold text-cream-bright">{t("feedback.steps")}</p>
       <p className="mt-1 text-xs text-cream-faint">{t("feedback.stepsNote")}</p>
       <ul className="mt-4 flex flex-col gap-3">
         {items.map((item) => {
           const correction = parseCorrection(item);
           if (correction.kind === "note") {
             return (
-              <li key={item} className="rounded-2xl border border-line p-4 text-sm text-cream-bright">
+              <li key={item} className="rounded-2xl bg-surface-lift p-4 text-sm text-cream-bright">
                 {correction.text}
               </li>
             );
           }
           return (
-            <li key={item} className="rounded-2xl border border-line p-4">
-              <p className="flex items-center gap-1.5 text-xs text-step-text">
+            <li key={item} className="rounded-2xl bg-surface-lift p-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-step-text">
                 <MessageCircle className="h-3.5 w-3.5" aria-hidden />
                 {t("feedback.youSaid")}
               </p>
               <p lang="en" className="mt-1 text-sm text-cream-bright">
-                <span className="rounded bg-step-soft px-1 py-0.5">{correction.said}</span>
+                <span className="rounded-md bg-step-soft px-1.5 py-0.5">{correction.said}</span>
               </p>
-              <p className="mt-3 flex items-center gap-1.5 text-xs text-grow-text">
+              <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-grow-text">
                 <Sparkles className="h-3.5 w-3.5" aria-hidden />
                 {t("feedback.natural")}
               </p>
               <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
                 <p lang="en" className="text-sm text-cream-bright">
-                  <span className="rounded bg-grow-soft px-1 py-0.5">{correction.natural}</span>
+                  <span className="rounded-md bg-grow-soft px-1.5 py-0.5">{correction.natural}</span>
                 </p>
                 {canSpeak && (
                   <button
                     type="button"
                     onClick={() => speak(correction.natural)}
-                    className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 text-xs text-cream-dim transition-colors hover:border-accent hover:text-accent-text"
+                    className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3 py-1 text-xs font-medium text-cream-bright shadow-card transition-colors hover:text-accent-text"
                   >
                     <Volume2 className="h-3.5 w-3.5" aria-hidden />
                     {t("feedback.listen")}

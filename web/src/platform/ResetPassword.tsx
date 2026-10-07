@@ -20,7 +20,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
   return (
     <AuthLayout>
     <Eyebrow>{t("auth.password")}</Eyebrow>
-    <h1 className="mt-3 text-title font-normal text-cream-bright">{title}</h1>
+    <h1 className="mt-3 text-title font-semibold text-cream-bright">{title}</h1>
     {children}
     <Link
       to="/signin"
@@ -75,7 +75,7 @@ function RequestLink() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+            className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
             placeholder="you@example.com"
           />
         </Field>
@@ -126,7 +126,7 @@ function SetNewPassword({ token }: { token: string }) {
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright"
+            className="field-control text-sm text-cream-bright"
           />
         </Field>
         {error && (

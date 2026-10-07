@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Action, AnimatedCounter, DotMatrix, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
+import { Action, AnimatedCounter, DotMatrix, Eyebrow, FadeRise, Meter, Panel, PremiumMark } from "@/design-system";
 import { ArrowUpRight, Check } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
@@ -131,7 +131,7 @@ export function FeedbackReport() {
       <>
         <PageHeader title={t("feedback.title")} meta={meta} />
         <PageBody>
-          <Panel variant="glass" className="flex max-w-2xl flex-col gap-4 p-6">
+          <Panel variant="glass" className="flex max-w-2xl flex-col gap-4 p-6 sm:p-8">
             <p role="alert" className="text-sm text-cream-bright">
               {error}
             </p>
@@ -152,7 +152,7 @@ export function FeedbackReport() {
       <>
         <PageHeader title={t("feedback.title")} meta={meta} />
         <PageBody>
-          <Panel variant="raised" className="max-w-2xl p-6">
+          <Panel variant="raised" className="max-w-2xl p-6 sm:p-8">
             {/* The longest wait in the product, with nothing honest to put on
                 a progress bar: a model is reading the whole transcript. The
                 sentence stays — it is what actually says what is happening —
@@ -203,10 +203,17 @@ export function FeedbackReport() {
 function ShareControl({
   historyId,
   allowed,
+  limited,
   initialToken,
 }: {
   historyId: string;
   allowed: boolean;
+  /**
+   * The link will carry the free half of the report. Said under the link,
+   * with the crown, because the reader of the link is somebody else and the
+   * candidate should know what they are sending.
+   */
+  limited: boolean;
   /** The token the report already had, when it arrived with one. */
   initialToken: string | null;
 }) {
@@ -295,6 +302,15 @@ function ShareControl({
            to send before they send it. */
         <p className="max-w-xs break-all text-right text-xs text-cream-faint">{link}</p>
       )}
+      {link && limited && (
+        <Link
+          to="/app/settings#plan"
+          className="focus-ring flex max-w-xs items-start gap-2 self-end rounded-xl text-right text-xs text-cream-dim hover:text-cream-bright"
+        >
+          <PremiumMark label={t("premium.mark")} className="order-last" />
+          {t("share.linkPremium")}
+        </Link>
+      )}
     </div>
   );
 }
@@ -349,6 +365,7 @@ function FeedbackBody({
               <ShareControl
                 historyId={share.historyId}
                 allowed={share.allowed}
+                limited={withheld.nextSteps || withheld.metrics}
                 initialToken={share.token}
               />
             )}
@@ -364,11 +381,13 @@ function FeedbackBody({
 
       <PageBody className="grid gap-4 lg:grid-cols-3">
         <FadeRise className="lg:col-span-1">
-          <Panel variant="raised" className="flex h-full flex-col gap-6 p-6">
+          <Panel variant="raised" className="flex h-full flex-col gap-6 p-6 sm:p-8">
             <Eyebrow>{t("feedback.overall")}</Eyebrow>
-            <p className="text-display text-cream-bright" style={{ fontSize: "clamp(3rem,8vw,5rem)" }}>
+            {/* Apple Health's big number: heavy, tabular, the unit set lighter
+                beside it so the figure is what the eye reads first. */}
+            <p className="text-display font-bold tabular-nums text-cream-bright" style={{ fontSize: "clamp(3.5rem,8vw,5.5rem)" }}>
               <AnimatedCounter value={evaluation.overall_score_percentage} />
-              <span className="text-cream-faint">%</span>
+              <span className="ml-1 text-[2rem] font-semibold text-cream-faint">%</span>
             </p>
             <div className="flex flex-col gap-4">
               <Meter
@@ -391,7 +410,7 @@ function FeedbackBody({
         </FadeRise>
 
         <FadeRise delay={0.1} className="lg:col-span-2">
-          <Panel className="flex h-full flex-col gap-6 p-6">
+          <Panel className="flex h-full flex-col gap-6 p-6 sm:p-8">
             <div>
               <Eyebrow>{t("feedback.worked")}</Eyebrow>
               <ul className="mt-3 flex flex-col gap-3">
@@ -422,7 +441,7 @@ function FeedbackBody({
         </FadeRise>
 
         <FadeRise delay={0.2} className="lg:col-span-2">
-          <Panel className="flex h-full flex-col gap-5 p-6">
+          <Panel className="flex h-full flex-col gap-5 p-6 sm:p-8">
             <Eyebrow>{t("feedback.language")}</Eyebrow>
             <div>
               <p className="text-xs text-cream-faint">{t("feedback.usedWell")}</p>
@@ -430,7 +449,7 @@ function FeedbackBody({
                 {evaluation.vocabulary_feedback.good_usage.map((word) => (
                   <span
                     key={word}
-                    className="rounded-full border border-line px-3 py-1 text-xs text-cream-bright"
+                    className="rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-bright"
                   >
                     {word}
                   </span>
@@ -448,7 +467,7 @@ function FeedbackBody({
 
         {withheld.metrics && (
           <FadeRise delay={0.25} className="lg:col-span-3 lg:order-2">
-            <Panel variant="glass" className="flex flex-wrap items-center justify-between gap-4 p-6">
+            <Panel variant="glass" className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8">
               <div className="max-w-xl">
                 <Eyebrow>{t("feedback.measured")}</Eyebrow>
                 <p className="mt-2 text-sm text-cream-dim">
@@ -464,7 +483,7 @@ function FeedbackBody({
 
         {metrics && (
           <FadeRise delay={0.25} className="lg:col-span-3 lg:order-2">
-            <Panel className="flex flex-col gap-5 p-6">
+            <Panel className="flex flex-col gap-5 p-6 sm:p-8">
               <div>
                 <Eyebrow>{t("feedback.measured")}</Eyebrow>
                 <p className="mt-2 text-xs text-cream-faint">
@@ -493,11 +512,11 @@ function FeedbackBody({
 
         {(xp !== null || earned.length > 0) && (
           <FadeRise delay={0.28} className="lg:col-span-1 lg:order-1">
-            <Panel variant="raised" className="flex flex-col gap-5 p-6">
+            <Panel variant="raised" className="flex flex-col gap-5 p-6 sm:p-8">
               {xp && (
                 <div>
                   <Eyebrow>{t("feedback.earned")}</Eyebrow>
-                  <p className="mt-2 text-title text-cream-bright">
+                  <p className="mt-2 text-title font-semibold tabular-nums text-cream-bright">
                     +{xp.gained} XP
                   </p>
                   <p className="mt-1 text-xs text-cream-faint">
@@ -510,9 +529,9 @@ function FeedbackBody({
                   {earned.map((badge) => (
                     <li
                       key={badge.id}
-                      className="rounded-2xl border border-line px-4 py-3"
+                      className="rounded-2xl bg-surface-lift px-4 py-3"
                     >
-                      <p className="text-sm text-cream-bright">{badge.label}</p>
+                      <p className="text-sm font-semibold text-cream-bright">{badge.label}</p>
                       <p className="mt-0.5 text-xs text-cream-faint">
                         {badge.description}
                       </p>
@@ -525,7 +544,7 @@ function FeedbackBody({
         )}
 
         <FadeRise delay={0.3} className="lg:col-span-3 lg:order-3">
-          <Panel variant="raised" className="flex h-full flex-col gap-4 p-6">
+          <Panel variant="raised" className="flex h-full flex-col gap-4 p-6 sm:p-8">
             <Eyebrow>{t("feedback.nextTime")}</Eyebrow>
             {withheld.nextSteps && (
               <p className="text-sm text-cream-dim">
@@ -542,8 +561,8 @@ function FeedbackBody({
             <ol className="flex flex-col gap-4">
               {evaluation.actionable_next_steps.map((step, index) => (
                 <li key={step} className="flex gap-3 text-sm text-cream-bright">
-                  <span aria-hidden className="text-cream-faint">
-                    {String(index + 1).padStart(2, "0")}
+                  <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-semibold tabular-nums text-accent-text">
+                    {index + 1}
                   </span>
                   {step}
                 </li>
@@ -561,7 +580,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-xs text-cream-faint">{label}</dt>
-      <dd className="mt-1 text-sm text-cream-bright">{value}</dd>
+      <dd className="mt-1 text-lg font-semibold tabular-nums text-cream-bright">{value}</dd>
     </div>
   );
 }

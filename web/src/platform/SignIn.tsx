@@ -43,7 +43,7 @@ export function SignIn() {
   return (
     <AuthLayout>
     <Eyebrow>{mode === "in" ? t("auth.welcomeBack") : t("auth.createAccount")}</Eyebrow>
-    <h1 className="mt-3 text-title font-normal text-cream-bright">
+    <h1 className="mt-3 text-title font-semibold text-cream-bright">
       {mode === "in"
         ? t("auth.signInTitle")
         : t("auth.signUpTitle")}
@@ -69,7 +69,7 @@ export function SignIn() {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+          className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
           placeholder="you@example.com"
         />
       </Field>
@@ -88,7 +88,7 @@ export function SignIn() {
           autoComplete={mode === "in" ? "current-password" : "new-password"}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright"
+          className="field-control text-sm text-cream-bright"
         />
       </Field>
 
@@ -98,7 +98,7 @@ export function SignIn() {
         </p>
       )}
 
-      <Action type="submit" disabled={busy} className="self-start">
+      <Action type="submit" disabled={busy} className="w-full py-3">
         {busy ? "…" : mode === "in" ? t("auth.signIn") : t("auth.create")}
       </Action>
     </form>

@@ -77,7 +77,7 @@ export function SharedReport() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-surface-base px-6">
         <Panel variant="raised" className="flex w-full max-w-md flex-col gap-5 p-8">
-          <h1 className="text-title font-normal text-cream-bright">
+          <h1 className="text-title font-semibold text-cream-bright">
             {t("shared.goneTitle")}
           </h1>
           {/* Not "wrong link". It may have been taken down on purpose, and
@@ -106,7 +106,7 @@ export function SharedReport() {
         <FadeRise>
           <div className="flex flex-col gap-2">
             <Eyebrow>{t("shared.eyebrow")}</Eyebrow>
-            <h1 className="text-display font-normal text-cream-bright">
+            <h1 className="text-display font-semibold text-cream-bright">
               {t("shared.title", { role: report.role, company: report.company })}
             </h1>
             <p className="text-sm text-cream-dim">
@@ -177,7 +177,7 @@ export function SharedReport() {
                   {evaluation.vocabulary_feedback.good_usage.map((word) => (
                     <span
                       key={word}
-                      className="rounded-full border border-line px-3 py-1 text-xs text-cream-bright"
+                      className="rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-bright"
                     >
                       {word}
                     </span>

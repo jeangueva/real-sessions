@@ -562,7 +562,7 @@ export function LiveInterview() {
                   </p>
                   <button
                     onClick={() => voice.speakNow(turn?.text ?? streaming)}
-                    className="focus-ring rounded-full border border-line-strong px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+                    className="focus-ring rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-bright transition-colors hover:bg-cream/15"
                   >
                     {t("call.playTurn")}
                   </button>
@@ -583,7 +583,7 @@ export function LiveInterview() {
             </div>
 
             {panelOpen && (
-              <div className="fixed inset-x-4 bottom-24 top-20 z-40 flex flex-col shadow-2xl lg:static lg:inset-auto lg:z-auto lg:h-auto lg:w-[26rem] lg:shadow-none">
+              <div className="fixed inset-x-4 bottom-24 top-20 z-40 flex flex-col shadow-float lg:static lg:inset-auto lg:z-auto lg:h-auto lg:w-[26rem] lg:shadow-none">
                 <TranscriptPanel
                   lines={lines}
                   pending={busy ? streaming : ""}
@@ -657,8 +657,8 @@ function CoachPanel({
       aria-label={t("coach.label")}
       className="w-full shrink-0 lg:w-80 xl:w-96"
     >
-      <div className="flex items-center gap-2 text-xs text-cream-faint">
-        <Lightbulb className="h-4 w-4" aria-hidden />
+      <div className="flex items-center gap-2 text-sm font-semibold text-cream-dim">
+        <Lightbulb className="h-4 w-4 text-step-text" aria-hidden />
         {t("coach.heading")}
       </div>
 
@@ -684,7 +684,7 @@ function CoachPanel({
 
         {tips.map((tip, index) => (
           <Panel key={`${tip.kind}-${index}`} className="p-4">
-            <p className="text-xs tracking-[0.14em] text-cream">
+            <p className="text-xs font-semibold text-cream">
               {t(TIP_LABEL[tip.kind])}
             </p>
             <p className="mt-2 text-sm text-cream-dim">{tip.note}</p>

@@ -195,7 +195,7 @@ export function Tour() {
 
       <div
         style={{ ...card, width: 340, maxWidth: "calc(100vw - 24px)" }}
-        className="absolute rounded-2xl border border-line bg-surface-deep p-5 shadow-2xl"
+        className="absolute rounded-3xl bg-surface-raised p-5 shadow-float"
       >
         <div className="flex items-start justify-between gap-4">
           <p className="text-sm text-cream-bright">{step.title}</p>
@@ -217,7 +217,7 @@ export function Tour() {
             {index > 0 && (
               <button
                 onClick={() => setIndex((current) => current - 1)}
-                className="focus-ring rounded-full border border-line-strong px-3 py-1.5 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+                className="focus-ring rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-200 ease-press hover:bg-cream/15 active:scale-[0.97]"
               >
                 {t("tour.back")}
               </button>

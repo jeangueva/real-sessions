@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
+import { Action, Eyebrow, FadeRise, Panel, PremiumMark } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
-import { fetchHistory } from "@/lib/api";
+import { fetchHistory, fetchPlan } from "@/lib/api";
 import { shareStats, type ShareStat } from "@/lib/share-stats";
 import { track } from "@/lib/analytics";
 import {
@@ -73,6 +73,39 @@ export function ShareCard() {
   const [cardScale, setCardScale] = useState(1);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  /**
+   * Whether the paid looks are open. Null until the plan is known, and
+   * treated as open meanwhile so a premium candidate never sees a crown
+   * flash on and off their own options.
+   */
+  const [premium, setPremium] = useState<boolean | null>(null);
+  /** Which step last refused a paid option, so the note appears beside it. */
+  const [upsell, setUpsell] = useState<Step | null>(null);
+  const locked = (paid: boolean) => paid && premium === false;
+  /** Runs `then` when the option is open; otherwise says why, in place. */
+  const guard = (paid: boolean, at: Step, then: () => void) => {
+    if (locked(paid)) {
+      setUpsell(at);
+      return;
+    }
+    setUpsell(null);
+    then();
+  };
+
+  useEffect(() => {
+    fetchPlan()
+      .then((result) => setPremium(result.plan === "premium"))
+      .catch(() => setPremium(false));
+  }, []);
+
+  // A free candidate starts on a look they can use. The gallery's first
+  // template is chosen by which numbers exist, not by plan, so it can land on
+  // a crowned one; move to the first open one instead, when there is one.
+  useEffect(() => {
+    if (premium !== false || !PREMIUM_TEMPLATES.has(templateId)) return;
+    const open = availableTemplates(stats).find((entry) => !PREMIUM_TEMPLATES.has(entry.id));
+    if (open) setTemplateId(open.id);
+  }, [premium, stats, templateId]);
 
   useEffect(() => {
     fetchHistory()
@@ -412,7 +445,10 @@ export function ShareCard() {
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
             aria-label={t("share.canvasLabel")}
-            className="touch-none rounded-xl"
+            /* A dark ground under the checkerboard in both themes: the card's
+               ink is light, because it is drawn for a phone story, and on a
+               white page an empty background made it disappear. */
+            className="on-media touch-none rounded-2xl bg-surface-base shadow-card"
             style={{
               width: preview.width,
               height: preview.height,
@@ -439,25 +475,44 @@ export function ShareCard() {
                   <Action
                     key={entry.id}
                     tone={entry.id === background && !image ? "solid" : "glass"}
-                    onClick={() => {
-                      setBackground(entry.id);
-                      setImage(null);
-                    }}
+                    onClick={() =>
+                      guard(PREMIUM_BACKGROUNDS.has(entry.id), "ground", () => {
+                        setBackground(entry.id);
+                        setImage(null);
+                      })
+                    }
                   >
                     {t(entry.labelKey)}
+                    {locked(PREMIUM_BACKGROUNDS.has(entry.id)) && (
+                      <PremiumMark label={t("premium.mark")} />
+                    )}
                   </Action>
                 ))}
               </div>
 
-              <label className="focus-ring flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-line-strong p-4 text-center text-sm text-cream-bright">
-                {image ? t("share.replace") : t("share.pick")}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(event) => choose(event.target.files?.[0])}
-                />
-              </label>
+              {/* Your own photo is the paid look. Free cards still carry the
+                  brand backgrounds, which is the half that spreads the name. */}
+              {locked(true) ? (
+                <button
+                  type="button"
+                  onClick={() => guard(true, "ground", () => undefined)}
+                  className="focus-ring flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line p-4 text-center text-sm font-medium text-cream-dim transition-colors hover:bg-surface-lift"
+                >
+                  {t("share.pick")}
+                  <PremiumMark label={t("premium.mark")} />
+                </button>
+              ) : (
+                <label className="focus-ring flex cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-line p-4 text-center text-sm font-medium text-cream-bright transition-colors hover:bg-surface-lift">
+                  {image ? t("share.replace") : t("share.pick")}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(event) => choose(event.target.files?.[0])}
+                  />
+                </label>
+              )}
+              {upsell === "ground" && <Upsell />}
               <p className="text-xs text-cream-faint">{t("share.private")}</p>
 
               <Action onClick={() => setStep("crop")}>{t("share.next")}</Action>
@@ -531,18 +586,24 @@ export function ShareCard() {
                       key={entry.id}
                       type="button"
                       aria-pressed={entry.id === templateId}
-                      onClick={() => setTemplateId(entry.id)}
-                      className={`focus-ring flex flex-col items-center gap-2 rounded-xl border p-2 ${
+                      onClick={() =>
+                        guard(PREMIUM_TEMPLATES.has(entry.id), "ready", () => setTemplateId(entry.id))
+                      }
+                      className={`focus-ring relative flex flex-col items-center gap-2 rounded-2xl p-2 transition-[background-color,box-shadow] duration-200 ease-press ${
                         entry.id === templateId
-                          ? "border-cream-faint bg-surface-raised"
-                          : "border-line"
+                          ? "bg-surface-card shadow-card ring-2 ring-accent"
+                          : "bg-surface-lift hover:bg-cream/10"
                       }`}
                     >
                       <Thumbnail template={entry} paint={paint} />
-                      <span className="text-xs text-cream-dim">{t(entry.labelKey)}</span>
+                      <span className="text-xs font-medium text-cream-dim">{t(entry.labelKey)}</span>
+                      {locked(PREMIUM_TEMPLATES.has(entry.id)) && (
+                        <PremiumMark label={t("premium.mark")} className="absolute right-2 top-2" />
+                      )}
                     </button>
                   ))}
                 </div>
+                {upsell === "ready" && <Upsell />}
               </Panel>
 
               <Panel className="flex flex-col gap-4 p-5">
@@ -550,12 +611,23 @@ export function ShareCard() {
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="flex items-center gap-2 text-xs text-cream-faint">
                     {t("share.colour")}
-                    <input
-                      type="color"
-                      value={colour ?? "#ece9d8"}
-                      onChange={(event) => setColour(event.target.value)}
-                      className="focus-ring h-8 w-12 rounded border border-line bg-transparent"
-                    />
+                    {locked(true) ? (
+                      <button
+                        type="button"
+                        onClick={() => guard(true, "ready", () => undefined)}
+                        className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-lift px-3"
+                      >
+                        <span aria-hidden className="h-4 w-4 rounded-full bg-gradient-to-br from-accent via-grow to-step" />
+                        <PremiumMark label={t("premium.mark")} />
+                      </button>
+                    ) : (
+                      <input
+                        type="color"
+                        value={colour ?? "#ece9d8"}
+                        onChange={(event) => setColour(event.target.value)}
+                        className="focus-ring h-8 w-12 rounded border border-line bg-transparent"
+                      />
+                    )}
                   </label>
                   {colour && (
                     <button
@@ -609,6 +681,32 @@ export function ShareCard() {
         </div>
       </PageBody>
     </>
+  );
+}
+
+/**
+ * The paid looks, in one place so the line between free and paid is a
+ * decision you can read and move.
+ *
+ * The free card keeps two templates and the two brand backgrounds: enough to
+ * be worth posting, and every one of them carries the product's name, which is
+ * why sharing is free at all. Your own photo, your own colour and the richer
+ * templates are what Premium adds — the same split Canva makes.
+ */
+const PREMIUM_TEMPLATES: ReadonlySet<TemplateId> = new Set<TemplateId>(["receipt", "best"]);
+const PREMIUM_BACKGROUNDS: ReadonlySet<BackgroundId> = new Set<BackgroundId>(["ember", "depth"]);
+
+/** What a click on a crowned option says, beside the option. */
+function Upsell() {
+  const t = useT();
+  return (
+    <p role="status" className="flex flex-wrap items-center gap-2 rounded-2xl bg-premium-soft px-3 py-2.5 text-xs text-cream-bright">
+      <PremiumMark label={t("premium.mark")} />
+      {t("share.premiumOption")}
+      <Link to="/app/settings#plan" className="focus-ring rounded font-semibold underline underline-offset-4">
+        {t("cta.seePlans")}
+      </Link>
+    </p>
   );
 }
 

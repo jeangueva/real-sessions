@@ -462,7 +462,7 @@ export function SessionSetup() {
         actions={
           can && (!can.targetCompany || left !== null) ? (
             <div className="flex min-w-0 items-center gap-3">
-              <p className="flex items-center gap-1.5 text-xs text-cream-dim">
+              <p className="flex items-center gap-1.5 rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-dim">
                 <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span className={left === 0 ? "text-cream-bright" : undefined}>
                   {left === 0
@@ -499,16 +499,16 @@ export function SessionSetup() {
         {levelUp && (
           <Panel variant="raised" className="flex flex-wrap items-center justify-between gap-4 p-5">
             <div className="max-w-xl">
-              <p className="text-sm text-cream-bright">
+              <p className="text-base font-semibold text-cream-bright">
                 {t("level.readyTitle", { level: levelUp.label })}
               </p>
-              <p className="mt-1 text-xs text-cream-dim">{t("level.readyBody")}</p>
+              <p className="mt-1 text-sm text-cream-dim">{t("level.readyBody")}</p>
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => setLevelUp(null)}
-                className="focus-ring rounded-full px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+                className="focus-ring rounded-full px-4 py-2 text-sm font-medium text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright"
               >
                 {t("level.readyDismiss")}
               </button>
@@ -915,7 +915,7 @@ export function SessionSetup() {
             how the two copies end up different. */}
         {application && application.company === company && application.role === role && (
           <Panel className="flex flex-col gap-1 p-5">
-            <p className="text-sm text-cream-bright">
+            <p className="text-sm font-medium text-cream-bright">
               {t("setup.fromApplication", { company: application.company })}
             </p>
             <p className="text-xs text-cream-faint">{t("setup.fromApplicationHint")}</p>
@@ -928,8 +928,8 @@ export function SessionSetup() {
             Hidden when an application is supplying it. */}
         {can?.targetCompany &&
           !(application && application.company === company && application.role === role) && (
-          <details className="rounded-2xl border border-line bg-surface-card">
-            <summary className="focus-ring cursor-pointer list-none rounded-2xl px-5 py-4 text-sm text-cream-bright">
+          <details className="rounded-card bg-surface-card shadow-card">
+            <summary className="focus-ring cursor-pointer list-none rounded-card px-5 py-4 text-sm font-medium text-cream-bright">
               {t("setup.postingTitle")}
               <span className="ml-2 text-xs text-cream-faint">
                 {jobPosting.trim() === "" ? t("setup.postingEmpty") : t("setup.postingSet")}
@@ -944,7 +944,7 @@ export function SessionSetup() {
                 onChange={(event) => setJobPosting(event.target.value.slice(0, 4000))}
                 rows={6}
                 placeholder={t("setup.postingPlaceholder")}
-                className="focus-ring resize-y rounded-xl border border-line-strong bg-transparent px-4 py-3 text-sm text-cream-bright placeholder:text-cream-faint"
+                className="field-control resize-y text-sm text-cream-bright placeholder:text-cream-faint"
               />
             </div>
           </details>
@@ -983,7 +983,7 @@ export function SessionSetup() {
               type="button"
               onClick={dismissBriefing}
               aria-label={t("setup.dismissBriefing")}
-              className="focus-ring absolute right-4 top-4 rounded-full p-1 text-cream-faint transition-colors hover:text-cream-bright"
+              className="focus-ring absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface-lift text-cream-dim transition-colors hover:text-cream-bright"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>

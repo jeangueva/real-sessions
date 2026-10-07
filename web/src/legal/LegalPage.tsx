@@ -30,7 +30,7 @@ function Body({ document: doc }: { document: LegalDocument }) {
   return (
     <article className="flex flex-col gap-10">
       <header className="flex flex-col gap-4">
-        <h1 className="text-title font-normal text-cream-bright">{doc.title}</h1>
+        <h1 className="text-title font-semibold text-cream-bright">{doc.title}</h1>
         <p className="text-sm leading-relaxed text-cream-dim">{doc.intro}</p>
         <p className="text-xs text-cream-faint">
           {updatedLabel(legalLocale(locale))}: {doc.updated}

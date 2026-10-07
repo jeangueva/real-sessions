@@ -50,7 +50,7 @@ export function DeleteAccount({ email }: { email: string }) {
           </p>
           <button
             onClick={() => setOpen(true)}
-            className="focus-ring shrink-0 rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+            className="focus-ring shrink-0 rounded-full bg-surface-lift px-4 py-2 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-200 ease-press hover:bg-cream/15 active:scale-[0.97]"
           >
             {t("delete.button")}
           </button>
@@ -83,7 +83,7 @@ export function DeleteAccount({ email }: { email: string }) {
               onChange={(event) => setTyped(event.target.value)}
               autoComplete="off"
               placeholder={email}
-              className="focus-ring rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+              className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
             />
           </Field>
 

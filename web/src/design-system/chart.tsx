@@ -84,7 +84,7 @@ export function TrendChart({
       <figure className="flex flex-col gap-2">
         <figcaption className="text-xs text-cream-faint">{title}</figcaption>
         <div
-          className="flex items-center justify-center rounded-xl border border-line"
+          className="flex items-center justify-center rounded-2xl bg-surface-lift"
           style={{ aspectRatio: `${WIDTH} / ${HEIGHT}` }}
         >
           <p className="text-xs text-cream-faint">{t("chart.notMeasured")}</p>
@@ -97,11 +97,11 @@ export function TrendChart({
   return (
     <figure className="flex flex-col gap-2">
       <figcaption className="flex items-baseline justify-between gap-3">
-        <span className="text-xs text-cream-faint" id={titleId}>
+        <span className="text-xs font-medium text-cream-dim" id={titleId}>
           {title}
         </span>
         {latest && (
-          <span className="text-sm text-cream-bright">
+          <span className="text-base font-semibold tabular-nums text-cream-bright">
             {Math.round(latest.value)}
             {unit}
           </span>
@@ -370,7 +370,7 @@ export function RadarChart({
       <figure className="flex flex-col gap-2">
         <figcaption className="text-xs text-cream-faint">{title}</figcaption>
         <div
-          className="flex items-center justify-center rounded-xl border border-line"
+          className="flex items-center justify-center rounded-2xl bg-surface-lift"
           style={{ aspectRatio: `${RADAR_W} / ${RADAR_H}` }}
         >
           <p className="text-xs text-cream-faint">{t("chart.notMeasured")}</p>

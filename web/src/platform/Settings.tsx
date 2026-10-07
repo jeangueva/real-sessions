@@ -160,7 +160,7 @@ export function Settings() {
         <div
           role="tablist"
           aria-label={t("settings.sections")}
-          className="mb-6 inline-flex flex-wrap items-center gap-1.5 rounded-full border border-line bg-surface-card p-1.5"
+          className="mb-8 inline-flex flex-wrap items-center gap-1 rounded-full bg-surface-lift p-1"
         >
           {TABS.map(({ id, key }) => (
             <button
@@ -175,10 +175,10 @@ export function Settings() {
                 // through the four rather than leaving the page.
                 history.pushState(null, "", `#${id}`);
               }}
-              className={`focus-ring rounded-full px-4 py-2 text-xs font-medium transition-all duration-200 sm:text-sm ${
+              className={`focus-ring rounded-full px-4 py-1.5 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 ease-press sm:text-sm ${
                 tab === id
-                  ? "bg-cream text-surface-base shadow-sm"
-                  : "text-cream-dim hover:text-cream-bright hover:bg-surface-lift"
+                  ? "bg-surface-card text-cream-bright shadow-card"
+                  : "text-cream-dim hover:text-cream-bright"
               }`}
             >
               {t(key)}
@@ -247,7 +247,7 @@ export function Settings() {
                 resetTour();
                 setTourReset(true);
               }}
-              className="focus-ring self-start rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright sm:text-sm"
+              className="focus-ring self-start rounded-full bg-surface-lift px-4 py-2 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-200 ease-press hover:bg-cream/15 active:scale-[0.97] sm:text-sm"
             >
               {tourReset ? t("settings.tourReset") : t("settings.tourAgain")}
             </button>
@@ -315,7 +315,7 @@ export function Settings() {
                   onChange={(event) => update({ candidateName: event.target.value })}
                   placeholder={t("settings.yourNamePlaceholder")}
                   maxLength={60}
-                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                  className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
                 />
               </Field>
 
@@ -328,7 +328,7 @@ export function Settings() {
                   id="role"
                   value={preferences.defaultRole}
                   onChange={(event) => update({ defaultRole: event.target.value })}
-                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="field-control text-sm text-cream-bright"
                 >
                   {/* Grouped by area, like the setup picker: forty roles in one
                       flat native list is a scroll with no landmarks. */}
@@ -365,7 +365,7 @@ export function Settings() {
                   id="sector"
                   value={preferences.defaultSector}
                   onChange={(event) => update({ defaultSector: event.target.value })}
-                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="field-control text-sm text-cream-bright"
                 >
                   <option value="">{t("settings.allSectors")}</option>
                   {sectors.map((sector) => (
@@ -383,7 +383,7 @@ export function Settings() {
                   onChange={(event) =>
                     update({ defaultCompany: event.target.value })
                   }
-                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="field-control text-sm text-cream-bright"
                 >
                   {(companies.length === 0
                     ? FALLBACK_COMPANIES
@@ -411,7 +411,7 @@ export function Settings() {
                   id="level"
                   value={preferences.defaultLevel}
                   onChange={(event) => update({ defaultLevel: event.target.value })}
-                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="field-control text-sm text-cream-bright"
                 >
                   {levels.map((entry) => (
                     <option key={entry.id} value={entry.id}>
@@ -435,7 +435,7 @@ export function Settings() {
                         event.target.value === "real" ? "real" : "practice",
                     })
                   }
-                  className="focus-ring rounded-xl border border-line-strong bg-surface-card px-4 py-2.5 text-sm text-cream-bright"
+                  className="field-control text-sm text-cream-bright"
                 >
                   <option value="practice">{t("settings.modePractice")}</option>
                   <option value="real">{t("settings.modeReal")}</option>

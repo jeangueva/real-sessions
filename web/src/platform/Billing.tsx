@@ -286,7 +286,7 @@ export function Billing() {
           a deployment pointed at the wrong one is invisible until money does
           or does not move. This is the only thing that tells them apart. */}
       {state.mode === "test" && (
-        <p className="mt-3 inline-flex rounded-full border border-line-strong px-3 py-1 text-xs text-cream-dim">
+        <p className="mt-3 inline-flex rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-dim">
           {t("billing.sandbox")}
         </p>
       )}
@@ -375,7 +375,7 @@ export function Billing() {
           <button
             onClick={() => void cancel()}
             disabled={busy}
-            className="focus-ring rounded-full border border-line-strong px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright disabled:opacity-40"
+            className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-200 ease-press hover:bg-cream/15 active:scale-[0.97] disabled:opacity-40"
           >
             {t("billing.cancelSub")}
           </button>
@@ -467,7 +467,7 @@ function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
     return (
       <p
         role="status"
-        className="mt-6 rounded-2xl border border-cream/30 bg-surface-raised p-4 text-sm text-cream-bright"
+        className="mt-6 rounded-2xl bg-grow-soft p-4 text-sm text-cream-bright"
       >
         {t("billing.promoDone", { date: formatSessionDate(until) })}
       </p>
@@ -475,8 +475,8 @@ function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
   }
 
   return (
-    <div className="mt-6 rounded-2xl border border-line-strong bg-surface-raised p-4">
-      <p className="text-sm text-cream-bright">{t("billing.promoAsk")}</p>
+    <div className="mt-6 rounded-2xl bg-surface-lift p-5">
+      <p className="text-sm font-semibold text-cream-bright">{t("billing.promoAsk")}</p>
       <p className="mt-1 text-xs text-cream-dim">{t("billing.promoHint")}</p>
       <div className="mt-3 flex flex-wrap items-start gap-2">
         <label className="flex flex-col gap-1">
@@ -490,7 +490,7 @@ function PromoField({ onRedeemed }: { onRedeemed: () => void }) {
             spellCheck={false}
             /* `text-sm` is 16px, and under 16px iOS Safari zooms the page the
                moment this is focused. */
-            className="focus-ring w-44 rounded-xl border border-line-strong bg-transparent px-4 py-2.5 text-sm uppercase tracking-wider text-cream-bright placeholder:tracking-normal placeholder:text-cream-faint"
+            className="field-control w-44 text-sm uppercase tracking-wider text-cream-bright placeholder:tracking-normal placeholder:text-cream-faint"
           />
         </label>
         <Action
