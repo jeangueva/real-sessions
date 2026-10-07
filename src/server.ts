@@ -1020,7 +1020,7 @@ async function readRaw(req: IncomingMessage, limit = 256 * 1024): Promise<string
  * collects, so a wrong guess here costs nobody anything.
  */
 function readerCountry(req: IncomingMessage, url: URL): string | null {
-  return header(req, "cf-ipcountry") ?? url.searchParams.get("country");
+  return url.searchParams.get("country") ?? header(req, "cf-ipcountry");
 }
 
 /** Defaults to practice: live coaching on, which is the gentler surprise. */
