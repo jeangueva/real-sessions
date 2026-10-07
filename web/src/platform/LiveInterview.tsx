@@ -138,7 +138,9 @@ export function LiveInterview() {
    * what is on screen now; a call needs the record beside it.
    */
   const [lines, setLines] = useState<TranscriptLine[]>([]);
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 1024,
+  );
   const [tab, setTab] = useState<"transcript" | "chat">("transcript");
   const [tips, setTips] = useState<CoachTip[]>([]);
   const [coaching, setCoaching] = useState(false);
@@ -502,9 +504,9 @@ export function LiveInterview() {
             interviewer's face drifted off the top — while the panel's own
             `overflow-y-auto` never engaged, because its parent always had room
             for one more line. Capped, the scroll happens where the words are. */}
-        <div className="flex h-[70vh] flex-1 flex-col gap-4 lg:h-[calc(100vh-13rem)]">
-          <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
-            <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="flex flex-1 flex-col gap-4 lg:h-[calc(100vh-13rem)]">
+          <div className="relative flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
+            <div className="flex min-h-[320px] flex-1 flex-col gap-3 sm:min-h-[380px] lg:min-h-0">
               <CallStage
                 initials={persona?.initials ?? "…"}
                 name={persona?.name ?? "Your interviewer"}
@@ -585,24 +587,27 @@ export function LiveInterview() {
             </div>
 
             {panelOpen && (
-              <TranscriptPanel
-                lines={lines}
-                pending={busy ? streaming : ""}
-                interviewerName={persona?.name ?? null}
-                tab={tab}
-                onTab={setTab}
-                answer={answer}
-                onAnswer={setAnswer}
-                onSend={() => void submit()}
-                canSend={!busy && Boolean(sessionId) && !finished}
-                hint={
-                  speaking
-                    ? t("panel.speaking")
-                    : busy
-                      ? t("panel.thinking")
-                      : t("panel.enterToSend")
-                }
-              />
+              <div className="fixed inset-x-4 bottom-24 top-20 z-40 flex flex-col shadow-2xl lg:static lg:inset-auto lg:z-auto lg:h-auto lg:w-[26rem] lg:shadow-none">
+                <TranscriptPanel
+                  lines={lines}
+                  pending={busy ? streaming : ""}
+                  interviewerName={persona?.name ?? null}
+                  tab={tab}
+                  onTab={setTab}
+                  answer={answer}
+                  onAnswer={setAnswer}
+                  onSend={() => void submit()}
+                  canSend={!busy && Boolean(sessionId) && !finished}
+                  onClose={() => setPanelOpen(false)}
+                  hint={
+                    speaking
+                      ? t("panel.speaking")
+                      : busy
+                        ? t("panel.thinking")
+                        : t("panel.enterToSend")
+                  }
+                />
+              </div>
             )}
           </div>
 

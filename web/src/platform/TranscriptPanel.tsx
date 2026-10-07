@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Send } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { useT } from "@/hooks/useLocale";
 
 /**
@@ -49,6 +49,7 @@ export function TranscriptPanel({
   onSend,
   canSend,
   hint,
+  onClose,
 }: {
   lines: TranscriptLine[];
   /** The turn still streaming in, shown greyed under the settled lines. */
@@ -61,6 +62,7 @@ export function TranscriptPanel({
   onSend: () => void;
   canSend: boolean;
   hint: string;
+  onClose?: () => void;
 }) {
   const t = useT();
   const words = { you: t("call.you"), interviewer: t("call.interviewer") };
@@ -73,11 +75,11 @@ export function TranscriptPanel({
   }, [lines.length, pending]);
 
   return (
-    <aside className="flex min-h-0 w-full flex-col rounded-3xl border border-line bg-surface-sunken lg:w-[26rem]">
+    <aside className="flex h-full min-h-0 w-full flex-col rounded-3xl border border-line bg-surface-sunken">
       <div
         role="tablist"
         aria-label={t("panel.label")}
-        className="flex shrink-0 gap-1 border-b border-line p-2"
+        className="flex shrink-0 items-center gap-1 border-b border-line p-2"
       >
         {(["transcript", "chat"] as const).map((name) => (
           <button
@@ -94,6 +96,16 @@ export function TranscriptPanel({
             {name === "transcript" ? t("panel.transcript") : t("panel.chat")}
           </button>
         ))}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("cta.close")}
+            className="focus-ring grid h-8 w-8 place-items-center rounded-full text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright lg:hidden"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        )}
       </div>
 
       {tab === "transcript" ? (
