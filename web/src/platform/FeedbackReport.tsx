@@ -7,6 +7,7 @@ import { ArrowUpRight, Check, ChevronDown, Sparkles, Target } from "lucide-react
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { useT } from "@/hooks/useLocale";
+import { badgeText } from "@/lib/badges";
 import type { MessageKey } from "@/lib/i18n";
 import { track } from "@/lib/analytics";
 import { SAMPLE_EVALUATION } from "@/lib/evaluation";
@@ -435,7 +436,7 @@ function FeedbackBody({
                   <PopIn key={badge.id} delay={0.95 + index * 0.08}>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1 pl-1 pr-3 text-sm font-semibold text-accent-text">
                       <img src={`/badges/${badge.id}.png`} alt="" width={24} height={24} className="h-6 w-6" />
-                      {badge.label}
+                      {badgeText(t, badge).label}
                     </span>
                   </PopIn>
                 ))}

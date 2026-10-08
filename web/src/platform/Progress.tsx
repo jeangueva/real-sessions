@@ -31,6 +31,7 @@ import type {
   SessionSummary,
 } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
+import { badgeText } from "@/lib/badges";
 import { Journey } from "./Journey";
 import { SessionList } from "./SessionList";
 
@@ -323,6 +324,7 @@ export function Progress() {
               <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
                 {profile.catalogue.map((badge, index) => {
                   const held = profile.badges.find((b) => b.badgeId === badge.id);
+                  const text = badgeText(t, badge);
                   return (
                     <li
                       key={badge.id}
@@ -340,8 +342,8 @@ export function Progress() {
                           className={`h-[72px] w-[72px] ${held ? "drop-shadow-[0_6px_10px_rgb(0_0_0/0.15)]" : "opacity-40 grayscale"}`}
                         />
                       </PopIn>
-                      <p className={`text-sm font-semibold ${held ? "text-cream-bright" : "text-cream-dim"}`}>{badge.label}</p>
-                      <p className="text-xs leading-snug text-cream-faint">{badge.description}</p>
+                      <p className={`text-sm font-semibold ${held ? "text-cream-bright" : "text-cream-dim"}`}>{text.label}</p>
+                      <p className="text-xs leading-snug text-cream-faint">{text.description}</p>
                       {held && (
                         <p className="text-xs font-medium text-accent-text">{formatSessionDate(held.earnedAt)}</p>
                       )}
