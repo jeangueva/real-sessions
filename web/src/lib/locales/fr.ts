@@ -133,6 +133,7 @@ const FR: Record<MessageKey, string> = {
   "feedback.words": "Mots",
   "feedback.fillers": "Tics de langage",
   "feedback.fillerUnit": "/ 100 mots",
+  "feedback.shareMenu": "Partager",
   "badge.first-session": "Premier appel",
   "badge.first-session.body": "Tu as terminé ton premier entretien.",
   "badge.five-sessions": "Régulier",

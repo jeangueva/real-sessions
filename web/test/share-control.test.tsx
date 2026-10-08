@@ -85,17 +85,20 @@ function serve(shareReport: boolean) {
 describe("sharing a report from the report screen", () => {
   it("copies the link on the same click that creates it", async () => {
     serve(true);
-    const button = await screen.findByRole("button", { name: /share this report/i });
+    // One "Share" button opens the menu; the report link is one of its items.
+    fireEvent.click(await screen.findByRole("button", { name: /^share$/i }));
+    const button = await screen.findByRole("menuitem", { name: /share this report/i });
     fireEvent.click(button);
     await waitFor(() => expect(written).toEqual(["https://getmockio.com/r/tok3n"]));
     expect(posted).toEqual([`POST /api/history/${HISTORY_ID}/share`]);
     // The label is the only confirmation a copy can give.
-    expect(await screen.findByRole("button", { name: /link copied/i })).toBeTruthy();
+    expect(await screen.findByRole("menuitem", { name: /link copied/i })).toBeTruthy();
   });
 
   it("tells a free account what the control is instead of hiding it", async () => {
     serve(false);
+    fireEvent.click(await screen.findByRole("button", { name: /^share$/i }));
     expect(await screen.findByText(/paid plan/i)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /share this report/i })).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: /share this report/i })).toBeNull();
   });
 });

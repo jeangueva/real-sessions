@@ -132,6 +132,7 @@ const HE: Record<MessageKey, string> = {
   "feedback.words": "מילים",
   "feedback.fillers": "מילות מילוי",
   "feedback.fillerUnit": "/ 100 מילים",
+  "feedback.shareMenu": "שתף",
   "badge.first-session": "שיחה ראשונה",
   "badge.first-session.body": "סיימת את הראיון הראשון שלך.",
   "badge.five-sessions": "קבוע",

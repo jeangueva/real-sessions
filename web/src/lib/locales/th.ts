@@ -132,6 +132,7 @@ const TH: Record<MessageKey, string> = {
   "feedback.words": "คำ",
   "feedback.fillers": "คำเติม",
   "feedback.fillerUnit": "/ 100 คำ",
+  "feedback.shareMenu": "แชร์",
   "badge.first-session": "สายแรก",
   "badge.first-session.body": "จบการสัมภาษณ์ครั้งแรก",
   "badge.five-sessions": "ขาประจำ",

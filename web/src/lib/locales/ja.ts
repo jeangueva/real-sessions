@@ -132,6 +132,7 @@ const JA: Record<MessageKey, string> = {
   "feedback.words": "語数",
   "feedback.fillers": "つなぎ言葉",
   "feedback.fillerUnit": "/ 100語",
+  "feedback.shareMenu": "共有",
   "badge.first-session": "最初の通話",
   "badge.first-session.body": "最初の面接を完了しました。",
   "badge.five-sessions": "常連",

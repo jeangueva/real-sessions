@@ -132,6 +132,7 @@ const AR: Record<MessageKey, string> = {
   "feedback.words": "الكلمات",
   "feedback.fillers": "كلمات الحشو",
   "feedback.fillerUnit": "/ 100 كلمة",
+  "feedback.shareMenu": "مشاركة",
   "badge.first-session": "المكالمة الأولى",
   "badge.first-session.body": "أنهيت مقابلتك الأولى.",
   "badge.five-sessions": "منتظم",

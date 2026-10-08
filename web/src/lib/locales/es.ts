@@ -161,6 +161,7 @@ const ES: Record<MessageKey, string> = {
   "feedback.words": "Palabras",
   "feedback.fillers": "Muletillas",
   "feedback.fillerUnit": "/ 100 palabras",
+  "feedback.shareMenu": "Compartir",
   "badge.first-session": "Primera llamada",
   "badge.first-session.body": "Terminaste tu primera entrevista.",
   "badge.five-sessions": "Constante",

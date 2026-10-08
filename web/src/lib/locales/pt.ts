@@ -151,6 +151,7 @@ const PT: Record<MessageKey, string> = {
   "feedback.words": "Palavras",
   "feedback.fillers": "Muletas",
   "feedback.fillerUnit": "/ 100 palavras",
+  "feedback.shareMenu": "Compartilhar",
   "badge.first-session": "Primeira chamada",
   "badge.first-session.body": "Terminou sua primeira entrevista.",
   "badge.five-sessions": "Frequente",

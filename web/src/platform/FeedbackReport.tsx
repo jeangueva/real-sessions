@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { Action, AnimatedCounter, DotMatrix, FadeRise, Meter, Panel, PopIn, PremiumMark, ScoreRing } from "@/design-system";
 import { EASE_OUT } from "@/design-system/motion";
-import { ArrowUpRight, Check, ChevronDown, Sparkles, Target } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { useT } from "@/hooks/useLocale";
@@ -230,9 +231,16 @@ function ShareControl({
 
   if (!allowed) {
     return (
-      <Link to="/app/settings#plan">
-        <Action tone="glass">{t("feedback.sharePaid")}</Action>
-      </Link>
+      <ShareMenu>
+        {(close) => (
+          <>
+            <Link to="/app/settings#plan" onClick={close} className="block">
+              <MenuItem icon={<Link2 className="h-4 w-4" />}>{t("feedback.sharePaid")}</MenuItem>
+            </Link>
+            <CardItem close={close} />
+          </>
+        )}
+      </ShareMenu>
     );
   }
 
@@ -286,50 +294,138 @@ function ShareControl({
   };
 
   return (
-    <div className="flex flex-col items-stretch gap-2 sm:items-end">
-      <div className="flex flex-wrap gap-2">
-        <Action tone="glass" onClick={share} disabled={busy}>
-          {/* The label crossfades through a 2px blur instead of swapping in
-              one frame, so "Copied" reads as the same button answering rather
-              than a different button appearing. */}
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={copied ? "copied" : link ? "copy" : "share"}
-              initial={{ opacity: 0, filter: "blur(2px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, filter: "blur(2px)" }}
-              transition={{ duration: 0.18, ease: EASE_OUT }}
+    <ShareMenu>
+      {(close) => (
+        <>
+          <MenuItem
+            icon={<Link2 className="h-4 w-4" />}
+            onClick={() => void share()}
+            disabled={busy}
+            hint={link ?? undefined}
+          >
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={copied ? "copied" : link ? "copy" : "share"}
+                initial={{ opacity: 0, filter: "blur(2px)" }}
+                animate={{ opacity: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, filter: "blur(2px)" }}
+                transition={{ duration: 0.18, ease: EASE_OUT }}
+              >
+                {copied
+                  ? t("feedback.shareCopied")
+                  : link
+                    ? t("feedback.shareCopy")
+                    : t("feedback.shareReport")}
+              </motion.span>
+            </AnimatePresence>
+          </MenuItem>
+          {link && limited && (
+            <Link
+              to="/app/settings#plan"
+              onClick={close}
+              className="focus-ring mx-2 mb-1 flex items-start gap-2 rounded-xl px-2 py-1.5 text-xs text-cream-dim hover:text-cream-bright"
             >
-              {copied
-                ? t("feedback.shareCopied")
-                : link
-                  ? t("feedback.shareCopy")
-                  : t("feedback.shareReport")}
-            </motion.span>
-          </AnimatePresence>
-        </Action>
-        {link && (
-          <Action tone="glass" onClick={stop} disabled={busy}>
-            {t("feedback.shareStop")}
-          </Action>
-        )}
-      </div>
-      {link && (
-        /* The link in full, selectable. For the browser that refused the
-           clipboard, and for the reader who wants to see what they are about
-           to send before they send it. */
-        <p className="max-w-xs break-all text-right text-xs text-cream-faint">{link}</p>
+              <PremiumMark label={t("premium.mark")} />
+              {t("share.linkPremium")}
+            </Link>
+          )}
+          <CardItem close={close} />
+          {link && (
+            <button
+              type="button"
+              onClick={() => void stop()}
+              disabled={busy}
+              className="focus-ring mx-2 mt-1 rounded-xl px-3 py-2 text-left text-xs font-medium text-cream-faint hover:text-cream-bright"
+            >
+              {t("feedback.shareStop")}
+            </button>
+          )}
+        </>
       )}
-      {link && limited && (
-        <Link
-          to="/app/settings#plan"
-          className="focus-ring flex max-w-xs items-start gap-2 self-end rounded-xl text-right text-xs text-cream-dim hover:text-cream-bright"
+    </ShareMenu>
+  );
+}
+
+/**
+ * One "Share" button that opens what can be shared, instead of three
+ * buttons stacked under the title. A popover rather than a sheet: two
+ * choices, close to the thumb, growing out of the button that opened it.
+ */
+function ShareMenu({ children }: { children: (close: () => void) => ReactNode }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (event: MouseEvent) => {
+      if (!box.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return (
+    <div ref={box} className="relative">
+      <Action tone="glass" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((v) => !v)}>
+        <Share2 aria-hidden className="h-4 w-4" />
+        {t("feedback.shareMenu")}
+      </Action>
+      {open && (
+        <div
+          role="menu"
+          style={{ transformOrigin: "top left" }}
+          className="pop-in absolute left-0 top-full z-40 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-3xl bg-surface-raised p-2 shadow-float sm:left-auto sm:right-0 sm:[transform-origin:top_right]"
         >
-          <PremiumMark label={t("premium.mark")} className="order-last" />
-          {t("share.linkPremium")}
-        </Link>
+          {children(() => setOpen(false))}
+        </div>
       )}
     </div>
+  );
+}
+
+/** The progress card — a picture for a story or a post. */
+function CardItem({ close }: { close: () => void }) {
+  const t = useT();
+  return (
+    <Link to="/app/share" onClick={close} className="block">
+      <MenuItem icon={<ImageIcon className="h-4 w-4" />}>{t("feedback.shareProgress")}</MenuItem>
+    </Link>
+  );
+}
+
+function MenuItem({
+  icon,
+  children,
+  onClick,
+  disabled,
+  hint,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  hint?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className="focus-ring flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-surface-lift disabled:opacity-50"
+    >
+      <span aria-hidden className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-cream-bright">{children}</span>
+        {hint && <span className="mt-0.5 block truncate text-xs text-cream-faint">{hint}</span>}
+      </span>
+    </button>
   );
 }
 
@@ -373,26 +469,23 @@ function FeedbackBody({
         }
         meta={meta}
         actions={
-          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">
+          <div className="flex flex-wrap items-center gap-2">
             {/* The way forward is the loudest thing on the page. Going again
                 straight away is what turns a bad answer into a practised one. */}
             <Link to="/app">
               <Action>{t("feedback.again")}</Action>
             </Link>
-            {share?.historyId && (
+            {share?.historyId ? (
               <ShareControl
                 historyId={share.historyId}
                 allowed={share.allowed}
                 limited={withheld.nextSteps || withheld.metrics}
                 initialToken={share.token}
               />
+            ) : (
+              // No stored report to link to (the sample): the card still is.
+              <ShareMenu>{(close) => <CardItem close={close} />}</ShareMenu>
             )}
-            {/* The moment the card is worth offering: a streak has just
-                grown and the number is fresh. Offering it from a menu a week
-                later is offering it to somebody who has stopped feeling it. */}
-            <Link to="/app/share">
-              <Action tone="glass">{t("feedback.shareProgress")}</Action>
-            </Link>
           </div>
         }
       />

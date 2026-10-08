@@ -215,6 +215,7 @@ const EN = {
   "feedback.words": "Words",
   "feedback.fillers": "Fillers",
   "feedback.fillerUnit": "/ 100 words",
+  "feedback.shareMenu": "Share",
   "badge.first-session": "First call",
   "badge.first-session.body": "Finished your first interview.",
   "badge.five-sessions": "Regular",

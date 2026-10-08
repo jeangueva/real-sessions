@@ -132,6 +132,7 @@ const ZH: Record<MessageKey, string> = {
   "feedback.words": "词数",
   "feedback.fillers": "填充词",
   "feedback.fillerUnit": "/ 100 词",
+  "feedback.shareMenu": "分享",
   "badge.first-session": "第一通电话",
   "badge.first-session.body": "完成了第一次面试。",
   "badge.five-sessions": "常客",

@@ -132,6 +132,7 @@ const KO: Record<MessageKey, string> = {
   "feedback.words": "단어 수",
   "feedback.fillers": "군더더기 말",
   "feedback.fillerUnit": "/ 100단어",
+  "feedback.shareMenu": "공유",
   "badge.first-session": "첫 통화",
   "badge.first-session.body": "첫 면접을 마쳤어요.",
   "badge.five-sessions": "단골",

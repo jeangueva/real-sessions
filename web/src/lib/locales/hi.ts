@@ -132,6 +132,7 @@ const HI: Record<MessageKey, string> = {
   "feedback.words": "शब्द",
   "feedback.fillers": "भराव शब्द",
   "feedback.fillerUnit": "/ 100 शब्द",
+  "feedback.shareMenu": "साझा करें",
   "badge.first-session": "पहली कॉल",
   "badge.first-session.body": "आपने अपना पहला इंटरव्यू पूरा किया।",
   "badge.five-sessions": "नियमित",

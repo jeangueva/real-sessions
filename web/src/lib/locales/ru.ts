@@ -132,6 +132,7 @@ const RU: Record<MessageKey, string> = {
   "feedback.words": "Слова",
   "feedback.fillers": "Слова-паразиты",
   "feedback.fillerUnit": "/ 100 слов",
+  "feedback.shareMenu": "Поделиться",
   "badge.first-session": "Первый звонок",
   "badge.first-session.body": "Ты прошёл первое интервью.",
   "badge.five-sessions": "Постоянный",

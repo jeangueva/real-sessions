@@ -133,6 +133,7 @@ const IT: Record<MessageKey, string> = {
   "feedback.words": "Parole",
   "feedback.fillers": "Intercalari",
   "feedback.fillerUnit": "/ 100 parole",
+  "feedback.shareMenu": "Condividi",
   "badge.first-session": "Prima chiamata",
   "badge.first-session.body": "Hai finito il tuo primo colloquio.",
   "badge.five-sessions": "Costante",
