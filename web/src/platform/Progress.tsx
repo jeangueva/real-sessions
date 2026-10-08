@@ -12,7 +12,8 @@ import {
 } from "@/design-system";
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { Avatar } from "@/design-system";
+import { Avatar, PopIn } from "@/design-system";
+import { ChevronDown } from "lucide-react";
 import { TIER_COUNT, dominantAxis, nextEvolution } from "@/lib/avatar";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
@@ -123,6 +124,17 @@ export function Progress() {
       [...axes].reverse().find((point) => point.scores[axis] !== null)?.scores[axis] ?? null,
     ]),
   ) as Record<Axis, number | null>;
+
+  /** The highest and lowest measured axis, for the plain-language summary. */
+  const measuredAxes = (Object.keys(axisLatest) as Axis[]).filter((axis) => axisLatest[axis] !== null);
+  const strongest = measuredAxes.reduce<Axis | null>(
+    (best, axis) => (best === null || axisLatest[axis]! > axisLatest[best]! ? axis : best),
+    null,
+  );
+  const weakest = measuredAxes.reduce<Axis | null>(
+    (worst, axis) => (worst === null || axisLatest[axis]! < axisLatest[worst]! ? axis : worst),
+    null,
+  );
 
   const axisPoints = (axis: Axis): TrendPoint[] =>
     axes.map((point, index) => ({
@@ -265,9 +277,97 @@ export function Progress() {
           </FadeRise>
         )}
 
+        {/* In plain words first: where you are strong, what to practise. The
+            same four readings the charts below plot, said as a sentence for
+            someone who does not read charts. */}
+        {strongest && weakest && strongest !== weakest && (
+          <FadeRise delay={0.05}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Panel className="flex items-center gap-4 p-6">
+                <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-grow-soft text-2xl">💪</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-cream-dim">{t("progress.strongest")}</p>
+                  <p className="text-lg font-semibold text-cream-bright">
+                    {t(AXIS_LABEL[strongest])} · <span className="tabular-nums">{Math.round(axisLatest[strongest]!)}</span>
+                  </p>
+                </div>
+              </Panel>
+              <Panel className="flex items-center gap-4 p-6">
+                <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-step-soft text-2xl">🎯</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-cream-dim">{t("progress.weakest")}</p>
+                  <p className="text-lg font-semibold text-cream-bright">
+                    {t(AXIS_LABEL[weakest])} · <span className="tabular-nums">{Math.round(axisLatest[weakest]!)}</span>
+                  </p>
+                  <p className="mt-0.5 text-sm text-cream-dim">{t(AXIS_CAPTION[weakest])}</p>
+                </div>
+              </Panel>
+            </div>
+          </FadeRise>
+        )}
+
+        {/* Badges, Duolingo's achievement wall: earned ones in full colour,
+            the rest greyed so the next one to chase is visible. */}
+        {profile && (
+          <FadeRise delay={0.1}>
+            <Panel className="p-6 sm:p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-semibold text-cream-bright">{t("progress.badges")}</h2>
+                <p className="text-sm font-medium tabular-nums text-cream-dim">
+                  {t("progress.badgesCount", {
+                    earned: profile.badges.length,
+                    total: profile.catalogue.length,
+                  })}
+                </p>
+              </div>
+              <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+                {profile.catalogue.map((badge, index) => {
+                  const held = profile.badges.find((b) => b.badgeId === badge.id);
+                  return (
+                    <li
+                      key={badge.id}
+                      className={`flex flex-col items-center gap-2 rounded-2xl p-4 text-center transition-transform duration-200 ease-press ${
+                        held ? "bg-accent-soft hover:scale-[1.03]" : "bg-surface-lift"
+                      }`}
+                    >
+                      <PopIn delay={held ? 0.05 * index : 0}>
+                        <img
+                          src={`/badges/${badge.id}.png`}
+                          alt=""
+                          width={72}
+                          height={72}
+                          loading="lazy"
+                          className={`h-[72px] w-[72px] ${held ? "drop-shadow-[0_6px_10px_rgb(0_0_0/0.15)]" : "opacity-40 grayscale"}`}
+                        />
+                      </PopIn>
+                      <p className={`text-sm font-semibold ${held ? "text-cream-bright" : "text-cream-dim"}`}>{badge.label}</p>
+                      <p className="text-xs leading-snug text-cream-faint">{badge.description}</p>
+                      {held && (
+                        <p className="text-xs font-medium text-accent-text">{formatSessionDate(held.earnedAt)}</p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Panel>
+          </FadeRise>
+        )}
+
+        {/* The charts, for whoever wants them — folded so they never stand
+            between a person and the plain-language summary above. */}
+        <FadeRise delay={0.15}>
+          <details className="group rounded-card bg-surface-card shadow-card">
+            <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 rounded-card p-6 sm:px-8">
+              <span>
+                <span className="block text-base font-semibold text-cream-bright">{t("progress.charts")}</span>
+                <span className="mt-0.5 block text-sm text-cream-dim">{t("progress.chartsHint")}</span>
+              </span>
+              <ChevronDown aria-hidden className="h-5 w-5 shrink-0 text-cream-dim transition-transform duration-200 ease-press group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-line p-4 sm:p-6">
         <div className="grid gap-4 xl:grid-cols-3">
           <FadeRise delay={0.05} className="xl:col-span-1">
-            <Panel className="flex h-full flex-col p-6 sm:p-8">
+            <div className="flex h-full flex-col p-2 sm:p-4">
               <Eyebrow>{t("progress.overall")}</Eyebrow>
               <p className="mt-2 text-xs text-cream-faint">
                 {t("progress.overallNote")}
@@ -275,11 +375,11 @@ export function Progress() {
               <div className="mt-6">
                 <TrendChart title={t("progress.score")} points={scorePoints} />
               </div>
-            </Panel>
+            </div>
           </FadeRise>
 
           <FadeRise delay={0.1} className="xl:col-span-2">
-            <Panel className="flex h-full flex-col p-6 sm:p-8">
+            <div className="flex h-full flex-col p-2 sm:p-4">
               <Eyebrow>{t("progress.byFront")}</Eyebrow>
               <p className="mt-2 max-w-3xl text-xs text-cream-faint">
                 {t("progress.byFrontNote")}
@@ -303,46 +403,14 @@ export function Progress() {
                   />
                 ))}
               </div>
-            </Panel>
+            </div>
           </FadeRise>
         </div>
 
-        {profile && (
-          <FadeRise delay={0.15}>
-            <Panel className="p-6">
-              <Eyebrow>{t("progress.badges")}</Eyebrow>
-              <p className="mt-2 text-xs text-cream-faint">
-                {t("progress.badgesCount", {
-                  earned: profile.badges.length,
-                  total: profile.catalogue.length,
-                })}
-              </p>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                {profile.catalogue.map((badge) => {
-                  const held = profile.badges.find((b) => b.badgeId === badge.id);
-                  return (
-                    <li
-                      key={badge.id}
-                      className={`rounded-2xl px-4 py-3 ${
-                        held ? "bg-grow-soft" : "bg-surface-lift opacity-60"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold text-cream-bright">{badge.label}</p>
-                      <p className="mt-1 text-xs text-cream-faint">
-                        {badge.description}
-                      </p>
-                      {held && (
-                        <p className="mt-2 text-xs text-cream-dim">
-                          {formatSessionDate(held.earnedAt)}
-                        </p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </Panel>
-          </FadeRise>
-        )}
+            </div>
+          </details>
+        </FadeRise>
+
         <div className="mt-8">
           <SessionList />
         </div>

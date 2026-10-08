@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Trash2, Upload } from "lucide-react";
@@ -30,7 +31,14 @@ const ACCEPT = ".pdf,.docx,.txt,.md";
  * read, and a candidate should be able to see — and disagree with — the summary
  * a model wrote about them before it is used.
  */
-export function Profile() {
+/** Inside Settings: no page header or page container of its own. */
+function Plain({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={className}>{children}</div>;
+}
+
+export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
+  const Header = embedded ? () => null : PageHeader;
+  const Body = embedded ? Plain : PageBody;
   const t = useT();
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [can, setCan] = useState<Capabilities | null>(null);
@@ -110,8 +118,8 @@ export function Profile() {
   if (can && !can.candidateProfile) {
     return (
       <>
-        <PageHeader title={t("profile.title")} meta={t("profile.locked")} />
-        <PageBody>
+        <Header title={t("profile.title")} meta={t("profile.locked")} />
+        <Body>
           {/* Full width, with the prose held to a readable measure inside it:
               a narrow card adrift on the left of a wide page reads as a
               rendering fault rather than as a decision. */}
@@ -123,14 +131,14 @@ export function Profile() {
               <Action withArrow>{t("cta.seePlans")}</Action>
             </Link>
           </Panel>
-        </PageBody>
+        </Body>
       </>
     );
   }
 
   return (
     <>
-      <PageHeader
+      <Header
         title={t("profile.title")}
         meta={t("profile.meta")}
         actions={
@@ -146,7 +154,7 @@ export function Profile() {
         }
       />
 
-      <PageBody className="grid items-start gap-6 lg:grid-cols-2">
+      <Body className="grid items-start gap-6 lg:grid-cols-2">
         {/* In sequence, because these are three separate things to read and
             a page that lands all at once gives the eye nowhere to start. */}
         <FadeRise>
@@ -243,7 +251,7 @@ export function Profile() {
           </Panel>
           </FadeRise>
         )}
-      </PageBody>
+      </Body>
     </>
   );
 }

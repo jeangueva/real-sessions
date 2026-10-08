@@ -5,6 +5,8 @@ export {
   Typewriter,
   useTypewriter,
   SegmentThumb,
+  ScoreRing,
+  PopIn,
 } from "./motion";
 export type { StyledSegment } from "./motion";
 export { Accordion } from "./accordion";

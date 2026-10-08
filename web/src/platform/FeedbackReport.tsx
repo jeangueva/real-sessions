@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Action, AnimatedCounter, DotMatrix, Eyebrow, FadeRise, Meter, Panel, PremiumMark } from "@/design-system";
+import { Action, AnimatedCounter, DotMatrix, FadeRise, Meter, Panel, PopIn, PremiumMark, ScoreRing } from "@/design-system";
 import { EASE_OUT } from "@/design-system/motion";
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { useT } from "@/hooks/useLocale";
+import type { MessageKey } from "@/lib/i18n";
 import { track } from "@/lib/analytics";
 import { SAMPLE_EVALUATION } from "@/lib/evaluation";
 import type { Evaluation } from "@/lib/evaluation";
@@ -395,211 +396,245 @@ function FeedbackBody({
         }
       />
 
-      {/* `minmax(0,1fr)` columns and `min-w-0` cells: a grid cell is as wide
-          as its widest unbreakable word by default, and one long URL in a
-          next step stretched the whole report to 477px on a 320px phone. */}
-      <PageBody className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-3 [&>*]:min-w-0">
-        <FadeRise className="lg:col-span-1">
-          <Panel variant="raised" className="flex h-full flex-col gap-6 p-6 sm:p-8">
-            <Eyebrow>{t("feedback.overall")}</Eyebrow>
-            {/* Apple Health's big number: heavy, tabular, the unit set lighter
-                beside it so the figure is what the eye reads first. */}
-            <p className="text-display font-bold tabular-nums text-cream-bright" style={{ fontSize: "clamp(3.5rem,8vw,5.5rem)" }}>
-              <AnimatedCounter value={evaluation.overall_score_percentage} />
-              <span className="ml-1 text-[2rem] font-semibold text-cream-faint">%</span>
-            </p>
-            <div className="flex flex-col gap-4">
-              <Meter
-                label={t("feedback.vocabulary")}
-                value={evaluation.vocabulary_feedback.score_out_of_10}
-                max={10}
-                suffix="/10"
-              />
-              <Meter
-                label={t("feedback.structure")}
-                value={evaluation.structure_feedback.score_out_of_10}
-                max={10}
-                suffix="/10"
-              />
-            </div>
-            <p className="mt-auto text-xs text-cream-faint">
-              {t("feedback.againstBar")}
-            </p>
-          </Panel>
-        </FadeRise>
-
-        <FadeRise delay={0.1} className="lg:col-span-2">
-          <Panel className="flex h-full flex-col gap-6 p-6 sm:p-8">
-            <div>
-              <Eyebrow>{t("feedback.worked")}</Eyebrow>
-              <ul className="mt-3 flex flex-col gap-3">
-                {evaluation.strengths.map((item) => (
-                  <li key={item} className="flex min-w-0 gap-3 text-sm leading-relaxed text-cream-bright [overflow-wrap:anywhere]">
-                    <span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-grow-soft text-grow-text">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="border-t border-line pt-6">
-              <Eyebrow>{t("feedback.toFix")}</Eyebrow>
-              <ul className="mt-3 flex flex-col gap-3">
-                {evaluation.areas_for_improvement.map((item) => (
-                  <li key={item} className="flex min-w-0 gap-3 text-sm leading-relaxed text-cream-bright [overflow-wrap:anywhere]">
-                    <span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-step-soft text-step-text">
-                      <ArrowUpRight className="h-3 w-3" strokeWidth={3} />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Panel>
-        </FadeRise>
-
-        <FadeRise delay={0.2} className="lg:col-span-2">
-          <Panel className="flex h-full flex-col gap-5 p-6 sm:p-8">
-            <Eyebrow>{t("feedback.language")}</Eyebrow>
-            <div>
-              <p className="text-xs text-cream-faint">{t("feedback.usedWell")}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {evaluation.vocabulary_feedback.good_usage.map((word) => (
-                  <span
-                    key={word}
-                    className="max-w-full rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-bright [overflow-wrap:anywhere]"
-                  >
-                    {word}
-                  </span>
-                ))}
-              </div>
-            </div>
-            {evaluation.vocabulary_feedback.missed_opportunities_or_errors.length > 0 && (
-              <CorrectionSteps items={evaluation.vocabulary_feedback.missed_opportunities_or_errors} />
-            )}
-            {/* No rule with nothing under it when the evaluator left this empty. */}
-            {evaluation.structure_feedback.feedback_text.trim() !== "" && (
-              <p className="border-t border-line pt-5 text-sm leading-relaxed text-cream-dim">
-                {evaluation.structure_feedback.feedback_text}
+      {/* Read top to bottom, the way someone who does not read charts reads:
+          how did it go, the one thing to do next, what went well, phrases to
+          practise — and only then the numbers, folded away. `minmax(0,1fr)`
+          and `min-w-0` keep a long unbreakable word from widening the page. */}
+      <PageBody className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-4 [&>*]:min-w-0">
+        {/* 1. How did it go — Duolingo's lesson-complete card. */}
+        <FadeRise>
+          <Panel variant="raised" className="flex flex-col items-center gap-5 p-6 text-center shadow-lift sm:flex-row sm:p-8 sm:text-left">
+            <ScoreRing value={evaluation.overall_score_percentage}>
+              <span className="block text-[2.75rem] font-bold leading-none tabular-nums text-cream-bright">
+                <AnimatedCounter value={evaluation.overall_score_percentage} />
+                <span className="text-xl font-semibold text-cream-faint">%</span>
+              </span>
+            </ScoreRing>
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-3 sm:items-start">
+              <PopIn delay={0.5}>
+                <img
+                  src={`/avatars/level-${mascotFor(evaluation.overall_score_percentage)}.png`}
+                  alt=""
+                  width={72}
+                  height={72}
+                  className="h-[72px] w-[72px] drop-shadow-[0_6px_10px_rgb(0_0_0/0.12)]"
+                />
+              </PopIn>
+              <p className="text-title font-semibold text-cream-bright">
+                {t(verdictFor(evaluation.overall_score_percentage))}
               </p>
-            )}
+              <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                {xp && (
+                  <PopIn delay={0.8}>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-premium-soft px-3 py-1 text-sm font-bold text-premium">
+                      <Sparkles aria-hidden className="h-4 w-4" />+{xp.gained} XP
+                    </span>
+                  </PopIn>
+                )}
+                {earned.map((badge, index) => (
+                  <PopIn key={badge.id} delay={0.95 + index * 0.08}>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1 pl-1 pr-3 text-sm font-semibold text-accent-text">
+                      <img src={`/badges/${badge.id}.png`} alt="" width={24} height={24} className="h-6 w-6" />
+                      {badge.label}
+                    </span>
+                  </PopIn>
+                ))}
+              </div>
+            </div>
           </Panel>
         </FadeRise>
 
-        {withheld.metrics && (
-          <FadeRise delay={0.25} className="lg:col-span-3 lg:order-2">
-            <Panel variant="glass" className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8">
-              <div className="max-w-xl">
-                <Eyebrow>{t("feedback.measured")}</Eyebrow>
-                <p className="mt-2 text-sm text-cream-dim">
-                  {t("feedback.measuredLocked")}
+        {/* 2. One thing to do next. Not a list: a list of six is six things
+            to put off; one is a plan. */}
+        {(evaluation.actionable_next_steps[0] || evaluation.areas_for_improvement[0]) && (
+          <FadeRise delay={0.1}>
+            <section className="flex gap-4 rounded-card bg-accent p-6 text-accent-ink shadow-lift sm:p-7">
+              <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/20">
+                <Target className="h-6 w-6" />
+              </span>
+              <div className="min-w-0 [overflow-wrap:anywhere]">
+                <p className="text-sm font-semibold opacity-85">{t("feedback.missionTitle")}</p>
+                <p className="mt-1 text-lg font-semibold leading-snug">
+                  {evaluation.actionable_next_steps[0] ?? evaluation.areas_for_improvement[0]}
                 </p>
+                <p className="mt-2 text-sm opacity-85">{t("feedback.missionHint")}</p>
               </div>
-              <Link to="/app/settings#plan" className="shrink-0">
-                <Action withArrow>{t("cta.seePlans")}</Action>
-              </Link>
+            </section>
+          </FadeRise>
+        )}
+
+        {/* 3. What went well, then what to work on — short, scannable. */}
+        <FadeRise delay={0.15}>
+          <Panel className="grid gap-6 p-6 sm:grid-cols-2 sm:p-8 [&>*]:min-w-0">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">
+                <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-grow-soft text-grow-text">
+                  <Check className="h-4 w-4" strokeWidth={3} />
+                </span>
+                {t("feedback.worked")}
+              </h2>
+              <ul className="mt-3 flex flex-col gap-2.5">
+                {evaluation.strengths.map((item) => (
+                  <li key={item} className="text-sm leading-relaxed text-cream-dim [overflow-wrap:anywhere]">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">
+                <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-step-soft text-step-text">
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={3} />
+                </span>
+                {t("feedback.toFix")}
+              </h2>
+              <ul className="mt-3 flex flex-col gap-2.5">
+                {evaluation.areas_for_improvement.map((item) => (
+                  <li key={item} className="text-sm leading-relaxed text-cream-dim [overflow-wrap:anywhere]">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Panel>
+        </FadeRise>
+
+        {/* 4. Phrases to say out loud — the most practical part of the report. */}
+        {evaluation.vocabulary_feedback.missed_opportunities_or_errors.length > 0 && (
+          <FadeRise delay={0.2}>
+            <Panel className="p-6 sm:p-8">
+              <CorrectionSteps items={evaluation.vocabulary_feedback.missed_opportunities_or_errors} />
             </Panel>
           </FadeRise>
         )}
 
-        {metrics && (
-          <FadeRise delay={0.25} className="lg:col-span-3 lg:order-2">
-            <Panel className="flex flex-col gap-5 p-6 sm:p-8">
-              <div>
-                <Eyebrow>{t("feedback.measured")}</Eyebrow>
-                <p className="mt-2 text-xs text-cream-faint">
-                  {t("feedback.measuredNote")}
-                </p>
-              </div>
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
-                <Stat label={t("feedback.words")} value={formatCount(metrics.words)} />
-                <Stat
-                  label={t("feedback.fillers")}
-                  value={formatFiller(metrics.fillerPer100, t("feedback.fillerUnit"))}
-                />
-                {/* "Your share" of the talking — it used to borrow the share
-                    button's label and read "Share this report: 100%". */}
-                <Stat label={t("feedback.share")} value={formatShare(metrics.wordShare)} />
-                <Stat label={t("feedback.pace")} value={formatWpm(metrics.wpm)} />
-                <Stat
-                  label={t("feedback.thinking")}
-                  value={formatSeconds(metrics.avgResponseMs)}
-                />
-                <Stat label={t("feedback.speaking")} value={formatMinutes(metrics.speakingMs)} />
-              </dl>
-              {!metrics.fromSpeech && (
-                <p className="border-t border-line pt-4 text-xs text-cream-faint">
-                  {t("feedback.needsSpeech")}
+        {/* 5. The rest of the plan. */}
+        {(evaluation.actionable_next_steps.length > 1 || withheld.nextSteps) && (
+          <FadeRise delay={0.25}>
+            <Panel className="flex flex-col gap-4 p-6 sm:p-8">
+              <h2 className="text-base font-semibold text-cream-bright">{t("feedback.nextTime")}</h2>
+              {withheld.nextSteps && (
+                <p className="flex items-start gap-2 text-sm text-cream-dim">
+                  <PremiumMark label={t("premium.mark")} />
+                  <span>
+                    {t("feedback.nextStepsLocked")}{" "}
+                    <Link
+                      to="/app/settings#plan"
+                      className="focus-ring rounded font-medium text-accent-text underline underline-offset-4"
+                    >
+                      {t("feedback.nextStepsLink")}
+                    </Link>
+                    .
+                  </span>
                 </p>
               )}
+              <ol className="flex flex-col gap-3">
+                {evaluation.actionable_next_steps.slice(1).map((step, index) => (
+                  <li key={step} className="flex min-w-0 gap-3 text-sm text-cream-bright [overflow-wrap:anywhere]">
+                    <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-semibold tabular-nums text-accent-text">
+                      {index + 2}
+                    </span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
             </Panel>
           </FadeRise>
         )}
 
-        {(xp !== null || earned.length > 0) && (
-          <FadeRise delay={0.28} className="lg:col-span-1 lg:order-1">
-            <Panel variant="raised" className="flex flex-col gap-5 p-6 sm:p-8">
-              {xp && (
+        {/* 6. The numbers, for whoever wants them — folded, so they never
+            stand between a person and the plain-language part above. */}
+        <FadeRise delay={0.3}>
+          <details className="group rounded-card bg-surface-card shadow-card">
+            <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 rounded-card p-6 sm:px-8">
+              <span>
+                <span className="block text-base font-semibold text-cream-bright">{t("feedback.advanced")}</span>
+                <span className="mt-0.5 block text-sm text-cream-dim">{t("feedback.advancedHint")}</span>
+              </span>
+              <ChevronDown aria-hidden className="h-5 w-5 shrink-0 text-cream-dim transition-transform duration-200 ease-press group-open:rotate-180" />
+            </summary>
+            <div className="flex flex-col gap-6 border-t border-line p-6 sm:p-8">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Meter
+                  label={t("feedback.vocabulary")}
+                  value={evaluation.vocabulary_feedback.score_out_of_10}
+                  max={10}
+                  suffix="/10"
+                />
+                <Meter
+                  label={t("feedback.structure")}
+                  value={evaluation.structure_feedback.score_out_of_10}
+                  max={10}
+                  suffix="/10"
+                />
+              </div>
+              {evaluation.vocabulary_feedback.good_usage.length > 0 && (
                 <div>
-                  <Eyebrow>{t("feedback.earned")}</Eyebrow>
-                  <p className="mt-2 text-title font-semibold tabular-nums text-cream-bright">
-                    +{xp.gained} XP
-                  </p>
-                  <p className="mt-1 text-xs text-cream-faint">
-                    {xp.events.map((event) => event.kind).join(" · ")}
-                  </p>
+                  <p className="text-xs text-cream-faint">{t("feedback.usedWell")}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {evaluation.vocabulary_feedback.good_usage.map((word) => (
+                      <span
+                        key={word}
+                        className="max-w-full rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-bright [overflow-wrap:anywhere]"
+                      >
+                        {word}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
-              {earned.length > 0 && (
-                <ul className="flex flex-wrap gap-3">
-                  {earned.map((badge) => (
-                    <li
-                      key={badge.id}
-                      className="rounded-2xl bg-surface-lift px-4 py-3"
-                    >
-                      <p className="text-sm font-semibold text-cream-bright">{badge.label}</p>
-                      <p className="mt-0.5 text-xs text-cream-faint">
-                        {badge.description}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+              {evaluation.structure_feedback.feedback_text.trim() !== "" && (
+                <p className="text-sm leading-relaxed text-cream-dim">
+                  {evaluation.structure_feedback.feedback_text}
+                </p>
               )}
-            </Panel>
-          </FadeRise>
-        )}
-
-        <FadeRise delay={0.3} className="lg:col-span-3 lg:order-3">
-          <Panel variant="raised" className="flex h-full flex-col gap-4 p-6 sm:p-8">
-            <Eyebrow>{t("feedback.nextTime")}</Eyebrow>
-            {withheld.nextSteps && (
-              <p className="text-sm text-cream-dim">
-                {t("feedback.nextStepsLocked")}{" "}
-                <Link
-                  to="/app/settings#plan"
-                  className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright"
-                >
-                  {t("feedback.nextStepsLink")}
-                </Link>
-                .
-              </p>
-            )}
-            <ol className="flex flex-col gap-4">
-              {evaluation.actionable_next_steps.map((step, index) => (
-                <li key={step} className="flex min-w-0 gap-3 text-sm text-cream-bright [overflow-wrap:anywhere]">
-                  <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-semibold tabular-nums text-accent-text">
-                    {index + 1}
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </Panel>
+              {metrics && (
+                <div className="border-t border-line pt-6">
+                  <p className="text-xs text-cream-faint">{t("feedback.measuredNote")}</p>
+                  <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+                    <Stat label={t("feedback.words")} value={formatCount(metrics.words)} />
+                    <Stat
+                      label={t("feedback.fillers")}
+                      value={formatFiller(metrics.fillerPer100, t("feedback.fillerUnit"))}
+                    />
+                    <Stat label={t("feedback.share")} value={formatShare(metrics.wordShare)} />
+                    <Stat label={t("feedback.pace")} value={formatWpm(metrics.wpm)} />
+                    <Stat label={t("feedback.thinking")} value={formatSeconds(metrics.avgResponseMs)} />
+                    <Stat label={t("feedback.speaking")} value={formatMinutes(metrics.speakingMs)} />
+                  </dl>
+                  {!metrics.fromSpeech && (
+                    <p className="mt-4 text-xs text-cream-faint">{t("feedback.needsSpeech")}</p>
+                  )}
+                </div>
+              )}
+              {withheld.metrics && (
+                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+                  <p className="flex max-w-md items-start gap-2 text-sm text-cream-dim">
+                    <PremiumMark label={t("premium.mark")} />
+                    {t("feedback.measuredLocked")}
+                  </p>
+                  <Link to="/app/settings#plan" className="shrink-0">
+                    <Action withArrow>{t("cta.seePlans")}</Action>
+                  </Link>
+                </div>
+              )}
+              <p className="text-xs text-cream-faint">{t("feedback.againstBar")}</p>
+            </div>
+          </details>
         </FadeRise>
       </PageBody>
     </>
   );
+}
+
+/** Which form of Mocki cheers the result: crowned at 80+, on stage at 50+. */
+function mascotFor(score: number): number {
+  return score >= 80 ? 6 : score >= 50 ? 5 : 4;
+}
+
+/** One encouraging sentence for the score — never "you failed". */
+function verdictFor(score: number): MessageKey {
+  return score >= 80 ? "feedback.verdictHigh" : score >= 50 ? "feedback.verdictMid" : "feedback.verdictLow";
 }
 
 /** One number with its label. Used across the measured panel. */

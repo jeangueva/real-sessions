@@ -74,6 +74,8 @@
     --accent-ink: 255 255 255;
     --accent-text: 125 122 255;
     --accent-soft: 30 30 62;
+    /* The darker edge under a primary button — the key's side, Duolingo-style. */
+    --accent-depth: 58 56 168;
     --grow: 48 209 88;
     --grow-text: 48 209 88;
     --grow-soft: 16 44 26;
@@ -122,6 +124,7 @@
     --accent-ink: 255 255 255;
     --accent-text: 88 86 214;
     --accent-soft: 238 238 252;
+    --accent-depth: 62 60 170;
     --grow: 52 199 89;
     --grow-text: 30 123 52;
     --grow-soft: 226 246 231;

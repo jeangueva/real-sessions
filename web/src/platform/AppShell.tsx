@@ -13,7 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { fetchPlan, fetchSession, signOut } from "@/lib/api";
+import { fetchPlan, fetchPreferences, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import { PremiumMark, Wordmark } from "@/design-system";
@@ -107,6 +107,18 @@ export function AppShell() {
    * click, the way the locked fields in the setup bar already do.
    */
   const [locked, setLocked] = useState<string[]>([]);
+  /** The name from Settings → Account, shown instead of the email. */
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    fetchPreferences()
+      .then((result) => setName(result.preferences.candidateName.trim()))
+      .catch(() => undefined);
+    const onName = (event: Event) =>
+      setName(String((event as CustomEvent<string>).detail ?? "").trim());
+    window.addEventListener("mockio:name", onName);
+    return () => window.removeEventListener("mockio:name", onName);
+  }, []);
 
   useEffect(() => {
     fetchPlan()
@@ -199,12 +211,14 @@ export function AppShell() {
               />
             ))}
           </nav>
-          <p
-            className="hidden truncate px-3 pt-3 text-xs text-cream-dim lg:block"
-            title={session.email ?? undefined}
-          >
-            {session.email}
-          </p>
+          {/* A person, not an address: the name when one is set, with the
+              email underneath for whoever has two accounts. */}
+          <div className="hidden px-3 pt-3 lg:block" title={session.email ?? undefined}>
+            <p className="truncate text-sm font-semibold text-cream-bright">
+              {name || session.email}
+            </p>
+            {name && <p className="truncate text-xs text-cream-faint">{session.email}</p>}
+          </div>
           <button
             onClick={() => {
               void signOut().then(() => window.location.assign("/"));

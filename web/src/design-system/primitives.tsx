@@ -22,10 +22,15 @@ interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const TONE: Record<Tone, string> = {
   // Disabled is grey, Apple's way, rather than the accent at 40%: a pale
   // violet pill still reads as "press me", just faintly.
+  // Duolingo's key: a darker edge underneath that the button sinks into on
+  // press. The press is a translate the height of the edge, so the face
+  // lands exactly where the edge was — it reads as pushed, not as shrunk.
   solid:
-    "bg-accent text-accent-ink hover:bg-accent/90 disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100",
-  neutral: "bg-cream-bright text-surface-base hover:bg-cream-bright/85",
-  glass: "liquid-glass text-cream-bright hover:bg-surface-lift",
+    "bg-accent text-accent-ink shadow-[0_4px_0_rgb(var(--accent-depth))] hover:brightness-110 active:translate-y-[4px] active:shadow-[0_0_0_rgb(var(--accent-depth))] disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100 disabled:shadow-none",
+  neutral:
+    "bg-cream-bright text-surface-base shadow-[0_4px_0_rgb(0_0_0/0.35)] hover:bg-cream-bright/90 active:translate-y-[4px] active:shadow-none",
+  glass:
+    "liquid-glass text-cream-bright shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)] hover:bg-surface-lift active:translate-y-[3px] active:shadow-[inset_0_0_0_1px_var(--line)]",
   ghost: "text-cream-dim hover:bg-surface-lift hover:text-cream-bright",
 };
 
@@ -46,7 +51,7 @@ export function Action({
 }: ActionProps) {
   return (
     <button
-      className={`focus-ring group inline-flex select-none items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium tracking-[-0.01em] transition-[transform,background-color,color,opacity] duration-200 ease-press active:scale-[0.97] active:duration-100 disabled:pointer-events-none disabled:opacity-40 sm:text-base ${TONE[tone]} ${className}`}
+      className={`focus-ring group inline-flex select-none items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold tracking-[-0.01em] transition-[transform,box-shadow,background-color,color,opacity,filter] duration-150 ease-press active:duration-75 disabled:pointer-events-none disabled:opacity-40 sm:text-base ${TONE[tone]} ${className}`}
       {...props}
     >
       {children}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Eyebrow, Field, Panel, Action, SegmentThumb } from "@/design-system";
+import { useLocation } from "react-router-dom";
+import { Eyebrow, Field, Panel, Action, Notice, SegmentThumb } from "@/design-system";
+import { Profile } from "./Profile";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { LOCALES } from "@/lib/i18n";
@@ -45,11 +46,14 @@ const FALLBACK_ROLES = [
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Preferences, stored per identity and used to pre-fill a new session. */
-type TabId = "appearance" | "practice" | "plan" | "account";
+type TabId = "appearance" | "practice" | "context" | "plan" | "account";
 
 const TABS: { id: TabId; key: MessageKey }[] = [
   { id: "appearance", key: "settings.appearance" },
   { id: "practice", key: "settings.practice" },
+  // The CV the interviewer reads. It was a button in the header that went
+  // to its own page; as a tab it sits with the other things about you.
+  { id: "context", key: "nav.context" },
   { id: "plan", key: "billing.plan" },
   { id: "account", key: "settings.account" },
 ];
@@ -116,6 +120,10 @@ export function Settings() {
       const result = await savePreferences(preferences);
       setPreferences(result.preferences);
       setStatus("saved");
+      // The sidebar shows this name; tell it without a reload.
+      window.dispatchEvent(
+        new CustomEvent("mockio:name", { detail: result.preferences.candidateName }),
+      );
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : "Could not save.");
       setStatus("idle");
@@ -147,14 +155,6 @@ export function Settings() {
       <PageHeader
         title={t("settings.title")}
         meta={t("settings.meta")}
-        /* On a phone the account is one tab, and it opens here. Context —
-           the CV the interviewer reads — has no tab of its own any more, so
-           it is offered from the page that tab lands on. */
-        actions={
-          <Link to="/app/profile" className="md:hidden">
-            <Action tone="glass">{t("nav.context")}</Action>
-          </Link>
-        }
       />
       <PageBody>
         <div
@@ -303,20 +303,6 @@ export function Settings() {
 
           {preferences && (
             <>
-              <Field
-                label={t("settings.yourName")}
-                hint={t("settings.yourNameHint")}
-                htmlFor="candidate-name"
-              >
-                <input
-                  id="candidate-name"
-                  value={preferences.candidateName}
-                  onChange={(event) => update({ candidateName: event.target.value })}
-                  placeholder={t("settings.yourNamePlaceholder")}
-                  maxLength={60}
-                  className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
-                />
-              </Field>
 
               <Field
                 label={t("settings.defaultRole")}
@@ -482,6 +468,8 @@ export function Settings() {
         </Panel>
         )}
 
+        {tab === "context" && <Profile embedded />}
+
         {tab === "plan" && <Billing />}
 
         {tab === "account" && (
@@ -494,8 +482,38 @@ export function Settings() {
           className="p-6 sm:p-8"
         >
           <Eyebrow>{t("settings.account")}</Eyebrow>
+          {/* The name lives with the account: it is who you are, used by the
+              interviewer and shown in the sidebar instead of your email. */}
+          {preferences && (
+            <div className="mt-5 flex max-w-md flex-col gap-3">
+            <Field
+              label={t("settings.yourName")}
+              hint={t("settings.yourNameHint")}
+              htmlFor="candidate-name"
+            >
+              <input
+                id="candidate-name"
+                value={preferences.candidateName}
+                onChange={(event) => update({ candidateName: event.target.value })}
+                placeholder={t("settings.yourNamePlaceholder")}
+                maxLength={60}
+                className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
+              />
+            </Field>
+              <Action
+                className="self-start"
+                disabled={status === "saving"}
+                onClick={() => void save()}
+              >
+                {status === "saving" ? t("settings.saving") : t("settings.save")}
+              </Action>
+              {status === "saved" && (
+                <Notice tone="success">{t("settings.saved")}</Notice>
+              )}
+            </div>
+          )}
           {session?.kind === "user" ? (
-            <div className="mt-3 flex max-w-prose flex-col gap-4">
+            <div className="mt-6 flex max-w-prose flex-col gap-4 border-t border-line pt-6">
               <p className="text-sm text-cream-dim">
                 {t("settings.signedInAs")}{" "}
                 <span className="text-cream-bright">{session.email}</span>.{" "}

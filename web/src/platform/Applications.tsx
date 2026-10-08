@@ -115,10 +115,15 @@ export function Applications() {
               ? t("apps.none")
               : t("apps.count", { count: String(rows.length) })
         }
+        /* Not while the list is empty: the empty card below carries the same
+           button, and two "Add a role" buttons a screen apart read as two
+           different things. */
         actions={
-          <Action tone="glass" onClick={() => setAdding((held) => !held)}>
-            {adding ? t("apps.cancel") : t("apps.add")}
-          </Action>
+          rows !== null && (rows.length > 0 || adding) ? (
+            <Action tone="glass" onClick={() => setAdding((held) => !held)}>
+              {adding ? t("apps.cancel") : t("apps.add")}
+            </Action>
+          ) : undefined
         }
       />
 

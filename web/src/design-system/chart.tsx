@@ -210,7 +210,7 @@ export function TrendChart({
           aria-expanded={showTable}
           className="focus-ring shrink-0 rounded px-1 text-xs text-cream-faint underline underline-offset-4 transition-colors hover:text-cream-bright"
         >
-          {showTable ? "Hide values" : "Values"}
+          {showTable ? t("chart.hideValues") : t("chart.values")}
         </button>
       </div>
 

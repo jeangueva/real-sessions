@@ -279,3 +279,70 @@ export function SegmentThumb({
     />
   );
 }
+
+/**
+ * The score as a ring that fills, Duolingo's lesson-complete moment.
+ *
+ * Rare and earned — it plays once, at the end of an interview — so it is
+ * allowed the delight budget: the stroke draws itself on a spring with a
+ * little settle. The number sits inside, so the colour is never the only
+ * thing carrying the meaning.
+ */
+export function ScoreRing({
+  value,
+  size = 168,
+  children,
+}: {
+  value: number;
+  size?: number;
+  children?: ReactNode;
+}) {
+  const still = useReducedMotion();
+  const pct = Math.max(0, Math.min(100, value)) / 100;
+  const stroke = value >= 70 ? "text-grow" : value >= 40 ? "text-accent" : "text-step";
+  return (
+    <div className="relative grid place-items-center" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90" aria-hidden>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" strokeWidth="12" className="text-surface-lift" />
+        <motion.circle
+          cx="60"
+          cy="60"
+          r="52"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="12"
+          strokeLinecap="round"
+          className={stroke}
+          initial={{ pathLength: still ? pct : 0 }}
+          animate={{ pathLength: pct }}
+          transition={{ type: "spring", duration: 1.2, bounce: 0.15, delay: 0.25 }}
+        />
+      </svg>
+      <div className="relative text-center">{children}</div>
+    </div>
+  );
+}
+
+/** Pops in on a small spring — for rewards: XP, a badge, the mascot. */
+export function PopIn({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const still = useReducedMotion();
+  if (still) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, transform: "scale(0.6)" }}
+      animate={{ opacity: 1, transform: "scale(1)", transitionEnd: { transform: "none" } }}
+      transition={{ type: "spring", duration: 0.55, bounce: 0.35, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
