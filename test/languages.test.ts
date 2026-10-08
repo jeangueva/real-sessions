@@ -136,8 +136,16 @@ describe("the prompts are told which language", () => {
   it("tells the evaluator which language it is grading", () => {
     const prompt = buildEvaluatorPrompt(context(), undefined, "pt");
     expect(prompt).toContain("Brazilian Portuguese");
-    // The report is still read in English.
-    expect(prompt).toContain("write your feedback in English");
+    // With no reader language given, the report defaults to English.
+    expect(prompt).toContain("Write every piece of feedback in English");
+  });
+
+  it("writes the report in the reader's interface language", () => {
+    const prompt = buildEvaluatorPrompt(context(), undefined, "en", undefined, false, "Spanish");
+    expect(prompt).toContain("Write every piece of feedback in Spanish");
+    // Never "the candidate", and no criticism dressed as a strength.
+    expect(prompt).toContain('never as "the candidate"');
+    expect(prompt).toContain("Never put a criticism there");
   });
 });
 

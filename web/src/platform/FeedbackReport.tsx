@@ -7,7 +7,7 @@ import { EASE_OUT } from "@/design-system/motion";
 import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
 import { badgeText } from "@/lib/badges";
 import type { MessageKey } from "@/lib/i18n";
 import { track } from "@/lib/analytics";
@@ -47,6 +47,7 @@ interface FeedbackState {
  */
 export function FeedbackReport() {
   const t = useT();
+  const { locale } = useLocale();
   const { state } = useLocation() as { state: FeedbackState | null };
   const sessionId = state?.sessionId;
   const historyId = state?.historyId;
@@ -114,7 +115,7 @@ export function FeedbackReport() {
 
     if (sessionId) {
       requested.current = true;
-      requestEvaluation(sessionId)
+      requestEvaluation(sessionId, locale)
         .then((result) => {
           track("interview finished", {
             score: result.evaluation.overall_score_percentage,

@@ -33,6 +33,8 @@ export interface EvaluateOptions {
   level?: string;
   /** Whether it ran under pressure, so recovery is judged rather than polish. */
   pressure?: boolean;
+  /** The language the report is written in — the reader's interface language. */
+  reportLanguage?: string;
   /** Defaults to the vendor implied by `model`. Inject a stub in tests. */
   provider?: ModelProvider;
   model?: string;
@@ -73,6 +75,7 @@ export async function evaluateInterview(
       options.language,
       options.level,
       options.pressure,
+      options.reportLanguage,
     ),
     prompt: formatTranscript(transcript, context),
     maxTokens: options.maxTokens ?? 4096,

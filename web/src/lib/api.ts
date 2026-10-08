@@ -529,7 +529,8 @@ export function sendAnswer(sessionId: string, answer: string) {
   );
 }
 
-export function requestEvaluation(sessionId: string) {
+/** `readerLanguage` is the interface locale, so the report is written in it. */
+export function requestEvaluation(sessionId: string, readerLanguage?: string) {
   return withIdentity(() =>
     post<{
       evaluation: Evaluation;
@@ -538,7 +539,7 @@ export function requestEvaluation(sessionId: string) {
       badges: Badge[];
       /** Names what the plan withheld, so the UI can offer it rather than hide it. */
       withheld: { metrics: boolean; nextSteps: boolean };
-    }>(`/api/sessions/${sessionId}/evaluation`, {}),
+    }>(`/api/sessions/${sessionId}/evaluation`, readerLanguage ? { readerLanguage } : {}),
   );
 }
 

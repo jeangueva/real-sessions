@@ -532,6 +532,24 @@ function shown(context: InterviewContext): {
   };
 }
 
+/** Interface locales the report can be written in, by the name a model reads. */
+const REPORT_LANGUAGES: Record<string, string> = {
+  en: "English",
+  es: "Spanish",
+  pt: "Portuguese",
+  fr: "French",
+  it: "Italian",
+  de: "German",
+  ru: "Russian",
+  hi: "Hindi",
+  ar: "Arabic",
+  he: "Hebrew",
+  zh: "Simplified Chinese",
+  ja: "Japanese",
+  ko: "Korean",
+  th: "Thai",
+};
+
 /** The longest company, role or stage name a session will store. */
 const CONTEXT_FIELD_MAX = 120;
 
@@ -2997,6 +3015,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 404, { error: "That interview is no longer open. Start a new one.", code: "sessionGone" });
     }
     const sessionId = evalMatch[1]!;
+    // The reader's interface language, so the report is written in it. Only
+    // the product's own locales are accepted; anything else reads in English.
+    const evalBody = await readJson(req).catch(() => ({}) as Record<string, unknown>);
+    const reportLanguage = REPORT_LANGUAGES[String(evalBody["readerLanguage"] ?? "")];
     const session = InterviewSession.restore(
       stored.snapshot,
       PROVIDER ? { provider: PROVIDER } : {},
@@ -3010,6 +3032,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         ...(stored.language ? { language: stored.language } : {}),
         ...(stored.level ? { level: stored.level } : {}),
         ...(stored.pressure ? { pressure: true } : {}),
+        ...(reportLanguage ? { reportLanguage } : {}),
       },
     );
     const score = evaluation.overall_score_percentage;
