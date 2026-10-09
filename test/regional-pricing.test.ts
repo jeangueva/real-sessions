@@ -22,18 +22,18 @@ describe("regionFor", () => {
 
   it("charges each country its tier's price in its own currency", () => {
     expect(regionFor("AR", true)).toMatchObject({ tier: 4, provider: "paddle", price: { currency: "ARS" } });
-    expect(regionFor("ES", true)).toMatchObject({ tier: 2, price: { currency: "EUR", monthly: 9 } });
-    expect(regionFor("de", true)).toMatchObject({ tier: 1, price: { currency: "EUR", monthly: 11 } });
-    expect(regionFor("JP", true)).toMatchObject({ tier: 1, price: { currency: "JPY", monthly: 1800 } });
+    expect(regionFor("ES", true)).toMatchObject({ tier: 2, price: { currency: "EUR", monthly: 3.49 } });
+    expect(regionFor("de", true)).toMatchObject({ tier: 1, price: { currency: "EUR", monthly: 4.99 } });
+    expect(regionFor("JP", true)).toMatchObject({ tier: 1, price: { currency: "JPY", monthly: 750 } });
   });
 
   it("charges dollars where Paddle has no local currency", () => {
-    expect(regionFor("BO", true).price).toMatchObject({ currency: "USD", monthly: 5 });
-    expect(regionFor("NG", true).price).toMatchObject({ currency: "USD", monthly: 5 });
+    expect(regionFor("BO", true).price).toMatchObject({ currency: "USD", monthly: 1.99 });
+    expect(regionFor("NG", true).price).toMatchObject({ currency: "USD", monthly: 1.99 });
   });
 
   it("puts an unlisted or unknown country in tier 2, in dollars — never the cheapest by accident", () => {
-    expect(regionFor("ZZ", true)).toMatchObject({ tier: 2, price: { currency: "USD", monthly: 10 } });
+    expect(regionFor("ZZ", true)).toMatchObject({ tier: 2, price: { currency: "USD", monthly: 3.99 } });
     expect(regionFor("XX", true)).toMatchObject({ country: null, tier: 2 });
     expect(regionFor(null, true)).toMatchObject({ country: null, tier: 2 });
   });
@@ -77,12 +77,12 @@ describe("Paddle price overrides", () => {
 
   it("groups countries that share a price, and leaves Peru to Mercado Pago", () => {
     const { base, overrides } = overridesFor("monthly");
-    expect(base).toEqual({ amount: "1000", currency_code: "USD" });
+    expect(base).toEqual({ amount: "399", currency_code: "USD" });
     const all = overrides.flatMap((entry) => entry.country_codes);
     expect(all).not.toContain("PE");
     expect(all).not.toContain("CU");
     expect(new Set(all).size).toBe(all.length);
-    const euro1 = overrides.find((entry) => entry.unit_price.currency_code === "EUR" && entry.unit_price.amount === "1100");
+    const euro1 = overrides.find((entry) => entry.unit_price.currency_code === "EUR" && entry.unit_price.amount === "499");
     expect(euro1?.country_codes).toEqual(expect.arrayContaining(["DE", "FR", "IE"]));
   });
 });
