@@ -6,42 +6,42 @@ import type { MessageKey } from "@/lib/i18n";
  * What changes when you pick a different employer.
  *
  * Four cards with everything visible at once — Airbnb's listing card: a
- * monogram in the company's own hue, the name, one line of culture, and what
- * the interviewer will push on. The hue is the only colour on the card.
+ * the company's own app icon, the name, one line of culture, and what
+ * the interviewer will push on. The icon is the only colour on the card.
  */
 
 interface Company {
   name: string;
   culture: MessageKey;
   description: MessageKey;
-  /** The brand hue, as the one bit of colour on an otherwise quiet card. */
-  tint: string;
+  /** The company's own app icon, from `public/companies`. */
+  logo: string;
 }
 
 const COMPANIES: Company[] = [
   {
     name: "Stripe",
+    logo: "/companies/stripe.png",
     culture: "land.stripeCulture",
     description: "land.stripeBlurb",
-    tint: "rgba(99,91,255,0.35)",
   },
   {
     name: "Amazon",
+    logo: "/companies/amazon.png",
     culture: "land.amazonCulture",
     description: "land.amazonBlurb",
-    tint: "rgba(255,153,0,0.32)",
   },
   {
     name: "Airbnb",
+    logo: "/companies/airbnb.png",
     culture: "land.airbnbCulture",
     description: "land.airbnbBlurb",
-    tint: "rgba(255,90,95,0.32)",
   },
   {
     name: "Mercado Libre",
+    logo: "/companies/mercadolibre.png",
     culture: "land.meliCulture",
     description: "land.meliBlurb",
-    tint: "rgba(255,225,0,0.28)",
   },
 ];
 
@@ -63,13 +63,13 @@ export function CompanyPicker() {
           <FadeRise key={company.name} delay={0.06 * index} className="h-full">
               <Panel className="flex h-full flex-col gap-4 p-6 transition-shadow duration-300 ease-press hover:shadow-lift">
                 <div className="flex items-center gap-3">
-                  <span
-                    aria-hidden
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-cream-bright"
-                    style={{ background: company.tint }}
-                  >
-                    {company.name.charAt(0)}
-                  </span>
+                  <img
+                    src={company.logo}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-xl object-contain"
+                  />
                   <p className="text-base font-semibold text-cream-bright">{company.name}</p>
                 </div>
 

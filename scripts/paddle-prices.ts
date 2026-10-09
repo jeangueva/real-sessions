@@ -18,7 +18,7 @@
 import "../src/env.js";
 import { COUNTRIES, PADDLE_EXCLUDED, TIER_PRICES } from "../src/billing/regions.js";
 import type { Tier } from "../src/billing/regions.js";
-import { overridesFor, paddleApiBase } from "../src/billing/paddle.js";
+import { minorUnits, overridesFor, paddleApiBase } from "../src/billing/paddle.js";
 import type { PaddleEnv } from "../src/billing/paddle.js";
 
 const dryRun = process.argv.includes("--dry-run");
@@ -57,6 +57,13 @@ async function call(path: string, body?: unknown): Promise<Record<string, unknow
 }
 
 let productId = process.env.PADDLE_PRODUCT_ID?.trim();
+// Re-pricing: the new prices go on the product the current ones belong to,
+// so the catalogue keeps one Premium rather than gaining a twin each time.
+const current = process.env.PADDLE_PRICE_MONTHLY?.trim();
+if (!productId && current) {
+  productId = (await call(`/prices/${current}`)).product_id as string;
+  console.log(`Adding prices to product ${productId}`);
+}
 if (!productId) {
   const product = await call("/products", {
     name: "Mockio Premium",
@@ -97,16 +104,14 @@ for (const [country, [tier, currency]] of Object.entries(COUNTRIES)) {
 }
 
 /**
- * The whole-unit amount in a formatted price, whatever the locale: drops a
- * trailing two-digit decimal part ("3.290,00 Ft", "NT$320.00"), then reads
- * every remaining digit, so thousands separators of either kind are ignored.
+ * The amount in a formatted price, in the currency's lowest denomination,
+ * whatever the locale: every digit, read as one number. "3.290,00 Ft" is
+ * 329000 (hundredths of a forint), "$4.99" is 499, "¥750" is 750. A price
+ * Paddle printed without decimals ("€35") is also accepted as whole units.
  */
-function wholeUnits(formatted: string): number {
-  const body = formatted.replace(/[^\d.,]/g, "");
-  const withoutCents = body.replace(/[.,]\d{2}$/, "");
-  return Number(withoutCents.replace(/[.,]/g, ""));
+function digits(formatted: string): number {
+  return Number(formatted.replace(/\D/g, ""));
 }
-
 let failed = false;
 for (const [currency, country] of sample) {
   const [tier] = COUNTRIES[country]!;
@@ -123,11 +128,14 @@ for (const [currency, country] of sample) {
   /**
    * The raw total is no check at all — it is the number this script sent,
    * echoed back. The formatted total is how Paddle reads it: "3.290,00 Ft"
-   * is 3290 forints, "329.000 Ft" would be a hundred times that. So the
-   * whole-unit part of the formatted string has to equal the table's price.
+   * is 3290 forints, "329.000,00 Ft" would be a hundred times that. So the
+   * formatted string, read in the lowest denomination, has to equal the
+   * table's price.
    */
-  const whole = wholeUnits(formatted);
-  const ok = whole === expected.monthly && shown === currency;
+  const read = digits(formatted);
+  const ok =
+    (read === Number(minorUnits(expected.monthly, currency)) || read === expected.monthly) &&
+    shown === currency;
   if (!ok) failed = true;
   console.log(`${ok ? "ok  " : "FAIL"} ${country} ${currency}: Paddle shows ${formatted}, table ${expected.monthly}`);
 }
