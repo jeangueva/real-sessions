@@ -209,6 +209,15 @@ export interface AxisPoint {
   scores: Record<Axis, number | null>;
 }
 
+/** One of the week's three goals, as the server counts it. */
+export interface Mission {
+  id: "week-three" | "week-real" | "week-two-days";
+  goal: number;
+  xp: number;
+  progress: number;
+  done: boolean;
+}
+
 export interface XpAward {
   events: { kind: string; amount: number }[];
   gained: number;
@@ -1165,6 +1174,10 @@ export function fetchProfile() {
       xpForNextLevel: number;
       badges: EarnedBadge[];
       catalogue: Badge[];
+      /** Absent on a server older than missions. */
+      xpToday?: number;
+      dailyGoal?: number;
+      missions?: Mission[];
     }>("/api/profile", { method: "GET" }),
   );
 }

@@ -32,6 +32,7 @@ import type {
 } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 import { badgeText } from "@/lib/badges";
+import { Today } from "./Today";
 import { Journey } from "./Journey";
 import { SessionList } from "./SessionList";
 
@@ -220,6 +221,7 @@ export function Progress() {
 
       <PageBody className="flex flex-col gap-4">
         <FadeRise>
+          <Today sessions={sessions ?? []} />
           <Journey sessions={sessions ?? []} />
         </FadeRise>
 

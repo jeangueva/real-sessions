@@ -112,7 +112,10 @@ export function Pricing() {
         <FadeRise>
             <Panel className="flex h-full flex-col gap-7 p-7 sm:p-9">
               <div>
-                <p className="text-title font-semibold text-cream-bright">{t("land.free")}</p>
+                <p className="flex items-center gap-2 text-title font-semibold text-cream-bright">
+                  <img src="/avatars/level-2.png" alt="" width={48} height={48} className="h-12 w-12" />
+                  {t("land.free")}
+                </p>
                 <p className="mt-1 text-xs text-cream-faint">{t("land.billedNever")}</p>
                 <p className="mt-6 text-headline font-semibold tabular-nums text-cream-bright">
                   {formatPrice(0, freeCurrency, locale)}
@@ -144,7 +147,10 @@ export function Pricing() {
             >
               <div className="relative">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-title font-semibold text-cream-bright">{t("land.premium")}</p>
+                  <p className="flex items-center gap-2 text-title font-semibold text-cream-bright">
+                    <img src="/avatars/level-6.png" alt="" width={48} height={48} className="h-12 w-12" />
+                    {t("land.premium")}
+                  </p>
                   <span className="flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text">
                     <Sparkles aria-hidden className="h-3.5 w-3.5" />
                     {t("land.recommended")}

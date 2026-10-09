@@ -61,27 +61,83 @@ function dayKey(date: Date): string {
   ).padStart(2, "0")}`;
 }
 
+/** How many days a missed day stays forgiven for: one shield a week. */
+export const SHIELD_DAYS = 7;
+
+export interface Streak {
+  /** Days practised in the unbroken run. A shielded day is not counted. */
+  days: number;
+  /** Whether a finished interview landed today. */
+  today: boolean;
+  /** The most recent day the shield covered, as YYYY-MM-DD, or null. */
+  shielded: string | null;
+  /** Whether a missed day today-or-tomorrow would still be forgiven. */
+  shieldReady: boolean;
+}
+
 /**
- * Consecutive days, ending today or yesterday, with a finished interview.
+ * Consecutive days, ending today or yesterday, with a finished interview —
+ * and a shield that forgives one missed day a week.
  *
  * Yesterday counts as unbroken: at nine in the morning a streak that ran to
  * last night is still alive, and showing it as zero would punish someone for
  * not having practised yet today. Local days, not UTC — a session at eleven
  * at night in Lima belongs to that evening, not to tomorrow.
+ *
+ * The shield is Duolingo's streak freeze without the shop: nobody buys or
+ * equips it. One missed day inside any seven is simply not a break, because
+ * the habit this protects is "most days", and a streak lost to one bad
+ * Tuesday teaches people to stop caring about it. Two missed days in a row
+ * still end it — that is no longer a slip, it is a pause.
  */
-export function streakDays(completedAt: readonly string[], today = new Date()): number {
+export function streakState(completedAt: readonly string[], now = new Date()): Streak {
   const days = new Set(
     completedAt
       .map((iso) => new Date(iso))
       .filter((date) => !Number.isNaN(date.getTime()))
       .map(dayKey),
   );
-  const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  if (!days.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+  const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = days.has(dayKey(cursor));
+  if (!today) cursor.setDate(cursor.getDate() - 1);
   let count = 0;
-  while (days.has(dayKey(cursor))) {
-    count += 1;
+  let walked = 0;
+  /** `walked` at the shield used nearest to today, if any. */
+  let shieldAt: number | null = null;
+  let shielded: string | null = null;
+  for (;;) {
+    if (days.has(dayKey(cursor))) {
+      count += 1;
+    } else {
+      const before = new Date(cursor);
+      before.setDate(before.getDate() - 1);
+      const free = shieldAt === null || walked - shieldAt >= SHIELD_DAYS;
+      // Only a gap with practice on both sides is a slip worth forgiving;
+      // the start of a run is not a missed day.
+      if (!free || count === 0 || !days.has(dayKey(before))) break;
+      shieldAt = walked;
+      shielded ??= dayKey(cursor);
+    }
+    walked += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
-  return count;
+  // The shield is spent if one was used within the last week of the run.
+  const offsetToday = today ? 0 : 1;
+  const nearest = shielded === null ? null : (() => {
+    const [y, m, d] = shielded.split("-").map(Number);
+    const at = new Date(y!, m! - 1, d!);
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((start.getTime() - at.getTime()) / 86_400_000);
+  })();
+  return {
+    days: count,
+    today,
+    shielded,
+    shieldReady: count > 0 && (nearest === null || nearest + offsetToday >= SHIELD_DAYS),
+  };
+}
+
+/** Consecutive days with a finished interview, shield included. */
+export function streakDays(completedAt: readonly string[], today = new Date()): number {
+  return streakState(completedAt, today).days;
 }

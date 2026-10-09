@@ -26,6 +26,8 @@ import { Tour } from "./Tour";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import { RecentSessions } from "./RecentSessions";
+import { Today } from "./Today";
+import { Welcome } from "./Welcome";
 import { Journey } from "./Journey";
 
 /**
@@ -491,6 +493,8 @@ export function SessionSetup() {
         <div className="flex flex-col gap-6 pb-20 md:pb-0">
         {/* Where this practice leads. First on the screen, so the reason to
             press Begin is read before the form that asks what to practise. */}
+        <Welcome sessions={sessions} />
+        <Today sessions={sessions} />
         <Journey sessions={sessions} />
         {/* The nudge sits above the bar it changes, so accepting it and
             seeing the level field move are one glance apart. Dismissing is

@@ -5,6 +5,7 @@ import { Hero } from "@/components/Hero";
 import { LandingNav } from "@/components/LandingNav";
 import { Privacy, Terms } from "@/legal/LegalPage";
 import { InterviewPreview } from "@/components/InterviewPreview";
+import { Habit } from "@/components/Habit";
 import { CompanyPicker } from "@/components/CompanyPicker";
 import { Features } from "@/components/Features";
 import { Pricing } from "@/components/Pricing";
@@ -83,6 +84,7 @@ function Landing() {
           line. */}
       <Pricing />
       <InterviewPreview />
+      <Habit />
       <CompanyPicker />
       <Features />
       {/* The question bank closes the page: it asks for something rather than

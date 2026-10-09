@@ -140,6 +140,8 @@ import type { SessionMetrics } from "./metrics.js";
 import {
   axisScores,
   badgesForSession,
+  DAILY_GOAL_XP,
+  weeklyMissions,
   levelForXp,
   xpForSession,
   BADGES,
@@ -3341,9 +3343,20 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    */
   if (req.method === "GET" && path === "/api/profile") {
     const profile = await PROGRESS.profile(identity.id);
+    const today = new Date().toISOString().slice(0, 10);
+    const sessions = await readQuietly(PROGRESS.listSessions(identity.id), []);
     json(res, 200, {
       xp: profile.xp,
       ...levelForXp(profile.xp),
+      // The day's ring and the week's missions, on the same UTC day the
+      // daily cap and the mission awards use, so the screen and the ledger
+      // never disagree about which day it is.
+      xpToday: await readQuietly(PROGRESS.xpOnDay(identity.id, today), 0),
+      dailyGoal: DAILY_GOAL_XP,
+      missions: weeklyMissions(
+        sessions.filter((entry) => entry.completedAt !== null),
+        today,
+      ),
       badges: profile.badges.map((held) => ({
         ...held,
         ...(BADGES.find((badge) => badge.id === held.badgeId) ?? {}),

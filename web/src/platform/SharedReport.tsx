@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Meter, Panel } from "@/design-system";
+import { Action, Eyebrow, FadeRise, Meter, Panel, PopIn, ScoreRing } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import type { Evaluation } from "@/lib/evaluation";
@@ -119,13 +119,26 @@ export function SharedReport() {
           <FadeRise delay={0.05} className="lg:col-span-1">
             <Panel variant="raised" className="flex h-full flex-col gap-6 p-6">
               <Eyebrow>{t("feedback.overall")}</Eyebrow>
-              <p
-                className="text-display text-cream-bright"
-                style={{ fontSize: "clamp(3rem,8vw,5rem)" }}
-              >
-                {evaluation.overall_score_percentage}
-                <span className="text-cream-faint">%</span>
-              </p>
+              {/* The same ring and the same Mocki the candidate saw: a
+                  shared report is the product's shop window, so it looks
+                  like the moment it records rather than a spreadsheet. */}
+              <div className="flex items-center gap-4">
+                <ScoreRing value={evaluation.overall_score_percentage} size={132}>
+                  <span className="block text-4xl font-bold leading-none tabular-nums text-cream-bright">
+                    {evaluation.overall_score_percentage}
+                    <span className="text-lg font-semibold text-cream-faint">%</span>
+                  </span>
+                </ScoreRing>
+                <PopIn delay={0.5}>
+                  <img
+                    src={`/avatars/level-${evaluation.overall_score_percentage >= 80 ? 6 : evaluation.overall_score_percentage >= 50 ? 5 : 4}.png`}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 drop-shadow-[0_6px_10px_rgb(0_0_0/0.12)]"
+                  />
+                </PopIn>
+              </div>
               <div className="flex flex-col gap-4">
                 <Meter
                   label={t("feedback.vocabulary")}

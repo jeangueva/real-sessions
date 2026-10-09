@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
-import { Panel, Wordmark } from "@/design-system";
+import { Panel, PopIn, Wordmark } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 
 /**
@@ -28,6 +28,11 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       </div>
       {/* The name above the card, the way Apple ID and Airbnb open their own
           sign-in: you know whose door this is before you read the form. */}
+      {/* Mocki, peeking over the name: the first face of the product is
+          its character, so even a password reset feels like Mockio. */}
+      <PopIn delay={0.1}>
+        <img src="/avatars/level-3.png" alt="" width={72} height={72} className="-mb-3 h-[72px] w-[72px] drop-shadow-[0_6px_10px_rgb(0_0_0/0.12)]" />
+      </PopIn>
       <Wordmark className="text-2xl font-semibold text-cream-bright" />
       <Panel variant="raised" className="w-full max-w-md p-8 shadow-float sm:p-10">
         {children}

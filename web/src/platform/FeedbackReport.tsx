@@ -7,6 +7,7 @@ import { EASE_OUT } from "@/design-system/motion";
 import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { CorrectionSteps } from "./CorrectionSteps";
+import { LevelUp, levelForXp } from "./LevelUp";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { badgeText } from "@/lib/badges";
 import type { MessageKey } from "@/lib/i18n";
@@ -16,6 +17,7 @@ import type { Evaluation } from "@/lib/evaluation";
 import {
   ApiError,
   fetchHistoryEntry,
+  fetchProfile,
   fetchPlan,
   requestEvaluation,
   shareSession,
@@ -67,6 +69,7 @@ export function FeedbackReport() {
   /** What the plan held back, so the report can offer it rather than hide it. */
   const [withheld, setWithheld] = useState({ metrics: false, nextSteps: false });
   const [xp, setXp] = useState<XpAward | null>(null);
+  const [levelUp, setLevelUp] = useState<{ level: number; previous: number } | null>(null);
   const [earned, setEarned] = useState<BadgeInfo[]>([]);
   /**
    * Whether this report can be shared, and whether it already is.
@@ -125,6 +128,17 @@ export function FeedbackReport() {
           setMetrics(result.metrics);
           setWithheld(result.withheld);
           setXp(result.xp);
+          // A level crossed is announced once, here, from the server's
+          // total: the curve is mirrored only to know whether a line was
+          // crossed, never to name the level.
+          if (result.xp.gained > 0) {
+            fetchProfile()
+              .then((profile) => {
+                const previous = levelForXp(profile.xp - result.xp.gained);
+                if (profile.level > previous) setLevelUp({ level: profile.level, previous });
+              })
+              .catch(() => undefined);
+          }
           // Only what was just earned. Re-announcing a badge from last week
           // would make the whole system read as noise.
           setEarned(result.badges);
@@ -172,6 +186,10 @@ export function FeedbackReport() {
   }
 
   return (
+    <>
+    <AnimatePresence>
+      {levelUp && <LevelUp level={levelUp.level} previous={levelUp.previous} onClose={() => setLevelUp(null)} />}
+    </AnimatePresence>
     <FeedbackBody
       evaluation={evaluation}
       meta={meta}
@@ -187,6 +205,7 @@ export function FeedbackReport() {
           : { historyId: historyId ?? sessionId ?? null, allowed: canShare, token: shareToken }
       }
     />
+    </>
   );
 }
 
@@ -526,6 +545,16 @@ function FeedbackBody({
                     </span>
                   </PopIn>
                 )}
+                {xp?.events
+                  .filter((event) => event.kind.startsWith("mission:"))
+                  .map((event, index) => (
+                    <PopIn key={event.kind} delay={0.88 + index * 0.08}>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-grow-soft px-3 py-1 text-sm font-semibold text-grow-text">
+                        <Target aria-hidden className="h-4 w-4" />
+                        {t("feedback.missionDone")}
+                      </span>
+                    </PopIn>
+                  ))}
                 {earned.map((badge, index) => (
                   <PopIn key={badge.id} delay={0.95 + index * 0.08}>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1 pl-1 pr-3 text-sm font-semibold text-accent-text">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { journey, PRACTICE_GOAL, streakDays } from "../src/lib/journey";
+import { journey, PRACTICE_GOAL, streakDays, streakState } from "../src/lib/journey";
 
 const states = (completed: number, statuses: Parameters<typeof journey>[1] = []) =>
   journey(completed, statuses).map((milestone) => milestone.state);
@@ -39,9 +39,19 @@ describe("streakDays", () => {
     expect(streakDays([at(3), at(2)], today)).toBe(2);
   });
 
-  it("breaks on a missed day", () => {
-    expect(streakDays([at(4, 8), at(2)], today)).toBe(1);
+  it("forgives one missed day with the shield", () => {
+    expect(streakDays([at(4, 8), at(2)], today)).toBe(2);
+    expect(streakState([at(4, 8), at(2)], today)).toMatchObject({ shielded: "2026-10-03", shieldReady: false });
+  });
+
+  it("breaks on two missed days in a row, or a second slip in the same week", () => {
+    expect(streakDays([at(4, 8), at(1)], today)).toBe(1);
     expect(streakDays([at(1)], today)).toBe(0);
+    expect(streakDays([at(4, 8), at(2), at(0)], today)).toBe(2);
+  });
+
+  it("has the shield ready on an unbroken run", () => {
+    expect(streakState([at(4, 8), at(3)], today)).toMatchObject({ days: 2, today: true, shieldReady: true });
   });
 
   it("counts a day once however many interviews it had", () => {

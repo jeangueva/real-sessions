@@ -82,6 +82,10 @@ export function xpForSession(input: ScoreInput): XpEvent[] {
     if (bonus > 0) events.push({ kind: "real-mode", amount: bonus });
   }
 
+  // Missions last: the real-mode bonus multiplies what the interview itself
+  // earned, not a weekly reward that happens to land on it.
+  events.push(...missionXp({ mode: input.mode, history: input.history, today: input.today }));
+
   return capDaily(events, input.xpToday);
 }
 
@@ -134,6 +138,94 @@ export function levelForXp(xp: number): {
     xpIntoLevel: safe - floorXp,
     xpForNextLevel: ceilingXp - floorXp,
   };
+}
+
+/* ---------------------------------------------------------------------------
+ * The day and the week
+ * ------------------------------------------------------------------------ */
+
+/**
+ * XP that fills the day's ring. Roughly one finished interview of middling
+ * score (50 + 25 + a first-of-the-day 25), so the goal is "one interview",
+ * said in the unit the rest of the screen already uses.
+ */
+export const DAILY_GOAL_XP = 100;
+
+/**
+ * Three goals for the week, the same for everybody and reset each Monday.
+ *
+ * Fixed rather than generated: a mission somebody cannot read the rule of
+ * is a slot machine. Each one asks for a habit the product is built on —
+ * coming back, doing it without the safety net, spreading it over the week
+ * rather than cramming one evening — and none of them rewards time spent.
+ */
+export interface Mission {
+  id: "week-three" | "week-real" | "week-two-days";
+  goal: number;
+  xp: number;
+}
+
+export const MISSIONS: Mission[] = [
+  { id: "week-three", goal: 3, xp: 60 },
+  { id: "week-real", goal: 1, xp: 40 },
+  { id: "week-two-days", goal: 2, xp: 40 },
+];
+
+export interface MissionProgress extends Mission {
+  progress: number;
+  done: boolean;
+}
+
+/** The Monday (UTC, YYYY-MM-DD) of the week `today` falls in. */
+export function weekStart(today: string): string {
+  const date = new Date(`${today}T00:00:00Z`);
+  const offset = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - offset);
+  return date.toISOString().slice(0, 10);
+}
+
+interface WeekSession {
+  completedAt: string | null;
+  mode: SessionMode;
+}
+
+function missionCounts(sessions: readonly WeekSession[], today: string): Record<Mission["id"], number> {
+  const from = weekStart(today);
+  const week = sessions.filter((session) => {
+    const day = session.completedAt?.slice(0, 10);
+    return day !== undefined && day >= from && day <= today;
+  });
+  return {
+    "week-three": week.length,
+    "week-real": week.filter((session) => session.mode === "real").length,
+    "week-two-days": new Set(week.map((session) => session.completedAt!.slice(0, 10))).size,
+  };
+}
+
+/** Where each mission stands this week, from finished sessions. */
+export function weeklyMissions(sessions: readonly WeekSession[], today: string): MissionProgress[] {
+  const counts = missionCounts(sessions, today);
+  return MISSIONS.map((mission) => ({
+    ...mission,
+    progress: Math.min(counts[mission.id], mission.goal),
+    done: counts[mission.id] >= mission.goal,
+  }));
+}
+
+/**
+ * The mission rewards one finished session unlocks: those it carries over
+ * the line. Recomputed from history like everything else here, so a mission
+ * already done this week is never paid twice.
+ */
+export function missionXp(input: { mode: SessionMode; history: readonly WeekSession[]; today: string }): XpEvent[] {
+  const before = missionCounts(input.history, input.today);
+  const after = missionCounts(
+    [...input.history, { completedAt: `${input.today}T12:00:00.000Z`, mode: input.mode }],
+    input.today,
+  );
+  return MISSIONS.filter(
+    (mission) => before[mission.id] < mission.goal && after[mission.id] >= mission.goal,
+  ).map((mission) => ({ kind: `mission:${mission.id}`, amount: mission.xp }));
 }
 
 /* ---------------------------------------------------------------------------
