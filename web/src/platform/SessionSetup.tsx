@@ -491,11 +491,6 @@ export function SessionSetup() {
         {/* `pb-20 md:pb-0` clears the fixed Begin bar, the same way the shell
             reserves the height of the mobile nav under it. */}
         <div className="flex flex-col gap-6 pb-20 md:pb-0">
-        {/* Where this practice leads. First on the screen, so the reason to
-            press Begin is read before the form that asks what to practise. */}
-        <Welcome sessions={sessions} />
-        <Today sessions={sessions} />
-        <Journey sessions={sessions} />
         {/* The nudge sits above the bar it changes, so accepting it and
             seeing the level field move are one glance apart. Dismissing is
             local and for this visit only: the condition that raised it is a
@@ -1011,6 +1006,14 @@ export function SessionSetup() {
             </ul>
           </Panel>
         )}
+
+        {/* The game — the checklist, today's ring and missions, the path —
+            after everything that starts an interview. Begin and the setup
+            are what this screen is for, so they are never pushed below the
+            fold by a panel about them. */}
+        <Welcome sessions={sessions} />
+        <Today sessions={sessions} />
+        <Journey sessions={sessions} />
         </div>
       </PageBody>
     </>
