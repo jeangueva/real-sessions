@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { missionXp, weekStart, weeklyMissions, xpForSession } from "../src/gamification.js";
+import { missionXp, shareMissionXp, weekStart, weeklyMissions, xpForSession } from "../src/gamification.js";
 
 const done = (day: string, mode: "practice" | "real" = "practice") => ({
   completedAt: `${day}T10:00:00.000Z`,
@@ -20,7 +20,7 @@ describe("weekly missions", () => {
     );
     const byId = Object.fromEntries(missions.map((mission) => [mission.id, mission]));
     expect(byId["week-three"]).toMatchObject({ progress: 2, done: false });
-    expect(byId["week-real"]).toMatchObject({ progress: 1, done: true });
+    expect(byId["week-share"]).toMatchObject({ progress: 0, done: false });
     expect(byId["week-two-days"]).toMatchObject({ progress: 2, done: true });
   });
 
@@ -35,7 +35,15 @@ describe("weekly missions", () => {
   });
 
   it("adds mission rewards to the session's XP", () => {
-    const events = xpForSession({ score: 60, mode: "real", history: [], xpToday: 0, today: "2026-10-08" });
-    expect(events.map((event) => event.kind)).toContain("mission:week-real");
+    const history = [done("2026-10-06"), done("2026-10-07")];
+    const events = xpForSession({ score: 60, mode: "practice", history, xpToday: 0, today: "2026-10-08" });
+    expect(events.map((event) => event.kind)).toContain("mission:week-three");
+  });
+
+  it("counts the sharing mission from the week's share, and pays it once", () => {
+    const missions = weeklyMissions([], "2026-10-08", true);
+    expect(missions.find((mission) => mission.id === "week-share")).toMatchObject({ progress: 1, done: true });
+    expect(shareMissionXp(false)).toEqual([{ kind: "mission:week-share", amount: 40 }]);
+    expect(shareMissionXp(true)).toEqual([]);
   });
 });

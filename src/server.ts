@@ -141,6 +141,9 @@ import {
   axisScores,
   badgesForSession,
   DAILY_GOAL_XP,
+  missionKind,
+  shareMissionXp,
+  weekStart as missionWeekStart,
   weeklyMissions,
   levelForXp,
   xpForSession,
@@ -535,6 +538,22 @@ function shown(context: InterviewContext): {
 }
 
 /** Interface locales the report can be written in, by the name a model reads. */
+/**
+ * Pays the weekly sharing mission the first time something is shared this
+ * week, and returns what was paid so the client can say so. A storage
+ * failure pays nothing rather than failing the share.
+ */
+async function recordShare(ownerId: string): Promise<{ events: { kind: string; amount: number }[]; gained: number }> {
+  const today = new Date().toISOString().slice(0, 10);
+  const shared = await readQuietly(
+    PROGRESS.hasXpSince(ownerId, missionKind("week-share"), missionWeekStart(today)),
+    true,
+  );
+  const events = shareMissionXp(shared);
+  await recordQuietly(PROGRESS.addXp(ownerId, null, events));
+  return { events, gained: events.reduce((total, event) => total + event.amount, 0) };
+}
+
 const REPORT_LANGUAGES: Record<string, string> = {
   en: "English",
   es: "Spanish",
@@ -3289,7 +3308,19 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // Null means not theirs, or not there. Same answer for both: confirming
     // that an id exists is already telling a stranger something.
     if (!token) return json(res, 404, { error: "We could not find that interview.", code: "sessionMissing" });
-    json(res, 200, { shared: { token, url: `${siteUrl()}/r/${token}` } });
+    const xp = await recordShare(identity.id);
+    json(res, 200, { shared: { token, url: `${siteUrl()}/r/${token}` }, xp });
+    return;
+  }
+
+  /**
+   * The progress card was shared or saved. Nothing is stored about the card
+   * itself — it is drawn in the browser — this only counts toward the week's
+   * sharing mission, the same as a link does.
+   */
+  if (req.method === "POST" && path === "/api/progress/shared") {
+    if (await limited(res, `share:${identity.id}`, RULES.contribute)) return;
+    json(res, 200, { xp: await recordShare(identity.id) });
     return;
   }
 
@@ -3356,6 +3387,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       missions: weeklyMissions(
         sessions.filter((entry) => entry.completedAt !== null),
         today,
+        await readQuietly(PROGRESS.hasXpSince(identity.id, missionKind("week-share"), missionWeekStart(today)), false),
       ),
       badges: profile.badges.map((held) => ({
         ...held,

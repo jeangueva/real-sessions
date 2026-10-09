@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CalendarDays, Check, Flame, Mic, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { CalendarDays, Check, Flame, Share2, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { EASE_OUT } from "@/design-system/motion";
 import { ScoreRing } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
@@ -12,13 +12,13 @@ import type { MessageKey } from "@/lib/i18n";
 
 const MISSION_LABEL: Record<Mission["id"], MessageKey> = {
   "week-three": "mission.week-three",
-  "week-real": "mission.week-real",
+  "week-share": "mission.week-share",
   "week-two-days": "mission.week-two-days",
 };
 
 const MISSION_ICON: Record<Mission["id"], typeof Target> = {
   "week-three": Target,
-  "week-real": Mic,
+  "week-share": Share2,
   "week-two-days": CalendarDays,
 };
 

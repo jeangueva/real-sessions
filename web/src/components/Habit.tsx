@@ -133,7 +133,7 @@ export function Habit() {
                 {(
                   [
                     ["mission.week-three", 2, 3, 60],
-                    ["mission.week-real", 1, 1, 40],
+                    ["mission.week-share", 1, 1, 40],
                   ] as const
                 ).map(([label, progress, goal, xp]) => (
                   <li key={label}>

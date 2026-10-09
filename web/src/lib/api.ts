@@ -211,7 +211,7 @@ export interface AxisPoint {
 
 /** One of the week's three goals, as the server counts it. */
 export interface Mission {
-  id: "week-three" | "week-real" | "week-two-days";
+  id: "week-three" | "week-share" | "week-two-days";
   goal: number;
   xp: number;
   progress: number;
@@ -874,11 +874,19 @@ export function cancelSubscription() {
  */
 export function shareSession(historyId: string) {
   return withIdentity(() =>
-    request<{ shared: { token: string; url: string } }>(
+    request<{ shared: { token: string; url: string }; xp?: XpAward }>(
       `/api/history/${historyId}/share`,
       { method: "POST" },
     ),
   );
+}
+
+/**
+ * Something was shared — the progress card, or a report link copied again.
+ * Counts toward the week's sharing mission; returns the XP that paid, if any.
+ */
+export function recordShared() {
+  return withIdentity(() => request<{ xp: XpAward }>("/api/progress/shared", { method: "POST" }));
 }
 
 /** Takes the link down. Allowed on any plan — see the route. */

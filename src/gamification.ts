@@ -156,18 +156,22 @@ export const DAILY_GOAL_XP = 100;
  *
  * Fixed rather than generated: a mission somebody cannot read the rule of
  * is a slot machine. Each one asks for a habit the product is built on —
- * coming back, doing it without the safety net, spreading it over the week
+ * coming back, showing someone how it is going, spreading it over the week
  * rather than cramming one evening — and none of them rewards time spent.
+ *
+ * Sharing is the one not read from sessions: it happens on the report or
+ * the progress card, so it is paid at that moment (see `shareMissionXp`)
+ * and its own XP event is the record that it was done this week.
  */
 export interface Mission {
-  id: "week-three" | "week-real" | "week-two-days";
+  id: "week-three" | "week-share" | "week-two-days";
   goal: number;
   xp: number;
 }
 
 export const MISSIONS: Mission[] = [
   { id: "week-three", goal: 3, xp: 60 },
-  { id: "week-real", goal: 1, xp: 40 },
+  { id: "week-share", goal: 1, xp: 40 },
   { id: "week-two-days", goal: 2, xp: 40 },
 ];
 
@@ -189,7 +193,14 @@ interface WeekSession {
   mode: SessionMode;
 }
 
-function missionCounts(sessions: readonly WeekSession[], today: string): Record<Mission["id"], number> {
+type SessionMission = Exclude<Mission["id"], "week-share">;
+
+/** The XP event kind a mission is paid under. */
+export function missionKind(id: Mission["id"]): string {
+  return `mission:${id}`;
+}
+
+function missionCounts(sessions: readonly WeekSession[], today: string): Record<SessionMission, number> {
   const from = weekStart(today);
   const week = sessions.filter((session) => {
     const day = session.completedAt?.slice(0, 10);
@@ -197,19 +208,35 @@ function missionCounts(sessions: readonly WeekSession[], today: string): Record<
   });
   return {
     "week-three": week.length,
-    "week-real": week.filter((session) => session.mode === "real").length,
     "week-two-days": new Set(week.map((session) => session.completedAt!.slice(0, 10))).size,
   };
 }
 
-/** Where each mission stands this week, from finished sessions. */
-export function weeklyMissions(sessions: readonly WeekSession[], today: string): MissionProgress[] {
-  const counts = missionCounts(sessions, today);
+/**
+ * Where each mission stands this week, from finished sessions and whether
+ * something was shared since Monday.
+ */
+export function weeklyMissions(
+  sessions: readonly WeekSession[],
+  today: string,
+  sharedThisWeek = false,
+): MissionProgress[] {
+  const counts = { ...missionCounts(sessions, today), "week-share": sharedThisWeek ? 1 : 0 };
   return MISSIONS.map((mission) => ({
     ...mission,
     progress: Math.min(counts[mission.id], mission.goal),
     done: counts[mission.id] >= mission.goal,
   }));
+}
+
+/**
+ * The reward for sharing, the first time this week. Not held to the daily
+ * cap: it is once a week by construction, and capping it to nothing would
+ * also erase the record that the mission was done.
+ */
+export function shareMissionXp(sharedThisWeek: boolean): XpEvent[] {
+  const mission = MISSIONS.find((entry) => entry.id === "week-share")!;
+  return sharedThisWeek ? [] : [{ kind: missionKind(mission.id), amount: mission.xp }];
 }
 
 /**
@@ -224,8 +251,11 @@ export function missionXp(input: { mode: SessionMode; history: readonly WeekSess
     input.today,
   );
   return MISSIONS.filter(
-    (mission) => before[mission.id] < mission.goal && after[mission.id] >= mission.goal,
-  ).map((mission) => ({ kind: `mission:${mission.id}`, amount: mission.xp }));
+    (mission): mission is Mission & { id: SessionMission } =>
+      mission.id !== "week-share" &&
+      before[mission.id as SessionMission] < mission.goal &&
+      after[mission.id as SessionMission] >= mission.goal,
+  ).map((mission) => ({ kind: missionKind(mission.id), amount: mission.xp }));
 }
 
 /* ---------------------------------------------------------------------------

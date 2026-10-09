@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Action, Eyebrow, FadeRise, Panel, PremiumMark } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
-import { fetchHistory, fetchPlan } from "@/lib/api";
+import { fetchHistory, fetchPlan, recordShared } from "@/lib/api";
 import { shareStats, type ShareStat } from "@/lib/share-stats";
 import { track } from "@/lib/analytics";
 import {
@@ -338,6 +338,7 @@ export function ShareCard() {
       try {
         await sharer.share({ files: [file] });
         track("progress card saved", { kind, how: "share" });
+        await countShare(null);
         return;
       } catch {
         // A cancelled share sheet lands here too, and silently falling back to
@@ -352,7 +353,19 @@ export function ShareCard() {
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
     track("progress card saved", { kind, how: "download" });
-    setNote(t("share.saved"));
+    await countShare(t("share.saved"));
+  };
+
+  /**
+   * Counts toward the week's sharing mission. A saved card is counted too:
+   * saving it is how a card reaches Instagram on a desktop.
+   */
+  const countShare = async (fallback: string | null) => {
+    const gained = await recordShared()
+      .then((result) => result.xp.gained)
+      .catch(() => 0);
+    if (gained > 0) setNote(t("share.missionXp", { xp: gained }));
+    else if (fallback) setNote(fallback);
   };
 
   const shareCard = async () => {

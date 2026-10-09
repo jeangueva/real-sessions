@@ -20,6 +20,7 @@ import {
   fetchProfile,
   fetchPlan,
   requestEvaluation,
+  recordShared,
   shareSession,
   unshareSession,
 } from "@/lib/api";
@@ -248,6 +249,8 @@ function ShareControl({
   const [url, setUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  /** XP the share paid for the week's mission, shown once in the menu. */
+  const [reward, setReward] = useState(0);
 
   if (!allowed) {
     return (
@@ -285,11 +288,17 @@ function ShareControl({
     try {
       if (link) {
         await copy(link);
+        // Copying the link again is sharing it again: it counts for this
+        // week's mission even when the link was made last week.
+        recordShared()
+          .then((result) => setReward(result.xp.gained))
+          .catch(() => undefined);
         return;
       }
       const result = await shareSession(historyId);
       setToken(result.shared.token);
       setUrl(result.shared.url);
+      setReward(result.xp?.gained ?? 0);
       track("report shared");
       await copy(result.shared.url);
     } catch {
@@ -339,6 +348,14 @@ function ShareControl({
               </motion.span>
             </AnimatePresence>
           </MenuItem>
+          {reward > 0 && (
+            <PopIn>
+              <p className="mx-2 mb-1 flex items-center gap-1.5 rounded-xl bg-grow-soft px-3 py-2 text-xs font-semibold text-grow-text">
+                <Target aria-hidden className="h-3.5 w-3.5" />
+                {t("share.missionXp", { xp: reward })}
+              </p>
+            </PopIn>
+          )}
           {link && limited && (
             <Link
               to="/app/settings#plan"

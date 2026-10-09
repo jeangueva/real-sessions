@@ -238,6 +238,8 @@ export interface ProgressStore {
   addXp(ownerId: string, sessionId: string | null, events: XpEvent[]): Promise<void>;
   /** XP already granted on the given UTC day, for the daily cap. */
   xpOnDay(ownerId: string, dayIso: string): Promise<number>;
+  /** Whether an event of this kind was logged on or after a UTC day. */
+  hasXpSince(ownerId: string, kind: string, dayIso: string): Promise<boolean>;
   /**
    * Interviews started at or after `sinceIso`. Drives the free plan's monthly
    * cap.
@@ -637,6 +639,17 @@ class PostgresProgressStore implements ProgressStore {
     return (rows[0]?.xp as number | undefined) ?? 0;
   }
 
+  async hasXpSince(ownerId: string, kind: string, dayIso: string): Promise<boolean> {
+    const { rows } = await this.pool.query(
+      `SELECT 1 FROM xp_events
+        WHERE owner_id = $1 AND kind = $2
+          AND (created_at AT TIME ZONE 'UTC')::date >= $3::date
+        LIMIT 1`,
+      [ownerId, kind, dayIso],
+    );
+    return rows.length > 0;
+  }
+
   async profile(ownerId: string): Promise<Profile> {
     const [xp, badges] = await Promise.all([
       this.pool.query(
@@ -838,7 +851,7 @@ class MemoryProgressStore implements ProgressStore {
   readonly kind = "memory" as const;
   private readonly sessions = new Map<string, MemorySession>();
   private readonly applications = new Map<string, MemoryApplication>();
-  private readonly xp: { ownerId: string; amount: number; at: number }[] = [];
+  private readonly xp: { ownerId: string; kind: string; amount: number; at: number }[] = [];
   private readonly badges = new Map<string, Map<string, string>>();
 
   async createSession(session: NewSession): Promise<void> {
@@ -1005,7 +1018,7 @@ class MemoryProgressStore implements ProgressStore {
 
   async addXp(ownerId: string, _sessionId: string | null, events: XpEvent[]): Promise<void> {
     for (const event of events) {
-      this.xp.push({ ownerId, amount: event.amount, at: Date.now() });
+      this.xp.push({ ownerId, kind: event.kind, amount: event.amount, at: Date.now() });
     }
   }
 
@@ -1038,6 +1051,15 @@ class MemoryProgressStore implements ProgressStore {
           new Date(event.at).toISOString().slice(0, 10) === dayIso,
       )
       .reduce((total, event) => total + event.amount, 0);
+  }
+
+  async hasXpSince(ownerId: string, kind: string, dayIso: string): Promise<boolean> {
+    return this.xp.some(
+      (event) =>
+        event.ownerId === ownerId &&
+        event.kind === kind &&
+        new Date(event.at).toISOString().slice(0, 10) >= dayIso,
+    );
   }
 
   async profile(ownerId: string): Promise<Profile> {
