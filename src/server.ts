@@ -1236,6 +1236,153 @@ function weekStart(now: Date): Date {
   return start;
 }
 
+/**
+ * Writes the report for one finished interview, once.
+ *
+ * Two callers reach this: the client asking for its report, and the server
+ * itself the moment the last turn is given — so a candidate who closes the tab
+ * at "thank you for your time" still has a report waiting, instead of an
+ * interview that answered everything and was never scored.
+ *
+ * Once means once. A second call while the first is running gets the same
+ * promise; a call after it finished gets the stored report back, with no new
+ * model call and no second helping of XP. The result with XP and badges is
+ * kept for a few minutes so the client that arrives just after the server
+ * finished still gets to celebrate them.
+ */
+type EvaluationPayload = Record<string, unknown>;
+const evaluations = new Map<string, Promise<EvaluationPayload>>();
+
+function evaluateOnce(
+  ownerId: string,
+  sessionId: string,
+  stored: NonNullable<Awaited<ReturnType<typeof STORE.get>>>,
+  advanced: boolean,
+  reportLanguage: string | undefined,
+): Promise<EvaluationPayload> {
+  const running = evaluations.get(sessionId);
+  if (running) return running;
+  const job = (async (): Promise<EvaluationPayload> => {
+    const done = await readQuietly(PROGRESS.getSession(ownerId, sessionId), null);
+    if (done?.completedAt && done.evaluation) {
+      return {
+        ...shapeFeedback(
+          { evaluation: done.evaluation, metrics: done.metrics ?? computeMetrics(done.turns) },
+          advanced,
+        ),
+        xp: null,
+        badges: [],
+      };
+    }
+    const session = InterviewSession.restore(
+      stored.snapshot,
+      PROVIDER ? { provider: PROVIDER } : {},
+    );
+    const evaluation = await evaluateInterview(
+      stored.context,
+      session.transcript,
+      {
+        ...(PROVIDER ? { provider: PROVIDER } : {}),
+        ...(stored.stages ? { stages: stored.stages } : {}),
+        ...(stored.language ? { language: stored.language } : {}),
+        ...(stored.level ? { level: stored.level } : {}),
+        ...(stored.pressure ? { pressure: true } : {}),
+        ...(reportLanguage ? { reportLanguage } : {}),
+      },
+    );
+    const score = evaluation.overall_score_percentage;
+
+    // The transcript is rewritten once more before metrics are computed, so
+    // the numbers are derived from the same turns that will be read back on
+    // the history screen rather than from a copy that could have drifted.
+    await recordQuietly(recordTranscript(sessionId, session.transcript));
+
+    // Everything from here to the response is guarded. The model call above is
+    // the expensive, already-spent part; losing the report it produced because
+    // a read failed afterwards is the worst outcome this route has.
+    //
+    // Falling back to the in-memory transcript rather than to nothing: metrics
+    // are derived from turns, and the session object still holds them. Only the
+    // speech timings are lost, which the metrics already treat as optional.
+    const detail = await readQuietly(PROGRESS.getSession(ownerId, sessionId), null);
+    const metrics = computeMetrics(
+      detail?.turns ??
+        session.transcript.map((turn, idx) => ({
+          idx,
+          speaker: turn.speaker,
+          text: turn.text,
+          tStartMs: null,
+          tEndMs: null,
+        })),
+    );
+
+    // Read before completing, so the session being scored is not counted as
+    // one of the sessions it is being compared against.
+    const history = await readQuietly(PROGRESS.listSessions(ownerId), []);
+    const previous = history.filter((entry) => entry.id !== sessionId);
+
+    await recordQuietly(
+      PROGRESS.completeSession({ sessionId, score, evaluation, metrics }),
+    );
+
+    const today = new Date().toISOString().slice(0, 10);
+    const mode = stored.mode ?? "practice";
+    const events = xpForSession({
+      score,
+      mode,
+      history: previous,
+      // From the XP log, not from the session count: the cap has to hold even
+      // when the awards per session change.
+      // A failed read here would award a full day's XP again. Falling back to
+      // the cap rather than to zero means a storage blip withholds XP instead
+      // of handing out an unlimited amount of it.
+      xpToday: await readQuietly(PROGRESS.xpOnDay(ownerId, today), DAILY_XP_CAP),
+      today,
+    });
+    await recordQuietly(PROGRESS.addXp(ownerId, sessionId, events));
+
+    const earned = await readQuietly(
+      PROGRESS.awardBadges(
+        ownerId,
+        badgesForSession({
+          score,
+          mode,
+          stage: stored.context.interviewStage,
+          sectorId: sectorForCompany(stored.context.companyName)?.id ?? null,
+          company: stored.context.companyName,
+          metrics,
+          history: previous,
+        }),
+        sessionId,
+      ),
+      [] as string[],
+    );
+
+    return {
+      ...shapeFeedback({ evaluation, metrics }, advanced),
+      usage: session.usage,
+      // XP and badges stay on the free plan on purpose. They are the loop that
+      // brings someone back for a second session, and a progress system that
+      // only rewards subscribers rewards nobody at the moment it matters.
+      xp: {
+        events,
+        gained: events.reduce((total, event) => total + event.amount, 0),
+      },
+      // Only the newly earned ones, so the client can celebrate exactly what
+      // just happened rather than re-announcing a badge from last week.
+      badges: earned.map((id) => BADGES.find((badge) => badge.id === id) ?? { id }),
+    };
+  })();
+  evaluations.set(sessionId, job);
+  // Forgotten on failure at once, so a retry runs again; kept for ten
+  // minutes on success, for the client's own request to pick up.
+  job.then(
+    () => setTimeout(() => evaluations.delete(sessionId), 10 * 60 * 1000).unref(),
+    () => evaluations.delete(sessionId),
+  );
+  return job;
+}
+
 /** The Monday after one. */
 function nextWeek(start: Date): Date {
   const next = new Date(start);
@@ -2989,6 +3136,21 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       return json(res, 200, { turn });
     }
 
+    // The last turn starts the report at once, without waiting to be asked:
+    // whoever closes the tab at "thank you for your time" still finds it in
+    // their history. In the reader's language, which the client sends along.
+    const reportLanguage = REPORT_LANGUAGES[String(body["readerLanguage"] ?? "")];
+    const reportIfDone = (turn: { isComplete: boolean }) => {
+      if (!turn.isComplete) return;
+      void evaluateOnce(
+        identity.id,
+        sessionId,
+        { ...stored, snapshot: session.snapshot() },
+        can.advancedFeedback,
+        reportLanguage,
+      ).catch((error: unknown) => console.error("[mockio] background report:", error));
+    };
+
     if (wantsStream(req)) {
       openStream(res);
       const turn = await session.submitAnswerStream(answer, (chunk) =>
@@ -2999,12 +3161,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       await persist();
       sendEvent(res, "turn", { turn });
       res.end();
+      reportIfDone(turn);
       return;
     }
 
     const turn = await session.submitAnswer(answer);
     await persist();
     json(res, 200, { turn });
+    reportIfDone(turn);
     return;
   }
 
@@ -3065,104 +3229,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // the product's own locales are accepted; anything else reads in English.
     const evalBody = await readJson(req).catch(() => ({}) as Record<string, unknown>);
     const reportLanguage = REPORT_LANGUAGES[String(evalBody["readerLanguage"] ?? "")];
-    const session = InterviewSession.restore(
-      stored.snapshot,
-      PROVIDER ? { provider: PROVIDER } : {},
-    );
-    const evaluation = await evaluateInterview(
-      stored.context,
-      session.transcript,
-      {
-        ...(PROVIDER ? { provider: PROVIDER } : {}),
-        ...(stored.stages ? { stages: stored.stages } : {}),
-        ...(stored.language ? { language: stored.language } : {}),
-        ...(stored.level ? { level: stored.level } : {}),
-        ...(stored.pressure ? { pressure: true } : {}),
-        ...(reportLanguage ? { reportLanguage } : {}),
-      },
-    );
-    const score = evaluation.overall_score_percentage;
-
-    // The transcript is rewritten once more before metrics are computed, so
-    // the numbers are derived from the same turns that will be read back on
-    // the history screen rather than from a copy that could have drifted.
-    await recordQuietly(recordTranscript(sessionId, session.transcript));
-
-    // Everything from here to the response is guarded. The model call above is
-    // the expensive, already-spent part; losing the report it produced because
-    // a read failed afterwards is the worst outcome this route has.
-    //
-    // Falling back to the in-memory transcript rather than to nothing: metrics
-    // are derived from turns, and the session object still holds them. Only the
-    // speech timings are lost, which the metrics already treat as optional.
-    const detail = await readQuietly(PROGRESS.getSession(identity.id, sessionId), null);
-    const metrics = computeMetrics(
-      detail?.turns ??
-        session.transcript.map((turn, idx) => ({
-          idx,
-          speaker: turn.speaker,
-          text: turn.text,
-          tStartMs: null,
-          tEndMs: null,
-        })),
-    );
-
-    // Read before completing, so the session being scored is not counted as
-    // one of the sessions it is being compared against.
-    const history = await readQuietly(PROGRESS.listSessions(identity.id), []);
-    const previous = history.filter((entry) => entry.id !== sessionId);
-
-    await recordQuietly(
-      PROGRESS.completeSession({ sessionId, score, evaluation, metrics }),
-    );
-
-    const today = new Date().toISOString().slice(0, 10);
-    const mode = stored.mode ?? "practice";
-    const events = xpForSession({
-      score,
-      mode,
-      history: previous,
-      // From the XP log, not from the session count: the cap has to hold even
-      // when the awards per session change.
-      // A failed read here would award a full day's XP again. Falling back to
-      // the cap rather than to zero means a storage blip withholds XP instead
-      // of handing out an unlimited amount of it.
-      xpToday: await readQuietly(PROGRESS.xpOnDay(identity.id, today), DAILY_XP_CAP),
-      today,
-    });
-    await recordQuietly(PROGRESS.addXp(identity.id, sessionId, events));
-
-    const earned = await readQuietly(
-      PROGRESS.awardBadges(
-        identity.id,
-        badgesForSession({
-          score,
-          mode,
-          stage: stored.context.interviewStage,
-          sectorId: sectorForCompany(stored.context.companyName)?.id ?? null,
-          company: stored.context.companyName,
-          metrics,
-          history: previous,
-        }),
-        sessionId,
-      ),
-      [] as string[],
-    );
-
-    json(res, 200, {
-      ...shapeFeedback({ evaluation, metrics }, can.advancedFeedback),
-      usage: session.usage,
-      // XP and badges stay on the free plan on purpose. They are the loop that
-      // brings someone back for a second session, and a progress system that
-      // only rewards subscribers rewards nobody at the moment it matters.
-      xp: {
-        events,
-        gained: events.reduce((total, event) => total + event.amount, 0),
-      },
-      // Only the newly earned ones, so the client can celebrate exactly what
-      // just happened rather than re-announcing a badge from last week.
-      badges: earned.map((id) => BADGES.find((badge) => badge.id === id) ?? { id }),
-    });
+    json(res, 200, await evaluateOnce(identity.id, sessionId, stored, can.advancedFeedback, reportLanguage));
     return;
   }
 

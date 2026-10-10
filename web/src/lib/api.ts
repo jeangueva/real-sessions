@@ -218,6 +218,7 @@ export interface Mission {
   done: boolean;
 }
 
+/** Null when the report was already written earlier: no new XP to show. */
 export interface XpAward {
   events: { kind: string; amount: number }[];
   gained: number;
@@ -514,11 +515,13 @@ export function sendAnswerStream(
   answer: string,
   timings: SpeechTimings,
   onDelta: (text: string) => void,
+  /** The interface language: the report started after the last turn uses it. */
+  readerLanguage?: string,
 ) {
   return withIdentity(() =>
     postStream(
       `/api/sessions/${sessionId}/answers`,
-      { answer, timings },
+      { answer, timings, readerLanguage },
       { onDelta },
     ),
   );
@@ -544,7 +547,7 @@ export function requestEvaluation(sessionId: string, readerLanguage?: string) {
     post<{
       evaluation: Evaluation;
       metrics: SessionMetrics | null;
-      xp: XpAward;
+      xp: XpAward | null;
       badges: Badge[];
       /** Names what the plan withheld, so the UI can offer it rather than hide it. */
       withheld: { metrics: boolean; nextSteps: boolean };

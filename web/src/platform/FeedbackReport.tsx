@@ -132,10 +132,11 @@ export function FeedbackReport() {
           // A level crossed is announced once, here, from the server's
           // total: the curve is mirrored only to know whether a line was
           // crossed, never to name the level.
-          if (result.xp.gained > 0) {
+          const gained = result.xp?.gained ?? 0;
+          if (gained > 0) {
             fetchProfile()
               .then((profile) => {
-                const previous = levelForXp(profile.xp - result.xp.gained);
+                const previous = levelForXp(profile.xp - gained);
                 if (profile.level > previous) setLevelUp({ level: profile.level, previous });
               })
               .catch(() => undefined);

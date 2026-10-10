@@ -23,7 +23,7 @@ import { CallControls } from "./CallControls";
 import { CallStage } from "./CallStage";
 import { TranscriptPanel, type TranscriptLine } from "./TranscriptPanel";
 import { resumeAudio } from "@/lib/audio-level";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
 interface SetupState {
@@ -69,6 +69,7 @@ const TIP_LABEL: Record<CoachTip["kind"], MessageKey> = {
  */
 export function LiveInterview() {
   const t = useT();
+  const { locale } = useLocale();
   const navigate = useNavigate();
   const { state } = useLocation() as { state: SetupState | null };
   const setup = state ?? {};
@@ -403,10 +404,16 @@ export function LiveInterview() {
     // would be the worst possible response to an error.
     addLine("candidate", trimmed);
     try {
-      const next = await sendAnswerStream(sessionId, trimmed, timings, (chunk) => {
-        setStreaming((current) => current + chunk);
-        voice.speakStreamed(chunk);
-      });
+      const next = await sendAnswerStream(
+        sessionId,
+        trimmed,
+        timings,
+        (chunk) => {
+          setStreaming((current) => current + chunk);
+          voice.speakStreamed(chunk);
+        },
+        locale,
+      );
       voice.flushSpeech();
       setTurn(next);
       if (next.text.trim() !== "") addLine("interviewer", next.text);

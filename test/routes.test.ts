@@ -1169,7 +1169,9 @@ describe("when the database goes away", () => {
         interviewStage: "Behavioral",
       }),
     );
-    api.provider.reply("Done. [INTERVIEW_COMPLETE]");
+    // Left half-way, so no report is started on its own: the one asked for
+    // below is the only model call, and the database is gone by then.
+    api.provider.reply("Tell me more about that.");
     await api.call(
       `/api/sessions/${started.sessionId}/answers`,
       post({ answer: "I owned activation and cut approval time to under an hour." }),
@@ -1193,6 +1195,31 @@ describe("when the database goes away", () => {
     // XP falls back to the daily cap being spent, so a blip withholds points
     // rather than handing out an unbounded number of them.
     expect(body.xp.gained).toBe(0);
+  });
+});
+
+describe("the report after the last turn", () => {
+  beforeEach(() => api.authenticate());
+
+  it("is written without being asked, once, and served to the client that asks", async () => {
+    const started = await api.json<{ sessionId: string }>(
+      "/api/sessions",
+      post({ candidateName: "X", targetRole: "Growth PM", companyName: "Nubank", interviewStage: "Behavioral" }),
+    );
+    api.provider.reply("Thanks, that is all. [INTERVIEW_COMPLETE]");
+    await api.call(`/api/sessions/${started.sessionId}/answers`, post({ answer: "I cut approval time to an hour." }));
+
+    const first = (await (await api.call(`/api/sessions/${started.sessionId}/evaluation`, post({}))).json()) as {
+      evaluation: { overall_score_percentage: number };
+      xp: { gained: number } | null;
+    };
+    const second = (await (await api.call(`/api/sessions/${started.sessionId}/evaluation`, post({}))).json()) as {
+      evaluation: { overall_score_percentage: number };
+      xp: { gained: number } | null;
+    };
+    expect(first.evaluation.overall_score_percentage).toBe(second.evaluation.overall_score_percentage);
+    // The same result, not a second scoring: XP is granted once.
+    expect(second.xp?.gained ?? 0).toBe(first.xp?.gained ?? 0);
   });
 });
 
