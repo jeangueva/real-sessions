@@ -86,22 +86,39 @@ export interface Capabilities {
    * plan prepares.
    */
   trackApplications: boolean;
+  /**
+   * The conversations after the offer: stand-ups, client calls, reviews,
+   * asking for a raise (stages in the "work" and "grow" phases).
+   *
+   * This is the line between the plans now. Getting hired — every interview
+   * feature — is free, capped by the week; the job itself, which someone
+   * needs every week once they have it, is what the subscription is for.
+   */
+  workScenes: boolean;
 }
 
+/**
+ * Free: everything that gets someone hired, five sessions a week.
+ *
+ * The interview features used to be the paid part — a company, a CV, live
+ * coaching — and the person who most needed them, before their first job in
+ * English, was the one least able to pay. Now preparing is free and the
+ * weekly cap is what keeps its cost bounded; what is paid is the working
+ * life that comes after.
+ */
 const FREE: Capabilities = {
   plan: "free",
-  targetCompany: false,
-  choosePersona: false,
-  candidateProfile: false,
-  liveCoaching: false,
-  advancedFeedback: false,
-  // Not zero. One session with nothing to compare it against is the reason to
-  // upgrade; zero is just a broken screen.
-  historyLimit: 3,
-  interviewLanguage: false,
+  targetCompany: true,
+  choosePersona: true,
+  candidateProfile: true,
+  liveCoaching: true,
+  advancedFeedback: true,
+  historyLimit: 20,
+  interviewLanguage: true,
   weeklySessions: 5,
   shareReport: true,
-  trackApplications: false,
+  trackApplications: true,
+  workScenes: false,
 };
 
 const PREMIUM: Capabilities = {
@@ -119,6 +136,7 @@ const PREMIUM: Capabilities = {
   interviewLanguage: true,
   shareReport: true,
   trackApplications: true,
+  workScenes: true,
 };
 
 export function capabilitiesFor(plan: Plan): Capabilities {

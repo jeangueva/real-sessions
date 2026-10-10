@@ -85,10 +85,7 @@ describe("running an interview", () => {
     expect(body.turn.text).toContain("hard tradeoff");
   });
 
-  it("reports the generic employer it actually ran, not the one asked for", async () => {
-    // The free plan replaces the company server-side. Returning the requested
-    // name would let the interview screen tell a free candidate they had just
-    // rehearsed against Stripe.
+  it("keeps the employer asked for on the free plan, since preparing is free", async () => {
     api.provider.reply("Opener.");
     const body = await api.json<{
       context: { companyName: string; generic: boolean; targetRole: string };
@@ -101,9 +98,8 @@ describe("running an interview", () => {
         interviewStage: "Behavioral",
       }),
     );
-    expect(body.context.companyName).not.toBe("Stripe");
-    expect(body.context.generic).toBe(true);
-    // The role survives — that is the whole of what a free session targets.
+    expect(body.context.companyName).toBe("Stripe");
+    expect(body.context.generic).toBe(false);
     expect(body.context.targetRole).toBe("Growth PM");
   });
 
@@ -209,95 +205,53 @@ describe("evaluation and history", () => {
 describe("the free plan, enforced over HTTP", () => {
   beforeEach(() => api.authenticate());
 
-  it("replaces the employer with a generic one", async () => {
-    await completeInterview(api);
-    const history = await api.json<{ sessions: { company: string }[] }>("/api/history");
-    expect(history.sessions[0]!.company).not.toBe("Nubank");
-  });
-
-  it("does not let the sector in through the industry field", async () => {
-    // The hole this closed: gating the company name alone left `industry`
-    // readable from the request, and the interview came back sector-grounded.
-    api.provider.reply("Opening question.");
-    await api.call(
-      "/api/sessions",
-      post({
-        candidateName: "X",
-        targetRole: "Growth PM",
-        companyName: "Nubank",
-        industry: "Fintech",
-        companyCulture: "Customer love",
-        interviewStage: "Behavioral",
-      }),
-    );
-    const prompt = api.provider.prompts.at(-1) ?? "";
-    expect(prompt).not.toContain("Fintech");
-    expect(prompt).not.toContain("Nubank");
-  });
-
-  it("withholds the measured metrics and the next steps", async () => {
+  it("keeps the employer, the metrics and the next steps: preparing is free", async () => {
     const started = await api.json<{ sessionId: string }>(
       "/api/sessions",
-      post({
-        candidateName: "X",
-        targetRole: "Growth PM",
-        companyName: "Nubank",
-        interviewStage: "Behavioral",
-      }),
+      post({ candidateName: "X", targetRole: "Growth PM", companyName: "Nubank", interviewStage: "Behavioral" }),
     );
     api.provider.reply("Done. [INTERVIEW_COMPLETE]");
     await api.call(`/api/sessions/${started.sessionId}/answers`, post({ answer: "A." }));
-
-    const result = await api.json<{
-      metrics: unknown;
-      evaluation: { actionable_next_steps: string[]; overall_score_percentage: number };
-      withheld: { metrics: boolean; nextSteps: boolean };
-      xp: { gained: number };
-    }>(`/api/sessions/${started.sessionId}/evaluation`, post({}));
-
-    expect(result.metrics).toBeNull();
-    expect(result.evaluation.actionable_next_steps).toEqual([]);
-    expect(result.withheld).toEqual({ metrics: true, nextSteps: true });
-    // The honest half survives: score, and the engagement loop.
-    expect(result.evaluation.overall_score_percentage).toBe(62);
-    expect(result.xp.gained).toBeGreaterThan(0);
+    const result = await api.json<{ withheld: { metrics: boolean; nextSteps: boolean } }>(
+      `/api/sessions/${started.sessionId}/evaluation`,
+      post({}),
+    );
+    expect(result.withheld).toEqual({ metrics: false, nextSteps: false });
+    const history = await api.json<{ sessions: { company: string }[] }>("/api/history");
+    expect(history.sessions[0]!.company).toBe("Nubank");
   });
 
-  it("withholds them again when the same record is read back from history", async () => {
-    const sessionId = await completeInterview(api);
-    const detail = await api.json<{
-      session: { metrics: unknown; withheld: { metrics: boolean } };
-    }>(`/api/history/${sessionId}`);
-    expect(detail.session.metrics).toBeNull();
-    expect(detail.session.withheld.metrics).toBe(true);
-  });
-
-  it("refuses coaching with a 402 naming the feature", async () => {
+  it("allows live coaching and a CV upload", async () => {
     const started = await api.json<{ sessionId: string }>(
       "/api/sessions",
-      post({
-        candidateName: "X",
-        targetRole: "Growth PM",
-        companyName: "Nubank",
-        interviewStage: "Behavioral",
-      }),
+      post({ candidateName: "X", targetRole: "Growth PM", companyName: "Nubank", interviewStage: "Behavioral" }),
     );
     await api.call(`/api/sessions/${started.sessionId}/answers`, post({ answer: "A." }));
-
-    const response = await api.call(`/api/sessions/${started.sessionId}/coach`, post({}));
-    expect(response.status).toBe(402);
-    // The client branches on this to show the right upsell.
-    expect(((await response.json()) as { feature: string }).feature).toBe("liveCoaching");
-  });
-
-  it("refuses a CV upload for the same reason", async () => {
+    expect((await api.call(`/api/sessions/${started.sessionId}/coach`, post({}))).status).not.toBe(402);
     const form = new FormData();
     form.append("file", new File(["a CV, at length"], "cv.txt", { type: "text/plain" }));
-    const response = await api.call("/api/context/document", {
-      method: "POST",
-      body: form,
-    });
+    expect((await api.call("/api/context/document", { method: "POST", body: form })).status).not.toBe(402);
+  });
+
+  it("refuses a scene from the job itself with a 402: that is the paid plan", async () => {
+    const response = await api.call(
+      "/api/sessions",
+      post({ candidateName: "X", targetRole: "Growth PM", companyName: "Nubank", interviewStage: "Client status call", stages: ["client-call"] }),
+    );
     expect(response.status).toBe(402);
+    expect(((await response.json()) as { code: string }).code).toBe("paidOnly");
+  });
+
+  it("runs a scene from the job itself on the paid plan, as a colleague rather than an interviewer", async () => {
+    await api.makePremium();
+    api.provider.reply("Hi, where are we on the project?");
+    const response = await api.call(
+      "/api/sessions",
+      post({ candidateName: "X", targetRole: "Growth PM", companyName: "Nubank", interviewStage: "Client status call", stages: ["client-call"] }),
+    );
+    expect(response.status).toBe(201);
+    const prompt = api.provider.prompts.at(-1) ?? "";
+    expect(prompt).toContain("This is not a job interview");
   });
 });
 
@@ -1346,10 +1300,9 @@ describe("the interviewer's voice", () => {
 });
 
 describe("sharing a report", () => {
-  it("lets a free account share, and its link carries only the free half", async () => {
+  it("lets a free account share the whole report", async () => {
     // Sharing is how a stranger first hears of the product, so it is on
-    // both plans. What it must not become is a way round the paywall: a free
-    // candidate opening their own link and reading the paid half of it.
+    // both plans — and since the report is free now, so is all of it.
     await api.authenticate();
     const id = await completeInterview(api);
     const response = await api.call(`/api/history/${id}/share`, post({}));
@@ -1361,8 +1314,7 @@ describe("sharing a report", () => {
       report: { metrics: unknown; evaluation: { actionable_next_steps: unknown[] } | null };
     }>(`/api/shared/${shared.token}`);
     expect(report.evaluation).toBeTruthy();
-    expect(report.evaluation?.actionable_next_steps).toEqual([]);
-    expect(report.metrics).toBeNull();
+    expect(report.evaluation?.actionable_next_steps.length).toBeGreaterThan(0);
   });
 
   it("gives a premium owner's link the whole report", async () => {
@@ -1468,9 +1420,9 @@ describe("tracking applications", () => {
     );
   }
 
-  it("refuses the list on the free plan", async () => {
+  it("is open on the free plan: tracking a search is part of preparing", async () => {
     await api.authenticate();
-    expect((await api.call("/api/applications")).status).toBe(402);
+    expect((await api.call("/api/applications")).status).toBe(200);
   });
 
   it("keeps a posting and moves the row through its states", async () => {

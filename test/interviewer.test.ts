@@ -142,7 +142,7 @@ describe("InterviewSession", () => {
     const lastCandidateTurn = params.messages
       .filter((message) => message.role === "user")
       .at(-1)!;
-    expect(lastCandidateTurn.text).toContain("final turn of the interview");
+    expect(lastCandidateTurn.text).toContain("final turn of the conversation");
   });
 
   it("ends the interview on the last allowed turn even without the flag", async () => {

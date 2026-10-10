@@ -150,8 +150,8 @@ describe("the prompts are told which language", () => {
 });
 
 describe("the paywall", () => {
-  it("is a paid feature", () => {
-    expect(capabilitiesFor("free").interviewLanguage).toBe(false);
+  it("is part of preparing, so it is free", () => {
+    expect(capabilitiesFor("free").interviewLanguage).toBe(true);
     expect(capabilitiesFor("premium").interviewLanguage).toBe(true);
   });
 });

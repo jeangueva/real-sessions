@@ -21,8 +21,23 @@ import type { AreaId } from "./roles.js";
  * to develop; a behavioural round asked to fill the same space starts padding.
  */
 
+/**
+ * Where a scene sits in someone's working life.
+ *
+ *   prepare  getting hired: screens, interviews, the offer call. Free.
+ *   work     the job itself, in English: stand-ups, clients, bad news. Paid.
+ *   grow     moving up: reviews, raises, the next level. Paid.
+ *
+ * The product used to end at the interview, and so did the reason to keep
+ * paying. The two later phases are what someone needs every week once they
+ * have the job — which is when a subscription makes sense.
+ */
+export type Phase = "prepare" | "work" | "grow";
+
 export interface Stage {
   id: string;
+  /** Absent means "prepare": every round written before phases existed. */
+  phase?: Phase;
   label: string;
   /** One line for the picker: what this round is actually testing. */
   summary: string;
@@ -248,7 +263,141 @@ const STANDUP: Stage = {
   maxTurns: 4,
   titles: [...SENIOR_IC, ...ENGINEERING_LEADS],
   solo: true,
+  phase: "work",
 };
+
+/*
+ * ---------------------------------------------------------------------------
+ * At work and growing: the conversations after the offer.
+ *
+ * Every one is solo — it is its own event, not a round of a loop — and every
+ * brief says who the other person is, because the persona's title alone
+ * ("Head of Product") does not say whether they are your client, your
+ * manager or your teammate today.
+ * ------------------------------------------------------------------------ */
+
+const CLIENT_CALL: Stage = {
+  id: "client-call",
+  phase: "work",
+  label: "Client status call",
+  summary: "The client wants an update — and a little more than was agreed.",
+  brief:
+    "You are the client: the product owner at a company that hired the candidate's team. Open by asking where the project stands. Then, once they have given an update, ask for one extra thing 'small' that was never in scope, with the same deadline. React the way a real client does: pleased by clear dates, uneasy at vagueness, and you push once more if they agree too easily or refuse too bluntly. You are not hostile; you are busy and you want to know what you will get and when.",
+  rubric:
+    "Weigh whether the update was clear and concrete (what is done, what is next, when), and whether they handled the extra request without either caving or stonewalling: naming the trade-off, offering options, confirming in writing. Note phrases that sounded unsure or over-apologetic to a client.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT, ...EXEC],
+  solo: true,
+};
+
+const DEADLINE_SLIP: Stage = {
+  id: "deadline-slip",
+  phase: "work",
+  label: "Telling your manager it will be late",
+  summary: "The deadline is Friday and it will not make it. Say so.",
+  brief:
+    "You are the candidate's manager. Open with a quick, friendly check-in on the feature due this Friday. The candidate has to tell you it will be late. Ask why, ask what the new date is, and ask what could be cut to make Friday. If they are vague, ask for a number. If they are clear and propose options, accept one and close. Stay calm and practical — a good manager wants the news early, not softened.",
+  rubric:
+    "Weigh whether they said the news early and plainly rather than burying it, gave a reason without excuses, proposed a new date and options (cut scope, add help), and owned it without over-apologising. Phrases like 'I think maybe it could possibly' are the finding here.",
+  minTurns: 3,
+  maxTurns: 5,
+  titles: [...ENGINEERING_LEADS, ...PRODUCT],
+  solo: true,
+};
+
+const INCIDENT: Stage = {
+  id: "incident-explanation",
+  phase: "work",
+  label: "Explaining a bug to a non-technical stakeholder",
+  summary: "Something broke in production. Explain it so they understand.",
+  brief:
+    "You are a senior stakeholder from the business side, not technical. Something the candidate's team owns broke in production yesterday and customers noticed. Ask them what happened, in plain words. When they use jargon, ask what it means. Then ask whether it will happen again and what they are doing about it. You are worried but fair.",
+  rubric:
+    "Weigh clarity for a non-technical listener: what happened, the impact, the cause in one plain sentence, the fix and how it will not recur. Jargon left unexplained, blame on others, and long technical detail before the impact are the findings here.",
+  minTurns: 3,
+  maxTurns: 5,
+  titles: [...PRODUCT, ...EXEC],
+  solo: true,
+};
+
+const DEMO: Stage = {
+  id: "sprint-demo",
+  phase: "work",
+  label: "Sprint demo",
+  summary: "Show what you shipped this sprint and take the questions.",
+  brief:
+    "You are a stakeholder at the end-of-sprint demo. Ask the candidate to walk you through what they shipped. Then ask one question about why it matters to users, one about a limitation, and one 'can it also do X?' that it cannot. React like a busy stakeholder: interested in outcomes, impatient with implementation detail.",
+  rubric:
+    "Weigh whether they led with the outcome for users rather than the implementation, kept it short, answered the limitation honestly, and said no to the out-of-scope request without sounding defensive.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT, ...EXEC],
+  solo: true,
+};
+
+const CLARIFY: Stage = {
+  id: "clarify-requirements",
+  phase: "work",
+  label: "Clarifying a vague request",
+  summary: "The request is unclear. Ask the questions before you build it.",
+  brief:
+    "You are a product manager handing the candidate a new request in one vague sentence (for example, 'we need a dashboard for the sales team, can you have something by next week?'). Answer their questions briefly and only what they ask — do not volunteer details. If they start agreeing without asking anything, let them, then ask 'so what will you build?'. Close when the scope is clear.",
+  rubric:
+    "Weigh whether they asked the questions that matter (who, what decision it supports, what done means, deadline and priority) before committing, summarised the agreement back, and pushed back politely on an unrealistic date.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT],
+  solo: true,
+};
+
+const REVIEW: Stage = {
+  id: "performance-review",
+  phase: "grow",
+  label: "Performance review",
+  summary: "Your manager gives mixed feedback. Talk about your year.",
+  brief:
+    "You are the candidate's manager in their yearly performance review. Open by asking how they think the year went. Then give one piece of genuine praise and one piece of critical feedback that is partly fair and partly not. See whether they can name their achievements with evidence and respond to the criticism without getting defensive or simply agreeing. End by asking what they want to focus on next year.",
+  rubric:
+    "Weigh whether they described their impact with concrete results, accepted the fair part of the criticism, disagreed with the unfair part calmly and with evidence, and stated what they want next. Over-agreeing is as much a finding as defensiveness.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...ENGINEERING_LEADS],
+  solo: true,
+};
+
+const RAISE: Stage = {
+  id: "ask-for-raise",
+  phase: "grow",
+  label: "Asking for a raise",
+  summary: "Make the case for more pay. The budget is tight.",
+  brief:
+    "You are the candidate's manager. They asked for this one-on-one; let them raise the topic. When they ask for a raise, say budgets are tight this cycle. Ask what they think justifies it and what number they have in mind. If they argue well with impact and market data, offer something partial (a smaller raise now, a review in three months, or a title change). If they ask vaguely, stay vague too.",
+  rubric:
+    "Weigh whether they asked clearly, backed it with impact and market references, named a figure, handled 'the budget is tight' without retreating, and agreed a concrete next step with a date. Apologetic or hedged asks cost real money and are the main finding.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...ENGINEERING_LEADS, ...EXEC],
+  solo: true,
+};
+
+const CAREER: Stage = {
+  id: "career-conversation",
+  phase: "grow",
+  label: "Career conversation",
+  summary: "Ask your manager what it takes to reach the next level.",
+  brief:
+    "You are the candidate's manager in a career one-on-one. Let them lead. When they ask about promotion, explain that the next level requires scope beyond their own work — leading something, influencing others — and ask what they have done in that direction. Help them leave with a concrete plan if they ask good questions; stay general if they do not.",
+  rubric:
+    "Weigh whether they stated a clear goal, asked specific questions about expectations, gave examples of work beyond their scope, and closed with agreed next steps and a check-in date.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...ENGINEERING_LEADS],
+  solo: true,
+};
+
+/** Every role has these: the job itself is in English, whatever the job is. */
+const AFTER_THE_OFFER: Stage[] = [CLIENT_CALL, DEADLINE_SLIP, INCIDENT, DEMO, CLARIFY, REVIEW, RAISE, CAREER];
 
 /**
  * The job itself, as a problem to work through.
@@ -326,6 +475,7 @@ export const STAGES: Stage[] = [
   VALUES,
   NEGOTIATION,
   STANDUP,
+  ...AFTER_THE_OFFER,
 ];
 
 const BY_ID = new Map(STAGES.map((stage) => [stage.id, stage]));
@@ -334,8 +484,8 @@ const BY_LABEL = new Map(STAGES.map((stage) => [stage.label.toLowerCase(), stage
 /** The rounds offered for a role. Falls back to the common set. */
 export function stagesFor(role: string | null | undefined): Stage[] {
   const resolved = findRole(role);
-  if (!resolved) return [BEHAVIORAL, DEEP_DIVE];
-  return BY_ROLE[resolved.id] ?? BY_AREA[resolved.area];
+  if (!resolved) return [BEHAVIORAL, DEEP_DIVE, ...AFTER_THE_OFFER];
+  return [...(BY_ROLE[resolved.id] ?? BY_AREA[resolved.area]), ...AFTER_THE_OFFER];
 }
 
 /**
@@ -517,12 +667,13 @@ export interface PublicStage {
   maxTurns: number;
   titles: string[];
   solo?: boolean;
+  phase: Phase;
 }
 
 /** Everything the browser is allowed to know about a round. */
 export function publicStage(stage: Stage): PublicStage {
   const { brief: _brief, rubric: _rubric, ...rest } = stage;
-  return rest;
+  return { ...rest, phase: phaseOf(stage) };
 }
 
 export function stageCatalogue(): { roleId: string; stages: PublicStage[] }[] {
@@ -530,4 +681,14 @@ export function stageCatalogue(): { roleId: string; stages: PublicStage[] }[] {
     roleId: role.id,
     stages: stagesFor(role.id).map(publicStage),
   }));
+}
+
+/** The phase a stage belongs to; rounds written before phases are "prepare". */
+export function phaseOf(stage: Stage): Phase {
+  return stage.phase ?? "prepare";
+}
+
+/** Whether a session runs any scene past the interview — the paid part. */
+export function isAfterTheOffer(stages: readonly Stage[]): boolean {
+  return stages.some((stage) => phaseOf(stage) !== "prepare");
 }

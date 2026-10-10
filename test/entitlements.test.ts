@@ -22,19 +22,20 @@ describe("capabilities", () => {
     expect(free.historyLimit).toBeGreaterThan(0);
   });
 
-  it("puts everything that needs to know you behind the wall", () => {
+  it("gives the free plan every interview feature, capped by the week", () => {
     const free = capabilitiesFor("free");
-    expect(free.targetCompany).toBe(false);
-    expect(free.candidateProfile).toBe(false);
-    expect(free.liveCoaching).toBe(false);
-    expect(free.advancedFeedback).toBe(false);
+    expect(free.targetCompany).toBe(true);
+    expect(free.candidateProfile).toBe(true);
+    expect(free.liveCoaching).toBe(true);
+    expect(free.advancedFeedback).toBe(true);
+    expect(free.weeklySessions).toBe(5);
+    expect(free.workScenes).toBe(false);
   });
 
-  it("opens all of it on premium", () => {
+  it("puts the job itself, and no weekly cap, on premium", () => {
     const premium = capabilitiesFor("premium");
-    expect(premium.targetCompany).toBe(true);
-    expect(premium.candidateProfile).toBe(true);
-    expect(premium.liveCoaching).toBe(true);
+    expect(premium.workScenes).toBe(true);
+    expect(premium.weeklySessions).toBeNull();
     expect(premium.historyLimit).toBeGreaterThan(capabilitiesFor("free").historyLimit);
   });
 });

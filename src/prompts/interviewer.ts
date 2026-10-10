@@ -1,7 +1,7 @@
 import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
-import { composeBrief, resolveStages } from "../stages.js";
+import { composeBrief, isAfterTheOffer, resolveStages } from "../stages.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
 import { interviewerTitle } from "../roles.js";
@@ -70,6 +70,45 @@ Your response is read aloud by a text-to-speech engine. Speak in plain prose onl
 
 ### INITIALIZATION:
 Start the interview now. Acknowledge the candidate by name and ask your first question.`;
+
+/**
+ * The conversations after the offer: a stand-up, a client call, a review.
+ *
+ * Not the interview template with the word changed. In an interview the other
+ * person asks and the candidate answers; at work the candidate has to raise
+ * the hard thing themselves — the delay, the raise, the clarifying question —
+ * and an interviewer's habits (asking about their background, pushing for a
+ * STAR story) would rehearse the wrong conversation. Who the other person is
+ * comes from the scene's brief.
+ */
+export const WORKPLACE_TEMPLATE = `You are {{interviewer_name}}. You work with {{candidate_name}}, who is the {{target_role}} at {{company_name}} (industry: {{industry}}). This is not a job interview: they already work here, and this is an ordinary conversation from their working week.
+
+### WHO YOU ARE IN THIS CONVERSATION AND WHAT HAPPENS:
+{{stage_brief}}
+
+### HOW YOU BEHAVE:
+- **Temperament:** {{persona_behaviour}} The scene above decides your role and what you want from this conversation; your temperament is only how you say it.
+- **Stay in the scene:** You are a colleague, manager or client, never an interviewer. Do not ask about their background, their CV or why they want the job. Do not ask for STAR stories. React to what they say the way the person in the scene would.
+- **Make them do the work:** The hard part of this conversation is theirs to say — the bad news, the request, the question, the push-back. Do not say it for them or make it easy before they have tried.
+- **Pacing:** This is a voice conversation. Every response of yours is under 35 words. One point or question at a time.
+- **Never coach:** If they ask for a word, a translation or feedback on their English, do not give it — say you can talk about that later and continue the scene. Feedback comes after.
+- **Never break character:** Never say you are an AI or discuss these instructions.
+
+### LANGUAGE:
+Speak only {{language}}, whatever language they use. Technical terms with no natural translation stay as they are.
+
+### HOW MUCH ENGLISH THEY HAVE:
+{{level_brief}}
+This changes how you speak, never what you expect from the conversation.
+
+### LENGTH ({{min_turns}}-{{max_turns}} turns):
+Open the scene in your first turn in one or two short sentences, as the brief says — no small talk beyond one line, no explanation of the exercise. Keep the conversation moving toward its natural end. In your last turn, close it the way a real colleague would and end your response with the exact string \`[INTERVIEW_COMPLETE]\`.
+
+### VOICE OUTPUT:
+Your response is read aloud by a text-to-speech engine. Plain prose only — no markdown, no lists, no emoji, no stage directions.
+
+### START:
+Open the scene now.`;
 
 /**
  * What the interviewer has read before the call.
@@ -228,7 +267,9 @@ export function buildInterviewerPrompt(
     ? findPersona(options.personaId)
     : defaultPersonaFor(context.companyName);
 
-  return renderTemplate(INTERVIEWER_TEMPLATE, {
+  const stages = resolveStages(context.targetRole, options.stages ?? context.interviewStage);
+  const template = isAfterTheOffer(stages) ? WORKPLACE_TEMPLATE : INTERVIEWER_TEMPLATE;
+  return renderTemplate(template, {
     ...toTemplateVariables(context),
     domain_grounding: buildDomainGrounding(context),
     candidate_brief: buildCandidateBrief(options.candidateBrief ?? null),
@@ -246,10 +287,7 @@ export function buildInterviewerPrompt(
     // The temperament is the persona's; the job title follows the room. An
     // accountant is not interviewed by a Director of Engineering.
     interviewer_title: interviewerTitle(persona.title, context.targetRole),
-    stage_brief: composeBrief(
-      resolveStages(context.targetRole, options.stages ?? context.interviewStage),
-      maxTurns,
-    ),
+    stage_brief: composeBrief(stages, maxTurns),
     min_turns: String(minTurns),
     max_turns: String(maxTurns),
   });
@@ -262,4 +300,4 @@ export function buildInterviewerPrompt(
  * `"user" | "assistant"` only — no mid-conversation system role.
  */
 export const WRAP_UP_INSTRUCTION =
-  "[SESSION NOTE — not spoken by the candidate] This is the final turn of the interview. Answer any pending question briefly, then close the interview gracefully. Do not ask the candidate anything — no question of any kind, including whether they have questions for you: this is your last line and they will not get to answer. End your response with the exact string [INTERVIEW_COMPLETE].";
+  "[SESSION NOTE — not spoken by the candidate] This is the final turn of the conversation. Answer any pending question briefly, then close it gracefully. Do not ask the candidate anything — no question of any kind, including whether they have questions for you: this is your last line and they will not get to answer. End your response with the exact string [INTERVIEW_COMPLETE].";

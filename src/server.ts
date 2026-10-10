@@ -215,6 +215,7 @@ import {
 import type { PaddleSubscription } from "./billing/paddle.js";
 import {
   MAX_COMBINED,
+  isAfterTheOffer,
   resolveStages,
   stageCatalogue,
   titlesFor,
@@ -2983,6 +2984,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       : [];
 
     const rounds = resolveStages(context.targetRole, wantedStages ?? context.interviewStage);
+    // The conversations after the offer are the paid plan. Checked on the
+    // rounds actually resolved, not on what the picker showed: the picker is
+    // a courtesy and this is the paywall.
+    if (isAfterTheOffer(rounds) && !can.workScenes) {
+      return json(res, 402, {
+        error: "Practising the job itself — stand-ups, client calls, reviews — is on the paid plan.",
+        code: "paidOnly",
+      });
+    }
     // Whoever actually runs these rounds. A recruiter does not take a system
     // design interview, and honouring the request would rehearse a meeting
     // that does not happen.

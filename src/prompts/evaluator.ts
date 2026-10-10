@@ -1,6 +1,6 @@
 import type { InterviewContext, TranscriptTurn } from "../types.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
-import { composeRubric, resolveStages } from "../stages.js";
+import { composeRubric, isAfterTheOffer, resolveStages } from "../stages.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
 import { PRESSURE_RUBRIC } from "../pressure.js";
@@ -14,6 +14,8 @@ import { PRESSURE_RUBRIC } from "../pressure.js";
 export const EVALUATOR_TEMPLATE = `You are an expert Technical Recruiter and language coach specializing in helping Latin American tech professionals secure remote jobs in the US and Europe.
 
 This interview was conducted in {{language}}. Judge the candidate's {{language}} — its vocabulary, its grammar, its fluency.
+
+{{session_frame}}
 
 Write every piece of feedback in {{report_language}}: that is the language they read the product in, and a report in a language they are still learning is a report they skim. Keep anything you quote from them, and the corrected phrasings they should practise, in {{language}} — those are the words they will say out loud.
 
@@ -77,8 +79,14 @@ export function buildEvaluatorPrompt(
   pressure?: boolean,
   reportLanguage?: string,
 ): string {
+  const resolved = resolveStages(context.targetRole, stages ?? context.interviewStage);
   return renderTemplate(EVALUATOR_TEMPLATE, {
     ...toTemplateVariables(context),
+    // A stand-up or a client call is not an interview: nobody is selling
+    // themselves, and "cultural fit" criteria would grade the wrong thing.
+    session_frame: isAfterTheOffer(resolved)
+      ? "This was not a job interview. The candidate already works here, and this was a conversation from their working week. Judge it the way a good manager judges a colleague's communication: was it clear, was the register right for the other person, did they say the hard part themselves, and did they get what they needed. Ignore the criteria below that only make sense in a hiring interview (selling themselves, cultural fit for hiring); keep vocabulary, structure and grammar."
+      : "This was a job interview.",
     // The interface language the report is read in; English when unknown.
     report_language: reportLanguage ?? "English",
     // Grading Spanish against an English rubric would mark a fluent candidate
@@ -93,9 +101,7 @@ export function buildEvaluatorPrompt(
     pressure_rubric: pressure
       ? PRESSURE_RUBRIC
       : "This interview was run normally, with the candidate left to finish their answers.",
-    stage_rubric: composeRubric(
-      resolveStages(context.targetRole, stages ?? context.interviewStage),
-    ),
+    stage_rubric: composeRubric(resolved),
   });
 }
 
