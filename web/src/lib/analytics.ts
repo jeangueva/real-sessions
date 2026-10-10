@@ -16,6 +16,8 @@
  *                             on the transcript is the answers.
  *   `session_recording`       would record the screen. The screen is the CV.
  *   `capture_dead_clicks`     samples surrounding content to explain the click.
+ *   `enable_heatmaps`         is on: it keeps click and scroll positions,
+ *                             not what was under them.
  *   `person_profiles`         only for people who signed in, and keyed to the
  *                             account id rather than the address.
  *
@@ -90,6 +92,10 @@ export function startAnalytics(): void {
       autocapture: false,
       capture_dead_clicks: false,
       disable_session_recording: true,
+      // Heatmaps record where people click and how far they scroll, as
+      // coordinates on the page — never the text under the pointer, so they
+      // stay within the rule above. Read them in PostHog → Heatmaps.
+      enable_heatmaps: true,
       // Someone who asked their browser not to be tracked has asked.
       respect_dnt: true,
       // Page views are sent by the router, which knows when a route actually

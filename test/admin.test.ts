@@ -78,6 +78,13 @@ describe("summarise", () => {
     ],
     active7: ["a", "gone"],
     active30: ["a", "b"],
+    unfinished: [
+      { ownerId: "a", mode: "practice", level: "b2", startedAt: day(1), answers: 0, lastSpeaker: "interviewer", spoke: false },
+      { ownerId: "b", mode: "real", level: "b2", startedAt: day(2), answers: 7, lastSpeaker: "candidate", spoke: true },
+      { ownerId: "gone", mode: "practice", level: null, startedAt: day(2), answers: 3, lastSpeaker: "candidate", spoke: false },
+    ],
+    coupons: [],
+    audit: [],
   };
   const summary = summarise(raw, new Date(Date.UTC(2026, 9, 9, 12)));
 
@@ -96,9 +103,65 @@ describe("summarise", () => {
     expect(summary.interviewsByDay.at(-1)).toMatchObject({ completed: 1 });
   });
 
+  it("buckets unfinished interviews by how far they got", () => {
+    expect(summary.dropOff.total).toBe(2);
+    expect(Object.fromEntries(summary.dropOff.buckets.map((b) => [b.key, b.count]))).toMatchObject({ none: 1, all: 1 });
+    expect(summary.dropOff).toMatchObject({ leftWaiting: 1, spoke: 1, typed: 0, returning: 1 });
+  });
+
   it("lists users newest first with their plan", () => {
     expect(summary.users.map((user) => user.email)).toEqual(["a@x.co", "b@x.co", "c@x.co"]);
     expect(summary.users[0]).toMatchObject({ plan: "premium", provider: "paddle", completed: 3 });
     expect(summary.users[1]).toMatchObject({ plan: "free", google: true, verified: false });
+  });
+});
+
+import { ActionError, readCode, readDays, readName } from "../admin/actions.js";
+import { ruleInsights } from "../admin/insights.js";
+
+describe("admin action inputs", () => {
+  it("accepts sensible values and refuses the rest", () => {
+    expect(readDays("")).toBeNull();
+    expect(readDays("30")).toBe(30);
+    expect(() => readDays("0")).toThrow(ActionError);
+    expect(() => readDays("99999")).toThrow(ActionError);
+    expect(() => readDays("3.5")).toThrow(ActionError);
+    expect(readCode(" early100 ")).toBe("EARLY100");
+    expect(() => readCode("a b")).toThrow(ActionError);
+    expect(() => readCode("AB")).toThrow(ActionError);
+    expect(readName("  Ana ")).toBe("Ana");
+    expect(() => readName("x".repeat(61))).toThrow(ActionError);
+  });
+});
+
+describe("rule insights", () => {
+  it("flags complete interviews that never got a report, highest first", () => {
+    const base = summarise(
+      {
+        accounts: Array.from({ length: 10 }, (_, i) => ({ id: `u${i}`, email: `u${i}@x.co`, createdAt: new Date().toISOString() })),
+        activity: [],
+        days: [],
+        premium: [],
+        subscriptions: [],
+        active7: [],
+        active30: [],
+        unfinished: Array.from({ length: 4 }, (_, i) => ({
+          ownerId: `u${i}`,
+          mode: "practice",
+          level: null,
+          startedAt: new Date().toISOString(),
+          answers: 7,
+          lastSpeaker: "candidate" as const,
+          spoke: true,
+        })),
+        coupons: [],
+        audit: [],
+      },
+      new Date(),
+    );
+    const insights = ruleInsights(base);
+    expect(insights[0]?.severity).toBe("high");
+    expect(insights.map((i) => i.area)).toContain("Informe");
+    expect(insights.map((i) => i.area)).toContain("Activación");
   });
 });

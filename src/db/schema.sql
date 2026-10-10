@@ -406,3 +406,17 @@ CREATE TABLE IF NOT EXISTS promo_redemptions (
 );
 
 CREATE INDEX IF NOT EXISTS promo_redemptions_owner_idx ON promo_redemptions (owner_id);
+
+-- Every change made from the internal admin (admin/actions.ts): who, what, to
+-- whom, with which values. Append-only by convention; the admin never edits
+-- or deletes a row here.
+CREATE TABLE IF NOT EXISTS admin_audit (
+  id      BIGSERIAL PRIMARY KEY,
+  at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  actor   TEXT NOT NULL,
+  action  TEXT NOT NULL,
+  target  TEXT NOT NULL,
+  detail  JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS admin_audit_at_idx ON admin_audit (at DESC);

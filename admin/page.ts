@@ -1,135 +1,156 @@
 /**
- * The dashboard, rendered on the server as one HTML document.
- *
- * No framework and no external script: the page is read by a handful of
- * people, and every file it loads from somewhere else is one more thing that
- * could read the user list. Charts are inline SVG; the only script is the
- * table filter, allowed by a per-request nonce in the CSP.
+ * The admin's HTML: a shell with the sidebar and one empty frame per
+ * section, plus the data as JSON. `client.js` draws everything from that
+ * JSON, so a refresh after an action is one fetch and one redraw rather than
+ * a page load. Styles and script are served from this service ('self' in the
+ * CSP); nothing is loaded from anywhere else.
  */
-import type { Summary, UserRow } from "./metrics.js";
 
 function escape(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-const STYLE = `
-:root{--ink:#1d1d1f;--dim:#6e6e73;--ground:#f5f5f7;--panel:#fff;--line:#e5e5ea;--accent:#5856d6;--gold:#a16a00;--gold-soft:#fff4cc}
-@media (prefers-color-scheme:dark){:root{--ink:#f5f5f7;--dim:#a1a1a6;--ground:#000;--panel:#1c1c1e;--line:#2c2c2e;--accent:#7d7aff;--gold:#ffcc00;--gold-soft:#3a2e08}}
-*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-main{max-width:1200px;margin:0 auto;padding:24px 16px 64px}header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-h1{font-size:26px;margin:0;letter-spacing:-.02em}h2{font-size:15px;margin:0}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:12px}
-.two{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:12px}
-.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
-.label{margin:0;color:var(--dim);font-size:13px}.value{margin:4px 0 0;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
-.hint{color:var(--dim);font-size:13px}.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.chart{width:100%;height:120px;margin:12px 0 4px;fill:var(--accent)}
-.list{list-style:none;margin:12px 0 0;padding:0}.list li{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
-.funnel{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}.track{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.fill{height:100%;background:var(--accent)}
-.table{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-top:1px solid var(--line);white-space:nowrap}th{color:var(--dim);font-weight:500;border-top:0}
-.num{text-align:right;font-variant-numeric:tabular-nums}.pill{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--line);font-size:12px}.pill.premium{background:var(--gold-soft);color:var(--gold);font-weight:600}
-input{width:100%;max-width:320px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--ground);color:var(--ink);font:inherit;margin:12px 0}
-.login{max-width:380px;margin:12vh auto 0}.login form{display:grid;gap:10px;margin-top:16px}.login input{max-width:none;margin:0;font-size:16px}
-button{padding:10px 16px;border-radius:99px;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:600;cursor:pointer}
-.link{background:none;color:var(--accent);padding:0;font-weight:500}.notice{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--gold-soft);color:var(--ink);font-size:14px}
-header form{display:inline}
-`;
-
-const n = (value: number) => value.toLocaleString("en-US");
-const date = (iso: string | null) => (iso ? iso.slice(0, 10) : "—");
-
-function card(label: string, value: string, hint = ""): string {
-  return `<div class="card"><p class="label">${escape(label)}</p><p class="value">${escape(value)}</p>${
-    hint ? `<p class="hint">${escape(hint)}</p>` : ""
-  }</div>`;
+/** JSON safe to place inside a <script> element. */
+export function scriptJson(value: unknown): string {
+  // "<" so a value cannot close the script element; the two line separators
+  // because older engines read them as line ends inside a string.
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/[\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16)}`);
 }
 
-/** Bars for a 30-day series; the tallest bar sets the scale. */
-function bars(title: string, series: { day: string; value: number }[]): string {
-  const max = Math.max(1, ...series.map((point) => point.value));
-  const width = 600;
-  const height = 120;
-  const step = width / series.length;
-  const rects = series
-    .map((point, i) => {
-      const h = Math.round((point.value / max) * (height - 4));
-      return `<rect x="${(i * step + 1).toFixed(1)}" y="${height - h}" width="${(step - 2).toFixed(1)}" height="${h}" rx="2"><title>${point.day}: ${point.value}</title></rect>`;
-    })
-    .join("");
-  const total = series.reduce((sum, point) => sum + point.value, 0);
-  return `<section class="panel"><div class="row"><h2>${escape(title)}</h2><span class="hint">${n(total)} in 30 days · max ${n(max)}/day</span></div>
-  <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="chart" role="img" aria-label="${escape(title)}">${rects}</svg>
-  <div class="row hint"><span>${series[0]?.day ?? ""}</span><span>${series.at(-1)?.day ?? ""}</span></div></section>`;
-}
+/** Line icons, Lucide-style, defined once and referenced with <use>. */
+const ICONS = `<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-funnel" viewBox="0 0 24 24"><path d="M3 4h18l-7 9v6l-4 2v-8z"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a3 3 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a3 3 0 0 1 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><path d="M13 5v14" stroke-dasharray="2 2"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 17l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 10l-2 2 2 2"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 7l4 4 5-6 5 6 4-4-2 11H5z"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+</svg>`;
 
-function breakdown(title: string, entries: Record<string, number>): string {
-  const rows = Object.entries(entries).sort((a, b) => b[1] - a[1]);
-  return `<section class="panel"><h2>${escape(title)}</h2>${
-    rows.length === 0
-      ? `<p class="hint">Nothing yet.</p>`
-      : `<ul class="list">${rows.map(([key, value]) => `<li><span>${escape(key)}</span><b>${n(value)}</b></li>`).join("")}</ul>`
-  }</section>`;
-}
+const icon = (name: string) => `<svg class="i" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 
-function funnel(steps: Summary["funnel"]): string {
-  const top = Math.max(1, steps[0]?.count ?? 1);
-  return `<section class="panel"><h2>Funnel</h2><ol class="funnel">${steps
-    .map((step) => {
-      const pct = Math.round((step.count / top) * 1000) / 10;
-      return `<li><div class="row"><span>${escape(step.label)}</span><span><b>${n(step.count)}</b> <span class="hint">${pct}%</span></span></div><div class="track"><div class="fill" style="width:${Math.max(pct, 0.5)}%"></div></div></li>`;
-    })
-    .join("")}</ol></section>`;
-}
+const NAV: [string, string, string][] = [
+  ["resumen", "home", "Resumen"],
+  ["usuarios", "users", "Usuarios"],
+  ["abandono", "funnel", "Embudo y abandono"],
+  ["cupones", "ticket", "Cupones"],
+  ["recomendaciones", "spark", "Recomendaciones"],
+  ["actividad", "list", "Actividad"],
+];
 
-function userRow(user: UserRow): string {
-  const plan =
-    user.plan === "premium"
-      ? `<span class="pill premium">premium · ${escape(user.provider ?? user.source ?? "")}</span>`
-      : `<span class="pill">free</span>`;
-  return `<tr><td>${escape(user.email)}${user.google ? ` <span class="hint">Google</span>` : ""}</td><td>${plan}</td><td>${date(
-    user.createdAt,
-  )}</td><td>${user.verified ? "✓" : "—"}</td><td class="num">${n(user.completed)}</td><td>${date(user.lastAt)}</td></tr>`;
-}
-
-export function renderPage(summary: Summary, viewer: string, nonce: string): string {
-  const { accounts, active, plans, subscriptions } = summary;
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+function head(): string {
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><title>Mockio · Admin</title>
-<style>${STYLE}</style></head><body><main>
-<header><h1>Mockio · Admin</h1><span class="hint">${escape(viewer)} · updated ${escape(summary.generatedAt.slice(0, 16).replace("T", " "))} UTC · <form method="post" action="/logout"><button class="link" type="submit">Sign out</button></form></span></header>
-<div class="grid">
-${card("Registered", n(accounts.total), `+${n(accounts.new7)} this week · +${n(accounts.new30)} in 30 days`)}
-${card("Active · 7 days", n(active.d7), "started an interview")}
-${card("Active · 30 days", n(active.d30), "started an interview")}
-${card("Premium", n(plans.premium), `${n(plans.free)} on the free plan`)}
-${card("Paying subscriptions", n(subscriptions.active), `${summary.paidConversion}% of accounts`)}
-${card("Verified email", n(accounts.verified), `of ${n(accounts.total)}`)}
+<link rel="stylesheet" href="/styles.css"></head>`;
+}
+
+export function renderApp(payload: unknown, viewer: string): string {
+  const nav = NAV.map(
+    ([id, ic, label]) =>
+      `<a href="#${id}">${icon(ic)}<span class="label">${label}</span>${
+        id === "recomendaciones" ? `<span class="badge" id="insights-badge" hidden></span>` : ""
+      }</a>`,
+  ).join("");
+  return `${head()}<body>${ICONS}
+<div class="app">
+  <aside class="side" aria-label="Secciones">
+    <div class="brand"><span class="mark">m</span><span class="brand-name">Mockio Admin</span></div>
+    <nav class="nav">${nav}</nav>
+    <div class="side-foot">
+      <span class="who" title="${escape(viewer)}">${escape(viewer)}</span>
+      <button class="btn collapse-btn" type="button" aria-label="Contraer menú">${icon("panel").replace('class="i"', 'class="i collapse-icon"')}<span class="label">Contraer</span></button>
+      <form method="post" action="/logout"><button class="btn" type="submit" style="width:100%">${icon("out")}<span class="label">Cerrar sesión</span></button></form>
+    </div>
+  </aside>
+  <div class="scrim"></div>
+  <div style="min-width:0">
+    <div class="topbar"><button class="btn ghost icon menu-btn" type="button" aria-label="Abrir menú">${icon("menu")}</button><span class="title">Resumen</span></div>
+    <main>
+      <section data-section="resumen">
+        <div class="page-head"><div><h1>Resumen</h1><p class="dim small" id="updated"></p></div>
+          <button class="btn" id="reload" type="button">${icon("refresh")}Actualizar</button></div>
+        <div class="grid" id="overview-cards"></div>
+        <div class="two">
+          <div class="panel"><div class="row"><h2>Registros por día</h2><span class="dim small" id="signups-total"></span></div><div id="chart-signups"></div></div>
+          <div class="panel"><div class="row"><h2>Entrevistas terminadas por día</h2><span class="dim small" id="interviews-total"></span></div><div id="chart-interviews"></div></div>
+        </div>
+        <div class="two">
+          <div class="panel"><h2>Premium por origen</h2><div id="premium-sources"></div></div>
+          <div class="panel"><h2>Pagando por pasarela</h2><div id="paying-providers"></div></div>
+        </div>
+      </section>
+
+      <section data-section="usuarios" hidden>
+        <div class="page-head"><div><h1>Usuarios</h1><p class="dim small" id="users-count"></p></div></div>
+        <div class="toolbar">
+          <input class="search" id="users-search" type="search" placeholder="Buscar por email o plan" autocomplete="off" aria-label="Buscar usuarios">
+          <div class="seg" id="users-plan" role="group" aria-label="Filtrar por plan">
+            <button type="button" data-plan="all" aria-pressed="true">Todos</button>
+            <button type="button" data-plan="premium" aria-pressed="false">Premium</button>
+            <button type="button" data-plan="free" aria-pressed="false">Gratis</button>
+          </div>
+        </div>
+        <div class="table-wrap cards"><table><thead id="users-head"></thead><tbody id="users-body"></tbody></table></div>
+      </section>
+
+      <section data-section="abandono" hidden>
+        <div class="page-head"><div><h1>Embudo y abandono</h1><p class="dim small">De registrarse a pagar, y dónde se quedan las entrevistas sin informe.</p></div></div>
+        <div class="two">
+          <div class="panel"><h2>Embudo</h2><div id="funnel"></div></div>
+          <div class="panel"><div class="row"><h2>Hasta dónde llegaron</h2><span class="dim small" id="drop-total"></span></div><div id="drop-buckets"></div>
+            <p class="dim small" style="margin-top:12px">Una entrevista cuenta como terminada cuando se genera el informe. "Respondieron todo" son entrevistas completas que nunca pidieron el informe: cerraron antes de pulsar Ver feedback, o la evaluación falló.</p></div>
+        </div>
+        <div class="grid" id="drop-cards"></div>
+      </section>
+
+      <section data-section="cupones" hidden>
+        <div class="page-head"><div><h1>Cupones</h1><p class="dim small">Códigos que dan premium por unos días al canjearlos.</p></div>
+          <button class="btn primary" id="new-coupon" type="button">${icon("plus")}Nuevo cupón</button></div>
+        <div class="table-wrap cards"><table><thead><tr><th>Código</th><th>Estado</th><th class="r">Días</th><th>Usos</th><th>Vence</th><th></th></tr></thead><tbody id="coupons-body"></tbody></table></div>
+      </section>
+
+      <section data-section="recomendaciones" hidden>
+        <div class="page-head"><div><h1>Recomendaciones</h1><p class="dim small">Revisiones automáticas sobre las métricas de hoy.</p></div>
+          <button class="btn primary" id="ask-ai" type="button">${icon("spark")}Pedir análisis a la IA</button></div>
+        <div class="insights" id="rules"></div>
+        <div class="page-head" style="margin-top:28px"><div><h2>Análisis de la IA</h2><p class="dim small" id="ai-note">Lee solo cifras agregadas: nunca correos ni conversaciones.</p></div></div>
+        <div class="insights" id="ai"></div>
+      </section>
+
+      <section data-section="actividad" hidden>
+        <div class="page-head"><div><h1>Actividad</h1><p class="dim small">Cada cambio hecho desde este panel: quién, qué y a quién.</p></div></div>
+        <div class="panel"><ul class="log" id="audit"></ul></div>
+      </section>
+    </main>
+  </div>
 </div>
-<div class="two">
-${bars("Sign-ups per day", summary.signupsByDay.map((point) => ({ day: point.day, value: point.count })))}
-${bars("Interviews finished per day", summary.interviewsByDay.map((point) => ({ day: point.day, value: point.completed })))}
+<div class="menu" id="row-menu" role="menu" hidden>
+  <button type="button" role="menuitem" data-action="grant">${icon("crown")}Dar premium…</button>
+  <button type="button" role="menuitem" data-action="revoke" id="menu-revoke" class="danger">${icon("x")}Quitar premium…</button>
+  <button type="button" role="menuitem" data-action="verify" id="menu-verify">${icon("check")}Marcar email verificado</button>
+  <button type="button" role="menuitem" data-action="rename">${icon("edit")}Cambiar nombre…</button>
+  <hr><button type="button" role="menuitem" data-action="copy">${icon("copy")}Copiar ID</button>
 </div>
-<div class="two">
-${funnel(summary.funnel)}
-${breakdown("Premium by source", plans.bySource)}
-${breakdown("Paying by provider", subscriptions.byProvider)}
-${breakdown("Subscriptions by status", subscriptions.byStatus)}
-</div>
-<section class="panel"><div class="row"><h2>Users</h2><span class="hint">${n(summary.users.length)} · newest first</span></div>
-<input id="filter" type="search" placeholder="Filter by email or plan" autocomplete="off">
-<div class="table"><table><thead><tr><th>Email</th><th>Plan</th><th>Signed up</th><th>Verified</th><th class="num">Finished</th><th>Last interview</th></tr></thead>
-<tbody id="users">${summary.users.map(userRow).join("")}</tbody></table></div></section>
-<p class="hint">Revenue per subscription is not stored here; see the Paddle and Mercado Pago dashboards for amounts. Countries and the visit-to-sign-up funnel live in PostHog.</p>
-</main>
-<script nonce="${nonce}">
-const input=document.getElementById("filter"),rows=[...document.querySelectorAll("#users tr")];
-input.addEventListener("input",()=>{const q=input.value.trim().toLowerCase();for(const r of rows)r.hidden=q!==""&&!r.textContent.toLowerCase().includes(q);});
-</script></body></html>`;
+<dialog id="dialog"></dialog>
+<div class="tip" role="tooltip"></div>
+<div class="toasts" aria-live="polite"></div>
+<script type="application/json" id="data">${scriptJson(payload)}</script>
+<script src="/client.js" defer></script>
+</body></html>`;
 }
 
 /** The two sign-in steps: ask for the address, then for the code. */
@@ -137,16 +158,14 @@ export function renderLogin(input: { step: "email" | "code"; email?: string; not
   const notice = input.notice ? `<p class="notice" role="status">${escape(input.notice)}</p>` : "";
   const form =
     input.step === "email"
-      ? `<form method="post" action="/login"><label class="hint" for="email">Work email</label>
-<input id="email" name="email" type="email" autocomplete="email" required autofocus>
-<button type="submit">Send me a code</button></form>`
+      ? `<form method="post" action="/login"><div class="field"><label for="email">Email</label>
+<input id="email" name="email" type="email" autocomplete="email" required autofocus></div>
+<button class="btn primary" type="submit">Enviarme un código</button></form>`
       : `<form method="post" action="/verify"><input type="hidden" name="email" value="${escape(input.email ?? "")}">
-<label class="hint" for="code">The 6-digit code sent to ${escape(input.email ?? "")}</label>
-<input id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
-<button type="submit">Sign in</button></form>
-<form method="get" action="/"><button class="link" type="submit">Use another email</button></form>`;
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Mockio · Admin</title><style>${STYLE}</style></head>
-<body><main><section class="panel login"><h1>Mockio · Admin</h1><p class="hint">Team only.</p>${notice}${form}</section></main></body></html>`;
+<div class="field"><label for="code">Código de 6 dígitos enviado a ${escape(input.email ?? "")}</label>
+<input id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus></div>
+<button class="btn primary" type="submit">Entrar</button></form>
+<form method="get" action="/"><button class="linkbtn" type="submit">Usar otro email</button></form>`;
+  return `${head()}<body><main class="login"><section class="panel"><div class="brand"><span class="mark">m</span>Mockio Admin</div>
+<p class="dim small">Solo para el equipo.</p>${notice}${form}</section></main></body></html>`;
 }

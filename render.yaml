@@ -150,12 +150,17 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
-      # A read-only Postgres role (see admin/README.md). The connection is
-      # forced read-only either way.
+      # The admin role (see admin/README.md): reads everything it shows and
+      # writes only plans, coupons and its own audit log.
       - key: ADMIN_DATABASE_URL
         sync: false
       - key: ADMIN_REDIS_URL
         sync: false
+      # For the AI review on the Recommendations page. It sees aggregates only.
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ADMIN_INSIGHTS_MODEL
+        value: anthropic/claude-sonnet-5
 
   - type: redis
     name: real-sessions-redis

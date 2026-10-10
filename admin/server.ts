@@ -1,24 +1,25 @@
 /**
  * Mockio admin: growth numbers and the user list, for the team only.
  *
- * A separate service from the product on purpose. The public app has no admin
- * routes at all, so no bug in it can expose this data; this service cannot
- * write to Postgres, so no bug in it can change anything.
+ * A separate service from the product on purpose: the public app has no admin
+ * routes at all, so no bug in it can expose this data or change a plan.
  *
  *   Sign-in      a six-digit code emailed to an address in ADMIN_EMAILS
  *                (see login.ts), then a signed, HttpOnly cookie for a day.
- *   Postgres     every connection is read-only, whatever the role.
- *   Redis        only read (account records); codes are kept in memory.
+ *   Reading      its own pool, forced read-only on every connection.
+ *   Writing      a second pool used only by actions.ts, and every change is
+ *                written to admin_audit with who made it.
  *
  *   npm run admin        local; codes are printed to the console when no
  *                        email provider is configured
  *
  * Environment: ADMIN_EMAILS (comma separated), ADMIN_SESSION_SECRET (32+
  * characters), RESEND_API_KEY and EMAIL_FROM, ADMIN_DATABASE_URL (or
- * DATABASE_URL), ADMIN_REDIS_URL (or REDIS_URL), PORT.
+ * DATABASE_URL), ADMIN_REDIS_URL (or REDIS_URL), OPENROUTER_API_KEY and
+ * ADMIN_INSIGHTS_MODEL for the AI review, PORT.
  */
 import "../src/env.js";
-import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import pg from "pg";
 import { createClient, type RedisClientType } from "redis";
@@ -36,7 +37,17 @@ import {
 } from "./login.js";
 import { load, summarise } from "./metrics.js";
 import type { Summary } from "./metrics.js";
-import { renderLogin, renderPage } from "./page.js";
+import {
+  ActionError,
+  createCoupon,
+  disableCoupon,
+  grantPremium,
+  renameUser,
+  revokePremium,
+  verifyEmail,
+} from "./actions.js";
+import { aiInsights, ruleInsights } from "./insights.js";
+import { renderApp, renderLogin } from "./page.js";
 
 const production = process.env.NODE_ENV === "production";
 const allowed = allowedEmails(process.env.ADMIN_EMAILS);
@@ -58,15 +69,23 @@ if (!databaseUrl || !redisUrl) {
 
 const mail = createEmailSender();
 
+// Two pools on purpose. Everything that only reads goes through one whose
+// every transaction is read-only; the other is reached only from actions.ts.
 const pool = new pg.Pool({
   connectionString: databaseUrl,
-  // Belt and braces with the read-only role: even with a role that could
-  // write, every transaction on these connections is read-only.
   options: "-c default_transaction_read_only=on",
   connectionTimeoutMillis: 5_000,
   max: 3,
 });
-pool.on("error", (error) => console.error("[admin] postgres:", error.message));
+const writePool = new pg.Pool({ connectionString: databaseUrl, connectionTimeoutMillis: 5_000, max: 2 });
+for (const each of [pool, writePool]) each.on("error", (error) => console.error("[admin] postgres:", error.message));
+
+const insightsModel = process.env.ADMIN_INSIGHTS_MODEL?.trim() || "anthropic/claude-sonnet-5";
+const here = new URL(".", import.meta.url);
+const ASSETS: Record<string, { type: string; body: string }> = {
+  "/client.js": { type: "text/javascript; charset=utf-8", body: readFileSync(new URL("client.js", here), "utf8") },
+  "/styles.css": { type: "text/css; charset=utf-8", body: readFileSync(new URL("styles.css", here), "utf8") },
+};
 
 const redis: RedisClientType = createClient({ url: redisUrl });
 redis.on("error", (error) => console.error("[admin] redis:", error.message));
@@ -78,9 +97,16 @@ const sendsByEmail = new Limiter(3, 15 * 60 * 1000);
 const sendsByIp = new Limiter(10, 15 * 60 * 1000);
 /** Code guesses per network address, across addresses. */
 const guessesByIp = new Limiter(20, 15 * 60 * 1000);
+/** AI reviews per admin per hour: each one is a paid model call. */
+const aiByViewer = new Limiter(10, 60 * 60 * 1000);
 
 /** One minute is fresh enough for growth numbers and spares the database. */
 let cache: { summary: Summary; at: number } | null = null;
+async function currentPayload() {
+  const summary = await currentSummary();
+  return { summary, insights: ruleInsights(summary) };
+}
+
 async function currentSummary(): Promise<Summary> {
   if (cache && Date.now() - cache.at < 60_000) return cache.summary;
   const summary = summarise(await load(pool, redis));
@@ -99,17 +125,38 @@ const SECURITY_HEADERS = {
   ...(production ? { "Strict-Transport-Security": "max-age=31536000" } : {}),
 };
 
-function html(res: ServerResponse, status: number, body: string, nonce?: string, extra: Record<string, string> = {}) {
+const CSP =
+  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; connect-src 'self'; " +
+  "base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
+
+function html(res: ServerResponse, status: number, body: string, extra: Record<string, string> = {}) {
   res
     .writeHead(status, {
       "Content-Type": "text/html; charset=utf-8",
-      "Content-Security-Policy": `default-src 'none'; style-src 'unsafe-inline'; script-src ${
-        nonce ? `'nonce-${nonce}'` : "'none'"
-      }; img-src data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'`,
+      "Content-Security-Policy": CSP,
       ...SECURITY_HEADERS,
       ...extra,
     })
     .end(body);
+}
+
+function json(res: ServerResponse, status: number, body: unknown) {
+  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", ...SECURITY_HEADERS }).end(JSON.stringify(body));
+}
+
+/** A small JSON body; anything over 4 KB is not one of ours. */
+async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
+  let body = "";
+  for await (const chunk of req) {
+    body += chunk;
+    if (body.length > 4096) throw new ActionError("La petición es demasiado grande.");
+  }
+  try {
+    const parsed = JSON.parse(body || "{}") as unknown;
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    throw new ActionError("La petición no es válida.");
+  }
 }
 
 function redirect(res: ServerResponse, to: string, extra: Record<string, string> = {}) {
@@ -211,6 +258,39 @@ const server = createServer(async (req, res) => {
         return redirect(res, "/", { "Set-Cookie": cookie(sessionCookie(email, secret), SESSION_MS / 1000) });
       }
 
+      if (path.startsWith("/api/")) {
+        const viewer = readSession(cookieValue(req.headers.cookie, COOKIE), secret, allowed);
+        if (!viewer) return json(res, 401, { error: "Tu sesión terminó. Vuelve a entrar." });
+        const body = await readJson(req);
+        const deps = { pool: writePool, redis, actor: viewer };
+        const id = String(body.userId ?? "");
+        try {
+          let message: string | null = null;
+          if (path === "/api/users/grant") message = await grantPremium(deps, id, body.days, body.note);
+          else if (path === "/api/users/revoke") message = await revokePremium(deps, id, body.note);
+          else if (path === "/api/users/verify") message = await verifyEmail(deps, id);
+          else if (path === "/api/users/rename") message = await renameUser(deps, id, body.name);
+          else if (path === "/api/coupons") message = await createCoupon(deps, body as never);
+          else if (path === "/api/coupons/disable") message = await disableCoupon(deps, body.code);
+          else if (path === "/api/refresh") {
+            cache = null;
+            return json(res, 200, { ok: true });
+          } else if (path === "/api/insights/ai") {
+            if (!aiByViewer.allow(viewer)) return json(res, 429, { error: "Ya pediste varios análisis esta hora. Prueba más tarde." });
+            const insights = await aiInsights(await currentSummary(), insightsModel);
+            console.log(`[admin] ${viewer} ran the AI review`);
+            return json(res, 200, { insights, model: insightsModel });
+          } else return json(res, 404, { error: "No existe esa acción." });
+          cache = null;
+          console.log(`[admin] ${viewer} ${path}`);
+          return json(res, 200, { message });
+        } catch (error) {
+          if (error instanceof ActionError) return json(res, 400, { error: error.message });
+          console.error(`[admin] ${path} failed:`, error instanceof Error ? error.message : error);
+          return json(res, 500, { error: "No se pudo completar. Revisa los logs del servicio." });
+        }
+      }
+
       if (path === "/logout") {
         return redirect(res, "/", { "Set-Cookie": cookie("", 0) });
       }
@@ -219,16 +299,27 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    if (req.method !== "GET" || path !== "/") {
-      res.writeHead(404, { "Content-Type": "text/plain", ...SECURITY_HEADERS }).end("Not found");
+    if (req.method === "GET" && path === "/styles.css") {
+      const asset = ASSETS[path]!;
+      res.writeHead(200, { "Content-Type": asset.type, ...SECURITY_HEADERS }).end(asset.body);
       return;
     }
 
     const viewer = readSession(cookieValue(req.headers.cookie, COOKIE), secret, allowed);
-    if (!viewer) return html(res, 200, renderLogin({ step: "email" }));
+    if (req.method === "GET" && path === "/") {
+      if (!viewer) return html(res, 200, renderLogin({ step: "email" }));
+      return html(res, 200, renderApp(await currentPayload(), viewer));
+    }
+    if (!viewer) return json(res, 401, { error: "Tu sesión terminó. Vuelve a entrar." });
 
-    const nonce = randomBytes(16).toString("base64");
-    html(res, 200, renderPage(await currentSummary(), viewer, nonce), nonce);
+    if (req.method === "GET" && path === "/client.js") {
+      const asset = ASSETS[path]!;
+      res.writeHead(200, { "Content-Type": asset.type, ...SECURITY_HEADERS }).end(asset.body);
+      return;
+    }
+    if (req.method === "GET" && path === "/api/data") return json(res, 200, await currentPayload());
+
+    res.writeHead(404, { "Content-Type": "text/plain", ...SECURITY_HEADERS }).end("Not found");
   } catch (error) {
     console.error("[admin] request failed:", error instanceof Error ? error.message : error);
     if (!res.headersSent) res.writeHead(500, { "Content-Type": "text/plain", ...SECURITY_HEADERS }).end("Something went wrong.");

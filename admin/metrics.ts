@@ -58,9 +58,63 @@ export interface Raw {
   /** Users active in the last 7 / 30 days, by sessions started. */
   active7: string[];
   active30: string[];
+  /** Interviews started more than half an hour ago and never reported on. */
+  unfinished: UnfinishedRow[];
+  coupons: CouponRow[];
+  audit: AuditRow[];
 }
 
+export interface UnfinishedRow {
+  ownerId: string;
+  mode: string;
+  level: string | null;
+  startedAt: string;
+  /** Answers the candidate gave before leaving. */
+  answers: number;
+  /** Who spoke last: "interviewer" means they left without answering. */
+  lastSpeaker: "interviewer" | "candidate" | null;
+  /** Whether any answer was spoken rather than typed. */
+  spoke: boolean;
+}
+
+export interface CouponRow {
+  code: string;
+  grantDays: number;
+  cap: number;
+  redeemed: number;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export interface AuditRow {
+  at: string;
+  actor: string;
+  action: string;
+  target: string;
+  detail: Record<string, unknown>;
+}
+
+/**
+ * Where unfinished interviews stopped. Buckets by answers given, because the
+ * cause differs: nothing answered is a microphone or a nerve; everything
+ * answered is a report that was never asked for.
+ */
+export interface DropOff {
+  total: number;
+  buckets: { label: string; key: string; count: number }[];
+  leftWaiting: number;
+  spoke: number;
+  typed: number;
+  byMode: Record<string, number>;
+  /** Unfinished interviews by people who have finished at least one other. */
+  returning: number;
+}
+
+/** Answers that make a full interview; at or past this, the report is what is missing. */
+export const FULL_INTERVIEW = 7;
+
 export interface UserRow {
+  id: string;
   email: string;
   createdAt: string;
   verified: boolean;
@@ -82,6 +136,9 @@ export interface Summary {
   /** Percent of accounts paying through a subscription. */
   paidConversion: number;
   funnel: { label: string; count: number }[];
+  dropOff: DropOff;
+  coupons: CouponRow[];
+  audit: AuditRow[];
   signupsByDay: { day: string; count: number }[];
   interviewsByDay: DayCount[];
   users: UserRow[];
@@ -144,6 +201,7 @@ export function summarise(raw: Raw, now = new Date()): Summary {
       const source = premiumByOwner.get(account.id) ?? null;
       const subscription = subscriptionByOwner.get(account.id);
       return {
+        id: account.id,
         email: account.email,
         createdAt: account.createdAt,
         verified: Boolean(account.emailVerifiedAt),
@@ -156,6 +214,24 @@ export function summarise(raw: Raw, now = new Date()): Summary {
       };
     })
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const unfinished = raw.unfinished.filter((row) => accountIds.has(row.ownerId));
+  const bucket = (from: number, to: number) => unfinished.filter((row) => row.answers >= from && row.answers <= to).length;
+  const dropOff: DropOff = {
+    total: unfinished.length,
+    buckets: [
+      { key: "none", label: "No answers", count: bucket(0, 0) },
+      { key: "one", label: "1 answer", count: bucket(1, 1) },
+      { key: "some", label: "2–3 answers", count: bucket(2, 3) },
+      { key: "most", label: `4–${FULL_INTERVIEW - 1} answers`, count: bucket(4, FULL_INTERVIEW - 1) },
+      { key: "all", label: "Answered everything", count: bucket(FULL_INTERVIEW, Number.MAX_SAFE_INTEGER) },
+    ],
+    leftWaiting: unfinished.filter((row) => row.lastSpeaker === "interviewer").length,
+    spoke: unfinished.filter((row) => row.spoke).length,
+    typed: unfinished.filter((row) => row.answers > 0 && !row.spoke).length,
+    byMode: tally(unfinished, (row) => row.mode),
+    returning: unfinished.filter((row) => (activityByOwner.get(row.ownerId)?.completed ?? 0) > 0).length,
+  };
 
   const total = raw.accounts.length;
   return {
@@ -191,6 +267,9 @@ export function summarise(raw: Raw, now = new Date()): Summary {
       { label: "Finished three", count: completedThree.length },
       { label: "Paying", count: paying.size },
     ],
+    dropOff,
+    coupons: raw.coupons,
+    audit: raw.audit,
     signupsByDay: window.map((day) => ({ day, count: signups[day] ?? 0 })),
     interviewsByDay: window.map((day) => interviews.get(day) ?? { day, started: 0, completed: 0 }),
     users,
@@ -222,7 +301,7 @@ async function loadAccounts(redis: RedisClientType): Promise<AccountRow[]> {
 const iso = (value: unknown): string => (value instanceof Date ? value.toISOString() : String(value));
 
 export async function load(pool: Pool, redis: RedisClientType): Promise<Raw> {
-  const [accounts, activity, days, premium, subscriptions, active7, active30] = await Promise.all([
+  const [accounts, activity, days, premium, subscriptions, active7, active30, unfinished, coupons, audit] = await Promise.all([
     loadAccounts(redis),
     pool.query(
       `SELECT owner_id, COUNT(*)::int AS started, COUNT(completed_at)::int AS completed,
@@ -242,6 +321,21 @@ export async function load(pool: Pool, redis: RedisClientType): Promise<Raw> {
     pool.query(`SELECT owner_id, provider, status, period_end, created_at FROM subscriptions`),
     pool.query(`SELECT DISTINCT owner_id FROM sessions WHERE started_at >= now() - interval '7 days'`),
     pool.query(`SELECT DISTINCT owner_id FROM sessions WHERE started_at >= now() - interval '30 days'`),
+    // Counts and the last speaker only — never the text of what was said.
+    pool.query(
+      `SELECT s.owner_id, s.mode, s.level, s.started_at,
+              COUNT(t.idx) FILTER (WHERE t.speaker = 'candidate')::int AS answers,
+              (ARRAY_AGG(t.speaker ORDER BY t.idx DESC))[1] AS last_speaker,
+              COALESCE(BOOL_OR(t.speaker = 'candidate' AND t.t_start_ms IS NOT NULL), false) AS spoke
+         FROM sessions s LEFT JOIN turns t ON t.session_id = s.id
+        WHERE s.completed_at IS NULL AND s.started_at < now() - interval '30 minutes'
+        GROUP BY s.id ORDER BY s.started_at DESC LIMIT 1000`,
+    ),
+    pool.query(`SELECT code, grant_days, cap, redeemed, expires_at, created_at FROM promo_codes ORDER BY created_at DESC`),
+    // The log may not exist yet on a database the product has not migrated.
+    pool
+      .query(`SELECT at, actor, action, target, detail FROM admin_audit ORDER BY at DESC LIMIT 100`)
+      .catch(() => ({ rows: [] as Record<string, unknown>[] })),
   ]);
   return {
     accounts,
@@ -267,5 +361,29 @@ export async function load(pool: Pool, redis: RedisClientType): Promise<Raw> {
     })),
     active7: active7.rows.map((row) => row.owner_id as string),
     active30: active30.rows.map((row) => row.owner_id as string),
+    unfinished: unfinished.rows.map((row) => ({
+      ownerId: row.owner_id as string,
+      mode: (row.mode as string) ?? "practice",
+      level: (row.level as string | null) ?? null,
+      startedAt: iso(row.started_at),
+      answers: row.answers as number,
+      lastSpeaker: (row.last_speaker as UnfinishedRow["lastSpeaker"]) ?? null,
+      spoke: Boolean(row.spoke),
+    })),
+    coupons: coupons.rows.map((row) => ({
+      code: row.code as string,
+      grantDays: row.grant_days as number,
+      cap: row.cap as number,
+      redeemed: row.redeemed as number,
+      expiresAt: row.expires_at ? iso(row.expires_at) : null,
+      createdAt: iso(row.created_at),
+    })),
+    audit: audit.rows.map((row) => ({
+      at: iso(row.at),
+      actor: row.actor as string,
+      action: row.action as string,
+      target: row.target as string,
+      detail: (row.detail as Record<string, unknown>) ?? {},
+    })),
   };
 }
