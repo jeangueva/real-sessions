@@ -35,6 +35,8 @@ export interface Evaluation {
     fix: string;
     why: string;
   }[];
+  /** Estimated level and agency-screen outlook. Absent on older reports, null when too short. */
+  english_level?: { cefr: "A2" | "B1" | "B2" | "C1" | "C2"; screen: "likely" | "borderline" | "not-yet" } | null;
 }
 
 export interface SessionSummary {

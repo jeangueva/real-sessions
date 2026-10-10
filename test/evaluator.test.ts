@@ -67,7 +67,7 @@ describe("evaluateInterview", () => {
 
     const result = await evaluateInterview(context, transcript, { provider });
 
-    expect(result).toEqual({ ...evaluation, answer_feedback: [], first_language_errors: [] });
+    expect(result).toEqual({ ...evaluation, answer_feedback: [], first_language_errors: [], english_level: null });
     const request = json.mock.calls[0]![0];
     expect(request.model).toBe(EVALUATOR_MODEL);
     expect(request.schema).toBeTruthy();

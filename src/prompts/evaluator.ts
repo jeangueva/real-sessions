@@ -63,6 +63,9 @@ Quote their own words on the left, a natural version on the right, both in strai
 - \`feedback\`: one sentence of at most 20 words, in {{report_language}}, about what to change in that answer (or what made it work).
 - \`better\`: how they could have said it — ALWAYS in {{language}}, never in {{report_language}}, because these are the words they will say out loud in the interview. At most 35 words, in their own voice, built only from what they actually said. Never invent facts, numbers or results they did not mention: where a number or detail is missing, write a placeholder in brackets such as [your number] or [the result] so they fill in their own.
 
+### WOULD THEY PASS?
+\`english_level\`: estimate the CEFR level (A2, B1, B2, C1 or C2) of the {{language}} they actually spoke in this interview, judged on understanding, fluency, range and accuracy, and \`screen\`: whether that would pass a remote talent agency's English screen, which asks for about B2 — "likely", "borderline" or "not-yet". Judge only what is in the transcript. Count all the candidate's answers together: return null only when they add up to fewer than 40 words. Otherwise always give your best estimate, even from short answers — a short screen is exactly what the real one is.
+
 ### ERRORS FROM THEIR FIRST LANGUAGE:
 {{first_language_rule}}
 

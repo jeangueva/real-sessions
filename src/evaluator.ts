@@ -82,7 +82,7 @@ export async function evaluateInterview(
     // last: buried mid-prompt it was ignored, and Spanish readers got English.
     prompt:
       formatTranscript(transcript, context) +
-      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words, the corrected phrasings and every \`better\` answer in ${findLanguage(options.language).promptLabel} — never invent numbers they did not say; use [placeholders]. Be brief.`,
+      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words, the corrected phrasings and every \`better\` answer in ${findLanguage(options.language).promptLabel} — never invent numbers they did not say; use [placeholders]. Always fill \`english_level\` with your CEFR estimate and screen outlook unless the candidate said fewer than 40 words in total. Be brief.`,
     maxTokens: options.maxTokens ?? 4096,
     schema: EvaluationSchema,
     ...(options.effort ? { effort: options.effort } : {}),

@@ -81,6 +81,14 @@ export const SECTORS: Sector[] = [
     metrics:
       "orders per courier hour, contribution margin per order, p90 delivery time, batch rate, rider retention",
   },
+  {
+    id: "remote-talent",
+    label: "Remote talent agencies",
+    focus:
+      "whether this person can work day to day in English with a foreign client: clarity, listening, remote habits, and the experience behind their CV",
+    metrics:
+      "years with the stack, team size, timezone overlap, availability, rate or salary expectation in dollars",
+  },
 ];
 
 export const COMPANIES: Company[] = [
@@ -247,6 +255,54 @@ export const COMPANIES: Company[] = [
     description:
       "Unit economics run the conversation. Be ready to explain how your work changed cost per order, not only how it felt to users.",
     tint: "rgba(255,48,8,0.28)",
+  },
+  // Remote talent agencies: the English screen that stands between many
+  // Latin American engineers and a salary in dollars. Their voices come from
+  // what candidates report about each screen, not from the agencies.
+  {
+    id: "bairesdev",
+    name: "BairesDev",
+    sectorId: "remote-talent",
+    culture: "Client-ready English · stack depth · availability",
+    description:
+      "A short recruiter call that may open in Spanish and switch to English mid-sentence to hear how you cope. Expect your stack, your last project, availability and salary in dollars.",
+    tint: "rgba(0,120,255,0.3)",
+  },
+  {
+    id: "turing",
+    name: "Turing",
+    sectorId: "remote-talent",
+    culture: "Remote readiness · communication · self-management",
+    description:
+      "A communication interview about how you work remotely: async updates, time zones, owning your work without supervision. Fluency and attitude both count.",
+    tint: "rgba(30,30,30,0.3)",
+  },
+  {
+    id: "toptal",
+    name: "Toptal",
+    sectorId: "remote-talent",
+    culture: "Top-percent bar · personality · professionalism",
+    description:
+      "The first screen is English and personality: why freelance, how you handle a demanding client, what you are proud of. Most applicants stop here.",
+    tint: "rgba(32,78,207,0.3)",
+  },
+  {
+    id: "globant",
+    name: "Globant",
+    sectorId: "remote-talent",
+    culture: "B2+ English · client focus · teamwork",
+    description:
+      "A recruiter checks your English early, then a technical round, and often a final interview with the client. They expect B2 or higher.",
+    tint: "rgba(191,215,48,0.3)",
+  },
+  {
+    id: "andela",
+    name: "Andela",
+    sectorId: "remote-talent",
+    culture: "Distributed teams · reliability · communication",
+    description:
+      "Questions about working in distributed teams with clients abroad: how you communicate blockers, handle feedback and keep commitments across time zones.",
+    tint: "rgba(0,180,140,0.3)",
   },
 ];
 

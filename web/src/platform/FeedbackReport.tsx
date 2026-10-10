@@ -558,6 +558,32 @@ function FeedbackBody({
               <p className="text-title font-semibold text-cream-bright">
                 {t(verdictFor(evaluation.overall_score_percentage))}
               </p>
+              {/* "Would I pass?" — the question someone preparing for an
+                  agency screen actually came with, answered in one line. */}
+              {evaluation.english_level && (
+                <p className="flex flex-wrap items-center justify-center gap-2 text-sm sm:justify-start">
+                  <span className="rounded-full bg-surface-lift px-2.5 py-0.5 font-semibold tabular-nums text-cream-bright">
+                    {t("level.estimate", { cefr: evaluation.english_level.cefr })}
+                  </span>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 font-semibold ${
+                      evaluation.english_level.screen === "likely"
+                        ? "bg-grow-soft text-grow-text"
+                        : evaluation.english_level.screen === "borderline"
+                          ? "bg-accent-soft text-accent-text"
+                          : "bg-step-soft text-step-text"
+                    }`}
+                  >
+                    {t(
+                      evaluation.english_level.screen === "likely"
+                        ? "screen.likely"
+                        : evaluation.english_level.screen === "borderline"
+                          ? "screen.borderline"
+                          : "screen.notYet",
+                    )}
+                  </span>
+                </p>
+              )}
               <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                 {xp && (
                   <PopIn delay={0.8}>

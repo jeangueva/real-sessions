@@ -60,6 +60,18 @@ export const EvaluationSchema = z.object({
   // Defaulted so reports written before it existed still parse.
   answer_feedback: z.array(AnswerFeedbackSchema).default([]),
   first_language_errors: z.array(FirstLanguageErrorSchema).default([]),
+  /**
+   * The level they spoke at in this interview, and whether that would get
+   * them through a remote agency's English screen. Null when the interview
+   * is too short to say.
+   */
+  english_level: z
+    .object({
+      cefr: z.enum(["A2", "B1", "B2", "C1", "C2"]),
+      screen: z.enum(["likely", "borderline", "not-yet"]),
+    })
+    .nullable()
+    .default(null),
 });
 
 /** The input shape: `answer_feedback` is optional, as it is on older stored reports. */

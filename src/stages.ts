@@ -266,6 +266,43 @@ const STANDUP: Stage = {
   phase: "work",
 };
 
+/**
+ * The English screen of a remote talent agency.
+ *
+ * For a Latin American engineer this call is often the whole gate: the
+ * technical rounds only happen after it, and many never get past it. What
+ * candidates report is consistent across agencies — a short recruiter call,
+ * background and stack, remote habits, availability and money in dollars —
+ * and, at BairesDev in particular, a switch from Spanish to English to hear
+ * how they cope.
+ */
+const AGENCY_SCREEN: Stage = {
+  id: "agency-english-screen",
+  label: "Agency English screen",
+  summary: "The 15-minute recruiter call that decides whether you get to the technical rounds.",
+  brief:
+    "You are a recruiter at a remote talent agency that places Latin American professionals with clients in the US and Europe. This call checks whether their English is client-ready. Keep it brisk and friendly. Cover, one question at a time: their current role and stack, the last project they are proud of and their part in it, how they work remotely (async updates, time zones, asking for help), their availability and notice period, and their salary or rate expectation in US dollars. Ask at least one follow-up that makes them explain something technical in simple words, as they would to a client. If an answer is vague, ask for a concrete example once.",
+  rubric:
+    "This is a pass-or-fail English screen. Weigh whether a foreign client could work with this person tomorrow: they understood every question, answered directly, explained their work clearly and simply, and handled the money question with a number rather than a deflection. Hesitation is fine; misunderstanding the question, long silences filled with Spanish, or answers that never reach the point are what fail a screen.",
+  minTurns: 5,
+  maxTurns: 7,
+  titles: RECRUITING,
+};
+
+/** The agency's last round: the foreign client deciding whether to take them. */
+const CLIENT_INTERVIEW: Stage = {
+  id: "client-interview",
+  label: "Interview with the agency's client",
+  summary: "The client abroad decides whether you join their team.",
+  brief:
+    "You are the engineering or product lead at a company in the US that hires through an agency. The candidate would join your team remotely. Ask about one relevant project in depth, how they communicate progress and problems across time zones, how they handle unclear requirements, and one situation where they disagreed with a teammate. Be warm but probing: you are deciding whether to trust this person with your team for the next year.",
+  rubric:
+    "Weigh whether they would be easy to work with remotely: concrete examples, clear status communication, proactive questions, and the ability to disagree politely. Technical depth matters, but in this round a client is mostly buying communication and reliability.",
+  minTurns: 5,
+  maxTurns: 7,
+  titles: [...ENGINEERING_LEADS, ...PRODUCT],
+};
+
 /*
  * ---------------------------------------------------------------------------
  * At work and growing: the conversations after the offer.
@@ -646,33 +683,33 @@ const ROLE_CASE: Stage = {
  * list, as before. What changes is the middle: the round that tests the work.
  */
 const BY_AREA: Record<AreaId, Stage[]> = {
-  engineering: [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
-  product: [SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, STANDUP],
-  design: [SCREEN, BEHAVIORAL, PORTFOLIO, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  data: [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
-  growth: [SCREEN, BEHAVIORAL, CASE_STUDY, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  marketing: [SCREEN, BEHAVIORAL, PORTFOLIO, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  finance: [SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, STANDUP],
-  legal: [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  people: [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  sales: [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  "customer-success": [SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, STANDUP],
-  operations: [SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, STANDUP],
+  engineering: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  product: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  design: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, PORTFOLIO, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  data: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  growth: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, CASE_STUDY, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  marketing: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, PORTFOLIO, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  finance: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  legal: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  people: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  sales: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "customer-success": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  operations: [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, CASE_STUDY, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
 };
 
 /** Roles whose rounds differ from their area's. The original six keep theirs exactly. */
 const BY_ROLE: Record<string, Stage[]> = {
-  "product-designer": [SCREEN, BEHAVIORAL, PORTFOLIO, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
-  "backend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
-  "frontend-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
-  "growth-pm": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
-  "data-analyst": [SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, STANDUP],
-  "engineering-manager": [SCREEN, BEHAVIORAL, PEOPLE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  "product-designer": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, PORTFOLIO, DEEP_DIVE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "backend-engineer": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "frontend-engineer": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "growth-pm": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "data-analyst": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, CASE_STUDY, DEEP_DIVE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "engineering-manager": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, PEOPLE, SYSTEM_DESIGN, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
   // A pipeline is a system, and the round that tests it is the engineers' one.
-  "data-engineer": [SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, STANDUP],
+  "data-engineer": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, DEEP_DIVE, SYSTEM_DESIGN, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
   // Managers of people sit the people round, in whatever function.
-  "finance-manager": [SCREEN, BEHAVIORAL, ROLE_CASE, PEOPLE, VALUES, NEGOTIATION, STANDUP],
-  "operations-manager": [SCREEN, BEHAVIORAL, ROLE_CASE, PEOPLE, VALUES, NEGOTIATION, STANDUP],
+  "finance-manager": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, PEOPLE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
+  "operations-manager": [SCREEN, AGENCY_SCREEN, BEHAVIORAL, ROLE_CASE, PEOPLE, VALUES, NEGOTIATION, CLIENT_INTERVIEW, STANDUP],
 };
 
 /** Every stage that exists, deduplicated, for lookup by id or label. */
@@ -689,6 +726,8 @@ export const STAGES: Stage[] = [
   VALUES,
   NEGOTIATION,
   STANDUP,
+  AGENCY_SCREEN,
+  CLIENT_INTERVIEW,
   ...AFTER_THE_OFFER,
   CODE_REVIEW,
   ON_CALL,
