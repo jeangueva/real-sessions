@@ -5,7 +5,7 @@ import { Action, Panel, Eyebrow, PremiumMark } from "@/design-system";
 import type { MessageKey } from "@/lib/i18n";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
-import { Briefcase, Lock, Plus, Search, TrendingUp, Users, X } from "lucide-react";
+import { Briefcase, Lock, Plus, Search, Timer, TrendingUp, Users, X } from "lucide-react";
 import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences, titleInArea } from "@/lib/api";
 import { areaLabel } from "@/lib/areas";
 import type {
@@ -58,10 +58,11 @@ const FALLBACK_ROLES = ["Senior Product Designer", "Backend Engineer"];
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Collects exactly the variables the Phase 1 prompt needs — nothing more. */
-type Phase = "prepare" | "work" | "grow";
+type Phase = "prepare" | "drill" | "work" | "grow";
 
 const PHASES: { id: Phase; label: MessageKey; title: MessageKey; icon: typeof Users }[] = [
   { id: "prepare", label: "phase.prepare", title: "setup.eyebrow", icon: Users },
+  { id: "drill", label: "phase.drill", title: "phase.drillTitle", icon: Timer },
   { id: "work", label: "phase.work", title: "phase.workTitle", icon: Briefcase },
   { id: "grow", label: "phase.grow", title: "phase.growTitle", icon: TrendingUp },
 ];
@@ -367,8 +368,8 @@ export function SessionSetup() {
     () => allStages.filter((entry) => (entry.phase ?? "prepare") === phase),
     [allStages, phase],
   );
-  /** The job and growing are the paid plan; preparing is free. */
-  const phaseLocked = phase !== "prepare" && can !== null && !can.workScenes;
+  /** The job and growing are the paid plan; preparing and drills are free. */
+  const phaseLocked = (phase === "work" || phase === "grow") && can !== null && !can.workScenes;
 
   /** The chosen rounds, in the order they were chosen. */
   const chosenStages = useMemo(
@@ -592,7 +593,7 @@ export function SessionSetup() {
               >
                 <entry.icon aria-hidden className="h-4 w-4" />
                 {t(entry.label)}
-                {entry.id !== "prepare" && can !== null && !can.workScenes && <PremiumMark label={t("premium.mark")} />}
+                {(entry.id === "work" || entry.id === "grow") && can !== null && !can.workScenes && <PremiumMark label={t("premium.mark")} />}
               </button>
             ))}
           </div>
@@ -652,7 +653,7 @@ export function SessionSetup() {
                 enabled: true,
                 node: (
                   <FilterSegment
-                    label={t(phase === "prepare" ? "field.stage" : "field.scene")}
+                    label={t(phase === "prepare" ? "field.stage" : phase === "drill" ? "field.drill" : "field.scene")}
                     value={
                       chosenStages.map((entry) => entry.label).join(" + ") || "Behavioral"
                     }

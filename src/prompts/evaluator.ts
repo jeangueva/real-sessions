@@ -1,6 +1,6 @@
 import type { InterviewContext, TranscriptTurn } from "../types.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
-import { composeRubric, isAfterTheOffer, resolveStages } from "../stages.js";
+import { composeRubric, isAfterTheOffer, isDrill, resolveStages } from "../stages.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
 import { PRESSURE_RUBRIC } from "../pressure.js";
@@ -100,7 +100,9 @@ export function buildEvaluatorPrompt(
     first_language_rule: firstLanguageRule(language, reportLanguage),
     session_frame: isAfterTheOffer(resolved)
       ? "This was not a job interview. The candidate already works here, and this was a conversation from their working week. Judge it the way a good manager judges a colleague's communication: was it clear, was the register right for the other person, did they say the hard part themselves, and did they get what they needed. Ignore the criteria below that only make sense in a hiring interview (selling themselves, cultural fit for hiring); keep vocabulary, structure and grammar."
-      : "This was a job interview.",
+      : isDrill(resolved)
+        ? "This was a two-minute drill on one skill, not a full interview. Grade that skill above everything else and keep the report short; the score is how well they did that one thing."
+        : "This was a job interview.",
     // The interface language the report is read in; English when unknown.
     report_language: reportLanguage ?? "English",
     // Grading Spanish against an English rubric would mark a fluent candidate

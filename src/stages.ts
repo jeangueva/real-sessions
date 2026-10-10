@@ -32,7 +32,7 @@ import type { AreaId } from "./roles.js";
  * paying. The two later phases are what someone needs every week once they
  * have the job — which is when a subscription makes sense.
  */
-export type Phase = "prepare" | "work" | "grow";
+export type Phase = "prepare" | "drill" | "work" | "grow";
 
 export interface Stage {
   id: string;
@@ -288,6 +288,69 @@ const AGENCY_SCREEN: Stage = {
   maxTurns: 7,
   titles: RECRUITING,
 };
+
+/*
+ * ---------------------------------------------------------------------------
+ * Drills: two minutes on one skill.
+ *
+ * A full round is fifteen minutes and grades everything at once, so the one
+ * habit that is costing someone the job — the "eh…" before every sentence,
+ * the explanation only an engineer follows, the achievement without a
+ * number — gets one line in a long report. A drill is three short questions
+ * that all exercise that one thing, graded on that thing. Free, because it
+ * is the reason to open the app on a day with no interview coming.
+ * ---------------------------------------------------------------------------
+ */
+
+const DRILL_FILLERS: Stage = {
+  id: "drill-no-fillers",
+  phase: "drill",
+  label: "No fillers",
+  summary: "Three quick questions. Answer without “um”, “like” or “eh”.",
+  brief:
+    "This is a two-minute drill, not an interview: three short, everyday interview questions (for example: tell me about yourself in thirty seconds, why this kind of role, what you are working on right now), one at a time, no follow-ups on content. Keep every question easy and general — never about the company's metrics or the candidate's technical depth — so the only hard part is saying it cleanly. Ask all three before closing, even if an answer is weak. Keep your own lines to one sentence. The candidate is practising answering without filler words, so do not comment on their fillers during the drill.",
+  rubric:
+    "This was a two-minute drill on filler words. Weigh almost everything on fillers and false starts: um, uh, like, you know, so, basically, and fillers carried over from Spanish or Portuguese such as eh, este, o sea, pues, tipo, né. Count them and quote the worst stretch. A clean pause is good, not a fault. Content matters only if an answer never reached the point.",
+  // Three questions and the goodbye: the count includes the closing line.
+  minTurns: 4,
+  maxTurns: 4,
+  titles: RECRUITING,
+  solo: true,
+};
+
+const DRILL_SIMPLE: Stage = {
+  id: "drill-explain-simple",
+  phase: "drill",
+  label: "Explain it simply",
+  summary: "Something you built, explained to a client who is not technical.",
+  brief:
+    "This is a two-minute drill, not an interview. You are a non-technical client. First ask the candidate to explain one thing they built or work on, as they would to you. Then ask them to say it again in one sentence. Then ask why it matters to your business. Keep your own lines to one sentence and never use jargon yourself; if they use a term a client would not know, ask what it means. Stay on this drill rather than on the company you represent, and ask all three before closing.",
+  rubric:
+    "This was a two-minute drill on explaining technical work simply. Weigh plain words, short sentences, a concrete example or analogy, and whether the one-sentence version was really one sentence a client understands. Jargon left unexplained is the main fault; quote it and give the plain version.",
+  // Three questions and the goodbye: the count includes the closing line.
+  minTurns: 4,
+  maxTurns: 4,
+  titles: PRODUCT,
+  solo: true,
+};
+
+const DRILL_NUMBER: Stage = {
+  id: "drill-achievement-number",
+  phase: "drill",
+  label: "Your win, with a number",
+  summary: "One achievement, said with the number it moved.",
+  brief:
+    "This is a two-minute drill, not an interview. Ask the candidate for one achievement they are proud of. If the answer has no number, ask what number it changed. Then ask for the before and after, or how long it took. Keep your own lines to one sentence and do not move to another achievement. Stay on this drill rather than on the company you represent, and ask all three before closing.",
+  rubric:
+    "This was a two-minute drill on stating an achievement with a number. Weigh whether they named the metric, the before and after, the timeframe and their own part in the first person. Saying numbers clearly in English counts: percentages, thousands, money. The better version should be one or two sentences they can reuse in every interview, with [placeholders] for any number they did not give.",
+  // Three questions and the goodbye: the count includes the closing line.
+  minTurns: 4,
+  maxTurns: 4,
+  titles: ENGINEERING_LEADS,
+  solo: true,
+};
+
+const DRILLS = [DRILL_FILLERS, DRILL_SIMPLE, DRILL_NUMBER];
 
 /** The agency's last round: the foreign client deciding whether to take them. */
 const CLIENT_INTERVIEW: Stage = {
@@ -643,7 +706,7 @@ const GROW_SCENES: Stage[] = [REVIEW, RAISE, CAREER];
 function afterTheOffer(roleId: string | null, area: AreaId | null): Stage[] {
   const own = (roleId && WORK_BY_ROLE[roleId]) || (area && WORK_BY_AREA[area]) || GENERAL_WORK;
   const seen = new Set<string>();
-  return [...own, ...SHARED_WORK, ...GROW_SCENES].filter((stage) => {
+  return [...DRILLS, ...own, ...SHARED_WORK, ...GROW_SCENES].filter((stage) => {
     if (seen.has(stage.id)) return false;
     seen.add(stage.id);
     return true;
@@ -728,6 +791,7 @@ export const STAGES: Stage[] = [
   STANDUP,
   AGENCY_SCREEN,
   CLIENT_INTERVIEW,
+  ...DRILLS,
   ...AFTER_THE_OFFER,
   CODE_REVIEW,
   ON_CALL,
@@ -955,5 +1019,10 @@ export function phaseOf(stage: Stage): Phase {
 
 /** Whether a session runs any scene past the interview — the paid part. */
 export function isAfterTheOffer(stages: readonly Stage[]): boolean {
-  return stages.some((stage) => phaseOf(stage) !== "prepare");
+  return stages.some((stage) => phaseOf(stage) === "work" || phaseOf(stage) === "grow");
+}
+
+/** Whether a session is a two-minute drill rather than a round. */
+export function isDrill(stages: readonly Stage[]): boolean {
+  return stages.some((stage) => phaseOf(stage) === "drill");
 }
