@@ -770,12 +770,12 @@ function FeedbackBody({
 }
 
 /** Which form of Mocki cheers the result: crowned at 80+, on stage at 50+. */
-function mascotFor(score: number): number {
+export function mascotFor(score: number): number {
   return score >= 80 ? 6 : score >= 50 ? 5 : 4;
 }
 
 /** One encouraging sentence for the score — never "you failed". */
-function verdictFor(score: number): MessageKey {
+export function verdictFor(score: number): MessageKey {
   return score >= 80 ? "feedback.verdictHigh" : score >= 50 ? "feedback.verdictMid" : "feedback.verdictLow";
 }
 

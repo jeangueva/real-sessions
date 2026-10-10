@@ -124,14 +124,17 @@ export function SessionList() {
                     {formatSessionDate(session.completedAt ?? session.startedAt)}
                   </td>
                   <td className="order-1 min-w-0 basis-full sm:order-none sm:basis-auto sm:px-5 sm:py-3.5">
-                    <p className="truncate font-semibold text-cream-bright">
+                    <Link
+                      to={`/app/interviews/${session.id}`}
+                      className="focus-ring block truncate rounded font-semibold text-cream-bright hover:text-accent-text"
+                    >
                       {session.company}
                       {session.mode === "real" && (
                         <span className="ml-2 rounded-full bg-surface-lift px-2 py-0.5 text-xs font-medium text-cream-dim">
                           {t("history.real")}
                         </span>
                       )}
-                    </p>
+                    </Link>
                     <p className="truncate text-xs text-cream-dim">
                       {session.role} · {session.stage}
                     </p>

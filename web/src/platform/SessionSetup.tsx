@@ -977,7 +977,6 @@ export function SessionSetup() {
           <RecentSessions
             sessions={sessions}
             genericCompany={genericCompany}
-            onPick={loadSession}
             action={
               <div className="flex items-center gap-1">
               <Link

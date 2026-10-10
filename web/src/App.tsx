@@ -41,6 +41,7 @@ const Review = lazy(() => import("@/platform/Review").then((m) => ({ default: m.
 const Settings = lazy(() => import("@/platform/Settings").then((m) => ({ default: m.Settings })));
 const ShareCard = lazy(() => import("@/platform/ShareCard").then((m) => ({ default: m.ShareCard })));
 const Applications = lazy(() => import("@/platform/Applications").then((m) => ({ default: m.Applications })));
+const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m) => ({ default: m.InterviewDetail })));
 /**
  * Lazy although it is public, which is the opposite of the rule above.
  *
@@ -157,6 +158,7 @@ export function App() {
           <Route path="settings" element={<Suspense fallback={null}><Settings /></Suspense>} />
           <Route path="share" element={<Suspense fallback={null}><ShareCard /></Suspense>} />
           <Route path="applications" element={<Suspense fallback={null}><Applications /></Suspense>} />
+          <Route path="interviews/:id" element={<Suspense fallback={null}><InterviewDetail /></Suspense>} />
         </Route>
       </Routes>
     </BrowserRouter>

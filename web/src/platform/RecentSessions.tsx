@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { History } from "lucide-react";
 import type { ReactNode } from "react";
 import type { SessionSummary } from "@/lib/api";
@@ -103,12 +104,10 @@ export function recentSetups(sessions: readonly SessionSummary[], limit = 3): Re
 export function RecentSessions({
   sessions,
   genericCompany,
-  onPick,
   action,
 }: {
   sessions: SessionSummary[];
   genericCompany: string;
-  onPick: (session: SessionSummary) => void;
   /** Something to sit at the end of the heading, e.g. the search toggle. */
   action?: ReactNode;
 }) {
@@ -133,9 +132,8 @@ export function RecentSessions({
           const company = companyLabel(latest, genericCompany, t("field.generalRole"));
           return (
             <li key={latest.id} className="min-w-0">
-              <button
-                type="button"
-                onClick={() => onPick(latest)}
+              <Link
+                to={`/app/interviews/${latest.id}`}
                 className="focus-ring flex w-full min-w-0 items-center justify-between gap-3 rounded-2xl bg-surface-card px-4 py-3 text-left shadow-card transition-[box-shadow,transform] duration-150 ease-press hover:shadow-lift active:scale-[0.98]"
               >
                 <span className="min-w-0">
@@ -154,7 +152,7 @@ export function RecentSessions({
                     {Math.round(score)}%
                   </span>
                 )}
-              </button>
+              </Link>
             </li>
           );
         })}
