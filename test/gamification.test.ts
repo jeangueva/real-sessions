@@ -208,6 +208,14 @@ describe("badgesForSession", () => {
     expect(badgesForSession(base)).not.toContain("clean-speech");
   });
 
+  it("does not award clean speech to an interview that barely spoke", () => {
+    const quiet = badgesForSession({
+      ...base,
+      metrics: { ...METRICS, fillerPer100: 0, words: 30 },
+    });
+    expect(quiet).not.toContain("clean-speech");
+  });
+
   it("requires five straight clean sessions for the streak", () => {
     const cleanMetrics = { ...METRICS, fillerPer100: 1 };
     const cleanHistory = Array.from({ length: 4 }, () =>

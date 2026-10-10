@@ -385,7 +385,14 @@ export function badgesForSession(input: BadgeInput): string[] {
   if (stage.includes("technical")) earned.push("technical-round");
   if (stage.includes("system design")) earned.push("system-design");
 
-  const clean = input.metrics.fillerPer100 !== null && input.metrics.fillerPer100 < 3;
+  // A rate needs words behind it: a few words with no filler is not clean
+  // speech, it is barely any speech — and the badge went to an interview
+  // that scored zero.
+  const CLEAN_MIN_WORDS = 150;
+  const clean =
+    input.metrics.fillerPer100 !== null &&
+    input.metrics.fillerPer100 < 3 &&
+    input.metrics.words >= CLEAN_MIN_WORDS;
   if (clean) {
     earned.push("clean-speech");
     // This session plus the four before it. `every` on a short slice is the
@@ -397,7 +404,8 @@ export function badgesForSession(input: BadgeInput): string[] {
         (session) =>
           session.metrics?.fillerPer100 !== null &&
           session.metrics?.fillerPer100 !== undefined &&
-          session.metrics.fillerPer100 < 3,
+          session.metrics.fillerPer100 < 3 &&
+          session.metrics.words >= CLEAN_MIN_WORDS,
       )
     ) {
       earned.push("clean-streak");

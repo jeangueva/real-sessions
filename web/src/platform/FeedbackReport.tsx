@@ -26,6 +26,7 @@ import {
 } from "@/lib/api";
 import type { Badge as BadgeInfo, SessionMetrics, XpAward } from "@/lib/api";
 import {
+  companyName,
   formatCount,
   formatFiller,
   formatSeconds,
@@ -60,7 +61,7 @@ export function FeedbackReport() {
   );
   const [meta, setMeta] = useState(
     state?.company
-      ? `${state.company} · ${state.role} · ${state.stage}`
+      ? `${companyName(state.company, t("field.generalRole"))} · ${state.role} · ${state.stage}`
       : sessionId || historyId
         ? ""
         : t("feedback.sample"),
@@ -109,7 +110,7 @@ export function FeedbackReport() {
           setWithheld(result.session.withheld);
           setShareToken(result.session.shareToken ?? null);
           setMeta(
-            `${result.session.company} · ${result.session.role} · ` +
+            `${companyName(result.session.company, t("field.generalRole"))} · ${result.session.role} · ` +
               `${result.session.stage} · ${formatSessionDate(result.session.completedAt)}`,
           );
         })

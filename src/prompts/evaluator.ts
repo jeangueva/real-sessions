@@ -54,8 +54,19 @@ Each item in \`vocabulary_feedback.missed_opportunities_or_errors\` is one corre
 "what they actually said" → "how a fluent speaker would say it"
 Quote their own words on the left, a natural version on the right, both in straight double quotes, joined by the → character. One correction per item, no explanation after it. The report draws these as a step from one sentence to the next, and anything outside that shape is shown as a plain note.
 
+### LENGTH — THE READER HAS ONE MINUTE:
+The report is read on a phone right after a stressful interview. Say less, and make every line count.
+- \`strengths\`: at most 2 items. \`areas_for_improvement\`: at most 2 items. \`actionable_next_steps\`: 1 to 3 items, never empty. Each item one sentence of at most 20 words.
+- \`actionable_next_steps\` start with a verb the candidate can do ("Name the metric you moved before describing the process"), never with a diagnosis.
+- Never begin an item with a category label such as "Technical & Domain Vocabulary:", "Communication Structure:" or "Cultural Fit:". Write the point itself.
+- \`feedback_text\` fields: at most two short sentences.
+- At most 4 corrections in \`missed_opportunities_or_errors\`, the ones that matter most.
+
 ### OUTPUT FORMAT:
-Every string you return is rendered as plain text. Write plain prose only — no markdown, no asterisks for emphasis, no bold, no headings, no numbered or bulleted lists inside a field. A sentence like "skipped the **S**ituation" reaches the candidate with the asterisks still in it.`;
+Every string you return is rendered as plain text. Write plain prose only — no markdown, no asterisks for emphasis, no bold, no headings, no numbered or bulleted lists inside a field. A sentence like "skipped the **S**ituation" reaches the candidate with the asterisks still in it.
+
+### LANGUAGE OF THE REPORT — THE MOST IMPORTANT RULE:
+Every sentence of feedback — strengths, areas for improvement, next steps, every feedback_text — is written in {{report_language}}, never in English unless {{report_language}} is English. The only words left in {{language}} are what the candidate actually said and the corrected phrasings they should practise. A report in the wrong language is a report they cannot use.`;
 
 /** Renders the Phase 2 system prompt. */
 export function buildEvaluatorPrompt(

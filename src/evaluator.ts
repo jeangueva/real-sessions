@@ -1,4 +1,5 @@
 import { EVALUATOR_FALLBACKS, EVALUATOR_MODEL } from "./client.js";
+import { findLanguage } from "./languages.js";
 import { resolveProvider } from "./providers/index.js";
 import type {
   LatencyStats,
@@ -77,7 +78,11 @@ export async function evaluateInterview(
       options.pressure,
       options.reportLanguage,
     ),
-    prompt: formatTranscript(transcript, context),
+    // The language rule restated after the transcript, where the model reads
+    // last: buried mid-prompt it was ignored, and Spanish readers got English.
+    prompt:
+      formatTranscript(transcript, context) +
+      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words and the corrected phrasings in ${findLanguage(options.language).promptLabel}. Be brief.`,
     maxTokens: options.maxTokens ?? 4096,
     schema: EvaluationSchema,
     ...(options.effort ? { effort: options.effort } : {}),

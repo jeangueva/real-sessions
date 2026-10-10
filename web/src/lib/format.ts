@@ -107,3 +107,16 @@ export function formatMinutes(ms: number | null): string {
 export function formatShare(value: number | null): string {
   return value === null ? ABSENT : `${Math.round(value * 100)}%`;
 }
+
+/**
+ * The placeholder a free interview is recorded against — the server's
+ * GENERIC_COMPANY. It is a phrase for the interviewer's prompt, not a company,
+ * and printed back it read "a well-regarded technology company · Senior
+ * Product Designer" at the top of a Spanish report.
+ */
+export const GENERIC_COMPANY = "a well-regarded technology company";
+
+/** The company as the reader should see it: "General role" for the placeholder. */
+export function companyName(company: string | null | undefined, generalLabel: string): string {
+  return !company || company === GENERIC_COMPANY ? generalLabel : company;
+}

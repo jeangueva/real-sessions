@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, ChevronDown, RotateCcw, Sparkles } from "lucide-
 import { Action, FadeRise, Panel, ScoreRing } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, fetchHistoryEntry } from "@/lib/api";
-import { formatSessionDate } from "@/lib/format";
+import { companyName, formatSessionDate } from "@/lib/format";
 import { PageBody, PageHeader } from "./AppShell";
 import { mascotFor, verdictFor } from "./FeedbackReport";
 
@@ -61,7 +61,7 @@ export function InterviewDetail() {
     <>
       <PageHeader
         title={`${entry.role} · ${entry.stage}`}
-        meta={[entry.company, formatSessionDate(entry.completedAt ?? entry.startedAt), entry.mode === "real" ? t("history.real") : null]
+        meta={[companyName(entry.company, t("field.generalRole")), formatSessionDate(entry.completedAt ?? entry.startedAt), entry.mode === "real" ? t("history.real") : null]
           .filter(Boolean)
           .join(" · ")}
       />

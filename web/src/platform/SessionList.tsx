@@ -4,7 +4,7 @@ import { ArrowRight, RotateCcw } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, fetchHistory } from "@/lib/api";
-import { formatSessionDate, formatWpm } from "@/lib/format";
+import { companyName, formatSessionDate, formatWpm } from "@/lib/format";
 import type { SessionSummary } from "@/lib/api";
 
 /**
@@ -128,7 +128,7 @@ export function SessionList() {
                       to={`/app/interviews/${session.id}`}
                       className="focus-ring block truncate rounded font-semibold text-cream-bright hover:text-accent-text"
                     >
-                      {session.company}
+                      {companyName(session.company, t("field.generalRole"))}
                       {session.mode === "real" && (
                         <span className="ml-2 rounded-full bg-surface-lift px-2 py-0.5 text-xs font-medium text-cream-dim">
                           {t("history.real")}
