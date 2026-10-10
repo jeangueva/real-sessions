@@ -160,7 +160,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: ADMIN_INSIGHTS_MODEL
-        value: anthropic/claude-sonnet-5
+        value: anthropic/claude-sonnet-5.5
 
   - type: redis
     name: real-sessions-redis

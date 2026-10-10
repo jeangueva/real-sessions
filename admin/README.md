@@ -47,7 +47,7 @@ once.
    | `ADMIN_DATABASE_URL` | the admin role's URL from step 1 |
    | `ADMIN_REDIS_URL` | the product's Redis URL (accounts and names) |
    | `OPENROUTER_API_KEY` | the product's, for the AI review |
-   | `ADMIN_INSIGHTS_MODEL` | `anthropic/claude-sonnet-5` (any OpenRouter id) |
+   | `ADMIN_INSIGHTS_MODEL` | `anthropic/claude-sonnet-5.5` (any OpenRouter id) |
 
 3. **Domain (optional)**: in Render, add `admin.getmockio.com` to the service;
    at your DNS provider, the CNAME Render asks for. Without it, the

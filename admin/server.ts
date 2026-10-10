@@ -80,7 +80,7 @@ const pool = new pg.Pool({
 const writePool = new pg.Pool({ connectionString: databaseUrl, connectionTimeoutMillis: 5_000, max: 2 });
 for (const each of [pool, writePool]) each.on("error", (error) => console.error("[admin] postgres:", error.message));
 
-const insightsModel = process.env.ADMIN_INSIGHTS_MODEL?.trim() || "anthropic/claude-sonnet-5";
+const insightsModel = process.env.ADMIN_INSIGHTS_MODEL?.trim() || "anthropic/claude-sonnet-5.5";
 const here = new URL(".", import.meta.url);
 const ASSETS: Record<string, { type: string; body: string }> = {
   "/client.js": { type: "text/javascript; charset=utf-8", body: readFileSync(new URL("client.js", here), "utf8") },
