@@ -39,7 +39,7 @@ const HI: Record<MessageKey, string> = {
   "field.anyCompany": "कोई खास कंपनी नहीं",
   "field.companyLocked": "किसी खास कंपनी को लक्ष्य बनाना सशुल्क प्लान का हिस्सा है।",
   "field.language": "भाषा",
-  "field.languageHint": "इंटरव्यूअर कौन-सी भाषा बोलता है। रिपोर्ट दोनों ही स्थिति में अंग्रेज़ी में आती है।",
+  "field.languageHint": "इंटरव्यूअर किस भाषा में बोलेगा। आपकी रिपोर्ट हमेशा इस ऐप की भाषा में आती है।",
   "field.languageLocked": "स्पेनिश या पुर्तगाली में इंटरव्यू देना सशुल्क प्लान का हिस्सा है। मुफ़्त में अंग्रेज़ी इंटरव्यू चलता है।",
   "field.companyDefault": "कंपनी का डिफ़ॉल्ट",
   "field.companyDefaultHint": "Stripe एक संशयी भेजता है। Airbnb एक मेज़बान भेजता है।",

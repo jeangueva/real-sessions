@@ -39,7 +39,7 @@ const ZH: Record<MessageKey, string> = {
   "field.anyCompany": "不限公司",
   "field.companyLocked": "针对某一家具体公司属于付费方案。",
   "field.language": "语言",
-  "field.languageHint": "面试官说什么语言。无论如何，报告都用英文给出。",
+  "field.languageHint": "面试官使用的语言。报告始终以本应用的语言呈现。",
   "field.languageLocked": "用西班牙语或葡萄牙语面试属于付费方案。免费方案进行英文面试。",
   "field.companyDefault": "公司默认",
   "field.companyDefaultHint": "Stripe 派来一位怀疑者。Airbnb 派来一位主人。",

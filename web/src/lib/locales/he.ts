@@ -39,7 +39,7 @@ const HE: Record<MessageKey, string> = {
   "field.anyCompany": "ללא חברה מסוימת",
   "field.companyLocked": "מיקוד בחברה מסוימת הוא חלק מהתוכנית בתשלום.",
   "field.language": "שפה",
-  "field.languageHint": "השפה שהמראיין מדבר. הדוח חוזר באנגלית בכל מקרה.",
+  "field.languageHint": "השפה שבה המראיין מדבר. הדוח מגיע תמיד בשפת האפליקציה.",
   "field.languageLocked": "ראיון בספרדית או בפורטוגזית הוא חלק מהתוכנית בתשלום. החינמית מריצה את הראיון באנגלית.",
   "field.companyDefault": "ברירת המחדל של החברה",
   "field.companyDefaultHint": "Stripe שולחת ספקן. Airbnb שולחת מארח.",

@@ -39,7 +39,7 @@ const KO: Record<MessageKey, string> = {
   "field.anyCompany": "특정 회사 없음",
   "field.companyLocked": "특정 회사를 겨냥하는 것은 유료 플랜입니다.",
   "field.language": "언어",
-  "field.languageHint": "면접관이 쓰는 언어입니다. 보고서는 어느 쪽이든 영어로 옵니다.",
+  "field.languageHint": "면접관이 말하는 언어예요. 리포트는 항상 이 앱의 언어로 나와요.",
   "field.languageLocked": "스페인어나 포르투갈어로 면접을 보는 것은 유료 플랜입니다. 무료는 영어 면접입니다.",
   "field.companyDefault": "회사 기본값",
   "field.companyDefaultHint": "Stripe는 회의적인 사람을, Airbnb는 손님을 맞는 사람을 보냅니다.",

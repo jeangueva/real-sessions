@@ -39,7 +39,7 @@ const TH: Record<MessageKey, string> = {
   "field.anyCompany": "ไม่เจาะจงบริษัท",
   "field.companyLocked": "การเจาะจงบริษัทใดบริษัทหนึ่งอยู่ในแพ็กเกจเสียเงิน",
   "field.language": "ภาษา",
-  "field.languageHint": "ภาษาที่ผู้สัมภาษณ์พูด รายงานจะกลับมาเป็นภาษาอังกฤษไม่ว่าทางใด",
+  "field.languageHint": "ภาษาที่ผู้สัมภาษณ์ใช้ รายงานจะเป็นภาษาของแอปนี้เสมอ",
   "field.languageLocked": "การสัมภาษณ์เป็นภาษาสเปนหรือโปรตุเกสอยู่ในแพ็กเกจเสียเงิน แบบฟรีใช้การสัมภาษณ์ภาษาอังกฤษ",
   "field.companyDefault": "ค่าเริ่มต้นของบริษัท",
   "field.companyDefaultHint": "Stripe ส่งคนขี้สงสัยมา Airbnb ส่งเจ้าบ้านมา",

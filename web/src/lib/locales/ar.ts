@@ -39,7 +39,7 @@ const AR: Record<MessageKey, string> = {
   "field.anyCompany": "بدون شركة محددة",
   "field.companyLocked": "استهداف شركة بعينها جزء من الخطة المدفوعة.",
   "field.language": "اللغة",
-  "field.languageHint": "اللغة التي يتكلّمها المحاوِر. التقرير يعود بالإنجليزية في الحالتين.",
+  "field.languageHint": "اللغة التي يتحدث بها المُحاوِر. يصلك تقريرك دائمًا بلغة هذا التطبيق.",
   "field.languageLocked": "إجراء المقابلة بالإسبانية أو البرتغالية جزء من الخطة المدفوعة. المجانية تُجري المقابلة الإنجليزية.",
   "field.companyDefault": "الافتراضي للشركة",
   "field.companyDefaultHint": "Stripe ترسل متشكّكًا. Airbnb ترسل مضيفًا.",

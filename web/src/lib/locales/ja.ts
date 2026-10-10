@@ -39,7 +39,7 @@ const JA: Record<MessageKey, string> = {
   "field.anyCompany": "特定の企業なし",
   "field.companyLocked": "特定の企業を狙うのは有料プランです。",
   "field.language": "言語",
-  "field.languageHint": "面接官が話す言語。レポートはいずれの場合も英語で届きます。",
+  "field.languageHint": "面接官が話す言語。レポートは常にこのアプリの言語で届きます。",
   "field.languageLocked": "スペイン語やポルトガル語で面接を受けるのは有料プランです。無料プランは英語の面接です。",
   "field.companyDefault": "企業のデフォルト",
   "field.companyDefaultHint": "Stripe は懐疑的な人を、Airbnb はもてなす人を寄こします。",

@@ -39,7 +39,7 @@ const DE: Record<MessageKey, string> = {
   "field.anyCompany": "Kein bestimmtes Unternehmen",
   "field.companyLocked": "Auf ein bestimmtes Unternehmen zu zielen gehört zum Bezahltarif.",
   "field.language": "Sprache",
-  "field.languageHint": "Was die Interviewerin spricht. Der Bericht kommt so oder so auf Englisch.",
+  "field.languageHint": "Was die Interviewerin spricht. Der Bericht kommt immer in der Sprache dieser App.",
   "field.languageLocked": "Das Gespräch auf Spanisch oder Portugiesisch zu führen gehört zum Bezahltarif. Gratis läuft das englische Gespräch.",
   "field.companyDefault": "Vorgabe des Unternehmens",
   "field.companyDefaultHint": "Stripe schickt einen Skeptiker. Airbnb schickt einen Gastgeber.",

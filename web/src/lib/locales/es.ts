@@ -53,8 +53,7 @@ const ES: Record<MessageKey, string> = {
   "field.anyCompany": "En general",
   "field.companyLocked": "Apuntar a una empresa concreta es del plan pago.",
   "field.language": "Idioma",
-  "field.languageHint":
-    "Lo que habla el entrevistador. El informe llega en inglés en cualquier caso.",
+  "field.languageHint": "Lo que habla el entrevistador. Tu informe llega siempre en el idioma de esta app.",
   "field.languageLocked":
     "Entrevistar en español o portugués es del plan pago. El gratuito corre la entrevista en inglés.",
   "field.companyDefault": "El de la empresa",

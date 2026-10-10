@@ -107,8 +107,7 @@ const EN = {
   "field.anyCompany": "No particular company",
   "field.companyLocked": "Targeting a specific company is part of the paid plan.",
   "field.language": "Language",
-  "field.languageHint":
-    "What the interviewer speaks. The report comes back in English either way.",
+  "field.languageHint": "What the interviewer speaks. Your report always comes in the language of this app.",
   "field.languageLocked":
     "Interviewing in Spanish or Portuguese is part of the paid plan. Free runs the English interview.",
   "field.companyDefault": "Company default",
