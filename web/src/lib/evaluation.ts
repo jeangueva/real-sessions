@@ -21,6 +21,13 @@ export interface Evaluation {
     feedback_text: string;
   };
   actionable_next_steps: string[];
+  /** Each answer on its own. Absent on reports written before it existed. */
+  answer_feedback?: {
+    question: string;
+    verdict: "strong" | "ok" | "weak";
+    feedback: string;
+    better: string;
+  }[];
 }
 
 export interface SessionSummary {

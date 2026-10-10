@@ -6,6 +6,7 @@ import { Action, AnimatedCounter, DotMatrix, FadeRise, Meter, Panel, PopIn, Prem
 import { EASE_OUT } from "@/design-system/motion";
 import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
+import { AnswerByAnswer } from "./AnswerByAnswer";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { LevelUp, levelForXp } from "./LevelUp";
 import { useLocale, useT } from "@/hooks/useLocale";
@@ -603,6 +604,13 @@ function FeedbackBody({
                 <p className="mt-2 text-sm opacity-85">{t("feedback.missionHint")}</p>
               </div>
             </section>
+          </FadeRise>
+        )}
+
+        {/* 2b. Answer by answer, each with "try it again". */}
+        {(evaluation.answer_feedback?.length ?? 0) > 0 && (
+          <FadeRise delay={0.12}>
+            <AnswerByAnswer items={evaluation.answer_feedback ?? []} historyId={share?.historyId ?? null} />
           </FadeRise>
         )}
 

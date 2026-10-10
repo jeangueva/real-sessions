@@ -1152,6 +1152,28 @@ describe("when the database goes away", () => {
   });
 });
 
+describe("trying one answer again", () => {
+  beforeEach(() => api.authenticate());
+
+  it("grades the new answer against the stored question and returns whether it improved", async () => {
+    const id = await completeInterview(api);
+    api.provider.reply(JSON.stringify({ verdict: "strong", feedback: "Now it has a number.", better: "Same, keep it.", improved: true }));
+    const body = await api.json<{ result: { verdict: string; improved: boolean } }>(
+      `/api/history/${id}/retry`,
+      post({ index: 0, answer: "I owned activation and cut approval time to under an hour." }),
+    );
+    expect(body.result).toMatchObject({ verdict: "strong", improved: true });
+    // Graded against the question in the stored report, not one the client sent.
+    expect(api.provider.prompts.at(-1) ?? "").toContain("practising one interview answer");
+  });
+
+  it("refuses an answer index the report does not have", async () => {
+    const id = await completeInterview(api);
+    const response = await api.call(`/api/history/${id}/retry`, post({ index: 9, answer: "Something long enough." }));
+    expect(response.status).toBe(404);
+  });
+});
+
 describe("the report after the last turn", () => {
   beforeEach(() => api.authenticate());
 

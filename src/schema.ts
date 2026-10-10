@@ -17,6 +17,23 @@ export const StructureFeedbackSchema = z.object({
   feedback_text: z.string(),
 });
 
+/**
+ * One answer, judged on its own: the question it answered, how it went, one
+ * line on why, and a better way to have said it.
+ *
+ * A report about the whole interview tells someone what to work on; this
+ * tells them which answer, and gives them the version to say instead — the
+ * thing they can rehearse with "try this answer again".
+ */
+export const AnswerFeedbackSchema = z.object({
+  question: z.string(),
+  verdict: z.enum(["strong", "ok", "weak"]),
+  feedback: z.string(),
+  better: z.string(),
+});
+
+export type AnswerFeedback = z.infer<typeof AnswerFeedbackSchema>;
+
 export const EvaluationSchema = z.object({
   overall_score_percentage: z.number().min(0).max(100),
   strengths: z.array(z.string()).min(1),
@@ -24,9 +41,12 @@ export const EvaluationSchema = z.object({
   vocabulary_feedback: VocabularyFeedbackSchema,
   structure_feedback: StructureFeedbackSchema,
   actionable_next_steps: z.array(z.string()).min(1),
+  // Defaulted so reports written before it existed still parse.
+  answer_feedback: z.array(AnswerFeedbackSchema).default([]),
 });
 
-export type Evaluation = z.infer<typeof EvaluationSchema>;
+/** The input shape: `answer_feedback` is optional, as it is on older stored reports. */
+export type Evaluation = z.input<typeof EvaluationSchema>;
 export type VocabularyFeedback = z.infer<typeof VocabularyFeedbackSchema>;
 export type StructureFeedback = z.infer<typeof StructureFeedbackSchema>;
 
@@ -56,3 +76,13 @@ export const CoachFeedbackSchema = z.object({
 
 export type CoachTip = z.infer<typeof CoachTipSchema>;
 export type CoachFeedback = z.infer<typeof CoachFeedbackSchema>;
+
+/** A single retried answer, graded on its own (see /api/history/:id/retry). */
+export const RetryFeedbackSchema = z.object({
+  verdict: z.enum(["strong", "ok", "weak"]),
+  feedback: z.string(),
+  better: z.string(),
+  improved: z.boolean(),
+});
+
+export type RetryFeedback = z.infer<typeof RetryFeedbackSchema>;

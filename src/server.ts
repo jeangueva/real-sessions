@@ -116,7 +116,7 @@ import { createRateLimiter, MemoryRateLimiter, RULES, type RateLimiter } from ".
 import { closeRedis, getRedis } from "./redis.js";
 import { InterviewSession } from "./interviewer.js";
 import type { ModelProvider } from "./providers/index.js";
-import { evaluateInterview, EvaluationParseError } from "./evaluator.js";
+import { evaluateInterview, EvaluationParseError, gradeRetry } from "./evaluator.js";
 import type { Evaluation } from "./schema.js";
 import { InterviewRefusalError } from "./interviewer.js";
 import {
@@ -3393,6 +3393,36 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * on a lapse would break a link a mentor has in their inbox for a reason
    * that is between us and the candidate.
    */
+  /**
+   * "Try this answer again": one answer, graded on its own.
+   *
+   * The question and the suggested version come from the stored report, not
+   * from the request, so the client cannot ask to be graded against a
+   * question the interview never asked.
+   */
+  const retryMatch = path.match(/^\/api\/history\/([\w-]+)\/retry$/);
+  if (req.method === "POST" && retryMatch) {
+    if (await limited(res, `retry:${identity.id}`, RULES.coach)) return;
+    const body = await readJson(req);
+    const index = Number(body["index"]);
+    const answer = typeof body["answer"] === "string" ? body["answer"].trim().slice(0, 2000) : "";
+    if (!Number.isInteger(index) || index < 0 || answer.length < 3) {
+      return json(res, 400, { error: "Say or write your new answer first.", code: "emptyAnswer" });
+    }
+    const detail = await PROGRESS.getSession(identity.id, retryMatch[1]!);
+    const target = detail?.evaluation?.answer_feedback?.[index];
+    if (!target) return json(res, 404, { error: "We could not find that answer.", code: "sessionMissing" });
+    const result = await gradeRetry({
+      question: target.question,
+      suggested: target.better,
+      answer,
+      reportLanguage: REPORT_LANGUAGES[String(body["readerLanguage"] ?? "")],
+      ...(PROVIDER ? { provider: PROVIDER } : {}),
+    });
+    json(res, 200, { result });
+    return;
+  }
+
   const shareMatch = path.match(/^\/api\/history\/([\w-]+)\/share$/);
   if (shareMatch && (req.method === "POST" || req.method === "DELETE")) {
     const sessionId = shareMatch[1]!;

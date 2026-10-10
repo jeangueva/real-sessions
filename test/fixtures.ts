@@ -21,4 +21,12 @@ export const SAMPLE_EVALUATION = {
   },
   structure_feedback: { score_out_of_10: 8, feedback_text: "Clear STAR shape." },
   actionable_next_steps: ["Rehearse two stories out loud."],
+  answer_feedback: [
+    {
+      question: "Tell me about a time you owned an outcome.",
+      verdict: "ok" as const,
+      feedback: "Say the result with a number.",
+      better: "I owned activation and cut approval time from two days to under an hour.",
+    },
+  ],
 };

@@ -56,6 +56,13 @@ Each item in \`vocabulary_feedback.missed_opportunities_or_errors\` is one corre
 "what they actually said" → "how a fluent speaker would say it"
 Quote their own words on the left, a natural version on the right, both in straight double quotes, joined by the → character. One correction per item, no explanation after it. The report draws these as a step from one sentence to the next, and anything outside that shape is shown as a plain note.
 
+### ANSWER BY ANSWER:
+\`answer_feedback\` has one item per substantive answer the candidate gave, in order, at most 7 (skip greetings and one-word replies).
+- \`question\`: the interviewer's question it answered, shortened to at most 15 words, in {{language}}.
+- \`verdict\`: "strong", "ok" or "weak" for that answer alone.
+- \`feedback\`: one sentence of at most 20 words, in {{report_language}}, about what to change in that answer (or what made it work).
+- \`better\`: how they could have said it — ALWAYS in {{language}}, never in {{report_language}}, because these are the words they will say out loud in the interview. At most 35 words, in their own voice, built only from what they actually said. Never invent facts, numbers or results they did not mention: where a number or detail is missing, write a placeholder in brackets such as [your number] or [the result] so they fill in their own.
+
 ### LENGTH — THE READER HAS ONE MINUTE:
 The report is read on a phone right after a stressful interview. Say less, and make every line count.
 - \`strengths\`: at most 2 items. \`areas_for_improvement\`: at most 2 items. \`actionable_next_steps\`: 1 to 3 items, never empty. Each item one sentence of at most 20 words.

@@ -896,6 +896,20 @@ export function recordShared() {
   return withIdentity(() => request<{ xp: XpAward }>("/api/progress/shared", { method: "POST" }));
 }
 
+/** "Try this answer again": grades one new answer against the stored report. */
+export function retryAnswer(historyId: string, index: number, answer: string, readerLanguage?: string) {
+  return withIdentity(() =>
+    request<{ result: { verdict: "strong" | "ok" | "weak"; feedback: string; better: string; improved: boolean } }>(
+      `/api/history/${historyId}/retry`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ index, answer, readerLanguage }),
+      },
+    ),
+  );
+}
+
 /** Takes the link down. Allowed on any plan — see the route. */
 export function unshareSession(historyId: string) {
   return withIdentity(() =>

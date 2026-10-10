@@ -7,7 +7,7 @@ import type {
   ProviderUsage,
 } from "./providers/index.js";
 import { buildEvaluatorPrompt, formatTranscript } from "./prompts/evaluator.js";
-import { EvaluationSchema, type Evaluation } from "./schema.js";
+import { EvaluationSchema, RetryFeedbackSchema, type Evaluation, type RetryFeedback } from "./schema.js";
 import type { InterviewContext, TranscriptTurn } from "./types.js";
 
 /** Raised when the model returns nothing that validates against the schema. */
@@ -82,7 +82,7 @@ export async function evaluateInterview(
     // last: buried mid-prompt it was ignored, and Spanish readers got English.
     prompt:
       formatTranscript(transcript, context) +
-      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words and the corrected phrasings in ${findLanguage(options.language).promptLabel}. Be brief.`,
+      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words, the corrected phrasings and every \`better\` answer in ${findLanguage(options.language).promptLabel} — never invent numbers they did not say; use [placeholders]. Be brief.`,
     maxTokens: options.maxTokens ?? 4096,
     schema: EvaluationSchema,
     ...(options.effort ? { effort: options.effort } : {}),
@@ -110,4 +110,43 @@ export async function evaluateInterview(
   // Re-validate locally: the same guarantee then applies to rows read back
   // out of Supabase, not just to this response.
   return EvaluationSchema.parse(response.value);
+}
+
+/**
+ * Grades one retried answer against the question it answers and the better
+ * version the report suggested.
+ *
+ * Small on purpose: one question, one answer, four fields. The point of
+ * "try this answer again" is a fast loop — say it, see if it got better, say
+ * it again — and a full report per attempt would be slow and expensive.
+ */
+export async function gradeRetry(input: {
+  question: string;
+  suggested: string;
+  answer: string;
+  reportLanguage?: string;
+  language?: string;
+  provider?: ModelProvider;
+}): Promise<RetryFeedback> {
+  const model = EVALUATOR_MODEL;
+  const provider = input.provider ?? resolveProvider(model);
+  const language = findLanguage(input.language).promptLabel;
+  const report = input.reportLanguage ?? "English";
+  const response = await provider.json({
+    model,
+    system: `You coach a job candidate who is practising one interview answer in ${language}, a language that is not their first. Judge only this answer to this question. Be direct about the answer, kind about the person.
+Return:
+- verdict: "strong", "ok" or "weak".
+- feedback: one sentence of at most 20 words, in ${report}, on what to change next (or what now works).
+- better: a stronger version, always in ${language}, at most 35 words, built only from what they said; never invent numbers or facts — use [placeholders] for anything missing.
+- improved: true if this answer now does what the suggested version does — as clear, specific and correct — even in different words; false if it still has the original problem.
+Plain text only, no markdown.`,
+    prompt: `Question: ${input.question}\n\nThe version they were given to aim for: ${input.suggested}\n\nTheir new answer: ${input.answer}\n\nWrite the feedback in ${report}.`,
+    maxTokens: 600,
+    schema: RetryFeedbackSchema,
+  });
+  if (!response.value) {
+    throw new EvaluationParseError("The retry grader returned no usable JSON.", response.raw);
+  }
+  return RetryFeedbackSchema.parse(response.value);
 }
