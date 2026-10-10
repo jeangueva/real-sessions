@@ -132,6 +132,7 @@ const AR: Record<MessageKey, string> = {
   "feedback.words": "الكلمات",
   "feedback.fillers": "كلمات الحشو",
   "feedback.fillerUnit": "/ 100 كلمة",
+  "settings.signOutHint": "تم تسجيل الدخول على هذا الجهاز.",
   "today.title": "اليوم",
   "today.goalTitle": "هدف اليوم",
   "today.goalProgress": "{xp} من {goal} XP",

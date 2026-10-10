@@ -132,6 +132,7 @@ const JA: Record<MessageKey, string> = {
   "feedback.words": "語数",
   "feedback.fillers": "つなぎ言葉",
   "feedback.fillerUnit": "/ 100語",
+  "settings.signOutHint": "このデバイスでログイン中です。",
   "today.title": "今日",
   "today.goalTitle": "今日の目標",
   "today.goalProgress": "{xp} / {goal} XP",

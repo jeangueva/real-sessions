@@ -132,6 +132,7 @@ const KO: Record<MessageKey, string> = {
   "feedback.words": "단어 수",
   "feedback.fillers": "군더더기 말",
   "feedback.fillerUnit": "/ 100단어",
+  "settings.signOutHint": "이 기기에서 로그인되어 있어요.",
   "today.title": "오늘",
   "today.goalTitle": "오늘의 목표",
   "today.goalProgress": "{xp} / {goal} XP",

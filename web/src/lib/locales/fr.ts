@@ -133,6 +133,7 @@ const FR: Record<MessageKey, string> = {
   "feedback.words": "Mots",
   "feedback.fillers": "Tics de langage",
   "feedback.fillerUnit": "/ 100 mots",
+  "settings.signOutHint": "Connecté sur cet appareil.",
   "today.title": "Aujourd'hui",
   "today.goalTitle": "Objectif du jour",
   "today.goalProgress": "{xp} sur {goal} XP",

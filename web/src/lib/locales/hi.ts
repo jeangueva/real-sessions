@@ -132,6 +132,7 @@ const HI: Record<MessageKey, string> = {
   "feedback.words": "शब्द",
   "feedback.fillers": "भराव शब्द",
   "feedback.fillerUnit": "/ 100 शब्द",
+  "settings.signOutHint": "इस डिवाइस पर साइन इन है।",
   "today.title": "आज",
   "today.goalTitle": "आज का लक्ष्य",
   "today.goalProgress": "{goal} में से {xp} XP",

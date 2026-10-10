@@ -215,6 +215,7 @@ const EN = {
   "feedback.words": "Words",
   "feedback.fillers": "Fillers",
   "feedback.fillerUnit": "/ 100 words",
+  "settings.signOutHint": "Signed in on this device.",
   "today.title": "Today",
   "today.goalTitle": "Daily goal",
   "today.goalProgress": "{xp} of {goal} XP",

@@ -132,6 +132,7 @@ const TH: Record<MessageKey, string> = {
   "feedback.words": "คำ",
   "feedback.fillers": "คำเติม",
   "feedback.fillerUnit": "/ 100 คำ",
+  "settings.signOutHint": "เข้าสู่ระบบบนอุปกรณ์นี้แล้ว",
   "today.title": "วันนี้",
   "today.goalTitle": "เป้าหมายวันนี้",
   "today.goalProgress": "{xp} จาก {goal} XP",

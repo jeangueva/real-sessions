@@ -132,6 +132,7 @@ const HE: Record<MessageKey, string> = {
   "feedback.words": "מילים",
   "feedback.fillers": "מילות מילוי",
   "feedback.fillerUnit": "/ 100 מילים",
+  "settings.signOutHint": "מחוברים במכשיר הזה.",
   "today.title": "היום",
   "today.goalTitle": "יעד יומי",
   "today.goalProgress": "{xp} מתוך {goal} XP",

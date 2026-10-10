@@ -132,6 +132,7 @@ const RU: Record<MessageKey, string> = {
   "feedback.words": "Слова",
   "feedback.fillers": "Слова-паразиты",
   "feedback.fillerUnit": "/ 100 слов",
+  "settings.signOutHint": "Вы вошли на этом устройстве.",
   "today.title": "Сегодня",
   "today.goalTitle": "Цель дня",
   "today.goalProgress": "{xp} из {goal} XP",

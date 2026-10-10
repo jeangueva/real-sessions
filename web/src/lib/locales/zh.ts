@@ -132,6 +132,7 @@ const ZH: Record<MessageKey, string> = {
   "feedback.words": "词数",
   "feedback.fillers": "填充词",
   "feedback.fillerUnit": "/ 100 词",
+  "settings.signOutHint": "已在此设备上登录。",
   "today.title": "今天",
   "today.goalTitle": "每日目标",
   "today.goalProgress": "{xp} / {goal} XP",

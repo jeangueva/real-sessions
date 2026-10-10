@@ -151,6 +151,7 @@ const PT: Record<MessageKey, string> = {
   "feedback.words": "Palavras",
   "feedback.fillers": "Muletas",
   "feedback.fillerUnit": "/ 100 palavras",
+  "settings.signOutHint": "Sessão iniciada neste dispositivo.",
   "today.title": "Hoje",
   "today.goalTitle": "Meta do dia",
   "today.goalProgress": "{xp} de {goal} XP",
