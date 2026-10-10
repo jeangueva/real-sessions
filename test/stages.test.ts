@@ -349,3 +349,27 @@ describe("what the catalogue is allowed to say", () => {
     expect(publicStage(findStage("behavioral")).solo).toBeUndefined();
   });
 });
+
+describe("scenes from the job itself, by role", () => {
+  const ids = (role: string) => stagesFor(role).map((stage) => stage.id);
+
+  it("gives each tech profile its own working week, plus the shared and growth scenes", () => {
+    expect(ids("backend-engineer")).toEqual(expect.arrayContaining(["code-review", "on-call-incident", "estimate-pushback"]));
+    expect(ids("product-designer")).toEqual(expect.arrayContaining(["design-critique", "dev-handoff"]));
+    expect(ids("product-manager")).toEqual(expect.arrayContaining(["prioritization", "user-interview"]));
+    expect(ids("data-analyst")).toEqual(expect.arrayContaining(["explain-analysis", "wrong-number"]));
+    expect(ids("qa-engineer")).toEqual(expect.arrayContaining(["release-blocker", "cannot-reproduce"]));
+    for (const role of ["backend-engineer", "product-designer", "qa-engineer"]) {
+      expect(ids(role)).toEqual(expect.arrayContaining(["deadline-slip", "ask-for-raise", "performance-review"]));
+    }
+  });
+
+  it("does not hand a designer an engineer's scenes", () => {
+    expect(ids("product-designer")).not.toContain("code-review");
+    expect(ids("backend-engineer")).not.toContain("design-critique");
+  });
+
+  it("keeps the general scenes for roles outside tech", () => {
+    expect(ids("account-executive")).toEqual(expect.arrayContaining(["client-call"]));
+  });
+});

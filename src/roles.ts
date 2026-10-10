@@ -189,6 +189,12 @@ export const ROLES: Role[] = [
     area: "engineering",
   },
   {
+    id: "qa-engineer",
+    label: "QA Engineer",
+    focus: "test strategy, the bug nobody believed, and holding a release you cannot sign off",
+    area: "engineering",
+  },
+  {
     id: "engineering-manager",
     label: "Engineering Manager",
     focus: "delivery under constraint, and the conversation you avoided too long",

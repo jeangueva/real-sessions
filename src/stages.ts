@@ -396,8 +396,222 @@ const CAREER: Stage = {
   solo: true,
 };
 
-/** Every role has these: the job itself is in English, whatever the job is. */
+/** Every scene after the offer, for lookup. */
 const AFTER_THE_OFFER: Stage[] = [CLIENT_CALL, DEADLINE_SLIP, INCIDENT, DEMO, CLARIFY, REVIEW, RAISE, CAREER];
+
+/* Scenes that belong to one kind of work. A developer's week is code reviews
+ * and outages; a designer's is critiques and handoffs; a PM's is saying no.
+ * Generic scenes (a client call, a demo) cannot rehearse those, and a list
+ * that offered the same nine to everyone read as a list nobody had thought
+ * about. */
+
+const CODE_REVIEW: Stage = {
+  id: "code-review",
+  phase: "work",
+  label: "Defending your pull request",
+  summary: "A senior engineer questions your PR. Explain and defend it — or agree.",
+  brief:
+    "You are a senior engineer reviewing the candidate's pull request. Open by saying you left a few comments and asking them to walk you through the approach. Then challenge one design choice (naming, a missing test, a simpler alternative, a performance worry). Accept good reasoning; push again on hand-waving. You are collegial, not hostile.",
+  rubric:
+    "Weigh whether they explained the change and its trade-offs clearly, accepted valid points without over-apologising, defended reasonable choices with reasons, and proposed concrete follow-ups. Vague phrases ('it's fine', 'I think it works') are the finding here.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...SENIOR_IC, ...ENGINEERING_LEADS],
+  solo: true,
+};
+
+const ON_CALL: Stage = {
+  id: "on-call-incident",
+  phase: "work",
+  label: "Production is down (on call)",
+  summary: "You are on call and the service is failing. Give updates under pressure.",
+  brief:
+    "You are the incident lead on a live call. The candidate is the engineer on call for the service that is failing right now. Ask for status, what they have checked, the impact, and the next step with a time estimate. Interrupt once with pressure from above ('leadership is asking for an ETA'). Keep it fast and short, like a real incident bridge.",
+  rubric:
+    "Weigh short, structured updates under pressure: what is known, what is not, impact, next action and when the next update comes. Rambling, guessing without saying so, and missing an ETA are the findings.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...ENGINEERING_LEADS],
+  solo: true,
+};
+
+const ESTIMATE: Stage = {
+  id: "estimate-pushback",
+  phase: "work",
+  label: "Estimating a task",
+  summary: "The PM wants it in three days. You think it is ten. Negotiate.",
+  brief:
+    "You are the product manager. Ask the candidate how long a new feature will take. Whatever they say, push for something shorter ('can we do it in three days?'). If they explain the risks and offer options (a smaller version, a date range), accept the best option. If they cave, accept their unrealistic date cheerfully.",
+  rubric:
+    "Weigh whether they gave a range with assumptions, explained what drives the estimate, held a realistic number under pressure, and offered scope options instead of simply agreeing.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT],
+  solo: true,
+};
+
+const QA_RELEASE: Stage = {
+  id: "release-blocker",
+  phase: "work",
+  label: "A critical bug before release",
+  summary: "You found a serious bug and the release is today. Hold the line.",
+  brief:
+    "You are the product manager who wants to ship today. The candidate (QA) found a bug they consider critical. Ask how bad it really is, whether it can ship with a known issue, and what the risk is for users. Push to ship. Accept a delay only if they explain impact, reproduction and options clearly.",
+  rubric:
+    "Weigh whether they explained severity in terms of user impact, gave clear reproduction steps, proposed options (fix, feature flag, ship with mitigation) and held their position calmly without sounding alarmist.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT, ...ENGINEERING_LEADS],
+  solo: true,
+};
+
+const QA_REPRO: Stage = {
+  id: "cannot-reproduce",
+  phase: "work",
+  label: "'I can't reproduce it'",
+  summary: "A developer says your bug does not exist. Convince them.",
+  brief:
+    "You are the developer assigned the candidate's bug report, and you cannot reproduce it. Say so, a little sceptically. Ask about environment, steps, data and frequency. Accept it once the report is precise; stay sceptical while it is vague.",
+  rubric:
+    "Weigh precise, ordered reproduction steps, environment and data details, expected versus actual behaviour, and a collaborative tone rather than a defensive one.",
+  minTurns: 3,
+  maxTurns: 5,
+  titles: [...SENIOR_IC, ...ENGINEERING_LEADS],
+  solo: true,
+};
+
+const DESIGN_CRIT: Stage = {
+  id: "design-critique",
+  phase: "work",
+  label: "Design critique",
+  summary: "Present your design to the team and take hard feedback.",
+  brief:
+    "You are the head of design in a critique. Ask the candidate to walk you through their design and the problem it solves. Then give two pieces of feedback: one you are right about, one that is a matter of taste. See whether they explain decisions with user evidence, accept what is right and defend what they can justify.",
+  rubric:
+    "Weigh whether they framed the problem before the solution, tied decisions to users or data, received feedback without getting defensive, and pushed back on taste-based feedback with reasons.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT],
+  solo: true,
+};
+
+const DEV_HANDOFF: Stage = {
+  id: "dev-handoff",
+  phase: "work",
+  label: "Handoff to engineering",
+  summary: "A developer says your design is too hard to build. Find a way.",
+  brief:
+    "You are the engineer implementing the candidate's design. Say that one part (an animation, a custom component, an edge case) will take far too long. Ask what really matters in it. Accept a simpler version if they explain the intent and agree on what can change.",
+  rubric:
+    "Weigh whether they explained the intent behind the design, separated must-haves from nice-to-haves, proposed alternatives and agreed next steps clearly.",
+  minTurns: 3,
+  maxTurns: 5,
+  titles: [...SENIOR_IC, ...ENGINEERING_LEADS],
+  solo: true,
+};
+
+const STAKEHOLDER_DESIGN: Stage = {
+  id: "stakeholder-change",
+  phase: "work",
+  label: "A stakeholder wants a change you disagree with",
+  summary: "'Make the logo bigger.' Push back with reasons, not taste.",
+  brief:
+    "You are a senior stakeholder from marketing. You want a change to the candidate's design that you are sure about (bigger branding, more content, a different colour). Insist politely. Back down only if they explain the user impact and offer an alternative that meets your goal.",
+  rubric:
+    "Weigh whether they asked what goal is behind the request, explained the impact on users, offered an alternative that serves the stakeholder's goal, and stayed collaborative.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...EXEC],
+  solo: true,
+};
+
+const PRIORITIZATION: Stage = {
+  id: "prioritization",
+  phase: "work",
+  label: "Saying no to a stakeholder",
+  summary: "Sales wants their feature next sprint. It is not the priority.",
+  brief:
+    "You are a sales leader. A big customer wants a feature and you need it next sprint. Push hard and mention the deal size. The candidate is the product manager and must say no or not now. Accept their position only if they explain the priorities, the trade-off and an alternative (a workaround, a date).",
+  rubric:
+    "Weigh whether they acknowledged the request, explained priorities with reasons, said no clearly without hiding behind process, and offered a concrete alternative.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...EXEC],
+  solo: true,
+};
+
+const USER_INTERVIEW: Stage = {
+  id: "user-interview",
+  phase: "work",
+  label: "Interviewing a user",
+  summary: "Run a short customer interview. Ask, do not sell.",
+  brief:
+    "You are a user of the candidate's product, a busy professional who agreed to a 15-minute call. Answer their questions honestly and briefly. If they ask leading questions or pitch features, give polite, less useful answers. If they ask open questions about your work and problems, give rich detail.",
+  rubric:
+    "Weigh open, non-leading questions, follow-ups on what the user said, avoiding pitching, and a summary of what they learned at the end.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT],
+  solo: true,
+};
+
+const EXPLAIN_ANALYSIS: Stage = {
+  id: "explain-analysis",
+  phase: "work",
+  label: "Explaining your analysis to business",
+  summary: "Present your findings to a manager who does not read charts.",
+  brief:
+    "You are a business manager with no statistics background. Ask the candidate what they found in their analysis. Ask what it means for you, what you should do, and how sure they are. When they use technical terms (p-value, regression, cohort), ask what that means.",
+  rubric:
+    "Weigh whether they led with the answer and the recommendation, explained uncertainty in plain words, translated technical terms, and tied the finding to a decision.",
+  minTurns: 4,
+  maxTurns: 6,
+  titles: [...PRODUCT, ...EXEC],
+  solo: true,
+};
+
+const WRONG_NUMBER: Stage = {
+  id: "wrong-number",
+  phase: "work",
+  label: "'Your dashboard is wrong'",
+  summary: "A director says your number does not match theirs. Sort it out.",
+  brief:
+    "You are a director who sees a number in the candidate's dashboard that does not match the one in your own report, and you are annoyed. Ask why. Accept the explanation if they ask clarifying questions about definitions, explain how their number is calculated and propose how to reconcile them.",
+  rubric:
+    "Weigh calm, curious handling: clarifying definitions and time ranges, explaining the calculation simply, owning a real mistake if there is one, and proposing a next step.",
+  minTurns: 3,
+  maxTurns: 5,
+  titles: [...EXEC],
+  solo: true,
+};
+
+/** Scenes from the job itself, by area; areas without their own get the general set. */
+const WORK_BY_AREA: Partial<Record<AreaId, Stage[]>> = {
+  engineering: [CODE_REVIEW, ON_CALL, ESTIMATE, INCIDENT],
+  design: [DESIGN_CRIT, DEV_HANDOFF, STAKEHOLDER_DESIGN],
+  product: [PRIORITIZATION, USER_INTERVIEW, ESTIMATE],
+  data: [EXPLAIN_ANALYSIS, WRONG_NUMBER, CLARIFY],
+};
+
+/** Roles whose working week differs from their area's. */
+const WORK_BY_ROLE: Record<string, Stage[]> = {
+  "qa-engineer": [QA_RELEASE, QA_REPRO, ESTIMATE],
+};
+
+const GENERAL_WORK: Stage[] = [CLIENT_CALL, INCIDENT];
+const SHARED_WORK: Stage[] = [DEADLINE_SLIP, CLARIFY, DEMO];
+const GROW_SCENES: Stage[] = [REVIEW, RAISE, CAREER];
+
+/** The scenes after the offer for one role: its own work, the shared ones, growing. */
+function afterTheOffer(roleId: string | null, area: AreaId | null): Stage[] {
+  const own = (roleId && WORK_BY_ROLE[roleId]) || (area && WORK_BY_AREA[area]) || GENERAL_WORK;
+  const seen = new Set<string>();
+  return [...own, ...SHARED_WORK, ...GROW_SCENES].filter((stage) => {
+    if (seen.has(stage.id)) return false;
+    seen.add(stage.id);
+    return true;
+  });
+}
 
 /**
  * The job itself, as a problem to work through.
@@ -476,6 +690,18 @@ export const STAGES: Stage[] = [
   NEGOTIATION,
   STANDUP,
   ...AFTER_THE_OFFER,
+  CODE_REVIEW,
+  ON_CALL,
+  ESTIMATE,
+  QA_RELEASE,
+  QA_REPRO,
+  DESIGN_CRIT,
+  DEV_HANDOFF,
+  STAKEHOLDER_DESIGN,
+  PRIORITIZATION,
+  USER_INTERVIEW,
+  EXPLAIN_ANALYSIS,
+  WRONG_NUMBER,
 ];
 
 const BY_ID = new Map(STAGES.map((stage) => [stage.id, stage]));
@@ -484,8 +710,8 @@ const BY_LABEL = new Map(STAGES.map((stage) => [stage.label.toLowerCase(), stage
 /** The rounds offered for a role. Falls back to the common set. */
 export function stagesFor(role: string | null | undefined): Stage[] {
   const resolved = findRole(role);
-  if (!resolved) return [BEHAVIORAL, DEEP_DIVE, ...AFTER_THE_OFFER];
-  return [...(BY_ROLE[resolved.id] ?? BY_AREA[resolved.area]), ...AFTER_THE_OFFER];
+  if (!resolved) return [BEHAVIORAL, DEEP_DIVE, ...afterTheOffer(null, null)];
+  return [...(BY_ROLE[resolved.id] ?? BY_AREA[resolved.area]), ...afterTheOffer(resolved.id, resolved.area)];
 }
 
 /**
