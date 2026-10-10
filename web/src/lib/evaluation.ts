@@ -28,6 +28,13 @@ export interface Evaluation {
     feedback: string;
     better: string;
   }[];
+  /** Errors carried over from their first language. Absent on older reports. */
+  first_language_errors?: {
+    kind: "false-friend" | "literal-translation" | "word-order" | "tense" | "preposition" | "article" | "other";
+    said: string;
+    fix: string;
+    why: string;
+  }[];
 }
 
 export interface SessionSummary {

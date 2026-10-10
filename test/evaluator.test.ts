@@ -67,7 +67,7 @@ describe("evaluateInterview", () => {
 
     const result = await evaluateInterview(context, transcript, { provider });
 
-    expect(result).toEqual({ ...evaluation, answer_feedback: [] });
+    expect(result).toEqual({ ...evaluation, answer_feedback: [], first_language_errors: [] });
     const request = json.mock.calls[0]![0];
     expect(request.model).toBe(EVALUATOR_MODEL);
     expect(request.schema).toBeTruthy();
@@ -168,5 +168,20 @@ describe("fallback routing", () => {
       fallbackModels: [],
     });
     expect(json.mock.calls[0]![0].fallbacks).toBeUndefined();
+  });
+});
+
+import { firstLanguageRule } from "../src/prompts/evaluator.js";
+
+describe("errors from the first language", () => {
+  it("asks for Spanish-speaker patterns, explained in Spanish, when the reader reads Spanish", () => {
+    const rule = firstLanguageRule("en", "Spanish");
+    expect(rule).toContain("first language is most likely Spanish");
+    expect(rule).toContain("false friends");
+    expect(rule).toContain("in Spanish");
+  });
+
+  it("asks for nothing when the interview is in the reader's own language", () => {
+    expect(firstLanguageRule("en", "English")).toContain("empty");
   });
 });

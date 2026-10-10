@@ -34,6 +34,22 @@ export const AnswerFeedbackSchema = z.object({
 
 export type AnswerFeedback = z.infer<typeof AnswerFeedbackSchema>;
 
+/**
+ * An error that comes from the candidate's first language, not from English
+ * in general: a false friend, a structure carried over word for word, a
+ * preposition that is right in Spanish. Generic feedback calls these
+ * "grammar"; naming where they come from is what lets someone stop making
+ * them, because the same one returns in every answer until they see it.
+ */
+export const FirstLanguageErrorSchema = z.object({
+  kind: z.enum(["false-friend", "literal-translation", "word-order", "tense", "preposition", "article", "other"]),
+  said: z.string(),
+  fix: z.string(),
+  why: z.string(),
+});
+
+export type FirstLanguageError = z.infer<typeof FirstLanguageErrorSchema>;
+
 export const EvaluationSchema = z.object({
   overall_score_percentage: z.number().min(0).max(100),
   strengths: z.array(z.string()).min(1),
@@ -43,6 +59,7 @@ export const EvaluationSchema = z.object({
   actionable_next_steps: z.array(z.string()).min(1),
   // Defaulted so reports written before it existed still parse.
   answer_feedback: z.array(AnswerFeedbackSchema).default([]),
+  first_language_errors: z.array(FirstLanguageErrorSchema).default([]),
 });
 
 /** The input shape: `answer_feedback` is optional, as it is on older stored reports. */

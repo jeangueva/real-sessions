@@ -7,6 +7,7 @@ import { EASE_OUT } from "@/design-system/motion";
 import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { AnswerByAnswer } from "./AnswerByAnswer";
+import { FirstLanguageErrors } from "./FirstLanguageErrors";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { LevelUp, levelForXp } from "./LevelUp";
 import { useLocale, useT } from "@/hooks/useLocale";
@@ -604,6 +605,14 @@ function FeedbackBody({
                 <p className="mt-2 text-sm opacity-85">{t("feedback.missionHint")}</p>
               </div>
             </section>
+          </FadeRise>
+        )}
+
+        {/* 2a. What their first language makes them say — the part only
+            Mockio writes. */}
+        {(evaluation.first_language_errors?.length ?? 0) > 0 && (
+          <FadeRise delay={0.11}>
+            <FirstLanguageErrors items={evaluation.first_language_errors ?? []} />
           </FadeRise>
         )}
 

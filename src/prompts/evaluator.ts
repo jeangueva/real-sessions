@@ -63,6 +63,9 @@ Quote their own words on the left, a natural version on the right, both in strai
 - \`feedback\`: one sentence of at most 20 words, in {{report_language}}, about what to change in that answer (or what made it work).
 - \`better\`: how they could have said it — ALWAYS in {{language}}, never in {{report_language}}, because these are the words they will say out loud in the interview. At most 35 words, in their own voice, built only from what they actually said. Never invent facts, numbers or results they did not mention: where a number or detail is missing, write a placeholder in brackets such as [your number] or [the result] so they fill in their own.
 
+### ERRORS FROM THEIR FIRST LANGUAGE:
+{{first_language_rule}}
+
 ### LENGTH — THE READER HAS ONE MINUTE:
 The report is read on a phone right after a stressful interview. Say less, and make every line count.
 - \`strengths\`: at most 2 items. \`areas_for_improvement\`: at most 2 items. \`actionable_next_steps\`: 1 to 3 items, never empty. Each item one sentence of at most 20 words.
@@ -91,6 +94,7 @@ export function buildEvaluatorPrompt(
     ...toTemplateVariables(context),
     // A stand-up or a client call is not an interview: nobody is selling
     // themselves, and "cultural fit" criteria would grade the wrong thing.
+    first_language_rule: firstLanguageRule(language, reportLanguage),
     session_frame: isAfterTheOffer(resolved)
       ? "This was not a job interview. The candidate already works here, and this was a conversation from their working week. Judge it the way a good manager judges a colleague's communication: was it clear, was the register right for the other person, did they say the hard part themselves, and did they get what they needed. Ignore the criteria below that only make sense in a hiring interview (selling themselves, cultural fit for hiring); keep vocabulary, structure and grammar."
       : "This was a job interview.",
@@ -132,4 +136,26 @@ export function formatTranscript(
     .join("\n\n");
 
   return `### INPUT TRANSCRIPT:\n\n${body}`;
+}
+
+/**
+ * What to look for in \`first_language_errors\`.
+ *
+ * The reader's interface language stands in for their first language: someone
+ * reading Mockio in Spanish and interviewing in English almost always thinks
+ * in Spanish. When the two are the same there is nothing to carry over, and
+ * the list stays empty.
+ */
+export function firstLanguageRule(language?: string, reportLanguage?: string): string {
+  const spoken = findLanguage(language).promptLabel;
+  const first = reportLanguage ?? "English";
+  if (first.toLowerCase() === spoken.toLowerCase()) {
+    return "Their first language appears to be the language of the interview, so return an empty \`first_language_errors\` list.";
+  }
+  const examples =
+    first === "Spanish" || first === "Portuguese"
+      ? ' For a Spanish or Portuguese speaker in English these are typically: false friends ("actually" meaning "currently", "assist" for "attend", "realize" for "carry out", "career" for "degree", "sensible" for "sensitive"); literal translations ("I have 5 years working here" for "I have been working here for 5 years", "make a question", "explain me", "depend of", "people is"); a missing subject ("Is important", "Was difficult"); the wrong tense for something still true ("I work here since 2020"); and articles before general nouns ("The communication is key").'
+      : "";
+  return `The candidate's first language is most likely ${first}. In \`first_language_errors\`, list up to 4 errors in what they said that come from ${first} rather than from English being hard in general — the ones a native ${first} speaker makes again and again.${examples}
+For each: \`kind\` (false-friend, literal-translation, word-order, tense, preposition, article or other); \`said\`, their exact words, quoted from the transcript; \`fix\`, the natural ${spoken} version; \`why\`, one sentence of at most 20 words, in ${first}, naming the ${first} habit behind it. Only errors they actually made — if there are none, return an empty list. Do not repeat an item already listed in the corrections above.`;
 }
