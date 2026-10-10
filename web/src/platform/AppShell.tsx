@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { ScreenBoundary } from "./ScreenBoundary";
 import {
   Briefcase,
   FileUser,
@@ -16,7 +16,6 @@ import { fetchPlan, fetchPreferences, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import { Mark, PremiumMark, Wordmark } from "@/design-system";
-import { EASE_OUT } from "@/design-system/motion";
 
 /**
  * The signed-in shell. It sits on `surface-deep` rather than pure black so the
@@ -232,55 +231,25 @@ export function AppShell() {
       {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is fixed
           and would otherwise sit on top of the last element on the page. */}
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-        {/**
-         * One screen gives way to the next instead of being replaced.
-         *
-         * Every move inside the signed-in product was a hard cut: the old
-         * screen vanished and the new one appeared in the same frame, which
-         * is the single clearest way an application announces it is a
-         * collection of pages rather than one place. A short rise does not
-         * slow anybody down — it is gone in a fifth of a second — and it
-         * gives the eye something to follow across the change.
-         *
-         * `mode="wait"` so the two never overlap: two full screens on top of
-         * each other reads as a flicker, not as a transition. Keyed by
-         * pathname and not by the whole location, so opening `#plan` inside
-         * settings does not replay the whole screen.
-         *
-         * Declarative, so `MotionConfig reducedMotion="user"` in App.tsx
-         * turns it back into the hard cut for anybody who asked for less
-         * movement.
-         */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={location.pathname}
-            className="flex min-w-0 flex-1 flex-col"
-            /* A full `transform` string rather than `y`: Motion's shorthands
-               run on the main thread, and this plays while the next screen's
-               chunk is loading — the moment the main thread is busiest.
-               Out faster than in: the old screen is leaving, nobody is
-               reading it. */
-            initial={{ opacity: 0, transform: "translateY(8px)" }}
-            animate={{
-              opacity: 1,
-              transform: "translateY(0px)",
-              transition: { duration: 0.22, ease: EASE_OUT },
-              // Back to no transform at all once it lands. Any transform, even
-              // a zero one, makes this element the containing block for every
-              // `position: fixed` inside the screen — the Begin bar and the
-              // phone's transcript sheet were pinned to this box, a full page
-              // below the viewport, instead of to the screen.
-              transitionEnd: { transform: "none" },
-            }}
-            exit={{
-              opacity: 0,
-              transform: "translateY(-4px)",
-              transition: { duration: 0.12, ease: EASE_OUT },
-            }}
+        {/* No transition between screens. There used to be one — the old screen
+            faded out, then the new one rose in (`AnimatePresence mode="wait"`)
+            — and it was the cause of the blank screen after leaving an
+            interview or switching sections: the new screen mounts only once the
+            old one's exit finishes, and an exit that never finishes (a tab in
+            the background, a quick second click, a page tearing down its audio)
+            left the content area empty under a working sidebar. Switching
+            sections happens dozens of times a session; that is exactly the kind
+            of action that should not animate at all. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <ScreenBoundary
+            resetKey={location.pathname}
+            title={t("screen.failedTitle")}
+            body={t("screen.failedBody")}
+            action={t("screen.reload")}
           >
             <Outlet />
-          </motion.div>
-        </AnimatePresence>
+          </ScreenBoundary>
+        </div>
       </div>
 
       <MobileNav isPremium={isPremium} />
