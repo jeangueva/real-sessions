@@ -3644,10 +3644,11 @@ if (db) await seedCatalogue(db);
 /**
  * The promotion codes this deployment offers.
  *
- * Defined at every boot from the environment, which is how a code is created:
- * add it to REALSESSIONS_PROMO_CODES and restart. Redefining never returns
- * seats already taken — the count stays on the row — so a deploy in the
- * middle of a promotion is not a hundred free months handed out twice.
+ * Created at boot from the environment, which is how a code first exists:
+ * add it to REALSESSIONS_PROMO_CODES and restart. An existing code is left
+ * alone — its days, seats and end are edited from the admin panel, and its
+ * count is never reset — so a deploy in the middle of a promotion changes
+ * nothing about it.
  *
  * A failure here is logged and the server starts anyway. A promotion that
  * could not be defined is a promotion nobody can redeem, which is a bad day;

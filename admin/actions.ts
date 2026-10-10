@@ -16,7 +16,7 @@ import type { RedisClientType } from "redis";
 
 export class ActionError extends Error {}
 
-export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable"] as const;
+export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days"] as const;
 export type ActionName = (typeof ACTIONS)[number];
 
 const accountKey = (id: string) => `rs:account:${id}`;
@@ -207,4 +207,33 @@ export async function disableCoupon(deps: Deps, rawCode: unknown): Promise<strin
     await audit(client, deps.actor, "coupon.disable", code, {});
   });
   return `${code} ya no funciona. Quien ya lo canjeó conserva sus días.`;
+}
+
+/**
+ * Changes how long a code's premium lasts. New redemptions get the new length
+ * at once; with `extend`, everyone who already redeemed it is moved to the
+ * new length too, counted from the day they redeemed.
+ */
+export async function setCouponDays(deps: Deps, rawCode: unknown, rawDays: unknown, extend: unknown): Promise<string> {
+  const code = readCode(rawCode);
+  const days = readCount(rawDays, "Los días de premium", 1825);
+  const moveExisting = extend === true || extend === "on" || extend === "true";
+  const moved = await inTransaction(deps.pool, async (client) => {
+    const updated = await client.query(`UPDATE promo_codes SET grant_days = $2 WHERE code = $1`, [code, days]);
+    if (updated.rowCount === 0) throw new ActionError(`${code} no existe.`);
+    let count = 0;
+    if (moveExisting) {
+      const extended = await client.query(
+        `UPDATE entitlements SET expires_at = granted_at + make_interval(days => $2)
+          WHERE source = $1 AND expires_at IS NOT NULL`,
+        [`promo:${code}`, days],
+      );
+      count = extended.rowCount ?? 0;
+    }
+    await audit(client, deps.actor, "coupon.days", code, { days, extendedExisting: moveExisting, moved: count });
+    return count;
+  });
+  return moveExisting
+    ? `${code} ahora da ${days} días. ${moved} ${moved === 1 ? "persona pasó" : "personas pasaron"} a ${days} días desde su canje.`
+    : `${code} ahora da ${days} días a quien lo canjee desde hoy.`;
 }

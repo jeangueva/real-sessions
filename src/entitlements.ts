@@ -257,15 +257,14 @@ class PostgresEntitlementStore implements EntitlementStore {
   }
 
   async definePromo(code: PromoDefinition): Promise<void> {
-    // The count is left exactly as it was. Restarting the service must not
-    // return a hundred seats that a hundred people are already holding.
+    // Created from the environment the first time, then left alone. The
+    // admin panel changes a code's days, seats and end from there on, and a
+    // restart that rewrote them from the environment would quietly undo it.
+    // The count is never touched either way.
     await this.pool.query(
       `INSERT INTO promo_codes (code, grant_days, cap, expires_at)
        VALUES ($1, $2, $3, $4)
-       ON CONFLICT (code) DO UPDATE
-          SET grant_days = EXCLUDED.grant_days,
-              cap = EXCLUDED.cap,
-              expires_at = EXCLUDED.expires_at`,
+       ON CONFLICT (code) DO NOTHING`,
       [code.code, code.grantDays, code.cap, code.expiresAt],
     );
   }
@@ -400,9 +399,9 @@ class MemoryEntitlementStore implements EntitlementStore {
   }
 
   async definePromo(code: PromoDefinition): Promise<void> {
-    const held = this.promos.get(code.code);
-    // Same rule as the real store: redefining a code never returns its seats.
-    this.promos.set(code.code, { ...code, redeemed: held?.redeemed ?? 0 });
+    // Same rule as the real store: an existing code is left as it is.
+    if (this.promos.has(code.code)) return;
+    this.promos.set(code.code, { ...code, redeemed: 0 });
   }
 
   async redeemPromo(code: string, ownerId: string): Promise<PromoResult> {
@@ -528,6 +527,9 @@ export function contributorHash(ownerId: string): string {
  *
  * `REALSESSIONS_PROMO_CODES="EARLY100:30:100"` — code, days granted, seats.
  * A fourth field sets an end date: `LAUNCH:14:50:2026-12-31`.
+ *
+ * The environment creates a code; after that it is edited from the admin
+ * panel (admin/actions.ts), and a restart does not overwrite those edits.
  *
  * In the environment rather than a database row somebody inserts by hand,
  * for the reason the reviewer and forever lists are: creating a code is a

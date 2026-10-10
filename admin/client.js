@@ -383,9 +383,9 @@
             )}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div></div></td>
 <td data-label="Vence">${c.expiresAt ? day(c.expiresAt) : "Sin fecha"}</td>
 <td class="act">${
-              live
-                ? `<button class="btn ghost small" type="button" data-disable="${esc(c.code)}">Desactivar</button>`
-                : ""
+              `<span style="display:inline-flex;gap:4px"><button class="btn ghost small" type="button" data-days="${esc(c.code)}" data-current="${c.grantDays}">Cambiar días</button>${
+                live ? `<button class="btn ghost small" type="button" data-disable="${esc(c.code)}">Desactivar</button>` : ""
+              }</span>`
             }</td></tr>`;
           })
           .join("")
@@ -406,6 +406,20 @@
     }),
   );
   $("#coupons-body").addEventListener("click", (event) => {
+    const daysButton = event.target.closest("[data-days]");
+    if (daysButton) {
+      const code = daysButton.dataset.days;
+      return formDialog({
+        title: `Duración de ${code}`,
+        subtitle: "Cuántos días de premium da al canjearlo.",
+        fields: [
+          { name: "days", label: "Días de premium", type: "number", value: daysButton.dataset.current, attrs: 'min="1" max="1825" required' },
+          { name: "extend", label: "Aplicar también a quienes ya lo canjearon (contando desde su canje)", type: "checkbox", value: "on" },
+        ],
+        confirm: "Guardar",
+        run: (v) => post("/api/coupons/days", { code, days: v.days, extend: v.extend === "on" }),
+      });
+    }
     const code = event.target.closest("[data-disable]")?.dataset.disable;
     if (!code) return;
     confirmDialog({
@@ -452,7 +466,7 @@
     }
   });
 
-  const ACTION = { grant: "Dio premium", revoke: "Quitó premium", verify: "Verificó email", rename: "Cambió nombre", "coupon.create": "Creó cupón", "coupon.disable": "Desactivó cupón" };
+  const ACTION = { grant: "Dio premium", revoke: "Quitó premium", verify: "Verificó email", rename: "Cambió nombre", "coupon.create": "Creó cupón", "coupon.disable": "Desactivó cupón", "coupon.days": "Cambió la duración" };
   function renderAudit() {
     $("#audit").innerHTML = data.summary.audit.length
       ? data.summary.audit
@@ -477,9 +491,11 @@
     dialog.innerHTML = `<form method="dialog" novalidate><h3>${esc(title)}</h3>${subtitle ? `<p class="dim small">${esc(subtitle)}</p>` : ""}${fields
       .map(
         (f) =>
-          `<div class="field"><label for="f-${f.name}">${esc(f.label)}</label><input id="f-${f.name}" name="${f.name}" type="${f.type}" value="${esc(
-            f.value ?? "",
-          )}" ${f.attrs ?? ""}>${f.help ? `<span class="help">${esc(f.help)}</span>` : ""}</div>`,
+          f.type === "checkbox"
+            ? `<label class="check"><input id="f-${f.name}" name="${f.name}" type="checkbox" value="on"> <span>${esc(f.label)}</span></label>`
+            : `<div class="field"><label for="f-${f.name}">${esc(f.label)}</label><input id="f-${f.name}" name="${f.name}" type="${f.type}" value="${esc(
+                f.value ?? "",
+              )}" ${f.attrs ?? ""}>${f.help ? `<span class="help">${esc(f.help)}</span>` : ""}</div>`,
       )
       .join("")}<p class="err" role="alert" hidden></p><div class="actions"><button class="btn" type="button" data-cancel>Cancelar</button><button class="btn ${
       danger ? "danger" : "primary"
