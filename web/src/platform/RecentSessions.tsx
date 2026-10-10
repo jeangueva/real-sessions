@@ -1,4 +1,5 @@
 import { History } from "lucide-react";
+import type { ReactNode } from "react";
 import type { SessionSummary } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -63,79 +64,100 @@ export function shortDate(iso: string, withTime = false): string {
   });
 }
 
-/** Whether another session in the list started on the same calendar day. */
-function sharesDay(session: SessionSummary, all: SessionSummary[]): boolean {
-  const day = new Date(session.startedAt).toDateString();
-  return all.some(
-    (other) => other.id !== session.id && new Date(other.startedAt).toDateString() === day,
-  );
+
+/** One interview setup, however many times it was run. */
+export interface RecentSetup {
+  latest: SessionSummary;
+  times: number;
+  /** The newest finished score for this setup, or null when none finished. */
+  score: number | null;
+}
+
+/** Same role, round, company, level, mode and interviewer: the same setup. */
+function setupKey(session: SessionSummary): string {
+  return [session.role, session.stage, session.company, session.level ?? "", session.mode, session.personaId ?? ""].join("|");
+}
+
+/**
+ * The newest distinct setups, newest first.
+ *
+ * Five cards reading "Senior Product Designer · Recruiter screen · Stripe"
+ * said one thing five times. Grouped, the row is the few interviews someone
+ * actually rotates between, each with how often and how it last went.
+ */
+export function recentSetups(sessions: readonly SessionSummary[], limit = 3): RecentSetup[] {
+  const groups = new Map<string, RecentSetup>();
+  for (const session of recentFirst(sessions, Number.MAX_SAFE_INTEGER)) {
+    const key = setupKey(session);
+    const group = groups.get(key);
+    if (!group) {
+      groups.set(key, { latest: session, times: 1, score: session.score });
+    } else {
+      group.times += 1;
+      if (group.score === null && session.score !== null) group.score = session.score;
+    }
+  }
+  return [...groups.values()].slice(0, limit);
 }
 
 export function RecentSessions({
   sessions,
   genericCompany,
   onPick,
+  action,
 }: {
   sessions: SessionSummary[];
   genericCompany: string;
-  /** Loads this session's configuration into the bar above. */
   onPick: (session: SessionSummary) => void;
+  /** Something to sit at the end of the heading, e.g. the search toggle. */
+  action?: ReactNode;
 }) {
   const t = useT();
-  const recent = recentFirst(sessions);
-  // Nothing to show on a first visit, and an empty rail with a heading is
-  // worse than no rail: it promises something the account does not have yet.
-  if (recent.length === 0) return null;
+  const setups = recentSetups(sessions);
+  if (setups.length === 0) return null;
 
   return (
     <section aria-label={t("recent.label")} className="flex min-w-0 flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <History className="h-4 w-4 text-cream-faint" aria-hidden />
-        <h2 className="text-sm font-semibold text-cream-dim">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-cream-dim">
+          <History className="h-4 w-4 text-cream-faint" aria-hidden />
           {t("recent.heading")}
         </h2>
+        {action}
       </div>
 
-      {/* `-mx-1 px-1` so a focus ring on the first card is not clipped by the
-          scroll container. */}
-      <ul className="-mx-2 flex snap-x gap-3 overflow-x-auto px-2 pb-4 pt-1">
-        {recent.map((session) => (
-          <li key={session.id} className="shrink-0 snap-start">
-            <button
-              type="button"
-              onClick={() => onPick(session)}
-              className="focus-ring flex h-full w-60 flex-col justify-between gap-3 rounded-card bg-surface-card p-4 text-left shadow-card transition-[box-shadow,transform] duration-200 ease-press hover:shadow-lift active:scale-[0.98]"
-            >
-              <span>
-                {/* Truncated to keep the cards one size, so each line carries
-                    its full text as a title — a cut-off name with no way to
-                    read it is a name the candidate cannot check. */}
-                <span title={session.role} className="block truncate text-sm font-semibold text-cream-bright">
-                  {session.role}
+      {/* One line each: the setup on the left, how it last went on the
+          right. A tap loads every field back the way it was. */}
+      <ul className="grid gap-2 sm:grid-cols-3">
+        {setups.map(({ latest, times, score }) => {
+          const company = companyLabel(latest, genericCompany, t("field.generalRole"));
+          return (
+            <li key={latest.id} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => onPick(latest)}
+                className="focus-ring flex w-full min-w-0 items-center justify-between gap-3 rounded-2xl bg-surface-card px-4 py-3 text-left shadow-card transition-[box-shadow,transform] duration-150 ease-press hover:shadow-lift active:scale-[0.98]"
+              >
+                <span className="min-w-0">
+                  <span title={latest.role} className="block truncate text-sm font-semibold text-cream-bright">
+                    {latest.role}
+                  </span>
+                  <span title={`${latest.stage} · ${company}`} className="block truncate text-xs text-cream-dim">
+                    {latest.stage} · {company}
+                    {times > 1 && <span className="text-cream-faint"> · ×{times}</span>}
+                  </span>
                 </span>
-                <span title={session.stage} className="block truncate text-xs text-cream-dim">
-                  {session.stage}
-                </span>
-                <span
-                  title={companyLabel(session, genericCompany, t("field.generalRole"))}
-                  className="mt-1 block truncate text-xs text-cream-faint"
-                >
-                  {companyLabel(session, genericCompany, t("field.generalRole"))}
-                </span>
-              </span>
-              <span className="flex items-baseline justify-between gap-2">
-                <span className="text-xs text-cream-faint">
-                  {shortDate(session.startedAt, sharesDay(session, recent))}
-                </span>
-                {/* A blank would read as zero, which is a much worse thing to
-                    tell someone about their own interview. */}
-                <span className="text-sm font-semibold tabular-nums text-cream-bright">
-                  {session.score === null ? "—" : `${Math.round(session.score)}%`}
-                </span>
-              </span>
-            </button>
-          </li>
-        ))}
+                {/* Only a real score: a dash read as "zero" next to the
+                    interviews that never got a report. */}
+                {score !== null && (
+                  <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold tabular-nums text-accent-text">
+                    {Math.round(score)}%
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

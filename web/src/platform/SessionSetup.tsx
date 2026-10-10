@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Action, Panel, Eyebrow } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
-import { Lock, X } from "lucide-react";
+import { Lock, Plus, Search, X } from "lucide-react";
 import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences, titleInArea } from "@/lib/api";
 import { areaLabel } from "@/lib/areas";
 import type {
@@ -61,6 +61,8 @@ export function SessionSetup() {
   const t = useT();
   const navigate = useNavigate();
   const [sectors, setSectors] = useState<Sector[]>([]);
+  /** The search opens on demand, from the recent setups' heading. */
+  const [searchOpen, setSearchOpen] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [stagesByRole, setStagesByRole] = useState<
@@ -927,14 +929,18 @@ export function SessionSetup() {
             Hidden when an application is supplying it. */}
         {can?.targetCompany &&
           !(application && application.company === company && application.role === role) && (
-          <details className="rounded-card bg-surface-card shadow-card">
-            <summary className="focus-ring cursor-pointer list-none rounded-card px-5 py-4 text-sm font-medium text-cream-bright">
+          /* A quiet link until it is wanted: most interviews start without a
+             posting, and a full-width card for an optional field was the
+             heaviest thing under the Begin button. */
+          <details className="group rounded-card open:bg-surface-card open:shadow-card">
+            <summary className="focus-ring inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full px-1 py-1 text-sm font-medium text-accent-text group-open:px-5 group-open:pt-4">
+              <Plus aria-hidden className="h-4 w-4 transition-transform duration-150 group-open:rotate-45" />
               {t("setup.postingTitle")}
-              <span className="ml-2 text-xs text-cream-faint">
+              <span className="text-xs font-normal text-cream-faint">
                 {jobPosting.trim() === "" ? t("setup.postingEmpty") : t("setup.postingSet")}
               </span>
             </summary>
-            <div className="flex flex-col gap-3 border-t border-line p-5">
+            <div className="flex flex-col gap-3 p-5 pt-3">
               <p className="max-w-prose text-xs text-cream-dim">
                 {t("setup.postingHint")}
               </p>
@@ -949,29 +955,43 @@ export function SessionSetup() {
           </details>
         )}
 
-        {/* The search and the past sessions are one thing: searching is
-            mostly how you find a session to run again, and it used to sit
-            above the configuration bar, where it read as the first step of
-            starting from scratch. */}
-        <div className="flex flex-col gap-4">
-          <div data-tour="search">
-            <SetupSearch
-              sessions={sessions}
-              companies={visibleCompanies}
-              roles={roleLabels}
-              stages={visibleStages.map((entry) => entry.label)}
-              sectors={sectors}
-              personas={shownPersonas}
-              genericCompany={genericCompany}
-              onChoose={applyChoice}
-            />
-          </div>
-
+        {/* Past setups first, three at most; the search opens from their
+            heading. A full-width search box above a row of five identical
+            cards was the most reading on the screen and the least used. */}
+        <div className="flex flex-col gap-3">
           <RecentSessions
             sessions={sessions}
             genericCompany={genericCompany}
             onPick={loadSession}
+            action={
+              <button
+                type="button"
+                onClick={() => setSearchOpen((open) => !open)}
+                aria-expanded={searchOpen}
+                className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-accent-text transition-[background-color,transform] duration-150 hover:bg-accent-soft active:scale-[0.97]"
+              >
+                <Search aria-hidden className="h-4 w-4" />
+                {t("setup.searchToggle")}
+              </button>
+            }
           />
+          {searchOpen && (
+            <div data-tour="search" className="pop-in">
+              <SetupSearch
+                sessions={sessions}
+                companies={visibleCompanies}
+                roles={roleLabels}
+                stages={visibleStages.map((entry) => entry.label)}
+                sectors={sectors}
+                personas={shownPersonas}
+                genericCompany={genericCompany}
+                onChoose={(choice) => {
+                  applyChoice(choice);
+                  setSearchOpen(false);
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Dismissible: it is a briefing, and a briefing stops being useful on

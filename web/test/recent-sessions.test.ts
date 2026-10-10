@@ -3,6 +3,7 @@ import {
   RECENT_LIMIT,
   companyLabel,
   recentFirst,
+  recentSetups,
   shortDate,
 } from "../src/platform/RecentSessions";
 import type { SessionSummary } from "../src/lib/api";
@@ -84,5 +85,27 @@ describe("shortDate", () => {
 
   it("returns nothing for a broken one rather than 'Invalid Date'", () => {
     expect(shortDate("not a date")).toBe("");
+  });
+});
+
+describe("recentSetups", () => {
+  it("groups the same setup, newest first, with how often and its last score", () => {
+    const setups = recentSetups([
+      session({ id: "a1", startedAt: "2026-09-03T10:00:00.000Z", score: null }),
+      session({ id: "a2", startedAt: "2026-09-02T10:00:00.000Z", score: 71 }),
+      session({ id: "b1", startedAt: "2026-09-01T10:00:00.000Z", stage: "System design", score: 55 }),
+      session({ id: "a3", startedAt: "2026-08-30T10:00:00.000Z", score: 60 }),
+    ]);
+    expect(setups.map((s) => [s.latest.id, s.times, s.score])).toEqual([
+      ["a1", 3, 71],
+      ["b1", 1, 55],
+    ]);
+  });
+
+  it("keeps three at most", () => {
+    const many = ["A", "B", "C", "D"].map((stage, i) =>
+      session({ id: stage, stage, startedAt: `2026-09-0${i + 1}T10:00:00.000Z` }),
+    );
+    expect(recentSetups(many)).toHaveLength(3);
   });
 });

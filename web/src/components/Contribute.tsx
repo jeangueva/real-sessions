@@ -28,10 +28,10 @@ const STAGES: { value: string; label: MessageKey }[] = [
 const MIN_QUESTION = 12;
 const MAX_QUESTION = 400;
 
-const PROMISES: { icon: typeof ShieldCheck; title: MessageKey; body: MessageKey }[] = [
-  { icon: ShieldCheck, title: "land.contribAnonTitle", body: "land.contribAnonBody" },
-  { icon: UserCheck, title: "land.contribCheckTitle", body: "land.contribCheckBody" },
-  { icon: Route, title: "land.contribNextTitle", body: "land.contribNextBody" },
+const PROMISES: { icon: typeof ShieldCheck; title: MessageKey }[] = [
+  { icon: ShieldCheck, title: "land.contribAnonTitle" },
+  { icon: UserCheck, title: "land.contribCheckTitle" },
+  { icon: Route, title: "land.contribNextTitle" },
 ];
 
 /**
@@ -124,24 +124,17 @@ export function Contribute() {
           <p className="mt-5 max-w-xl text-base text-cream-dim sm:text-lg">
             {t("land.contribBody")}
           </p>
-          <p className="mt-3 max-w-xl text-sm text-cream-faint">{t("land.contribBank")}</p>
 
-          {/* Three promises, each with its own mark — the way Apple lists
-              what a feature guarantees. No rule above them: the space and the
-              icons already say "a list starts here". */}
-          <ul className="mt-10 flex flex-col gap-6">
-            {PROMISES.map(({ icon: Icon, title, body: text }) => (
-              <li key={title} className="flex gap-4">
-                <span
-                  aria-hidden
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text"
-                >
-                  <Icon className="h-5 w-5" strokeWidth={2} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-base font-semibold text-cream-bright">{t(title)}</span>
-                  <span className="mt-0.5 block text-sm text-cream-dim">{t(text)}</span>
-                </span>
+          {/* Three promises as three short tags: what someone needs to know
+              before sharing, in the time it takes to glance at them. */}
+          <ul className="mt-8 flex flex-wrap gap-2">
+            {PROMISES.map(({ icon: Icon, title }) => (
+              <li
+                key={title}
+                className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3.5 py-2 text-sm font-medium text-accent-text"
+              >
+                <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
+                {t(title)}
               </li>
             ))}
           </ul>
