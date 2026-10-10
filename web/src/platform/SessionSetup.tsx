@@ -206,7 +206,7 @@ export function SessionSetup() {
    * would watch it snap back.
    */
   const arrived = (useLocation().state ?? null) as
-    | { applicationId?: string; company?: string; role?: string }
+    | { applicationId?: string; company?: string; role?: string; repeatId?: string }
     | null;
   useEffect(() => {
     if (!arrived?.applicationId || !arrived.company || !arrived.role) return;
@@ -223,6 +223,21 @@ export function SessionSetup() {
     setJobPosting("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /**
+   * Arriving from "Repeat" in the list of every interview: load that one's
+   * setup once both the history and the rounds for its role have arrived,
+   * since a round label can only be matched once the rounds are known.
+   */
+  const [repeated, setRepeated] = useState(false);
+  useEffect(() => {
+    if (repeated || !arrived?.repeatId || stagesByRole.length === 0) return;
+    const past = sessions.find((entry) => entry.id === arrived.repeatId);
+    if (!past) return;
+    loadSession(past);
+    setRepeated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessions, stagesByRole, repeated]);
 
   useEffect(() => {
     // A failure here is not worth an error banner: the fallback list still
@@ -964,6 +979,13 @@ export function SessionSetup() {
             genericCompany={genericCompany}
             onPick={loadSession}
             action={
+              <div className="flex items-center gap-1">
+              <Link
+                to="/app/progress#sessions"
+                className="focus-ring rounded-full px-3 py-1.5 text-sm font-medium text-cream-dim transition-colors hover:text-cream-bright"
+              >
+                {t("recent.all")}
+              </Link>
               <button
                 type="button"
                 onClick={() => setSearchOpen((open) => !open)}
@@ -973,6 +995,7 @@ export function SessionSetup() {
                 <Search aria-hidden className="h-4 w-4" />
                 {t("setup.searchToggle")}
               </button>
+              </div>
             }
           />
           {searchOpen && (

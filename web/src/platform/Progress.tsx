@@ -219,12 +219,7 @@ export function Progress() {
         }
       />
 
-      <PageBody className="flex flex-col gap-4">
-        <FadeRise>
-          <Today sessions={sessions ?? []} />
-          <Journey sessions={sessions ?? []} />
-        </FadeRise>
-
+      <PageBody className="flex flex-col gap-5">
         {profile && (
           <FadeRise>
             <Panel variant="raised" className="flex flex-wrap items-center gap-8 p-6 sm:p-8">
@@ -280,6 +275,16 @@ export function Progress() {
           </FadeRise>
         )}
 
+        {/* Today, then the path: what to do now before where it leads. Each
+            its own card, spaced like the rest — run together they read as one
+            block with two titles. */}
+        <FadeRise delay={0.03}>
+          <Today sessions={sessions ?? []} />
+        </FadeRise>
+        <FadeRise delay={0.06}>
+          <Journey sessions={sessions ?? []} />
+        </FadeRise>
+
         {/* In plain words first: where you are strong, what to practise. The
             same four readings the charts below plot, said as a sentence for
             someone who does not read charts. */}
@@ -323,35 +328,47 @@ export function Progress() {
                   })}
                 </p>
               </div>
-              <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-                {profile.catalogue.map((badge, index) => {
-                  const held = profile.badges.find((b) => b.badgeId === badge.id);
-                  const text = badgeText(t, badge);
-                  return (
-                    <li
-                      key={badge.id}
-                      className={`flex flex-col items-center gap-2 rounded-2xl p-4 text-center transition-transform duration-200 ease-press ${
-                        held ? "bg-accent-soft hover:scale-[1.03]" : "bg-surface-lift"
-                      }`}
-                    >
-                      <PopIn delay={held ? 0.05 * index : 0}>
-                        <img
-                          src={`/badges/${badge.id}.png`}
-                          alt=""
-                          width={72}
-                          height={72}
-                          loading="lazy"
-                          className={`h-[72px] w-[72px] ${held ? "drop-shadow-[0_6px_10px_rgb(0_0_0/0.15)]" : "opacity-40 grayscale"}`}
-                        />
-                      </PopIn>
-                      <p className={`text-sm font-semibold ${held ? "text-cream-bright" : "text-cream-dim"}`}>{text.label}</p>
-                      <p className="text-xs leading-snug text-cream-faint">{text.description}</p>
-                      {held && (
-                        <p className="text-xs font-medium text-accent-text">{formatSessionDate(held.earnedAt)}</p>
-                      )}
-                    </li>
-                  );
-                })}
+              {/* Earned first, then the ones still ahead. Name only: the
+                  description is on hover and for screen readers, so the wall
+                  reads as a collection rather than fourteen paragraphs. */}
+              <ul className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-7">
+                {[...profile.catalogue]
+                  .sort(
+                    (a, b) =>
+                      Number(profile.badges.some((h) => h.badgeId === b.id)) -
+                      Number(profile.badges.some((h) => h.badgeId === a.id)),
+                  )
+                  .map((badge, index) => {
+                    const held = profile.badges.find((b) => b.badgeId === badge.id);
+                    const text = badgeText(t, badge);
+                    return (
+                      <li
+                        key={badge.id}
+                        title={text.description}
+                        className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center ${
+                          held ? "bg-accent-soft" : "bg-surface-lift"
+                        }`}
+                      >
+                        <PopIn delay={held ? 0.04 * index : 0}>
+                          <img
+                            src={`/badges/${badge.id}.png`}
+                            alt=""
+                            width={56}
+                            height={56}
+                            loading="lazy"
+                            className={`h-14 w-14 ${held ? "drop-shadow-[0_4px_8px_rgb(0_0_0/0.15)]" : "opacity-40 grayscale"}`}
+                          />
+                        </PopIn>
+                        <p className={`text-xs font-semibold leading-tight ${held ? "text-cream-bright" : "text-cream-faint"}`}>
+                          {text.label}
+                        </p>
+                        <span className="sr-only">
+                          {text.description}
+                          {held ? `. ${formatSessionDate(held.earnedAt)}` : ""}
+                        </span>
+                      </li>
+                    );
+                  })}
               </ul>
             </Panel>
           </FadeRise>
