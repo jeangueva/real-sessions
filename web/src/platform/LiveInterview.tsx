@@ -323,6 +323,11 @@ export function LiveInterview() {
     voice.startListening,
   ]);
 
+  /** The interview is over: close the microphone so nothing more is sent. */
+  useEffect(() => {
+    if (turn?.isComplete && voice.listening) voice.stopListening();
+  }, [turn, voice.listening, voice.stopListening]);
+
   const speaking = busy && streaming !== "";
 
   // Keep the ref pointing at the current submit so a transcript arriving from
@@ -373,6 +378,15 @@ export function LiveInterview() {
   const submit = async (text?: string) => {
     const trimmed = (text ?? answer).trim();
     if (trimmed === "" || !sessionId || busy) return;
+    // The last turn is in: nothing more can be said, only the report opened.
+    // A microphone still running used to send the goodbye "thank you" here,
+    // the server refused it, and the candidate saw "the interview service
+    // failed" at the very end of a finished interview.
+    if (turn?.isComplete) return;
+    // Kept so a failed turn can put the screen back as it was. Clearing it
+    // and leaving it cleared lost the turn number, and with it the report:
+    // leaving after an error went back to the start screen with nothing.
+    const previous = turn;
 
     // Consumed before the request so the marks cannot be reused on a later
     // turn. A typed answer yields nulls, which is the honest result.
@@ -395,11 +409,12 @@ export function LiveInterview() {
       });
       voice.flushSpeech();
       setTurn(next);
-      addLine("interviewer", next.text);
+      if (next.text.trim() !== "") addLine("interviewer", next.text);
       setAnswer("");
       fetchCoaching(sessionId);
     } catch (caught) {
       // The answer stays in the box so a retry costs nothing to the candidate.
+      setTurn(previous);
       setError(describe(caught, t));
     } finally {
       setBusy(false);

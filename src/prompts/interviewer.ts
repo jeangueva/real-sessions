@@ -262,4 +262,4 @@ export function buildInterviewerPrompt(
  * `"user" | "assistant"` only — no mid-conversation system role.
  */
 export const WRAP_UP_INSTRUCTION =
-  "[SESSION NOTE — not spoken by the candidate] This is the final turn of the interview. Answer any pending question briefly, close the interview gracefully, and end your response with the exact string [INTERVIEW_COMPLETE].";
+  "[SESSION NOTE — not spoken by the candidate] This is the final turn of the interview. Answer any pending question briefly, then close the interview gracefully. Do not ask the candidate anything — no question of any kind, including whether they have questions for you: this is your last line and they will not get to answer. End your response with the exact string [INTERVIEW_COMPLETE].";

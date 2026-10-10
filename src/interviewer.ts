@@ -177,7 +177,7 @@ export class InterviewSession {
     });
   }
 
-  /** True once the model has emitted `[INTERVIEW_COMPLETE]`. */
+  /** True once the last turn is given: the model said so, or the budget ran out. */
   get isComplete(): boolean {
     return this.complete;
   }
@@ -308,6 +308,11 @@ export class InterviewSession {
    * the full response is generated. `onDelta` receives text chunks with the
    * completion flag already withheld.
    */
+  /** Interviewer turns given so far. */
+  get turnsTaken(): number {
+    return this.interviewerTurns;
+  }
+
   /** How many interviewer turns this round runs to. The client shows it. */
   get maxTurnCount(): number {
     return this.maxTurns;

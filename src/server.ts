@@ -2973,6 +2973,22 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       await recordQuietly(recordTranscript(sessionId, session.transcript, timings));
     };
 
+    // An answer after the last turn — usually a "thank you" picked up by a
+    // microphone still open. It used to throw inside the open stream and
+    // reach the candidate as "the interview service failed mid-turn", at the
+    // end of an interview that had in fact finished. Now it is answered with
+    // the state it is in: complete, nothing more to say, open the report.
+    if (session.isComplete) {
+      const turn = { text: "", isComplete: true, turnNumber: session.turnsTaken, stopReason: null };
+      if (wantsStream(req)) {
+        openStream(res);
+        sendEvent(res, "turn", { turn });
+        res.end();
+        return;
+      }
+      return json(res, 200, { turn });
+    }
+
     if (wantsStream(req)) {
       openStream(res);
       const turn = await session.submitAnswerStream(answer, (chunk) =>
