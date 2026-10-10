@@ -33,7 +33,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <PopIn delay={0.1}>
         <img src="/avatars/level-3.png" alt="" width={72} height={72} className="-mb-3 h-[72px] w-[72px] drop-shadow-[0_6px_10px_rgb(0_0_0/0.12)]" />
       </PopIn>
-      <Wordmark className="text-2xl font-semibold text-cream-bright" />
+      <Wordmark mark={false} className="text-2xl font-semibold text-cream-bright" />
       <Panel variant="raised" className="w-full max-w-md p-8 shadow-float sm:p-10">
         {children}
       </Panel>

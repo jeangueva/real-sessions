@@ -11,10 +11,9 @@
  *               that matters cannot live in one.
  *   Typefaces   The system stack. A webfont is a network request a mail client
  *               refuses, and the fallback it lands on is the one everyone sees.
- *   Images      None. They arrive blocked by default, so a logo as an image is
- *               a grey box with alt text at the top of every message. The
- *               wordmark is set in type for the same reason the product's own
- *               is.
+ *   Images      One: the mark, on a cell painted its own indigo, so a client
+ *               that blocks images shows a tile, not a grey box. The name
+ *               beside it is set in type and carries the brand regardless.
  *
  * What survives is the part that carries the brand anyway — and it is the
  * product's own look: Apple's light ground (#F5F5F7) with a white card on it,
@@ -41,6 +40,9 @@ const LINE = "#e5e5ea";
 /** The accent, and the ink that sits on it — the product's #5856D6. */
 const ACCENT = "#5856d6";
 const ACCENT_INK = "#ffffff";
+
+/** The mark as a PNG, from the product's own site (absolute: mail has no base URL). */
+const MARK_URL = `${(process.env.REALSESSIONS_SITE_URL ?? "https://www.getmockio.com").replace(/\/$/, "")}/mark-email.png`;
 
 const FONT =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -101,12 +103,13 @@ export function shellHtml({ heading, body, action, footnote }: Shell): string {
        </td></tr>`
     : "";
 
-  // The mark: an indigo tile with the initial, set in type like the app
-  // icon, then the name. Two cells rather than an image, which would arrive
-  // blocked.
+  // The mark: Mocki on its indigo tile, then the name. The image sits on a
+  // cell painted the same indigo, so a client that blocks images shows the
+  // tile rather than a broken-image box — the name beside it carries the
+  // brand either way.
   const mark = `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td width="28" height="28" align="center" style="width:28px;height:28px;background:${ACCENT};border-radius:8px;font-size:16px;font-weight:700;line-height:28px;color:${ACCENT_INK}">m</td>
+            <td width="28" height="28" style="width:28px;height:28px;background:${ACCENT};border-radius:8px;line-height:0"><img src="${MARK_URL}" width="28" height="28" alt="" style="display:block;width:28px;height:28px;border:0;border-radius:8px"></td>
             <td style="padding-left:10px;font-size:17px;font-weight:600;letter-spacing:-0.02em;color:${INK}">mockio</td>
           </tr>
         </table>`;

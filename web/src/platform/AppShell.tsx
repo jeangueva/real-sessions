@@ -5,7 +5,6 @@ import {
   Briefcase,
   FileUser,
   LogIn,
-  Mic,
   Play,
   Route,
   Settings,
@@ -16,7 +15,7 @@ import type { ReactNode } from "react";
 import { fetchPlan, fetchPreferences, fetchSession, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
-import { PremiumMark, Wordmark } from "@/design-system";
+import { Mark, PremiumMark, Wordmark } from "@/design-system";
 import { EASE_OUT } from "@/design-system/motion";
 
 /**
@@ -171,12 +170,10 @@ export function AppShell() {
       <aside className="sticky top-0 hidden h-dvh w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-64 lg:items-stretch lg:px-3">
         <div className="mb-7 flex items-center justify-between gap-2 px-2.5">
           <div className="flex items-center gap-2.5">
-            {/* The mark is the accent's own disc: the one place the colour sits
-                at rest, so the eye learns it means "this product, speaking". */}
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[0.6rem] bg-accent text-accent-ink shadow-card">
-              <Mic className="h-4 w-4" aria-hidden />
-            </span>
-            <Wordmark className="hidden text-lg font-semibold text-cream-bright lg:inline" />
+            {/* The mark alone when the rail is narrow, the full isologo when
+                it is wide: the same parrot as the tab icon. */}
+            <Mark size={32} className="shadow-card rounded-[0.6rem]" />
+            <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright lg:inline-flex" />
           </div>
           {isPremium && (
             <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text lg:inline-flex">

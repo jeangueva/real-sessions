@@ -1,3 +1,5 @@
+import { Mark } from "./mark";
+
 /**
  * The wordmark.
  *
@@ -10,14 +12,17 @@
  * a product name is not translated, and routing it through `t()` would invite
  * exactly that.
  */
-export function Wordmark({ className = "" }: { className?: string }) {
+export function Wordmark({ className = "", mark = true }: { className?: string; mark?: boolean }) {
   return (
     <span
-      className={`font-mark lowercase tracking-[-0.03em] ${className}`}
+      className={`inline-flex items-center gap-[0.35em] font-mark lowercase tracking-[-0.03em] ${className}`}
       /* The name, not a sentence — so a screen reader says it as a word and
          a translation tool leaves it alone. */
       translate="no"
     >
+      {/* The isologo: the mark at the height of the name's capitals plus a
+          little, so the two read as one unit at any size the name is set. */}
+      {mark && <Mark className="h-[1.3em] w-[1.3em]" />}
       mockio
     </span>
   );

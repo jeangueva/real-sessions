@@ -47,7 +47,7 @@ import {
   verifyEmail,
 } from "./actions.js";
 import { aiInsights, ruleInsights } from "./insights.js";
-import { renderApp, renderLogin } from "./page.js";
+import { MARK, renderApp, renderLogin } from "./page.js";
 
 const production = process.env.NODE_ENV === "production";
 const allowed = allowedEmails(process.env.ADMIN_EMAILS);
@@ -85,6 +85,7 @@ const here = new URL(".", import.meta.url);
 const ASSETS: Record<string, { type: string; body: string }> = {
   "/client.js": { type: "text/javascript; charset=utf-8", body: readFileSync(new URL("client.js", here), "utf8") },
   "/styles.css": { type: "text/css; charset=utf-8", body: readFileSync(new URL("styles.css", here), "utf8") },
+  "/favicon.svg": { type: "image/svg+xml", body: MARK.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ') },
 };
 
 const redis: RedisClientType = createClient({ url: redisUrl });
@@ -126,7 +127,7 @@ const SECURITY_HEADERS = {
 };
 
 const CSP =
-  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; connect-src 'self'; " +
+  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; " +
   "base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 
 function html(res: ServerResponse, status: number, body: string, extra: Record<string, string> = {}) {
@@ -299,7 +300,7 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    if (req.method === "GET" && path === "/styles.css") {
+    if (req.method === "GET" && (path === "/styles.css" || path === "/favicon.svg")) {
       const asset = ASSETS[path]!;
       res.writeHead(200, { "Content-Type": asset.type, ...SECURITY_HEADERS }).end(asset.body);
       return;

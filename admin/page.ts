@@ -40,6 +40,9 @@ const ICONS = `<svg width="0" height="0" style="position:absolute" aria-hidden="
 <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
 </svg>`;
 
+/** The product mark, also served as this service's favicon. */
+export const MARK = `<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#5856D6"/><path d="M36 27C50 25 56 39 48 48C48 41 44 38 36 38Z" fill="#EF9F27"/><path d="M20 21C19 13 23 8 30 7C27 11 28 15 32 18Z" fill="#fff"/><circle cx="28" cy="34" r="17" fill="#fff"/><circle cx="33" cy="29" r="3.6" fill="#26215C"/></svg>`;
+
 const icon = (name: string) => `<svg class="i" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 
 const NAV: [string, string, string][] = [
@@ -55,7 +58,7 @@ function head(): string {
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><title>Mockio · Admin</title>
-<link rel="stylesheet" href="/styles.css"></head>`;
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="stylesheet" href="/styles.css"></head>`;
 }
 
 export function renderApp(payload: unknown, viewer: string): string {
@@ -68,7 +71,7 @@ export function renderApp(payload: unknown, viewer: string): string {
   return `${head()}<body>${ICONS}
 <div class="app">
   <aside class="side" aria-label="Secciones">
-    <div class="brand"><span class="mark">m</span><span class="brand-name">Mockio Admin</span></div>
+    <div class="brand">${MARK}<span class="brand-name">Mockio Admin</span></div>
     <nav class="nav">${nav}</nav>
     <div class="side-foot">
       <span class="who" title="${escape(viewer)}">${escape(viewer)}</span>
@@ -166,6 +169,6 @@ export function renderLogin(input: { step: "email" | "code"; email?: string; not
 <input id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus></div>
 <button class="btn primary" type="submit">Entrar</button></form>
 <form method="get" action="/"><button class="linkbtn" type="submit">Usar otro email</button></form>`;
-  return `${head()}<body><main class="login"><section class="panel"><div class="brand"><span class="mark">m</span>Mockio Admin</div>
+  return `${head()}<body><main class="login"><section class="panel"><div class="brand">${MARK}Mockio Admin</div>
 <p class="dim small">Solo para el equipo.</p>${notice}${form}</section></main></body></html>`;
 }

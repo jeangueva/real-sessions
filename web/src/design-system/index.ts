@@ -28,6 +28,7 @@ export {
 } from "./primitives";
 
 export { Wordmark } from "./wordmark";
+export { Mark } from "./mark";
 export { Avatar } from "./avatar";
 export { RadarChart, TrendChart } from "./chart";
 export type { RadarAxis, TrendPoint } from "./chart";
