@@ -216,6 +216,16 @@ export async function createStaticSite(root: string): Promise<StaticSite | null>
         /* falls through to the app shell */
       }
 
+      // A fingerprinted file that is not here is a file from an older build —
+      // a tab opened before the last deploy asking for a chunk that no longer
+      // exists. Answering with the shell (200, text/html) made the import fail
+      // in a way the page could not recognise, and the screen stayed blank. A
+      // plain 404 is what the client's reload-on-stale-chunk handler expects.
+      if (urlPath.startsWith("/assets/")) {
+        res.writeHead(404, { "Cache-Control": "no-store" }).end();
+        return true;
+      }
+
       // Anything else is a client-side route — /app/progress and friends exist
       // only in the browser's router, so the shell has to answer for them.
       const shell = path.join(absolute, "index.html");

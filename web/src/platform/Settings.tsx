@@ -157,10 +157,14 @@ export function Settings() {
         meta={t("settings.meta")}
       />
       <PageBody>
+        {/* One row that scrolls sideways on a phone, the way iOS segmented
+            filters do, instead of wrapping "Cuenta" onto a second line of a
+            pill. Bleeds to the screen edge so the cut-off tab says "more". */}
+        <div className="-mx-4 mb-8 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
         <div
           role="tablist"
           aria-label={t("settings.sections")}
-          className="mb-8 inline-flex flex-wrap items-center gap-1 rounded-full bg-surface-lift p-1"
+          className="inline-flex flex-nowrap items-center gap-1 rounded-full bg-surface-lift p-1"
         >
           {TABS.map(({ id, key }) => (
             <button
@@ -169,13 +173,14 @@ export function Settings() {
               id={`settings-tab-${id}`}
               aria-selected={tab === id}
               aria-controls={`settings-panel-${id}`}
-              onClick={() => {
+              onClick={(event) => {
                 setTab(id);
+                event.currentTarget.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
                 // The section becomes linkable and the back button steps
                 // through the four rather than leaving the page.
                 history.pushState(null, "", `#${id}`);
               }}
-              className={`focus-ring relative rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200 ease-press sm:text-sm ${
+              className={`focus-ring relative shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200 ease-press sm:text-sm ${
                 tab === id ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
               }`}
             >
@@ -183,6 +188,7 @@ export function Settings() {
               <span className="relative">{t(key)}</span>
             </button>
           ))}
+        </div>
         </div>
 
         {tab === "appearance" && (
