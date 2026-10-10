@@ -203,7 +203,7 @@ import {
 import { createLifecycleStore, type LifecycleStore } from "./lifecycle-store.js";
 import { AREAS, ROLES, interviewerTitle, roleIdFor } from "./roles.js";
 import { ratesFrom } from "./fx.js";
-import { regionFor } from "./billing/regions.js";
+import { normaliseCountry, regionFor } from "./billing/regions.js";
 import {
   cancelPaddleSubscription,
   fetchPaddleSubscription,
@@ -1077,8 +1077,17 @@ async function readRaw(req: IncomingMessage, limit = 256 * 1024): Promise<string
  * which price and checkout to show — Paddle charges by the billing address it
  * collects, so a wrong guess here costs nobody anything.
  */
+/**
+ * Where the reader is, by IP first.
+ *
+ * The edge's country (`cf-ipcountry`) is where the request came from; the
+ * browser's guess (`?country=`) is only its language and timezone, and a
+ * Peruvian with a Spanish-from-Spain browser was sold in euros through Paddle
+ * instead of soles through Mercado Pago. So the guess is used only when the
+ * edge does not know (no header, or "XX").
+ */
 function readerCountry(req: IncomingMessage, url: URL): string | null {
-  return url.searchParams.get("country") ?? header(req, "cf-ipcountry");
+  return normaliseCountry(header(req, "cf-ipcountry")) ?? url.searchParams.get("country");
 }
 
 /** Defaults to practice: live coaching on, which is the gentler surprise. */
