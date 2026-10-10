@@ -90,6 +90,8 @@ export interface Capabilities {
   shareReport: boolean;
   /** Keep a list of real jobs, each with its posting and its rehearsals. */
   trackApplications: boolean;
+  /** Stand-ups, client calls, reviews: the paid plan. Absent on an older server. */
+  workScenes?: boolean;
 }
 
 export interface ProfileLink {
@@ -172,6 +174,8 @@ export interface Stage {
   titles: string[];
   /** A round that cannot be combined with another. */
   solo?: boolean;
+  /** Getting hired, the job itself, or growing in it. Absent on an older server. */
+  phase?: "prepare" | "work" | "grow";
 }
 
 export interface Sector {

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Action, Panel, Eyebrow } from "@/design-system";
+import { Action, Panel, Eyebrow, PremiumMark } from "@/design-system";
+import type { MessageKey } from "@/lib/i18n";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
-import { Lock, Plus, Search, X } from "lucide-react";
+import { Briefcase, Lock, Plus, Search, TrendingUp, Users, X } from "lucide-react";
 import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences, titleInArea } from "@/lib/api";
 import { areaLabel } from "@/lib/areas";
 import type {
@@ -57,6 +58,14 @@ const FALLBACK_ROLES = ["Senior Product Designer", "Backend Engineer"];
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Collects exactly the variables the Phase 1 prompt needs — nothing more. */
+type Phase = "prepare" | "work" | "grow";
+
+const PHASES: { id: Phase; label: MessageKey; title: MessageKey; icon: typeof Users }[] = [
+  { id: "prepare", label: "phase.prepare", title: "setup.eyebrow", icon: Users },
+  { id: "work", label: "phase.work", title: "phase.workTitle", icon: Briefcase },
+  { id: "grow", label: "phase.grow", title: "phase.growTitle", icon: TrendingUp },
+];
+
 export function SessionSetup() {
   const t = useT();
   const navigate = useNavigate();
@@ -156,9 +165,12 @@ export function SessionSetup() {
       past.stage
         .split(" + ")
         .map((label) => label.trim())
-        .map((label) => visibleStages.find((entry) => entry.label === label)?.id)
+        .map((label) => allStages.find((entry) => entry.label === label)?.id)
         .filter((id): id is string => Boolean(id)),
     );
+    // A past stand-up reopens on the job tab, not on the interviews.
+    const first = allStages.find((entry) => entry.label === past.stage.split(" + ")[0]?.trim());
+    setPhase(first?.phase ?? "prepare");
     setMode(past.mode);
     setSector(past.sectorId ?? "");
     setPersonaId(past.personaId ?? "");
@@ -184,7 +196,7 @@ export function SessionSetup() {
         setRole(choice.label);
         break;
       case "stage": {
-        const found = visibleStages.find((entry) => entry.label === choice.label);
+        const found = allStages.find((entry) => entry.label === choice.label);
         if (found) setStageIds([found.id]);
         break;
       }
@@ -339,10 +351,24 @@ export function SessionSetup() {
    * that round does not mean for them. Convincing and wrong is the worst of
    * the options: nothing on screen said the rehearsal was off-target.
    */
-  const visibleStages = useMemo(() => {
+  const allStages = useMemo(() => {
     const id = roles.find((entry) => entry.label === role)?.id;
     return stagesByRole.find((entry) => entry.roleId === id)?.stages ?? [];
   }, [roles, stagesByRole, role]);
+
+  /**
+   * The part of working life being practised: getting hired, the job itself,
+   * or growing in it. The rounds on offer are the ones of that phase, so the
+   * bar reads "Round: Behavioral" in one and "Situation: Client call" in the
+   * next rather than mixing an interview and a stand-up in one list.
+   */
+  const [phase, setPhase] = useState<Phase>("prepare");
+  const visibleStages = useMemo(
+    () => allStages.filter((entry) => (entry.phase ?? "prepare") === phase),
+    [allStages, phase],
+  );
+  /** The job and growing are the paid plan; preparing is free. */
+  const phaseLocked = phase !== "prepare" && can !== null && !can.workScenes;
 
   /** The chosen rounds, in the order they were chosen. */
   const chosenStages = useMemo(
@@ -547,7 +573,38 @@ export function SessionSetup() {
             was competing with the fields for it. Out of the card, the row
             reflows against the page itself. */}
         <div className="flex min-w-0 flex-col gap-4">
-          <h2 className="text-base font-semibold text-cream-bright">{t("setup.eyebrow")}</h2>
+          {/* The three parts of a working life in English. Preparing is free;
+              the job and growing in it are the paid plan, marked with the
+              crown before anyone presses anything. */}
+          <div role="tablist" aria-label={t("phase.label")} className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+            {PHASES.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={phase === entry.id}
+                onClick={() => setPhase(entry.id)}
+                className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+                  phase === entry.id
+                    ? "bg-cream-bright text-surface-base"
+                    : "bg-surface-card text-cream-dim shadow-card hover:text-cream-bright"
+                }`}
+              >
+                <entry.icon aria-hidden className="h-4 w-4" />
+                {t(entry.label)}
+                {entry.id !== "prepare" && can !== null && !can.workScenes && <PremiumMark label={t("premium.mark")} />}
+              </button>
+            ))}
+          </div>
+          <h2 className="text-base font-semibold text-cream-bright">{t(PHASES.find((entry) => entry.id === phase)!.title)}</h2>
+          {phaseLocked && (
+            <p className="-mt-1 text-sm text-cream-dim">
+              {t("phase.lockedBody")}{" "}
+              <Link to="/app/settings#plan" className="font-semibold text-accent-text underline underline-offset-4">
+                {t("cta.seePlans")}
+              </Link>
+            </p>
+          )}
 
           {/* One bar of selectors rather than six rows of pills. The bar
               shows what is chosen — the thing a person rereads before
@@ -595,7 +652,7 @@ export function SessionSetup() {
                 enabled: true,
                 node: (
                   <FilterSegment
-                    label={t("field.stage")}
+                    label={t(phase === "prepare" ? "field.stage" : "field.scene")}
                     value={
                       chosenStages.map((entry) => entry.label).join(" + ") || "Behavioral"
                     }
@@ -884,6 +941,12 @@ export function SessionSetup() {
                    is the difference between a paywall and a failure. */
                 disabled={left === 0}
             onClick={() => {
+              // A paid scene on the free plan opens the plans instead of an
+              // interview the server would refuse.
+              if (phaseLocked) {
+                navigate("/app/settings#plan");
+                return;
+              }
               // The shape of the interview, never what was typed into the
               // company box: that is a name a person chose to tell us.
               track("interview started", {
