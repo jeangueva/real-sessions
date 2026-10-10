@@ -20,5 +20,5 @@
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src", "test", "examples", "scripts"]
+  "include": ["src", "test", "examples", "scripts", "admin"]
 }

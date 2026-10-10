@@ -15,6 +15,7 @@
     "evaluator-probe": "tsx examples/evaluator-probe.ts",
     "benchmark": "tsx examples/benchmark.ts",
     "serve": "tsx src/server.ts",
+    "admin": "tsx admin/server.ts",
     "paddle:prices": "tsx scripts/paddle-prices.ts"
   },
   "dependencies": {

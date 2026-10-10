@@ -36,7 +36,7 @@ describe("weekly missions", () => {
 
   it("adds mission rewards to the session's XP", () => {
     const history = [done("2026-10-06"), done("2026-10-07")];
-    const events = xpForSession({ score: 60, mode: "practice", history, xpToday: 0, today: "2026-10-08" });
+    const events = xpForSession({ score: 60, mode: "practice", history: history as never, xpToday: 0, today: "2026-10-08" });
     expect(events.map((event) => event.kind)).toContain("mission:week-three");
   });
 

@@ -123,6 +123,39 @@ services:
       - key: REALSESSIONS_REVIEWERS
         sync: false
 
+  # The internal dashboard (admin/server.ts): growth numbers and the user
+  # list. Separate from the product so the public app has no admin routes.
+  # Free, because it is opened a few times a day and a one-minute cold start
+  # costs nothing there. Reached only through Cloudflare Access at
+  # admin.getmockio.com; the service itself verifies the Access token too,
+  # since its onrender.com address skips Cloudflare.
+  - type: web
+    name: mockio-admin
+    runtime: node
+    region: virginia
+    plan: free
+    # tsx is a dev dependency, and NODE_ENV=production would skip it.
+    buildCommand: npm ci --include=dev
+    startCommand: npm run admin
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Team name only, e.g. "mockio" for mockio.cloudflareaccess.com.
+      - key: CF_ACCESS_TEAM_DOMAIN
+        sync: false
+      # The Application Audience (AUD) tag of the Access application.
+      - key: CF_ACCESS_AUD
+        sync: false
+      # Comma-separated. Checked here on top of the Access policy.
+      - key: ADMIN_EMAILS
+        sync: false
+      # A read-only Postgres role (see admin/README.md). The connection is
+      # forced read-only either way.
+      - key: ADMIN_DATABASE_URL
+        sync: false
+      - key: ADMIN_REDIS_URL
+        sync: false
   - type: redis
     name: real-sessions-redis
     region: virginia
