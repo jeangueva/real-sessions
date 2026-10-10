@@ -3,6 +3,7 @@ import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Hero } from "@/components/Hero";
 import { LandingNav } from "@/components/LandingNav";
+import { Journey } from "@/components/Journey";
 import { Privacy, Terms } from "@/legal/LegalPage";
 import { InterviewPreview } from "@/components/InterviewPreview";
 import { Habit } from "@/components/Habit";
@@ -73,6 +74,10 @@ function Landing() {
     <main className="bg-surface-base">
       <LandingNav />
       <Hero />
+      {/* The whole path — the agency screen, the job, the raise — before any
+          single feature: it is the one thing nobody else offers, and it is
+          also why preparing is free and the rest is not. */}
+      <Journey />
       {/* Pricing sits second, directly under the hero, where early access
           used to be. The people this is for decide in the first screen or
           leave, so the ask goes where they are — and the ask is now the plan

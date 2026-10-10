@@ -66,6 +66,12 @@ export function Hero() {
           <h1 className="text-balance text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.032em] text-cream-bright [text-shadow:0_1px_24px_rgb(0_0_0/0.35)]">
             <WordsPullUp align="center" className="w-full">{t("land.heroBlurb")}</WordsPullUp>
           </h1>
+          {/* Who it is for, said once, so the right reader knows in a line. */}
+          <FadeRise delay={0.2} className="mt-4 max-w-2xl">
+            <p className="text-balance text-base text-cream-bright/85 [text-shadow:0_1px_16px_rgb(0_0_0/0.4)] sm:text-lg">
+              {t("land.heroSub")}
+            </p>
+          </FadeRise>
           <FadeRise delay={0.35} className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link to="/app">
               <Action withArrow className="px-6 py-3 text-base">
