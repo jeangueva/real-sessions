@@ -16,6 +16,29 @@ function escape(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const STYLE = `
+:root{--ink:#1d1d1f;--dim:#6e6e73;--ground:#f5f5f7;--panel:#fff;--line:#e5e5ea;--accent:#5856d6;--gold:#a16a00;--gold-soft:#fff4cc}
+@media (prefers-color-scheme:dark){:root{--ink:#f5f5f7;--dim:#a1a1a6;--ground:#000;--panel:#1c1c1e;--line:#2c2c2e;--accent:#7d7aff;--gold:#ffcc00;--gold-soft:#3a2e08}}
+*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:1200px;margin:0 auto;padding:24px 16px 64px}header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:26px;margin:0;letter-spacing:-.02em}h2{font-size:15px;margin:0}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:12px}
+.two{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:12px}
+.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.label{margin:0;color:var(--dim);font-size:13px}.value{margin:4px 0 0;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.hint{color:var(--dim);font-size:13px}.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.chart{width:100%;height:120px;margin:12px 0 4px;fill:var(--accent)}
+.list{list-style:none;margin:12px 0 0;padding:0}.list li{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
+.funnel{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}.track{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.fill{height:100%;background:var(--accent)}
+.table{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-top:1px solid var(--line);white-space:nowrap}th{color:var(--dim);font-weight:500;border-top:0}
+.num{text-align:right;font-variant-numeric:tabular-nums}.pill{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--line);font-size:12px}.pill.premium{background:var(--gold-soft);color:var(--gold);font-weight:600}
+input{width:100%;max-width:320px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--ground);color:var(--ink);font:inherit;margin:12px 0}
+.login{max-width:380px;margin:12vh auto 0}.login form{display:grid;gap:10px;margin-top:16px}.login input{max-width:none;margin:0;font-size:16px}
+button{padding:10px 16px;border-radius:99px;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.link{background:none;color:var(--accent);padding:0;font-weight:500}.notice{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--gold-soft);color:var(--ink);font-size:14px}
+header form{display:inline}
+`;
+
 const n = (value: number) => value.toLocaleString("en-US");
 const date = (iso: string | null) => (iso ? iso.slice(0, 10) : "—");
 
@@ -77,25 +100,8 @@ export function renderPage(summary: Summary, viewer: string, nonce: string): str
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Mockio · Admin</title>
-<style>
-:root{--ink:#1d1d1f;--dim:#6e6e73;--ground:#f5f5f7;--panel:#fff;--line:#e5e5ea;--accent:#5856d6;--gold:#a16a00;--gold-soft:#fff4cc}
-@media (prefers-color-scheme:dark){:root{--ink:#f5f5f7;--dim:#a1a1a6;--ground:#000;--panel:#1c1c1e;--line:#2c2c2e;--accent:#7d7aff;--gold:#ffcc00;--gold-soft:#3a2e08}}
-*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-main{max-width:1200px;margin:0 auto;padding:24px 16px 64px}header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-h1{font-size:26px;margin:0;letter-spacing:-.02em}h2{font-size:15px;margin:0}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:12px}
-.two{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:12px}
-.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
-.label{margin:0;color:var(--dim);font-size:13px}.value{margin:4px 0 0;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
-.hint{color:var(--dim);font-size:13px}.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.chart{width:100%;height:120px;margin:12px 0 4px;fill:var(--accent)}
-.list{list-style:none;margin:12px 0 0;padding:0}.list li{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
-.funnel{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}.track{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.fill{height:100%;background:var(--accent)}
-.table{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-top:1px solid var(--line);white-space:nowrap}th{color:var(--dim);font-weight:500;border-top:0}
-.num{text-align:right;font-variant-numeric:tabular-nums}.pill{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--line);font-size:12px}.pill.premium{background:var(--gold-soft);color:var(--gold);font-weight:600}
-input{width:100%;max-width:320px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--ground);color:var(--ink);font:inherit;margin:12px 0}
-</style></head><body><main>
-<header><h1>Mockio · Admin</h1><span class="hint">${escape(viewer)} · updated ${escape(summary.generatedAt.slice(0, 16).replace("T", " "))} UTC</span></header>
+<style>${STYLE}</style></head><body><main>
+<header><h1>Mockio · Admin</h1><span class="hint">${escape(viewer)} · updated ${escape(summary.generatedAt.slice(0, 16).replace("T", " "))} UTC · <form method="post" action="/logout"><button class="link" type="submit">Sign out</button></form></span></header>
 <div class="grid">
 ${card("Registered", n(accounts.total), `+${n(accounts.new7)} this week · +${n(accounts.new30)} in 30 days`)}
 ${card("Active · 7 days", n(active.d7), "started an interview")}
@@ -124,4 +130,23 @@ ${breakdown("Subscriptions by status", subscriptions.byStatus)}
 const input=document.getElementById("filter"),rows=[...document.querySelectorAll("#users tr")];
 input.addEventListener("input",()=>{const q=input.value.trim().toLowerCase();for(const r of rows)r.hidden=q!==""&&!r.textContent.toLowerCase().includes(q);});
 </script></body></html>`;
+}
+
+/** The two sign-in steps: ask for the address, then for the code. */
+export function renderLogin(input: { step: "email" | "code"; email?: string; notice?: string }): string {
+  const notice = input.notice ? `<p class="notice" role="status">${escape(input.notice)}</p>` : "";
+  const form =
+    input.step === "email"
+      ? `<form method="post" action="/login"><label class="hint" for="email">Work email</label>
+<input id="email" name="email" type="email" autocomplete="email" required autofocus>
+<button type="submit">Send me a code</button></form>`
+      : `<form method="post" action="/verify"><input type="hidden" name="email" value="${escape(input.email ?? "")}">
+<label class="hint" for="code">The 6-digit code sent to ${escape(input.email ?? "")}</label>
+<input id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
+<button type="submit">Sign in</button></form>
+<form method="get" action="/"><button class="link" type="submit">Use another email</button></form>`;
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Mockio · Admin</title><style>${STYLE}</style></head>
+<body><main><section class="panel login"><h1>Mockio · Admin</h1><p class="hint">Team only.</p>${notice}${form}</section></main></body></html>`;
 }

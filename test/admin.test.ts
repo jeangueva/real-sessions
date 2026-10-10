@@ -1,51 +1,54 @@
-import { generateKeyPairSync, createSign } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { accessConfig, verifyAccess } from "../admin/access.js";
+import { Codes, Limiter, MAX_GUESSES, allowedEmails, cookieValue, readSession, sessionCookie } from "../admin/login.js";
 import { summarise } from "../admin/metrics.js";
 import type { Raw } from "../admin/metrics.js";
 
-const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
-const jwk = { ...publicKey.export({ format: "jwk" }), kid: "k1" };
-const keys = async () => [jwk];
-const config = { teamDomain: "mockio", audience: "aud-1", allowed: new Set(["jean@example.com"]) };
-const now = 1_800_000_000_000;
+const secret = "x".repeat(40);
+const allowed = allowedEmails(" Jean@Example.com , ");
 
-function token(payload: Record<string, unknown>, header: Record<string, unknown> = { alg: "RS256", kid: "k1" }) {
-  const part = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
-  const signed = `${part(header)}.${part(payload)}`;
-  const signature = createSign("RSA-SHA256").update(signed).sign(privateKey).toString("base64url");
-  return `${signed}.${signature}`;
-}
-
-const good = {
-  aud: ["aud-1"],
-  iss: "https://mockio.cloudflareaccess.com",
-  exp: now / 1000 + 600,
-  email: "Jean@Example.com",
-};
-
-describe("Cloudflare Access check", () => {
-  it("lets in a valid token for an allowed email", async () => {
-    expect(await verifyAccess(token(good), config, keys, now)).toBe("jean@example.com");
+describe("admin sign-in", () => {
+  it("reads the allowlist lower-cased", () => {
+    expect([...allowed]).toEqual(["jean@example.com"]);
   });
 
-  it("refuses everything else", async () => {
-    expect(await verifyAccess(undefined, config, keys, now)).toBeNull();
-    expect(await verifyAccess(token({ ...good, email: "other@example.com" }), config, keys, now)).toBeNull();
-    expect(await verifyAccess(token({ ...good, aud: ["another-app"] }), config, keys, now)).toBeNull();
-    expect(await verifyAccess(token({ ...good, iss: "https://evil.cloudflareaccess.com" }), config, keys, now)).toBeNull();
-    expect(await verifyAccess(token({ ...good, exp: now / 1000 - 1 }), config, keys, now)).toBeNull();
-    expect(await verifyAccess(token(good, { alg: "none", kid: "k1" }), config, keys, now)).toBeNull();
-    const [h, , s] = token(good).split(".");
-    const forged = Buffer.from(JSON.stringify({ ...good, email: "jean@example.com", exp: now })).toString("base64url");
-    expect(await verifyAccess(`${h}.${forged}.${s}`, config, keys, now)).toBeNull();
+  it("accepts the right code once", () => {
+    const codes = new Codes();
+    const code = codes.issue("jean@example.com");
+    expect(code).toMatch(/^\d{6}$/);
+    expect(codes.check("jean@example.com", code)).toBe(true);
+    expect(codes.check("jean@example.com", code)).toBe(false);
   });
 
-  it("will not start without the whole configuration", () => {
-    expect(accessConfig({ CF_ACCESS_TEAM_DOMAIN: "mockio", CF_ACCESS_AUD: "a" })).toBeNull();
-    expect(
-      accessConfig({ CF_ACCESS_TEAM_DOMAIN: "mockio.cloudflareaccess.com", CF_ACCESS_AUD: "a", ADMIN_EMAILS: "A@b.co, " }),
-    ).toEqual({ teamDomain: "mockio", audience: "a", allowed: new Set(["a@b.co"]) });
+  it("burns a code after too many wrong guesses, and after ten minutes", () => {
+    const codes = new Codes();
+    const code = codes.issue("jean@example.com", 0);
+    const wrong = code === "000000" ? "111111" : "000000";
+    for (let i = 0; i < MAX_GUESSES; i++) codes.check("jean@example.com", wrong, 1);
+    expect(codes.check("jean@example.com", code, 2)).toBe(false);
+    const late = codes.issue("jean@example.com", 0);
+    expect(codes.check("jean@example.com", late, 11 * 60 * 1000)).toBe(false);
+  });
+
+  it("signs sessions that cannot be forged, expire, and end when removed from the list", () => {
+    const value = sessionCookie("jean@example.com", secret, 0);
+    expect(readSession(value, secret, allowed, 1000)).toBe("jean@example.com");
+    expect(readSession(value, "y".repeat(40), allowed, 1000)).toBeNull();
+    expect(readSession(value, secret, allowed, 25 * 60 * 60 * 1000)).toBeNull();
+    expect(readSession(value, secret, new Set(), 1000)).toBeNull();
+    const [, signature] = value.split(".");
+    const forged = Buffer.from(JSON.stringify({ email: "jean@example.com", exp: 9e15 })).toString("base64url");
+    expect(readSession(`${forged}.${signature}`, secret, allowed, 1000)).toBeNull();
+  });
+
+  it("limits and reads cookies", () => {
+    const limiter = new Limiter(2, 1000);
+    expect([limiter.allow("a", 0), limiter.allow("a", 1), limiter.allow("a", 2), limiter.allow("a", 1001)]).toEqual([
+      true,
+      true,
+      false,
+      true,
+    ]);
+    expect(cookieValue("a=1; mockio_admin=abc.def==; b=2", "mockio_admin")).toBe("abc.def==");
   });
 });
 

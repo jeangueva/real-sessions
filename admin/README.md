@@ -1,16 +1,15 @@
 # Mockio admin
 
-Growth numbers and the user list, at `admin.getmockio.com`, for the team only.
-A separate Render service (`mockio-admin` in `render.yaml`, free plan) that can
-only read.
+Growth numbers and the user list, for the team only. A separate Render
+service (`mockio-admin` in `render.yaml`, free plan) that can only read.
 
 ## Who gets in
 
-1. **Cloudflare Access** (Zero Trust → Access → Applications → Add →
-   Self-hosted): domain `admin.getmockio.com`, a policy *Allow* with your
-   emails, login method Google. Copy the **Application Audience (AUD) tag**.
-2. **The service checks the same token.** Requests that skip Cloudflare (the
-   `onrender.com` address) carry no Access token and get `403`.
+Only addresses in `ADMIN_EMAILS`. You type your email, a six-digit code
+arrives (valid ten minutes, five guesses), and you stay signed in for a day.
+Every request to send a code gets the same answer, so the form does not reveal
+who the admins are. Removing an address from `ADMIN_EMAILS` signs it out at
+once.
 
 ## Setup
 
@@ -26,31 +25,28 @@ only read.
    `ADMIN_DATABASE_URL` is the production URL with this user and password.
    Every connection is also forced read-only by the service itself.
 
-2. **Redis**: `ADMIN_REDIS_URL`. If your Redis supports ACLs, a user limited
-   to reading account records:
-   `ACL SETUSER mockio_admin on >'<password>' ~rs:account:* +get +mget +scan +ping`.
-   Otherwise the production `REDIS_URL`; the service only ever reads.
-
-3. **Render**: New → Blueprint sync (or a Web Service from this repo with the
-   settings in `render.yaml`). Environment:
+2. **Render**: New → Web Service from this repo (or Blueprint sync), with the
+   settings in `render.yaml`: Node, build `npm ci --include=dev`, start
+   `npm run admin`, health check `/healthz`, instance **Free**. Environment:
 
    | Key | Value |
    |---|---|
-   | `CF_ACCESS_TEAM_DOMAIN` | your team name, e.g. `mockio` |
-   | `CF_ACCESS_AUD` | the AUD tag from step 1 above |
+   | `NODE_ENV` | `production` |
    | `ADMIN_EMAILS` | `you@gmail.com,partner@gmail.com` |
-   | `ADMIN_DATABASE_URL` | the read-only URL |
-   | `ADMIN_REDIS_URL` | the Redis URL |
+   | `ADMIN_SESSION_SECRET` | 40+ random characters (Render: *Generate*) |
+   | `RESEND_API_KEY`, `EMAIL_FROM` | the same as the product |
+   | `ADMIN_DATABASE_URL` | the read-only URL from step 1 |
+   | `ADMIN_REDIS_URL` | the product's Redis URL (only read) |
 
-4. **DNS**: in Render, add the custom domain `admin.getmockio.com` to the
-   service; in Cloudflare, the CNAME it asks for, **proxied** (orange cloud),
-   so traffic passes through Access.
+3. **Domain (optional)**: in Render, add `admin.getmockio.com` to the service;
+   at your DNS provider, the CNAME Render asks for. Without it, the
+   `onrender.com` address works the same.
 
 ## Local
 
 ```bash
-ADMIN_DEV_EMAIL=you@local npm run admin
+ADMIN_EMAILS=you@example.com ADMIN_SESSION_SECRET=$(openssl rand -hex 24) npm run admin
 ```
 
-Skips the Access check (refused when `NODE_ENV=production`) and reads whatever
-`DATABASE_URL` and `REDIS_URL` point at.
+Reads whatever `DATABASE_URL` and `REDIS_URL` point at. Without an email
+provider configured, the code is printed to the console.
