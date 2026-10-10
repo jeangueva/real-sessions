@@ -266,11 +266,14 @@ describe("Pricing", () => {
     // both to everyone.
     renderScreen(<Pricing />);
 
+    // Preparing is free now — company, CV, coaching — and the job itself is
+    // what is sold. The free card has to say so, and the paid one must not
+    // claim the interview features back.
     const free = screen.getByText("Free").closest("div")?.parentElement;
-    expect(free?.textContent).toContain("XP, levels and badges");
+    expect(free?.textContent).toContain("Live coaching and a full report");
 
     const premium = screen.getByText(/Premium|Pagado|paid/i).closest("div")?.parentElement;
-    expect(premium?.textContent).not.toContain("badges and league");
+    expect(premium?.textContent).not.toContain("Live coaching");
   });
 });
 
