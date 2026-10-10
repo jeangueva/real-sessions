@@ -130,7 +130,11 @@ type Event =
   // Counted because this is the only feature whose output leaves the product
   // entirely: the file goes to a camera roll and we never see where it lands.
   // Whether it is saved at all is the only signal there will ever be.
-  | "progress card saved";
+  | "progress card saved"
+  // A fake door: an interview language listed before it exists. How many
+  // people ask for it, against how many start an interview at all, is what
+  // decides whether it gets built.
+  | "language requested";
 
 /**
  * Records one event.
