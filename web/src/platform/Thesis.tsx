@@ -794,12 +794,12 @@ function ProgressStrip({ points }: { points: DefenseProgressPoint[] }) {
           {t("progressReadiness", { from: first.readiness, to: last.readiness })} · {t("progressPass", { mark: grade(last.passMark) })}
         </p>
       </div>
-      <div className="flex h-16 items-end gap-1.5" role="img" aria-label={points.map((p) => `${grade(p.grade)}/${p.gradeMax}`).join(", ")}>
+      <div className="flex h-20 items-end gap-1.5" role="img" aria-label={points.map((p) => `${grade(p.grade)}/${p.gradeMax}`).join(", ")}>
         {points.map((point) => {
           const passed = point.grade >= point.passMark;
           return (
             <div key={point.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-              <span className="text-[10px] font-semibold tabular-nums text-cream-dim">{grade(point.grade)}</span>
+              <span className="text-xs font-semibold tabular-nums text-cream-dim">{grade(point.grade)}</span>
               <span
                 className={`block w-full max-w-10 rounded-t-md ${passed ? "bg-grow" : "bg-step"}`}
                 style={{ height: `${Math.max(8, (point.grade / point.gradeMax) * 44)}px` }}
