@@ -10,6 +10,8 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  ladderTitle: "¿Y después de sustentar?",
+  ladderBody: "Tu primera entrevista de trabajo o de posgrado también se ensaya. Practica una gratis →",
   fluencyNeutral: "Sin penalización de fluidez",
   fluencyNeutralNote: "Para tartamudez u otras condiciones: el jurado espera con paciencia y la nota no mide la fluidez.",
   progressTitle: "Tu evolución",
@@ -263,6 +265,8 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  ladderTitle: "E depois da defesa?",
+  ladderBody: "Sua primeira entrevista de emprego ou de pós-graduação também se ensaia. Pratique uma grátis →",
   fluencyNeutral: "Sem penalização de fluência",
   fluencyNeutralNote: "Para gagueira ou outras condições: a banca espera com paciência e a nota não mede a fluência.",
   progressTitle: "Sua evolução",
@@ -514,6 +518,8 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  ladderTitle: "And after the defence?",
+  ladderBody: "Your first job or graduate-school interview can be rehearsed too. Practise one free →",
   fluencyNeutral: "Fluency not graded",
   fluencyNeutralNote: "For a stutter or similar: the panel waits patiently and the grade does not measure fluency.",
   progressTitle: "Your progress",

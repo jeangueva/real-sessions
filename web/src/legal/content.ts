@@ -85,7 +85,7 @@ export function isDraft(): boolean {
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
-export const UPDATED = "2026-09-21";
+export const UPDATED = "2026-10-12";
 
 export interface LegalSection {
   heading: string;
@@ -189,6 +189,19 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         ],
       },
       {
+        heading: "Your thesis",
+        body: [
+          "A thesis you upload for the defence simulator is unpublished work, and we treat it as confidential.",
+          [
+            "We keep its text, page by page, and the diagnosis, slide review and study material written from it, so the jury can quote your pages.",
+            "It is used only for your own rehearsals. It is never used to train any model, never shown to another user, and never published.",
+            "The AI providers that read it to run your rehearsals process it under the same terms as your interviews (see Who else processes it).",
+            "You can delete it with one click on the thesis screen; that removes the text and everything written from it. Deleting your account removes it too.",
+            "If you link a thesis advisor and choose to share your progress, they see your thesis title, the number of rehearsals, your grades and your readiness — never the thesis text or your answers. You can stop sharing at any time.",
+          ],
+        ],
+      },
+      {
         heading: "Cookies",
         body: [
           "One cookie, and it is how you stay signed in. It carries a signed identifier and nothing else. There are no advertising or analytics cookies, which is why this site has no cookie banner: there is nothing to consent to.",
@@ -267,6 +280,19 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "Tus derechos",
         body: [
           `Escribe a ${OPERATOR.email} y te respondemos. Puedes pedir una copia de lo que tenemos, pedir que lo corrijamos, o pedir que lo borremos, aunque eliminar tu cuenta ya hace lo último, en el momento y sin pedirle permiso a nadie.`,
+        ],
+      },
+      {
+        heading: "Tu tesis",
+        body: [
+          "La tesis que subes al simulador de sustentación es un trabajo inédito, y la tratamos como confidencial.",
+          [
+            "Guardamos su texto, página por página, y el diagnóstico, la revisión de diapositivas y el material de repaso hechos a partir de ella, para que el jurado pueda citar tus páginas.",
+            "Se usa solo para tus propios ensayos. Nunca se usa para entrenar ningún modelo, nunca se muestra a otro usuario y nunca se publica.",
+            "Los proveedores de IA que la leen para hacer tus ensayos la procesan en los mismos términos que tus entrevistas (ver Quién más lo procesa).",
+            "Puedes borrarla con un clic en la pantalla de tu tesis; eso elimina el texto y todo lo generado a partir de ella. Borrar tu cuenta también la elimina.",
+            "Si te vinculas con tu asesor y eliges compartir tu avance, él ve el título de tu tesis, cuántos ensayos hiciste, tus notas y tu índice de preparación; nunca el texto de la tesis ni tus respuestas. Puedes dejar de compartir cuando quieras.",
+          ],
         ],
       },
       {
@@ -351,6 +377,19 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         ],
       },
       {
+        heading: "Seu trabalho",
+        body: [
+          "O trabalho que você envia ao simulador de defesa é inédito, e o tratamos como confidencial.",
+          [
+            "Guardamos o texto, página por página, e o diagnóstico, a revisão dos slides e o material de revisão feitos a partir dele, para que a banca possa citar suas páginas.",
+            "Ele é usado só nos seus próprios ensaios. Nunca é usado para treinar nenhum modelo, nunca é mostrado a outro usuário e nunca é publicado.",
+            "Os provedores de IA que o leem para os seus ensaios o processam nos mesmos termos das suas entrevistas (veja Quem mais processa).",
+            "Você pode apagá-lo com um clique na tela do trabalho; isso remove o texto e tudo o que foi gerado a partir dele. Apagar sua conta também o remove.",
+            "Se você se vincular ao seu orientador e escolher compartilhar seu progresso, ele vê o título do trabalho, o número de ensaios, suas notas e seu índice de preparação; nunca o texto do trabalho nem suas respostas. Você pode parar de compartilhar quando quiser.",
+          ],
+        ],
+      },
+      {
         heading: "Cookies",
         body: [
           "Um cookie, e é o que mantém você conectado. Ele carrega um identificador assinado e nada mais. Não há cookies de publicidade nem de analytics, e é por isso que este site não tem banner de cookies: não há o que consentir.",
@@ -417,6 +456,19 @@ const TERMS: Record<Locale, LegalDocument> = {
         heading: "Prices",
         body: [
           "We may change the price. If we do, we will tell you by email at least 30 days before it applies to you, and you can cancel before it does. A price change never applies retroactively to a period you already paid for.",
+        ],
+      },
+      {
+        heading: "Thesis defence rehearsals",
+        body: [
+          "Mockio's defence simulator is a practice tool. It does not guarantee that you pass your defence: that decision belongs to your jury alone. The simulated record, grade and readiness index are a rehearsal's estimate, not a prediction, and the AI can be wrong — check with your advisor and your university's regulations.",
+          [
+            "Mockio rehearses; it does not write or correct your thesis for you, and it must never be used during a real defence to receive answers.",
+            "Defence packs and passes are one-time payments, not subscriptions. A pack's rehearsals expire at the end of its stated period; unused ones are not refunded after that.",
+            "If a pack or pass did not help you, ask within 7 days of buying it at hello@getmockio.com and we refund it, no questions asked.",
+            "If you share questions from your real defence, you confirm they contain no personal names or confidential information; they are reviewed before any rehearsal uses them, anonymously.",
+            "Advisors who recommend Mockio earn a commission on purchases by students they referred. It does not change your price, and they see your progress only if you choose to share it.",
+          ],
         ],
       },
       {
@@ -517,6 +569,19 @@ const TERMS: Record<Locale, LegalDocument> = {
         ],
       },
       {
+        heading: "Ensayos de sustentación",
+        body: [
+          "El simulador de sustentación de Mockio es una herramienta de práctica. No garantiza que apruebes tu sustentación: esa decisión es solo de tu jurado. El acta simulada, la nota y el índice de preparación son una estimación del ensayo, no una predicción, y la IA puede equivocarse; verifica con tu asesor y con el reglamento de tu universidad.",
+          [
+            "Mockio te ayuda a ensayar; no escribe ni corrige tu tesis por ti, y nunca debe usarse durante una sustentación real para recibir respuestas.",
+            "Los packs y pases de sustentación son pagos únicos, no suscripciones. Los ensayos de un pack vencen al final del periodo indicado; los no usados no se reembolsan después de esa fecha.",
+            "Si un pack o pase no te sirvió, pídelo dentro de los 7 días de la compra a hello@getmockio.com y te devolvemos el dinero, sin preguntas.",
+            "Si compartes preguntas de tu sustentación real, confirmas que no contienen nombres de personas ni información confidencial; se revisan antes de que algún ensayo las use, de forma anónima.",
+            "Los asesores que recomiendan Mockio ganan una comisión por las compras de los alumnos que refirieron. No cambia tu precio, y solo ven tu avance si tú eliges compartirlo.",
+          ],
+        ],
+      },
+      {
         heading: "Preguntas aportadas",
         body: [
           "Si reportas una pregunta que te hicieron en una entrevista real, nos estás diciendo que es genuina, que eres libre de compartirla, y que no contiene información confidencial ni nombra a ninguna persona.",
@@ -611,6 +676,19 @@ const TERMS: Record<Locale, LegalDocument> = {
         heading: "Preços",
         body: [
           "Podemos mudar o preço. Se mudarmos, avisamos por e-mail pelo menos 30 dias antes de valer para você, e você pode cancelar antes disso. Uma mudança de preço nunca se aplica retroativamente a um período já pago.",
+        ],
+      },
+      {
+        heading: "Ensaios de defesa",
+        body: [
+          "O simulador de defesa do Mockio é uma ferramenta de prática. Ele não garante a aprovação da sua defesa: essa decisão é só da sua banca. A ata simulada, a nota e o índice de preparação são uma estimativa do ensaio, não uma previsão, e a IA pode errar; confirme com seu orientador e com o regulamento da sua universidade.",
+          [
+            "O Mockio ajuda você a ensaiar; ele não escreve nem corrige seu trabalho por você, e nunca deve ser usado durante uma defesa real para receber respostas.",
+            "Os pacotes e passes de defesa são pagamentos únicos, não assinaturas. Os ensaios de um pacote vencem ao fim do período indicado; os não usados não são reembolsados depois dessa data.",
+            "Se um pacote ou passe não ajudou, peça em até 7 dias da compra para hello@getmockio.com e devolvemos o dinheiro, sem perguntas.",
+            "Se você compartilhar perguntas da sua defesa real, confirma que elas não contêm nomes de pessoas nem informação confidencial; elas são revisadas antes de qualquer ensaio usá-las, de forma anônima.",
+            "Orientadores que recomendam o Mockio ganham uma comissão sobre as compras dos alunos que indicaram. Isso não muda o seu preço, e eles só veem seu progresso se você escolher compartilhar.",
+          ],
         ],
       },
       {

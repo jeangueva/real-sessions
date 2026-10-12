@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Gavel } from "lucide-react";
 import { Eyebrow, Panel } from "@/design-system";
 import type { Evaluation } from "@/lib/evaluation";
@@ -153,6 +154,17 @@ export function ActaCard({ acta }: { acta: Acta }) {
           </div>
         )}
       </Panel>
+      {/* A pass is the moment to show what comes after the thesis: the
+          interview Mockio was built for, one step up the ladder. */}
+      {acta.verdict !== "desaprobado" && (
+        <Link
+          to="/app"
+          className="focus-ring flex flex-col gap-0.5 rounded-2xl bg-accent-soft px-5 py-4 text-accent-text transition-transform duration-150 active:scale-[0.99] print:hidden"
+        >
+          <span className="text-sm font-semibold">{t("ladderTitle")}</span>
+          <span className="text-sm">{t("ladderBody")}</span>
+        </Link>
+      )}
       <p className="px-1 text-xs text-cream-dim">{t("actaDisclaimer")}</p>
     </div>
   );
