@@ -430,6 +430,13 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
   const [material, setMaterial] = useState("");
   const [members, setMembers] = useState(["", "", ""]);
+  const [fluencyNeutral, setFluencyNeutral] = useState(() => {
+    try {
+      return localStorage.getItem("mockio.fluencyNeutral") === "1";
+    } catch {
+      return false;
+    }
+  });
 
   /** Remembered on this device, else guessed from the thesis's language. */
   const [country, setCountry] = useState(() => {
@@ -572,6 +579,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           ...(setting ? { setting } : {}),
           ...(needsMaterial ? { material: material.trim() } : {}),
           ...(allowance?.group && named.length > 1 ? { members: named } : {}),
+          ...(fluencyNeutral ? { fluencyNeutral: true } : {}),
         },
       },
     });
@@ -682,6 +690,26 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           className="focus-ring rounded-xl bg-surface-lift px-3 py-2.5 font-mono text-sm text-cream-bright placeholder:font-sans placeholder:text-cream-faint"
         />
       )}
+
+      {/* Accessibility: free for everyone, remembered on this device. */}
+      <label className="flex items-start gap-2 text-sm text-cream">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={fluencyNeutral}
+          onChange={(event) => {
+            setFluencyNeutral(event.target.checked);
+            try {
+              localStorage.setItem("mockio.fluencyNeutral", event.target.checked ? "1" : "0");
+            } catch {
+              // Private mode: asked again next time.
+            }
+          }}
+        />
+        <span>
+          {t("fluencyNeutral")} <span className="text-xs text-cream-dim">{t("fluencyNeutralNote")}</span>
+        </span>
+      </label>
 
       {allowance?.group && (
         <div className={label}>

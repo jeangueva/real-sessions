@@ -82,6 +82,8 @@ export const ActaSchema = z.object({
   }),
   readiness: z.number().min(0).max(100),
   chapters: z.array(z.object({ name: z.string(), readiness: z.number().min(0).max(100) })),
+  /** Set when the student asked that fluency not count; filled in after the model. */
+  fluency_neutral: z.boolean().nullable().default(null),
   /** A group thesis: how each member did. Empty for one author. */
   members: z.array(z.object({ name: z.string(), grade: z.number().min(0), feedback: z.string() })).default([]),
 });

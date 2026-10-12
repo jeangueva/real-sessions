@@ -42,6 +42,7 @@ HOW EVERY TURN IS WRITTEN — THIS IS READ ALOUD:
 - Every turn is spoken by exactly one juror, and it begins with that juror's tag: [[presidente]], [[metodologo]] or [[especialista]]. Nothing comes before the tag.
 - Spoken words only: no lists, no markdown, no stage directions. At most 60 words, usually fewer.
 - One question per turn. Never stack two questions.
+- Your turn ends with your question. Never write what the student says or might say, never answer for them, and never add a line in their voice.
 
 THE QUESTIONS — WHAT MAKES THIS DIFFERENT FROM A CHATBOT:
 - Every question is about THIS thesis, and names where it comes from: "En la página 34 usted afirma que…", "En su tabla de resultados…". Use the page numbers in the dossier; never invent a page.
@@ -87,6 +88,7 @@ export function panelFor(
 export const REGISTERS: Record<DefenseFormat["language"], string> = {
   es: 'Use "usted".',
   pt: 'Use Brazilian Portuguese as a banca speaks it: "você" or "o senhor/a senhora", never European Portuguese.',
+  en: "Use the measured, courteous English of an international examining committee; the candidate may not be a native speaker, so speak clearly without simplifying the questions.",
 };
 
 /** How the session is laid out, for the full panel and for the express. */
@@ -140,8 +142,14 @@ export function focusBlock(input: {
   setting: DefenseSetting | null;
   material: string | null;
   members: readonly string[];
+  fluencyNeutral?: boolean;
 }): string {
   const parts = [`WHAT THIS REHEARSAL TRAINS: ${FOCUSES[input.focus]}`];
+  if (input.fluencyNeutral) {
+    parts.push(
+      "FLUENCY: The student asked that fluency not count — a stutter or a similar condition. Wait patiently through pauses, blocks and repetitions; never comment on pace, hesitation or how something was said; never finish their sentences. Judge only what they say.",
+    );
+  }
   if (input.focus === "estadistica" && input.material) {
     parts.push(`THE STUDENT'S STATISTICAL OUTPUT (as pasted from SPSS, Excel, R or Stata):\n${input.material}`);
   }

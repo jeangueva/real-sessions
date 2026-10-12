@@ -12,6 +12,8 @@ Grade the DEFENCE — how the student presented and answered — not only the wr
 
 {{focus_note}}
 
+{{fluency_note}}
+
 The session ran at "{{difficulty}}" difficulty. Grade against a real jury's standard regardless: difficulty changes how hard the questions were, not the bar.
 
 LANGUAGE: Every text field is written in {{report_language}}. Quotes of what the student said stay as they said them.

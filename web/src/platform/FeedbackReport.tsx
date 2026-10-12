@@ -544,7 +544,9 @@ function FeedbackBody({
             <ActaCard acta={evaluation.acta} />
           </FadeRise>
         )}
-        {evaluation.acta && metrics && (
+        {/* Not shown when the student asked that fluency not count: a
+            reading of their "nerves" from pauses would say the opposite. */}
+        {evaluation.acta && metrics && !evaluation.acta.fluency_neutral && (
           <FadeRise delay={0.05}>
             <NervesCard metrics={metrics} />
           </FadeRise>

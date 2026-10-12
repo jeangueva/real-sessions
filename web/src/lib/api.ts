@@ -507,6 +507,7 @@ export function startSessionStream(
   setting?: "presencial" | "virtual";
   material?: string;
   members?: string[];
+  fluencyNeutral?: boolean;
   },
   handlers: {
     onDelta: (text: string) => void;
@@ -1385,7 +1386,7 @@ export interface PackOfferDetail {
 export interface DefenseFormatInfo {
   country: string;
   countryName: string;
-  language: "es" | "pt";
+  language: "es" | "pt" | "en";
   jurors: Record<"presidente" | "metodologo" | "especialista", { name: string; role: string }>;
   scale: { min: number; max: number; pass: number; decimals: boolean };
 }

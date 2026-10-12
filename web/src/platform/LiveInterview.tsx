@@ -56,6 +56,7 @@ interface SetupState {
     setting?: "presencial" | "virtual";
     material?: string;
     members?: string[];
+    fluencyNeutral?: boolean;
   };
 }
 
@@ -273,6 +274,7 @@ export function LiveInterview() {
               ...(defense.setting ? { setting: defense.setting } : {}),
               ...(defense.material ? { material: defense.material } : {}),
               ...(defense.members && defense.members.length > 1 ? { members: defense.members } : {}),
+              ...(defense.fluencyNeutral ? { fluencyNeutral: true } : {}),
             }
           : {}),
       },

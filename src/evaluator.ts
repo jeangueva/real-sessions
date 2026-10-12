@@ -198,6 +198,9 @@ async function evaluateDefense(
         (defense.focus ?? "completa") === "completa"
           ? "This was a complete defence."
           : `This rehearsal trained one thing — weigh it above the rest: ${FOCUSES[defense.focus ?? "completa"]}`,
+      fluency_note: defense.fluencyNeutral
+        ? "ACCESSIBILITY: the student asked that fluency not count (a stutter or a similar condition). Do not lower any grade or axis for pauses, blocks, repetitions, fillers or pace; judge \`seguridad\` on the conviction of what they said, never on how smoothly. Leave \`fluency_neutral\` null."
+        : "Leave \`fluency_neutral\` null.",
       members_rule:
         (defense.members?.length ?? 0) > 1
           ? `a group thesis by ${defense.members!.join(", ")}. One entry per member, in that order, with their own grade on the same scale and two sentences on how they did, from the questions addressed to them.`
@@ -249,6 +252,7 @@ async function evaluateDefense(
       pass_mark: pass,
       verdict: verdict.code,
       verdict_label: verdict.label,
+      fluency_neutral: defense.fluencyNeutral ? true : null,
       deliberation,
     },
   };

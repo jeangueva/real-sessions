@@ -255,6 +255,8 @@ export interface DefenseSetup {
   material?: string | null;
   /** The members of a group thesis, by name. */
   members?: string[];
+  /** Accessibility: a stutter or similar; fluency is not judged at all. */
+  fluencyNeutral?: boolean;
 }
 
 /**
@@ -322,6 +324,7 @@ export function buildInterviewerPrompt(
         setting: defense.setting ?? null,
         material: defense.material ?? null,
         members: defense.members ?? [],
+        fluencyNeutral: defense.fluencyNeutral ?? false,
       }),
       language: findLanguage(options.language).promptLabel,
       difficulty: DIFFICULTIES[defense.difficulty],

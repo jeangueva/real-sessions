@@ -12,7 +12,7 @@
  * What changes is who they are called and how they speak.
  */
 
-export type CountryCode = "PE" | "BR" | "CO" | "CL" | "AR" | "EC" | "BO" | "UY" | "PA";
+export type CountryCode = "PE" | "BR" | "CO" | "CL" | "AR" | "EC" | "BO" | "UY" | "PA" | "INT";
 
 export interface Juror {
   name: string;
@@ -25,7 +25,7 @@ export interface Juror {
 export interface DefenseFormat {
   country: CountryCode;
   countryName: string;
-  language: "es" | "pt";
+  language: "es" | "pt" | "en";
   /** What the event is called there. */
   eventName: string;
   /** How the panel addresses the student. */
@@ -194,6 +194,28 @@ export const FORMATS: Record<CountryCode, DefenseFormat> = {
     // VALIDAR: 0–100 o letras, según la universidad.
     scale: { min: 0, max: 100, pass: 71, decimals: false },
     verdicts: { unanimous: "Aprobado", majority: "Aprobado", failed: "Reprobado" },
+  },
+  /**
+   * Not a country: a defence in English, for international master's and
+   * doctoral programmes, held to the viva's conventions rather than one
+   * country's.
+   */
+  INT: {
+    country: "INT",
+    countryName: "International (English)",
+    language: "en",
+    eventName: "thesis defence (viva voce)",
+    address: "the candidate, or by name",
+    jurors: {
+      presidente: { name: "Prof. Harris", role: "Chair of the examining committee", focus: CHAIR_FOCUS },
+      metodologo: { name: "Dr. Patel", role: "Internal examiner", focus: METHOD_FOCUS },
+      especialista: { name: "Dr. Moreno", role: "External examiner", focus: SPECIALIST_FOCUS },
+    },
+    vocabulary: "viva, examiners, contribution to knowledge, limitations, minor and major corrections",
+    // VALIDAR: many programmes grade pass or fail with corrections; 0–100,
+    // passing at 60, is the common numeric reading of it.
+    scale: { min: 0, max: 100, pass: 60, decimals: false },
+    verdicts: { unanimous: "Pass", majority: "Pass with corrections", failed: "Major revisions required" },
   },
 };
 

@@ -55,6 +55,7 @@ export interface Evaluation {
     readiness: number;
     chapters: { name: string; readiness: number }[];
     members?: { name: string; grade: number; feedback: string }[];
+    fluency_neutral?: boolean | null;
   } | null;
 }
 

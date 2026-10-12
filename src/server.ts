@@ -3606,6 +3606,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         });
       }
       defense = {
+        // Accessibility, so free on every plan.
+        fluencyNeutral: body["fluencyNeutral"] === true,
         focus,
         setting,
         members: members.length > 1 ? members : [],
