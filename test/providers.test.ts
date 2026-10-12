@@ -66,3 +66,15 @@ describe("cheapest-passing selection", () => {
     expect(cheapest?.model).toBe("cheap");
   });
 });
+
+describe("the prompt cache", () => {
+  it("marks a long system prompt for Anthropic models only", async () => {
+    const { systemMessage, CACHE_MIN_CHARS } = await import("../src/providers/openai-compatible.js");
+    const long = "x".repeat(CACHE_MIN_CHARS);
+    const cached = systemMessage("anthropic/claude-sonnet-5", long);
+    expect(Array.isArray(cached.content)).toBe(true);
+    expect(JSON.stringify(cached.content)).toContain('"cache_control":{"type":"ephemeral"}');
+    expect(systemMessage("qwen/qwen3.7-flash", long).content).toBe(long);
+    expect(systemMessage("anthropic/claude-sonnet-5", "short").content).toBe("short");
+  });
+});

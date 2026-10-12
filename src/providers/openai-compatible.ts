@@ -51,6 +51,28 @@ function readUsage(usage: OpenAI.CompletionUsage | undefined): ProviderUsage {
   };
 }
 
+/**
+ * The system message, marked for Anthropic's prompt cache when it is worth it.
+ *
+ * A thesis defence sends the same jury prompt — the dossier with the pages it
+ * quotes, several thousand tokens — on every turn of a twelve-turn session.
+ * Marked once, every turn after the first reads it at a tenth of the price
+ * and starts answering sooner. OpenRouter passes `cache_control` through to
+ * Anthropic and drops it for other vendors, so a fallback model still works;
+ * short prompts are left alone, below the size Anthropic will cache at all.
+ */
+export const CACHE_MIN_CHARS = 4_000;
+
+export function systemMessage(model: string, system: string): OpenAI.ChatCompletionSystemMessageParam {
+  if (!model.startsWith("anthropic/") || system.length < CACHE_MIN_CHARS) {
+    return { role: "system", content: system };
+  }
+  return {
+    role: "system",
+    content: [{ type: "text", text: system, cache_control: { type: "ephemeral" } } as OpenAI.ChatCompletionContentPartText],
+  };
+}
+
 /** Finish reasons meaning the model declined rather than answered. */
 const REFUSAL_REASONS = new Set(["content_filter"]);
 
@@ -131,7 +153,7 @@ export class OpenAICompatibleProvider implements ModelProvider {
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const messages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: "system", content: request.system },
+      systemMessage(request.model, request.system),
       ...request.messages.map((turn) => ({
         role: turn.role,
         content: turn.text,
@@ -210,7 +232,7 @@ export class OpenAICompatibleProvider implements ModelProvider {
       this.client.chat.completions.create({
         model: request.model,
         messages: [
-          { role: "system", content: request.system },
+          systemMessage(request.model, request.system),
           { role: "user", content: request.prompt },
         ],
         max_tokens: request.maxTokens,
