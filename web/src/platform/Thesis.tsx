@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
@@ -168,9 +168,17 @@ function Diagnosis({
     const hash = window.location.hash.slice(1);
     return (TABS as readonly string[]).includes(hash) ? (hash as ThesisTab) : "ensayar";
   });
+  // Follows the address too: a link to #diagnostico from anywhere — or the
+  // back button — opens that tab, not whichever was open before.
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const hash = location.hash.slice(1);
+    if ((TABS as readonly string[]).includes(hash)) setTab(hash as ThesisTab);
+  }, [location.hash]);
   const go = (next: ThesisTab) => {
     setTab(next);
-    window.history.replaceState(null, "", `#${next}`);
+    navigate({ hash: `#${next}` }, { replace: true });
   };
   const serious = risks.filter((risk) => risk.severity === "alta").length;
 
@@ -572,8 +580,8 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     <Panel variant="raised" className="flex flex-col gap-4 p-5 sm:p-6">
       {/* Where and how — one compact grid instead of a column of chip rows,
           so the whole form and its button fit on one screen. */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className={label}>
+      <div className="grid grid-cols-2 gap-3">
+        <label className={`${label} col-span-2 sm:col-span-1`}>
           {t("university")}
           <input
             value={university}
@@ -636,7 +644,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           </select>
         </label>
         {/* Express or the full panel, side by side. */}
-        <div className={label}>
+        <div className={`${label} col-span-2 sm:col-span-1`}>
           {t("panelChoice")}
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-lift p-1">
             {([false, true] as const).map((option) => (
@@ -671,7 +679,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
       {allowance?.group && (
         <div className={label}>
           {t("members")}
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2">
             {members.map((entry, index) => (
               <input
                 key={index}
@@ -695,8 +703,9 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         </p>
       )}
 
-      {/* The way in, with what it will spend beside it. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      {/* The way in, with what it will spend beside it. On a phone it stays
+          pinned above the tab bar, so it is never a scroll away. */}
+      <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-30 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-card/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
         {canBegin && (
           <Action withArrow onClick={begin} className="px-6 py-3 text-base">
             {t("rehearse")}
@@ -738,6 +747,8 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           <p className="text-xs text-cream-dim">{buying ? t("buying") : t("beforePay")}</p>
         </section>
       )}
+      {/* Room for the pinned bar on a phone, so it never covers the plans. */}
+      <div aria-hidden className="h-16 md:hidden" />
     </Panel>
   );
 }
