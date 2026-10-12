@@ -460,3 +460,22 @@ ALTER TABLE theses ADD COLUMN IF NOT EXISTS countdown_sent INTEGER[] NOT NULL DE
 
 -- Which offer a purchase was: the pack, the intensive pass, or the group pass.
 ALTER TABLE defense_packs ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'sustentacion';
+
+-- Questions real juries asked, given anonymously after a defence. Pending
+-- until a reviewer verifies them; only verified ones reach a panel.
+CREATE TABLE IF NOT EXISTS defense_questions (
+  id               BIGSERIAL PRIMARY KEY,
+  university_key   TEXT NOT NULL,
+  university       TEXT NOT NULL,
+  country          TEXT,
+  field            TEXT,
+  question         TEXT NOT NULL,
+  contributor_hash TEXT NOT NULL,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  status           TEXT NOT NULL DEFAULT 'pending'
+                   CHECK (status IN ('pending', 'verified', 'rejected')),
+  verified_by      TEXT,
+  verified_at      TIMESTAMPTZ,
+  UNIQUE (university_key, question)
+);
+CREATE INDEX IF NOT EXISTS defense_questions_key_idx ON defense_questions (university_key, status);

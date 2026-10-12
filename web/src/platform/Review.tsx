@@ -4,6 +4,7 @@ import { Action, Eyebrow, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, decideQuestion, fetchReviewQueue } from "@/lib/api";
+import { DefenseReviewQueue } from "./DefenseReviewQueue";
 import type { PendingQuestion } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 
@@ -170,6 +171,7 @@ export function Review() {
             </li>
           ))}
         </ul>
+        <DefenseReviewQueue />
       </PageBody>
     </>
   );

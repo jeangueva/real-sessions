@@ -1455,3 +1455,46 @@ export function setDefenseDate(date: string | null) {
     }),
   );
 }
+
+/* ------------------------------------------------------------------------- */
+/* Sustentación: questions from real defences                                */
+/* ------------------------------------------------------------------------- */
+
+export interface RealDefenseQuestion {
+  id: number;
+  university: string;
+  country: string | null;
+  field: string | null;
+  question: string;
+  createdAt: string;
+}
+
+export function shareRealQuestions(input: { university: string; country: string; questions: string[]; consent: boolean }) {
+  return withIdentity(() =>
+    request<{ saved: number }>("/api/thesis/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export function countRealQuestions(university: string) {
+  return withIdentity(() =>
+    request<{ verified: number }>(`/api/thesis/questions?university=${encodeURIComponent(university)}`, { method: "GET" }),
+  );
+}
+
+export function fetchDefenseReviewQueue() {
+  return withIdentity(() => request<{ queue: RealDefenseQuestion[] }>("/api/review/defense", { method: "GET" }));
+}
+
+export function decideDefenseQuestion(id: number, status: "verified" | "rejected") {
+  return withIdentity(() =>
+    request<{ ok: true }>(`/api/review/defense/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    }),
+  );
+}

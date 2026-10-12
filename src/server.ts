@@ -196,6 +196,7 @@ import {
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
+import { createDefenseQuestionStore, universityKey, type DefenseQuestionStore } from "./defense-questions.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import {
   createDefensePackStore,
@@ -231,6 +232,24 @@ async function defenseAllowance(
     freeLeft: Math.max(0, FREE_DEFENSES - express),
     ...unlocks(packs),
   };
+}
+
+/**
+ * Questions real juries at this university asked, for the panel to draw on.
+ *
+ * Verified ones only, and fenced as quoted material: they were written by
+ * other students, and a reviewer having read them is what lets them near a
+ * prompt at all. A read failure costs the rehearsal nothing.
+ */
+async function realQuestionsBlock(university: string): Promise<string> {
+  const found = await readQuietly(REAL_QUESTIONS.verified(universityKey(university), 8), []);
+  if (found.length === 0) return "";
+  return [
+    "",
+    "",
+    "QUESTIONS REAL JURIES AT THIS UNIVERSITY HAVE ASKED (reported anonymously by students after their defence, verified). Ask at least one of them during the session, reworded to this thesis — they are what this university's juries really ask; never read them out as a list:",
+    ...found.map((entry) => `- "${entry.question.replace(/"/g, "'")}"`),
+  ].join("\n");
 }
 
 /**
@@ -363,6 +382,7 @@ let PLANS: EntitlementStore;
 let PROFILES: ProfileStore;
 let THESES: ThesisStore;
 let PACKS: DefensePackStore;
+let REAL_QUESTIONS: DefenseQuestionStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
 let LIFECYCLE: LifecycleStore;
@@ -395,6 +415,7 @@ export interface ServerDependencies {
   /** Optional so every existing test keeps its wiring; memory when absent. */
   theses?: ThesisStore;
   packs?: DefensePackStore;
+  realQuestions?: DefenseQuestionStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
   lifecycle: LifecycleStore;
@@ -428,6 +449,7 @@ export function configure(deps: ServerDependencies): void {
   PROFILES = deps.profiles;
   THESES = deps.theses ?? createThesisStore(null);
   PACKS = deps.packs ?? createDefensePackStore(null);
+  REAL_QUESTIONS = deps.realQuestions ?? createDefenseQuestionStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
   LIFECYCLE = deps.lifecycle;
@@ -2924,6 +2946,43 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  /**
+   * Questions from a real defence, given back after it. Anonymous, capped per
+   * person and university, and pending until a reviewer verifies them.
+   */
+  if (req.method === "POST" && path === "/api/thesis/questions") {
+    if (await limited(res, `contribute:${identity.id}`, RULES.contribute)) return;
+    const body = await readJson(req);
+    const university = typeof body["university"] === "string" ? body["university"].trim() : "";
+    if (universityKey(university) === "") return json(res, 400, { error: "Escribe el nombre de tu universidad." });
+    if (body["consent"] !== true) {
+      return json(res, 400, { error: "Necesitamos tu permiso para guardar las preguntas de forma anónima." });
+    }
+    const questions = (Array.isArray(body["questions"]) ? body["questions"] : [])
+      .map((entry) => readQuestion(entry))
+      .filter((entry): entry is string => entry !== null)
+      .slice(0, 10);
+    if (questions.length === 0) {
+      return json(res, 400, { error: "Escribe al menos una pregunta, como la recuerdes (entre 12 y 400 caracteres)." });
+    }
+    const stored = await THESES.get(identity.id).catch(() => null);
+    const saved = await REAL_QUESTIONS.submit(identity.id, {
+      university,
+      country: typeof body["country"] === "string" ? body["country"].slice(0, 2).toUpperCase() : null,
+      field: stored?.analysis.field.slice(0, 120) ?? null,
+      questions,
+    });
+    json(res, 201, { saved });
+    return;
+  }
+
+  /** How many verified real questions a university has, for the rehearsal screen. */
+  if (req.method === "GET" && path === "/api/thesis/questions") {
+    const university = url.searchParams.get("university") ?? "";
+    json(res, 200, { verified: universityKey(university) === "" ? 0 : await REAL_QUESTIONS.countVerified(universityKey(university)) });
+    return;
+  }
+
   /** One click, everything: the pages and the diagnosis. */
   if (req.method === "DELETE" && path === "/api/thesis") {
     await THESES.delete(identity.id);
@@ -3061,6 +3120,25 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       companies: COMPANIES.map(({ id, name }) => ({ id, name })),
       roles: ROLES.map(({ id, label }) => ({ id, label })),
     });
+    return;
+  }
+
+  /** The defence questions waiting for a reviewer, beside the interview ones. */
+  if (req.method === "GET" && path === "/api/review/defense") {
+    if (!reviewer) return json(res, 404, { error: `No route for GET ${path}` });
+    json(res, 200, { queue: await REAL_QUESTIONS.pending(50) });
+    return;
+  }
+
+  const defenseReview = path.match(/^\/api\/review\/defense\/(\d+)$/);
+  if (req.method === "POST" && defenseReview) {
+    if (!reviewer) return json(res, 404, { error: `No route for POST ${path}` });
+    const decision = (await readJson(req))["status"];
+    if (decision !== "verified" && decision !== "rejected") {
+      return json(res, 400, { error: "Choose verified or rejected." });
+    }
+    const done = await REAL_QUESTIONS.decide({ id: Number(defenseReview[1]), status: decision, reviewer });
+    json(res, done ? 200 : 404, done ? { ok: true } : { error: "That question is not waiting for review." });
     return;
   }
 
@@ -3353,7 +3431,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         setting,
         members: members.length > 1 ? members : [],
         material: material === "" ? null : material,
-        dossier: renderDossier(stored, pages),
+        dossier: renderDossier(stored, pages) + (await realQuestionsBlock(university)),
         difficulty,
         university,
         field: stored.analysis.field,
@@ -4060,6 +4138,7 @@ configure({
   profiles: createProfileStore(db),
   theses: createThesisStore(db),
   packs: createDefensePackStore(db),
+  realQuestions: createDefenseQuestionStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
   lifecycle: createLifecycleStore(db),

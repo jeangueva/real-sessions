@@ -10,6 +10,14 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  shareTitle: "¿Ya sustentaste de verdad?",
+  shareBody: "Comparte las preguntas que te hizo tu jurado. Son anónimas, las revisamos antes de usarlas, y ayudan a quien sustente después en tu universidad.",
+  sharePlaceholder: "Una pregunta por línea, como la recuerdes",
+  shareConsent: "Acepto compartirlas de forma anónima",
+  shareSend: "Compartir preguntas",
+  shareThanks: "Gracias. Guardamos {count} preguntas; aparecerán cuando las revisemos.",
+  realQuestions: "{count} preguntas reales de jurados de esta universidad ya están en tu panel.",
+  reviewDefenseTitle: "Preguntas de sustentaciones reales",
   nervesTitle: "Termómetro de nervios",
   nervesCalm: "Tranquilo",
   nervesSome: "Algo nervioso",
@@ -193,6 +201,14 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  shareTitle: "Já defendeu de verdade?",
+  shareBody: "Compartilhe as perguntas que a sua banca fez. São anônimas, revisamos antes de usar, e ajudam quem defender depois na sua universidade.",
+  sharePlaceholder: "Uma pergunta por linha, como você lembra",
+  shareConsent: "Aceito compartilhar de forma anônima",
+  shareSend: "Compartilhar perguntas",
+  shareThanks: "Obrigado. Guardamos {count} perguntas; aparecem depois da revisão.",
+  realQuestions: "{count} perguntas reais de bancas desta universidade já estão na sua banca.",
+  reviewDefenseTitle: "Perguntas de defesas reais",
   nervesTitle: "Termômetro de nervosismo",
   nervesCalm: "Tranquilo",
   nervesSome: "Um pouco nervoso",
@@ -374,6 +390,14 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  shareTitle: "Already defended for real?",
+  shareBody: "Share the questions your panel asked. They are anonymous, reviewed before use, and help whoever defends at your university next.",
+  sharePlaceholder: "One question per line, as you remember it",
+  shareConsent: "I agree to share them anonymously",
+  shareSend: "Share questions",
+  shareThanks: "Thank you. We saved {count} questions; they appear once reviewed.",
+  realQuestions: "{count} real questions from this university's panels are already in your panel.",
+  reviewDefenseTitle: "Questions from real defences",
   nervesTitle: "Nerves thermometer",
   nervesCalm: "Calm",
   nervesSome: "A little nervous",

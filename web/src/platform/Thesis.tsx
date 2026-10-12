@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, Lock, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, buyDefensePack, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
+import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
 import type { DefenseAllowance, DefenseFormatInfo, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
 import { DefenseDate } from "./DefenseDate";
+import { ShareRealQuestions } from "./ShareRealQuestions";
 
 const ACCEPT = ".pdf,.docx";
 
@@ -277,6 +278,7 @@ function Diagnosis({
       <ThesisSlides thesis={thesis} onChange={onChange} />
       <Rehearse thesis={thesis} />
       <Ficha analysis={a} />
+      <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
       <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
       <Privacy />
     </>
@@ -362,6 +364,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
   const [material, setMaterial] = useState("");
   const [members, setMembers] = useState(["", "", ""]);
+
   /** Remembered on this device, else guessed from the thesis's language. */
   const [country, setCountry] = useState(() => {
     try {
@@ -384,6 +387,21 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   });
   const [difficulty, setDifficulty] = useState<Difficulty>("estandar");
   const [full, setFull] = useState(false);
+  /** Verified questions from real juries at the university typed above. */
+  const [realCount, setRealCount] = useState(0);
+  useEffect(() => {
+    const name = university.trim();
+    if (name.length < 4) {
+      setRealCount(0);
+      return;
+    }
+    const id = window.setTimeout(() => {
+      countRealQuestions(name)
+        .then((result) => setRealCount(result.verified))
+        .catch(() => setRealCount(0));
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [university]);
 
   useEffect(() => {
     let cancelled = false;
@@ -509,6 +527,8 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 text-base text-cream-bright placeholder:text-cream-faint"
         />
       </label>
+
+      {realCount > 0 && <p className="-mt-3 text-xs text-grow-text">{t("realQuestions", { count: realCount })}</p>}
 
       {formats.length > 0 && (
         <label className="flex flex-col gap-1.5">
