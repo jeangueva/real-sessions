@@ -10,6 +10,8 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  printReport: "Descargar PDF para tu asesor",
+  printHeading: "Informe de ensayo de sustentación · Mockio",
   slidesCount: "{count} diapositivas",
   slidesTitle: "Tus diapositivas",
   slidesBody: "Súbelas en PDF (desde PowerPoint, Google Slides o Canva: Archivo → Descargar → PDF). Las comparamos con tu tesis y te damos un guion que entra en tu tiempo.",
@@ -130,6 +132,8 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  printReport: "Baixar PDF para seu orientador",
+  printHeading: "Relatório de ensaio de defesa · Mockio",
   slidesCount: "{count} slides",
   slidesTitle: "Seus slides",
   slidesBody: "Envie em PDF (do PowerPoint, Google Slides ou Canva: Arquivo → Baixar → PDF). Comparamos com o seu trabalho e damos um roteiro que cabe no seu tempo.",
@@ -248,6 +252,8 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  printReport: "Download a PDF for your advisor",
+  printHeading: "Thesis defence rehearsal report · Mockio",
   slidesCount: "{count} slides",
   slidesTitle: "Your slides",
   slidesBody: "Upload them as a PDF (from PowerPoint, Google Slides or Canva: File → Download → PDF). We check them against your thesis and give you a script that fits your time.",

@@ -3,6 +3,7 @@ import { Eyebrow, Panel } from "@/design-system";
 import type { Evaluation } from "@/lib/evaluation";
 import { useThesisT } from "@/lib/thesis-copy";
 import { JURORS } from "@/lib/voice";
+import { PrintReport } from "./PrintReport";
 
 type Acta = NonNullable<Evaluation["acta"]>;
 
@@ -47,6 +48,11 @@ export function ActaCard({ acta }: { acta: Acta }) {
   const verdict = VERDICT[acta.verdict];
   return (
     <div className="flex flex-col gap-4">
+      {/* On paper only: what this document is, for the advisor reading it. */}
+      <p className="hidden text-sm font-semibold text-cream-bright print:block">{t("printHeading")}</p>
+      <div className="print:hidden">
+        <PrintReport />
+      </div>
       <Panel variant="raised" className="flex flex-col gap-6 p-6 shadow-lift sm:p-8">
         <div className="flex items-start gap-4">
           <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-lift text-cream-bright">

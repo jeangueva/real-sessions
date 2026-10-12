@@ -481,3 +481,42 @@
     @apply outline-none ring-offset-2 ring-offset-surface-base focus-visible:ring-2 focus-visible:ring-accent;
   }
 }
+
+/*
+ * Printing a report — the PDF a student takes to their advisor.
+ *
+ * The app's chrome goes (the rail, the tab bar, every button), entrances are
+ * settled where they would have ended up — an element that animates in on
+ * scroll is still invisible to a printer that never scrolled to it — and the
+ * page is printed on the light theme whatever the screen uses; the print
+ * button switches to it for the moment of printing.
+ */
+@media print {
+  aside,
+  nav,
+  button,
+  [data-print="hide"] {
+    display: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  html,
+  body,
+  main {
+    background: #fff !important;
+  }
+  details > :not(summary) {
+    display: block !important;
+  }
+  section,
+  li {
+    break-inside: avoid;
+  }
+}
