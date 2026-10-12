@@ -7,6 +7,7 @@ import { ApiError, buyDefensePack, deleteThesis, fetchThesis, syncDefensePack, u
 import type { DefenseAllowance, PackOffer } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { ThesisSlides } from "./ThesisSlides";
 
 const ACCEPT = ".pdf,.docx";
 
@@ -102,6 +103,7 @@ export function Thesis() {
         ) : thesis ? (
           <Diagnosis
             thesis={thesis}
+            onChange={setThesis}
             onReplace={() => fileRef.current?.click()}
             onDelete={() => void remove()}
           />
@@ -145,10 +147,12 @@ const STATUS = {
 
 function Diagnosis({
   thesis,
+  onChange,
   onReplace,
   onDelete,
 }: {
   thesis: StoredThesis;
+  onChange: (next: StoredThesis) => void;
   onReplace: () => void;
   onDelete: () => void;
 }) {
@@ -267,6 +271,7 @@ function Diagnosis({
         </section>
       )}
 
+      <ThesisSlides thesis={thesis} onChange={onChange} />
       <Rehearse thesis={thesis} />
       <Ficha analysis={a} />
       <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>

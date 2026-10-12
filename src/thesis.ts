@@ -19,6 +19,7 @@ import { resolveProvider } from "./providers/index.js";
 import type { ModelProvider } from "./providers/index.js";
 import { ExtractionError, normalize, type UploadKind } from "./extract.js";
 import { THESIS_ANALYSIS_TEMPLATE } from "./prompts/thesis.js";
+import type { StoredSlides } from "./slides.js";
 
 /** Theses are long and often full of figures; a CV-sized cap refuses most. */
 export const MAX_THESIS_BYTES = 30 * 1024 * 1024;
@@ -53,7 +54,12 @@ export interface ThesisPages {
   approximate: boolean;
 }
 
-export async function extractPages(buffer: Buffer, kind: UploadKind): Promise<ThesisPages> {
+export async function extractPages(
+  buffer: Buffer,
+  kind: UploadKind,
+  /** A slide deck says far less than a thesis, and that is not a scan. */
+  minChars = MIN_USEFUL_CHARS,
+): Promise<ThesisPages> {
   let pages: string[];
   let approximate = false;
 
@@ -91,7 +97,7 @@ export async function extractPages(buffer: Buffer, kind: UploadKind): Promise<Th
 
   pages = pages.slice(0, MAX_PAGES);
   const total = pages.reduce((sum, page) => sum + page.length, 0);
-  if (total < MIN_USEFUL_CHARS) {
+  if (total < minChars) {
     throw new ExtractionError(
       "Casi no encontramos texto en ese archivo. Si es un PDF escaneado, " +
         "expórtalo desde Word o Google Docs y vuelve a subirlo.",
@@ -259,6 +265,8 @@ export interface StoredThesis {
   approximate: boolean;
   analysis: ThesisAnalysis;
   uploadedAt: string;
+  /** The slide review, when the deck has been uploaded for this version. */
+  slides?: StoredSlides | null;
 }
 
 export interface ThesisStore {
@@ -269,6 +277,8 @@ export interface ThesisStore {
   put(ownerId: string, fileName: string, thesis: ThesisPages, analysis: ThesisAnalysis): Promise<void>;
   /** Removes the file's text and its analysis, all at once. */
   delete(ownerId: string): Promise<void>;
+  /** Sets or clears the slide review. */
+  putSlides(ownerId: string, slides: StoredSlides | null): Promise<void>;
   transfer(fromOwnerId: string, toOwnerId: string): Promise<void>;
 }
 
@@ -277,7 +287,7 @@ class PostgresThesisStore implements ThesisStore {
 
   async get(ownerId: string): Promise<StoredThesis | null> {
     const { rows } = await this.pool.query(
-      `SELECT file_name, page_count, approximate, analysis, uploaded_at FROM theses WHERE owner_id = $1`,
+      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides FROM theses WHERE owner_id = $1`,
       [ownerId],
     );
     const row = rows[0];
@@ -288,6 +298,7 @@ class PostgresThesisStore implements ThesisStore {
       approximate: Boolean(row.approximate),
       analysis: row.analysis as ThesisAnalysis,
       uploadedAt: new Date(row.uploaded_at).toISOString(),
+      slides: (row.slides as StoredSlides | null) ?? null,
     };
   }
 
@@ -302,13 +313,20 @@ class PostgresThesisStore implements ThesisStore {
        VALUES ($1, $2, $3, $4, $5, $6, now())
        ON CONFLICT (owner_id) DO UPDATE SET file_name = EXCLUDED.file_name,
          page_count = EXCLUDED.page_count, approximate = EXCLUDED.approximate,
-         pages = EXCLUDED.pages, analysis = EXCLUDED.analysis, uploaded_at = now()`,
+         pages = EXCLUDED.pages, analysis = EXCLUDED.analysis, uploaded_at = now(), slides = NULL`,
       [ownerId, fileName, thesis.pages.length, thesis.approximate, JSON.stringify(thesis.pages), JSON.stringify(analysis)],
     );
   }
 
   async delete(ownerId: string) {
     await this.pool.query(`DELETE FROM theses WHERE owner_id = $1`, [ownerId]);
+  }
+
+  async putSlides(ownerId: string, slides: StoredSlides | null) {
+    await this.pool.query(`UPDATE theses SET slides = $2 WHERE owner_id = $1`, [
+      ownerId,
+      slides ? JSON.stringify(slides) : null,
+    ]);
   }
 
   async transfer(fromOwnerId: string, toOwnerId: string) {
@@ -349,6 +367,11 @@ class MemoryThesisStore implements ThesisStore {
 
   async delete(ownerId: string) {
     this.rows.delete(ownerId);
+  }
+
+  async putSlides(ownerId: string, slides: StoredSlides | null) {
+    const row = this.rows.get(ownerId);
+    if (row) row.slides = slides;
   }
 
   async transfer(fromOwnerId: string, toOwnerId: string) {

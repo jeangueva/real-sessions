@@ -193,6 +193,7 @@ import {
   type ThesisStore,
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
+import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import { createDefensePackStore, remainingCredits, type DefensePackStore } from "./defense-packs.js";
 
 /** Free rehearsals of a defence, per account, ever. */
@@ -2802,6 +2803,43 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const analysis = await analyzeThesis(pages, PROVIDER ? { provider: PROVIDER } : {});
     await THESES.put(identity.id, upload.filename, pages, analysis);
     json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /**
+   * The slides, reviewed against the thesis.
+   *
+   * PDF only: every slide tool exports it, and it is one parser rather than
+   * three. `minutes` is the exposition slot, which universities set.
+   */
+  if (req.method === "POST" && path === "/api/thesis/slides") {
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+    const stored = await THESES.get(identity.id);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    const upload = await readUpload(req, MAX_THESIS_BYTES);
+    if (!upload) return json(res, 400, { error: "Adjunta tus diapositivas en PDF." });
+    if (kindFor(upload.filename, upload.contentType) !== "pdf") {
+      return json(res, 415, { error: "Exporta tus diapositivas a PDF y súbelas de nuevo." });
+    }
+    const minutes = Number(url.searchParams.get("minutes") ?? 20);
+    const slotSeconds = Number.isFinite(minutes) && minutes >= 5 && minutes <= 90 ? Math.round(minutes * 60) : DEFAULT_SLOT_SECONDS;
+    const slides = await readSlides(upload.data);
+    const review = await reviewSlides(slides, stored.analysis, slotSeconds, PROVIDER ? { provider: PROVIDER } : {});
+    await THESES.putSlides(identity.id, {
+      fileName: upload.filename,
+      slideCount: slides.length,
+      words: wordCounts(slides),
+      slotSeconds,
+      review,
+      reviewedAt: new Date().toISOString(),
+    });
+    json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  if (req.method === "DELETE" && path === "/api/thesis/slides") {
+    await THESES.putSlides(identity.id, null);
+    json(res, 200, { thesis: await THESES.get(identity.id) });
     return;
   }
 

@@ -1307,12 +1307,31 @@ export interface ThesisAnalysis {
   chapters: { name: string; page: number | null }[];
 }
 
+/** Mirrors `SlideReviewSchema` in src/slides.ts. */
+export interface SlideReview {
+  summary: string;
+  total_seconds: number;
+  slides: { n: number; title: string; seconds: number; verdict: "ok" | "recargada" | "incoherente" | "sobra"; note: string }[];
+  inconsistencies: { slide: number; thesis_page: number | null; issue: string }[];
+  script: { slide: number; say: string }[];
+}
+
+export interface StoredSlides {
+  fileName: string;
+  slideCount: number;
+  words: number[];
+  slotSeconds: number;
+  review: SlideReview;
+  reviewedAt: string;
+}
+
 export interface StoredThesis {
   fileName: string;
   pageCount: number;
   approximate: boolean;
   analysis: ThesisAnalysis;
   uploadedAt: string;
+  slides?: StoredSlides | null;
 }
 
 /** What is left to rehearse: full defences in packs, and the free express one. */
@@ -1364,4 +1383,19 @@ export function uploadThesis(file: File) {
 
 export function deleteThesis() {
   return withIdentity(() => request<{ thesis: null }>("/api/thesis", { method: "DELETE" }));
+}
+
+export function uploadSlides(file: File, minutes: number) {
+  const form = new FormData();
+  form.append("file", file);
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis }>(`/api/thesis/slides?minutes=${encodeURIComponent(String(minutes))}`, {
+      method: "POST",
+      body: form,
+    }),
+  );
+}
+
+export function deleteSlides() {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/slides", { method: "DELETE" }));
 }

@@ -22,4 +22,6 @@ WHAT TO RETURN:
 - \`risks\`: 5 to 10 points where a jury will press, the most serious first. \`area\` is one of the listed areas. \`severity\` is "alta" for something that could fail the defence (an objective with no result, a sample that cannot support the claim, a test that does not fit the data, a conclusion the results do not show), "media" for something that will cost marks, "baja" for form. \`issue\`: what is wrong, in one sentence. \`likely_question\`: the exact question a juror would ask about it, in their voice.
 - \`chapters\`: the chapters or main sections in order, with the page each starts on.
 
+GENDER: Never assume the student's gender; word every question so it does not mark it.
+
 TONE: Precise and fair. A real problem is named plainly; a strength is not invented into a weakness. If the thesis is solid in an area, do not list a risk there just to fill the list.`;

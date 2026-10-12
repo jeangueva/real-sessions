@@ -448,3 +448,7 @@ CREATE TABLE IF NOT EXISTS defense_packs (
   expires_at  TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS defense_packs_owner_idx ON defense_packs (owner_id, expires_at);
+
+-- The slide review, kept with the thesis it was checked against. Cleared when
+-- a new version of the thesis is uploaded, since it no longer applies.
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS slides JSONB;
