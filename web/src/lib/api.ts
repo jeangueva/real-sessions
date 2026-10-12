@@ -1341,6 +1341,22 @@ export interface StoredThesis {
   slides?: StoredSlides | null;
   /** YYYY-MM-DD, when they told us. */
   defenseDate?: string | null;
+  study?: ThesisStudy | null;
+}
+
+/** Mirrors `StudySchema` in src/study.ts. */
+export interface ThesisStudy {
+  sheet: {
+    one_liner: string;
+    problem: string;
+    objective: string;
+    method: string;
+    key_results: string[];
+    contribution: string;
+    limitations: string[];
+    hard_questions: { question: string; answer: string; page: number | null }[];
+  };
+  cards: { front: string; back: string; page: number | null; topic: string }[];
 }
 
 /** What is left to rehearse: full defences in packs, and the free express one. */
@@ -1565,4 +1581,8 @@ export function shareWithAdvisor(share: boolean) {
 
 export function unlinkAdvisor() {
   return withIdentity(() => request<{ link: null }>("/api/advisor/link", { method: "DELETE" }));
+}
+
+export function prepareStudy() {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/study", { method: "POST" }));
 }

@@ -8,6 +8,7 @@ import type { DefenseAllowance, DefenseFormatInfo, PackKind, PackOffer, PackOffe
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
+import { ThesisStudy } from "./ThesisStudy";
 import { DefenseDate } from "./DefenseDate";
 import { ShareRealQuestions } from "./ShareRealQuestions";
 import { AdvisorCard } from "./AdvisorCard";
@@ -323,6 +324,8 @@ function Diagnosis({
         </div>
       )}
 
+      {tab === "repaso" && <ThesisStudy thesis={thesis} onChange={onChange} />}
+
       {tab === "diapositivas" && <ThesisSlides thesis={thesis} onChange={onChange} />}
 
       {tab === "mas" && (
@@ -337,11 +340,12 @@ function Diagnosis({
   );
 }
 
-const TABS = ["ensayar", "diagnostico", "diapositivas", "mas"] as const;
+const TABS = ["ensayar", "diagnostico", "repaso", "diapositivas", "mas"] as const;
 type ThesisTab = (typeof TABS)[number];
 const TAB_LABEL = {
   ensayar: "tabRehearse",
   diagnostico: "tabDiagnosis",
+  repaso: "tabStudy",
   diapositivas: "tabSlides",
   mas: "tabMore",
 } as const;

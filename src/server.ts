@@ -199,6 +199,7 @@ import { findFormat, publicFormats } from "./defense-formats.js";
 import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore } from "./advisors.js";
 import { googleTtsConfigured, googleVoiceFor, synthesizeGoogle } from "./voice/google-tts.js";
 import { createDefenseQuestionStore, universityKey, type DefenseQuestionStore } from "./defense-questions.js";
+import { writeStudy } from "./study.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import {
   createDefensePackStore,
@@ -2976,6 +2977,23 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (date === undefined) return json(res, 400, { error: "Esa fecha no es válida." });
     if (date !== null && date < limaDate()) return json(res, 400, { error: "Esa fecha ya pasó." });
     await THESES.setDefenseDate(identity.id, date);
+    json(res, 200, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /**
+   * The defence sheet and review cards. Written on the first request rather
+   * than at upload: most students want them in the last week, and writing
+   * them for every upload would pay for material nobody opens.
+   */
+  if (req.method === "POST" && path === "/api/thesis/study") {
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+    const stored = await THESES.get(identity.id);
+    const pages = stored ? await THESES.pages(identity.id) : null;
+    if (!stored || !pages) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    if (!stored.study) {
+      await THESES.putStudy(identity.id, await writeStudy(pages, stored.analysis, PROVIDER ? { provider: PROVIDER } : {}));
+    }
     json(res, 200, { thesis: await THESES.get(identity.id) });
     return;
   }

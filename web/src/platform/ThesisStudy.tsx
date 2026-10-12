@@ -1,0 +1,208 @@
+import { useMemo, useState } from "react";
+import { BookOpen, FileDown, Layers, Loader2, Shuffle } from "lucide-react";
+import { Action, Panel } from "@/design-system";
+import { ApiError, prepareStudy } from "@/lib/api";
+import type { StoredThesis } from "@/lib/api";
+import { useThesisT } from "@/lib/thesis-copy";
+
+/**
+ * The night before: the thesis on one page, and the questions on cards.
+ *
+ * Written on request rather than at upload — most students want it in the
+ * last week — and kept with the thesis version it was written from.
+ */
+export function ThesisStudy({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
+  const t = useThesisT();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"sheet" | "cards">("sheet");
+  const study = thesis.study ?? null;
+
+  const prepare = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      onChange((await prepareStudy()).thesis);
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!study) {
+    return (
+      <Panel variant="raised" className="flex flex-col items-start gap-3 p-5 sm:p-6">
+        <p className="text-sm text-cream">{t("studyIntro")}</p>
+        {busy ? (
+          <p className="flex items-center gap-2 text-sm text-cream-dim">
+            <Loader2 aria-hidden className="h-4 w-4 animate-spin text-accent-text" />
+            {t("studyPreparing")}
+          </p>
+        ) : (
+          <Action withArrow onClick={() => void prepare()}>
+            {t("studyPrepare")}
+          </Action>
+        )}
+        {error && (
+          <p role="alert" className="text-sm text-step-text">
+            {error}
+          </p>
+        )}
+      </Panel>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
+        {(
+          [
+            ["sheet", "studySheet", BookOpen],
+            ["cards", "studyCards", Layers],
+          ] as const
+        ).map(([value, label, Icon]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={view === value}
+            onClick={() => setView(value)}
+            className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              view === value ? "bg-surface-lift text-cream-bright" : "text-cream-dim hover:text-cream-bright"
+            }`}
+          >
+            <Icon aria-hidden className="h-4 w-4" />
+            {t(label)}
+          </button>
+        ))}
+        {view === "sheet" && (
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="focus-ring ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3.5 py-1.5 text-sm font-semibold text-cream-bright shadow-card"
+          >
+            <FileDown aria-hidden className="h-4 w-4" />
+            {t("sheetPrint")}
+          </button>
+        )}
+      </div>
+      {view === "sheet" ? <Sheet study={study} title={thesis.analysis.title} /> : <Cards cards={study.cards} />}
+    </div>
+  );
+}
+
+function Sheet({ study, title }: { study: NonNullable<StoredThesis["study"]>; title: string }) {
+  const t = useThesisT();
+  const s = study.sheet;
+  const row = (label: string, body: React.ReactNode) => (
+    <div className="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-4">
+      <dt className="text-xs font-semibold uppercase tracking-wide text-cream-dim">{label}</dt>
+      <dd className="text-sm leading-relaxed text-cream">{body}</dd>
+    </div>
+  );
+  return (
+    <Panel variant="raised" className="flex flex-col gap-4 p-5 sm:p-6">
+      <h2 className="text-base font-semibold text-cream-bright">{title}</h2>
+      <dl className="flex flex-col gap-3">
+        {row(t("sheetOneLiner"), <strong className="text-cream-bright">{s.one_liner}</strong>)}
+        {row(t("sheetProblem"), s.problem)}
+        {row(t("sheetObjective"), s.objective)}
+        {row(t("sheetMethod"), s.method)}
+        {row(
+          t("sheetResults"),
+          <ul className="list-disc pl-4">
+            {s.key_results.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>,
+        )}
+        {row(t("sheetContribution"), s.contribution)}
+        {row(
+          t("sheetLimitations"),
+          <ul className="list-disc pl-4">
+            {s.limitations.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>,
+        )}
+      </dl>
+      <div className="flex flex-col gap-2 border-t border-line pt-4">
+        <p className="text-sm font-semibold text-cream-bright">{t("sheetHard")}</p>
+        <ol className="flex flex-col gap-2.5">
+          {s.hard_questions.map((item, index) => (
+            <li key={index} className="text-sm leading-relaxed">
+              <p className="font-semibold text-cream-bright">
+                {index + 1}. {item.question}
+                {item.page && <span className="ml-1.5 text-xs font-normal text-cream-dim">{t("page", { page: item.page })}</span>}
+              </p>
+              <p className="mt-0.5 text-cream">{item.answer}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </Panel>
+  );
+}
+
+/** One card at a time, front then back, in order or shuffled. */
+function Cards({ cards }: { cards: NonNullable<StoredThesis["study"]>["cards"] }) {
+  const t = useThesisT();
+  const [seed, setSeed] = useState(0);
+  const deck = useMemo(() => {
+    if (seed === 0) return cards;
+    const copy = [...cards];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j]!, copy[i]!];
+    }
+    return copy;
+  }, [cards, seed]);
+  const [index, setIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const card = deck[index];
+  if (!card) return null;
+  const move = (next: number) => {
+    setIndex((next + deck.length) % deck.length);
+    setFlipped(false);
+  };
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        onClick={() => setFlipped((value) => !value)}
+        className="focus-ring flex min-h-[14rem] flex-col justify-between gap-4 rounded-3xl bg-surface-card p-6 text-left shadow-lift transition-transform duration-150 active:scale-[0.99]"
+      >
+        <span className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-cream-dim">
+          <span>{card.topic.replace("-", " ")}</span>
+          <span>{t("cardOf", { n: index + 1, total: deck.length })}</span>
+        </span>
+        <span className={`text-lg leading-snug ${flipped ? "text-cream" : "font-semibold text-cream-bright"}`}>
+          {flipped ? card.back : card.front}
+        </span>
+        <span className="text-xs text-cream-dim">
+          {flipped ? (card.page ? t("page", { page: card.page }) : "") : t("cardFlip")}
+        </span>
+      </button>
+      <div className="flex items-center justify-between gap-2">
+        <button type="button" onClick={() => move(index - 1)} className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright">
+          {t("cardPrev")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSeed((value) => value + 1);
+            setIndex(0);
+            setFlipped(false);
+          }}
+          className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-cream-dim"
+        >
+          <Shuffle aria-hidden className="h-4 w-4" />
+          {t("cardShuffle")}
+        </button>
+        <button type="button" onClick={() => move(index + 1)} className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright">
+          {t("cardNext")}
+        </button>
+      </div>
+    </div>
+  );
+}

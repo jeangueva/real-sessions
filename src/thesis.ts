@@ -20,6 +20,7 @@ import type { ModelProvider } from "./providers/index.js";
 import { ExtractionError, normalize, type UploadKind } from "./extract.js";
 import { THESIS_ANALYSIS_TEMPLATE } from "./prompts/thesis.js";
 import type { StoredSlides } from "./slides.js";
+import type { Study } from "./study.js";
 
 /** Theses are long and often full of figures; a CV-sized cap refuses most. */
 export const MAX_THESIS_BYTES = 30 * 1024 * 1024;
@@ -269,6 +270,8 @@ export interface StoredThesis {
   slides?: StoredSlides | null;
   /** When they defend, as YYYY-MM-DD, if they told us. */
   defenseDate?: string | null;
+  /** The defence sheet and review cards, once written. */
+  study?: Study | null;
 }
 
 /** A thesis whose defence is close enough for the countdown mails. */
@@ -290,6 +293,7 @@ export interface ThesisStore {
   delete(ownerId: string): Promise<void>;
   /** Sets or clears the slide review. */
   putSlides(ownerId: string, slides: StoredSlides | null): Promise<void>;
+  putStudy(ownerId: string, study: Study): Promise<void>;
   /** Sets or clears the defence date; a new date restarts the countdown. */
   setDefenseDate(ownerId: string, date: string | null): Promise<void>;
   /** Theses defended between the two dates, inclusive. */
@@ -303,7 +307,7 @@ class PostgresThesisStore implements ThesisStore {
 
   async get(ownerId: string): Promise<StoredThesis | null> {
     const { rows } = await this.pool.query(
-      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides,
+      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study,
               to_char(defense_date, 'YYYY-MM-DD') AS defense_date
          FROM theses WHERE owner_id = $1`,
       [ownerId],
@@ -318,6 +322,7 @@ class PostgresThesisStore implements ThesisStore {
       uploadedAt: new Date(row.uploaded_at).toISOString(),
       slides: (row.slides as StoredSlides | null) ?? null,
       defenseDate: (row.defense_date as string | null) ?? null,
+      study: (row.study as Study | null) ?? null,
     };
   }
 
@@ -332,7 +337,7 @@ class PostgresThesisStore implements ThesisStore {
        VALUES ($1, $2, $3, $4, $5, $6, now())
        ON CONFLICT (owner_id) DO UPDATE SET file_name = EXCLUDED.file_name,
          page_count = EXCLUDED.page_count, approximate = EXCLUDED.approximate,
-         pages = EXCLUDED.pages, analysis = EXCLUDED.analysis, uploaded_at = now(), slides = NULL`,
+         pages = EXCLUDED.pages, analysis = EXCLUDED.analysis, uploaded_at = now(), slides = NULL, study = NULL`,
       [ownerId, fileName, thesis.pages.length, thesis.approximate, JSON.stringify(thesis.pages), JSON.stringify(analysis)],
     );
   }
@@ -346,6 +351,10 @@ class PostgresThesisStore implements ThesisStore {
       ownerId,
       slides ? JSON.stringify(slides) : null,
     ]);
+  }
+
+  async putStudy(ownerId: string, study: Study) {
+    await this.pool.query(`UPDATE theses SET study = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(study)]);
   }
 
   async setDefenseDate(ownerId: string, date: string | null) {
@@ -417,6 +426,11 @@ class MemoryThesisStore implements ThesisStore {
   }
 
   private readonly sent = new Map<string, number[]>();
+
+  async putStudy(ownerId: string, study: Study) {
+    const row = this.rows.get(ownerId);
+    if (row) row.study = study;
+  }
 
   async setDefenseDate(ownerId: string, date: string | null) {
     const row = this.rows.get(ownerId);
