@@ -11,6 +11,7 @@ import { DEFENSE_EVALUATOR_TEMPLATE } from "./prompts/defense-evaluator.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { renderTemplate } from "./prompts/template.js";
 import { findFormat, verdictFor } from "./defense-formats.js";
+import { FOCUSES } from "./prompts/defense.js";
 import { EvaluationSchema, RetryFeedbackSchema, type Evaluation, type RetryFeedback } from "./schema.js";
 import type { InterviewContext, TranscriptTurn } from "./types.js";
 
@@ -193,6 +194,14 @@ async function evaluateDefense(
       scale_line: `The ${format.countryName} scale: \`grade_max\` ${format.scale.max}, \`pass_mark\` ${format.scale.pass}, grades from ${format.scale.min} to ${format.scale.max}.`,
       rounding: format.scale.decimals ? ", to one decimal" : ", rounded to a whole number",
       difficulty: defense.difficulty,
+      focus_note:
+        (defense.focus ?? "completa") === "completa"
+          ? "This was a complete defence."
+          : `This rehearsal trained one thing — weigh it above the rest: ${FOCUSES[defense.focus ?? "completa"]}`,
+      members_rule:
+        (defense.members?.length ?? 0) > 1
+          ? `a group thesis by ${defense.members!.join(", ")}. One entry per member, in that order, with their own grade on the same scale and two sentences on how they did, from the questions addressed to them.`
+          : "always an empty list.",
       report_language: report,
       dossier: defense.dossier,
     }),

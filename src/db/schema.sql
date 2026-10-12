@@ -457,3 +457,6 @@ ALTER TABLE theses ADD COLUMN IF NOT EXISTS slides JSONB;
 -- for that date. Changing the date starts the countdown again.
 ALTER TABLE theses ADD COLUMN IF NOT EXISTS defense_date DATE;
 ALTER TABLE theses ADD COLUMN IF NOT EXISTS countdown_sent INTEGER[] NOT NULL DEFAULT '{}';
+
+-- Which offer a purchase was: the pack, the intensive pass, or the group pass.
+ALTER TABLE defense_packs ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'sustentacion';

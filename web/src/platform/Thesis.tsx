@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, FileText, Loader2, Lock, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { ApiError, buyDefensePack, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
-import type { DefenseAllowance, DefenseFormatInfo, PackOffer } from "@/lib/api";
+import type { DefenseAllowance, DefenseFormatInfo, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
@@ -357,6 +357,11 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const [allowance, setAllowance] = useState<DefenseAllowance | null>(null);
   const [pack, setPack] = useState<PackOffer | null>(null);
   const [formats, setFormats] = useState<DefenseFormatInfo[]>([]);
+  const [offers, setOffers] = useState<PackOfferDetail[]>([]);
+  const [focus, setFocus] = useState<Focus>("completa");
+  const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
+  const [material, setMaterial] = useState("");
+  const [members, setMembers] = useState(["", "", ""]);
   /** Remembered on this device, else guessed from the thesis's language. */
   const [country, setCountry] = useState(() => {
     try {
@@ -391,6 +396,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
       .then((result) => {
         if (result.pack && !cancelled) setPack(result.pack);
         if (result.formats && !cancelled) setFormats(result.formats);
+        if (result.offers && !cancelled) setOffers(result.offers);
         if (result.allowance) apply(result.allowance);
       })
       .catch(() => apply({ credits: 0, freeLeft: 0 }));
@@ -418,27 +424,32 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     };
   }, []);
 
-  const buy = async () => {
+  const buy = async (kind: PackKind) => {
     setBuying(true);
     setPackError(null);
     try {
-      window.location.assign((await buyDefensePack()).initPoint);
+      window.location.assign((await buyDefensePack(kind)).initPoint);
     } catch (caught) {
       setPackError(caught instanceof ApiError ? caught.message : t("error"));
       setBuying(false);
     }
   };
 
-  const price = pack
-    ? new Intl.NumberFormat(pack.currency === "PEN" ? "es-PE" : undefined, {
-        style: "currency",
-        currency: pack.currency,
-        minimumFractionDigits: Number.isInteger(pack.amount) ? 0 : 2,
-        maximumFractionDigits: 2,
-      }).format(pack.amount)
-    : "";
   const hasCredits = (allowance?.credits ?? 0) > 0;
-  const canBegin = hasCredits || (allowance?.freeLeft ?? 0) > 0;
+  const needsMaterial = focus === "estadistica" || focus === "observaciones";
+  const canBegin = (hasCredits || (allowance?.freeLeft ?? 0) > 0) && (!needsMaterial || material.trim().length >= 40);
+  const named = members.map((entry) => entry.trim()).filter(Boolean);
+  /** The offers that would add something to what they hold. */
+  const worthOffering = offers.filter((offer) =>
+    !hasCredits ? true : offer.group ? !allowance?.group : offer.modes ? !allowance?.modes : false,
+  );
+  const money = (amount: number, currency: string) =>
+    new Intl.NumberFormat(currency === "PEN" ? "es-PE" : undefined, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
 
   const begin = () => {
     const place = university.trim();
@@ -447,7 +458,8 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     } catch {
       // Private mode: asked again next time.
     }
-    const stage = full ? "sustentacion-pe" : "sustentacion-express";
+    // A mode is a full-panel rehearsal; the passes that unlock them carry credits.
+    const stage = full || focus !== "completa" ? "sustentacion-pe" : "sustentacion-express";
     const format = formats.find((entry) => entry.country === country);
     try {
       localStorage.setItem("mockio.defenseCountry", country);
@@ -471,6 +483,10 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           difficulty,
           country,
           ...(format ? { jurors: format.jurors } : {}),
+          focus,
+          ...(setting ? { setting } : {}),
+          ...(needsMaterial ? { material: material.trim() } : {}),
+          ...(allowance?.group && named.length > 1 ? { members: named } : {}),
         },
       },
     });
@@ -531,6 +547,60 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         </div>
       </fieldset>
 
+      <Chips
+        label={t("mode")}
+        options={FOCUS_OPTIONS.map((entry) => ({
+          value: entry,
+          label: t(FOCUS_LABEL[entry]),
+          locked: entry !== "completa" && !allowance?.modes,
+        }))}
+        value={focus}
+        onChange={(value) => setFocus(value as Focus)}
+      />
+      {needsMaterial && (
+        <textarea
+          value={material}
+          onChange={(event) => setMaterial(event.target.value)}
+          rows={6}
+          maxLength={20_000}
+          placeholder={t(focus === "estadistica" ? "materialStats" : "materialObs")}
+          className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 font-mono text-sm text-cream-bright placeholder:font-sans placeholder:text-cream-faint"
+        />
+      )}
+      <Chips
+        label={t("setting")}
+        options={[
+          { value: "", label: t("settingAny"), locked: false },
+          { value: "presencial", label: t("settingPresencial"), locked: !allowance?.modes },
+          { value: "virtual", label: t("settingVirtual"), locked: !allowance?.modes },
+        ]}
+        value={setting ?? ""}
+        onChange={(value) => setSetting(value === "" ? null : (value as "presencial" | "virtual"))}
+      />
+      {allowance && !allowance.modes && <p className="-mt-3 text-xs text-cream-dim">{t("modesLocked")}</p>}
+
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{t("members")}</legend>
+        {allowance?.group ? (
+          <div className="grid gap-2 sm:grid-cols-3">
+            {members.map((entry, index) => (
+              <input
+                key={index}
+                value={entry}
+                maxLength={40}
+                onChange={(event) =>
+                  setMembers((current) => current.map((value, at) => (at === index ? event.target.value : value)))
+                }
+                placeholder={t("memberPlaceholder", { n: index + 1 })}
+                className="focus-ring rounded-2xl bg-surface-lift px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-cream-dim">{t("groupLocked")}</p>
+        )}
+      </fieldset>
+
       <div className="flex flex-col gap-2">
         {([false, true] as const).map((option) => (
           <button
@@ -570,25 +640,84 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             {t("rehearse")}
           </Action>
         )}
-        {/* The pack is offered to everyone without one, before and after the
-            free rehearsal — with the notices a buyer must read first. */}
-        {allowance && !hasCredits && pack?.available && (
-          <button
-            type="button"
-            onClick={() => void buy()}
-            disabled={buying}
-            className="focus-ring rounded-full bg-surface-card px-5 py-3 text-sm font-semibold text-cream-bright shadow-card transition-transform duration-150 active:scale-[0.97] disabled:opacity-60"
-          >
-            {buying ? t("buying") : t("buy", { price })}
-          </button>
-        )}
       </div>
-      {allowance && !hasCredits && pack?.available && (
-        <div className="flex flex-col gap-1 text-xs text-cream-dim">
-          <p>{t("buyNote")}</p>
-          <p>{t("beforePay")}</p>
-        </div>
+
+      {/* The plans, offered while one would add something — with the notices
+          a buyer must read first. */}
+      {allowance && pack?.available && worthOffering.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <p className="text-sm font-semibold text-cream-bright">{t("offersTitle")}</p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {worthOffering.map((offer) => (
+              <button
+                key={offer.kind}
+                type="button"
+                disabled={buying}
+                onClick={() => void buy(offer.kind)}
+                className="focus-ring flex flex-col items-start gap-1 rounded-2xl bg-surface-card p-4 text-left shadow-card transition-transform duration-150 active:scale-[0.98] disabled:opacity-60"
+              >
+                <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind].name)}</span>
+                <span className="text-xl font-bold text-cream-bright">{money(offer.amount, offer.currency)}</span>
+                <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind].body)}</span>
+              </button>
+            ))}
+          </div>
+          {buying && <p className="text-xs text-cream-dim">{t("buying")}</p>}
+          <p className="text-xs text-cream-dim">{t("beforePay")}</p>
+        </section>
       )}
     </Panel>
+  );
+}
+
+type Focus = "completa" | "autoria" | "trampa" | "estadistica" | "observaciones" | "divulgacion";
+const FOCUS_OPTIONS: Focus[] = ["completa", "autoria", "trampa", "estadistica", "observaciones", "divulgacion"];
+const FOCUS_LABEL = {
+  completa: "modeCompleta",
+  autoria: "modeAutoria",
+  trampa: "modeTrampa",
+  estadistica: "modeEstadistica",
+  observaciones: "modeObservaciones",
+  divulgacion: "modeDivulgacion",
+} as const;
+const OFFER_LABEL = {
+  sustentacion: { name: "offerSustentacion", body: "offerSustentacionBody" },
+  intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
+  grupal: { name: "offerGrupal", body: "offerGrupalBody" },
+} as const;
+
+/** A row of choices, the locked ones marked and unpressable. */
+function Chips({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string; locked: boolean }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <fieldset className="flex flex-col gap-1.5">
+      <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{label}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={value === option.value}
+            disabled={option.locked}
+            onClick={() => onChange(option.value)}
+            className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${
+              value === option.value ? "bg-cream-bright text-surface-base" : "bg-surface-lift text-cream-dim hover:text-cream-bright"
+            }`}
+          >
+            {option.locked && <Lock aria-hidden className="h-3.5 w-3.5" />}
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   );
 }

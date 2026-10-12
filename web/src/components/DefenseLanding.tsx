@@ -78,6 +78,7 @@ const ES = {
   pack4: "Cuatro niveles: de calentamiento a jurado hostil",
   pack5: "Válido 6 meses",
   packCta: "Empezar gratis",
+  passes: "¿Sustentas en menos de un mes? Pase Intensivo S/ 79: 20 sustentaciones y todos los modos (verificación de autoría, preguntas trampa, coach estadístico, levantar observaciones, virtual o presencial). ¿Tesis en pareja o trío? Tesis grupal S/ 119.",
   legal1: "Mockio es una herramienta de práctica. No garantiza la aprobación de tu sustentación: la decisión es solo de tu jurado.",
   legal2: "La IA puede equivocarse. Verifica con tu asesor y con el reglamento de tu universidad.",
   privacyTitle: "Tu tesis es tuya.",
@@ -142,6 +143,7 @@ const PT: Record<Key, string> = {
   pack4: "Quatro níveis: do aquecimento à banca hostil",
   pack5: "Válido por 6 meses",
   packCta: "Começar grátis",
+  passes: "Defende em menos de um mês? Passe Intensivo US$ 23: 20 defesas e todos os modos (verificação de autoria, perguntas armadilha, coach estatístico, responder às observações, virtual ou presencial). Trabalho em dupla ou trio? Trabalho em grupo US$ 35.",
   legal1: "O Mockio é uma ferramenta de prática. Não garante a aprovação da sua defesa: a decisão é só da sua banca.",
   legal2: "A IA pode errar. Confirme com seu orientador e com o regulamento da sua universidade.",
   privacyTitle: "Seu trabalho é seu.",
@@ -204,6 +206,7 @@ const EN: Record<Key, string> = {
   pack4: "Four levels, from warm-up to a hostile panel",
   pack5: "Valid for 6 months",
   packCta: "Start free",
+  passes: "Defending within a month? Intensive Pass US$ 23: 20 defences and every mode (authorship check, trick questions, statistics coach, answering reviewers, online or in person). A thesis by two or three? Group thesis US$ 35.",
   legal1: "Mockio is a practice tool. It does not guarantee you pass your defence: that decision is your jury's alone.",
   legal2: "AI can be wrong. Check with your advisor and your university's regulations.",
   privacyTitle: "Your thesis is yours.",
@@ -412,7 +415,8 @@ export function DefenseLanding() {
             </Panel>
           </FadeRise>
         </div>
-        <div className="mx-auto mt-6 flex max-w-4xl flex-col gap-1 text-center text-xs text-cream-dim">
+        <p className="mx-auto mt-6 max-w-3xl text-center text-sm text-cream">{c.passes}</p>
+        <div className="mx-auto mt-4 flex max-w-4xl flex-col gap-1 text-center text-xs text-cream-dim">
           <p>{c.legal1}</p>
           <p>{c.legal2}</p>
         </div>

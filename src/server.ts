@@ -197,20 +197,29 @@ import {
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
-import { createDefensePackStore, remainingCredits, type DefensePackStore } from "./defense-packs.js";
+import {
+  createDefensePackStore,
+  isPackKind,
+  PACK_KINDS,
+  remainingCredits,
+  unlocks,
+  type DefensePackStore,
+  type PackKind,
+} from "./defense-packs.js";
 
 /** Free rehearsals of a defence, per account, ever. */
 const FREE_DEFENSES = 1;
 
-/** What the Pack Sustentación costs, in the Mercado Pago account's currency. */
-const PACK_AMOUNT = Number(process.env.DEFENSE_PACK_AMOUNT ?? 39);
+/** The currency every pack is sold in: the Mercado Pago account's own. */
 const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPAGO_CURRENCY ?? "PEN";
 
 /**
  * What someone may still rehearse: full defences left in their packs, and
  * whether the free express one is spent.
  */
-async function defenseAllowance(ownerId: string): Promise<{ credits: number; freeLeft: number }> {
+async function defenseAllowance(
+  ownerId: string,
+): Promise<{ credits: number; freeLeft: number; modes: boolean; group: boolean }> {
   const [packs, past] = await Promise.all([
     readQuietly(PACKS.active(ownerId), []),
     readQuietly(PROGRESS.listSessions(ownerId), []),
@@ -220,6 +229,7 @@ async function defenseAllowance(ownerId: string): Promise<{ credits: number; fre
   return {
     credits: remainingCredits(packs, full),
     freeLeft: Math.max(0, FREE_DEFENSES - express),
+    ...unlocks(packs),
   };
 }
 
@@ -231,15 +241,18 @@ async function defenseAllowance(ownerId: string): Promise<{ credits: number; fre
  */
 async function settlePackPayment(paymentId: string, expectedOwner?: string): Promise<"granted" | "already" | "not-yet" | "not-ours"> {
   const payment = await fetchPayment(paymentId);
+  // "pack:<kind>:<owner>", or "pack:<owner>" from before there were kinds.
   const reference = payment.externalReference ?? "";
   if (!reference.startsWith("pack:")) return "not-ours";
-  const ownerId = reference.slice("pack:".length);
+  const [first, ...rest] = reference.slice("pack:".length).split(":");
+  const kind: PackKind = rest.length > 0 && isPackKind(first) ? first : "sustentacion";
+  const ownerId = rest.length > 0 ? rest.join(":") : first ?? "";
   if (expectedOwner && ownerId !== expectedOwner) return "not-ours";
   if (payment.status !== "approved") return "not-yet";
-  // Paid what the pack costs, in its currency: a preference is ours, but the
-  // check is cheap and keeps a misconfigured price from granting a pack.
-  if (payment.currency !== PACK_CURRENCY || payment.amount + 0.001 < PACK_AMOUNT) return "not-ours";
-  return (await PACKS.grant(ownerId, payment.id)) ? "granted" : "already";
+  // Paid what that offer costs, in its currency: a preference is ours, but
+  // the check is cheap and keeps a misconfigured price from granting a pass.
+  if (payment.currency !== PACK_CURRENCY || payment.amount + 0.001 < PACK_KINDS[kind].amount) return "not-ours";
+  return (await PACKS.grant(ownerId, payment.id, kind)) ? "granted" : "already";
 }
 
 const DEFENSE_MODEL = process.env.REALSESSIONS_DEFENSE_MODEL ?? "anthropic/claude-sonnet-5";
@@ -2785,7 +2798,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     json(res, 200, {
       thesis: await THESES.get(identity.id),
       allowance: await defenseAllowance(identity.id),
-      pack: { amount: PACK_AMOUNT, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
+      pack: { amount: PACK_KINDS.sustentacion.amount, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
+      offers: (Object.keys(PACK_KINDS) as PackKind[]).map((kind) => ({
+        kind,
+        amount: PACK_KINDS[kind].amount,
+        currency: PACK_CURRENCY,
+        credits: PACK_KINDS[kind].credits,
+        days: PACK_KINDS[kind].days,
+        modes: PACK_KINDS[kind].modes,
+        group: PACK_KINDS[kind].group,
+      })),
       formats: publicFormats(),
     });
     return;
@@ -2806,11 +2828,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!account) {
       return json(res, 403, { error: "Crea una cuenta primero: tus ensayos tienen que quedar guardados." });
     }
+    const requested = (await readJson(req))["kind"];
+    const kind: PackKind = isPackKind(requested) ? requested : "sustentacion";
     const created = await createPackPreference({
-      externalReference: `pack:${identity.id}`,
+      externalReference: `pack:${kind}:${identity.id}`,
       payerEmail: account.email,
-      title: "Mockio — Pack Sustentación (5 ensayos)",
-      amount: PACK_AMOUNT,
+      title: PACK_KINDS[kind].title,
+      amount: PACK_KINDS[kind].amount,
       currency: PACK_CURRENCY,
       backUrl: `${siteUrl()}/app/thesis`,
       notificationUrl: `${siteUrl()}/api/billing/webhook?source_news=webhooks`,
@@ -3291,7 +3315,43 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         typeof body["university"] === "string" && body["university"].trim() !== ""
           ? body["university"].trim().slice(0, 120)
           : "la universidad";
+      /**
+       * The modes, the setting and the group: the passes, not the pack.
+       * Asked for without one, they are refused rather than quietly dropped
+       * — a student who chose "statistics coach" and got a standard defence
+       * would have rehearsed the wrong thing without knowing it.
+       */
+      const focus = (["completa", "autoria", "trampa", "estadistica", "observaciones", "divulgacion"] as const).find(
+        (entry) => entry === body["focus"],
+      ) ?? "completa";
+      const setting = (["presencial", "virtual"] as const).find((entry) => entry === body["setting"]) ?? null;
+      const members = Array.isArray(body["members"])
+        ? (body["members"] as unknown[])
+            .filter((entry): entry is string => typeof entry === "string" && entry.trim() !== "")
+            .map((entry) => entry.trim().slice(0, 40))
+            .slice(0, 3)
+        : [];
+      if ((focus !== "completa" || setting) && !allowance.modes) {
+        return json(res, 402, { error: "Los modos de ensayo son parte del Pase Intensivo.", code: "modesLocked" });
+      }
+      if (members.length > 1 && !allowance.group) {
+        return json(res, 402, { error: "El ensayo grupal es parte del plan Tesis grupal.", code: "groupLocked" });
+      }
+      const material =
+        typeof body["material"] === "string" ? body["material"].trim().slice(0, 20_000) : "";
+      if ((focus === "estadistica" || focus === "observaciones") && material.length < 40) {
+        return json(res, 400, {
+          error:
+            focus === "estadistica"
+              ? "Pega la salida de SPSS, Excel o R que quieres explicar."
+              : "Pega las observaciones del jurado revisor.",
+        });
+      }
       defense = {
+        focus,
+        setting,
+        members: members.length > 1 ? members : [],
+        material: material === "" ? null : material,
         dossier: renderDossier(stored, pages),
         difficulty,
         university,

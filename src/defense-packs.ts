@@ -15,8 +15,48 @@ import type { DbPool } from "./db/index.js";
 export const PACK_CREDITS = 5;
 export const PACK_MONTHS = 6;
 
+/**
+ * What can be bought. The pack is the defence itself; the pass is a month of
+ * every mode for the student in the last stretch; the group pass is the same
+ * for a thesis written by two or three. Prices are in the Mercado Pago
+ * account's currency and overridable per deployment.
+ */
+export type PackKind = "sustentacion" | "intensivo" | "grupal";
+
+export const PACK_KINDS: Record<PackKind, { credits: number; days: number; amount: number; title: string; modes: boolean; group: boolean }> = {
+  sustentacion: {
+    credits: PACK_CREDITS,
+    days: PACK_MONTHS * 30,
+    amount: Number(process.env.DEFENSE_PACK_AMOUNT ?? 39),
+    title: "Mockio — Pack Sustentación (5 ensayos, 6 meses)",
+    modes: false,
+    group: false,
+  },
+  intensivo: {
+    credits: 20,
+    days: 30,
+    amount: Number(process.env.DEFENSE_INTENSIVO_AMOUNT ?? 79),
+    title: "Mockio — Pase Intensivo (20 ensayos y todos los modos, 30 días)",
+    modes: true,
+    group: false,
+  },
+  grupal: {
+    credits: 20,
+    days: 30,
+    amount: Number(process.env.DEFENSE_GRUPAL_AMOUNT ?? 119),
+    title: "Mockio — Tesis grupal (20 ensayos, todos los modos y ensayo grupal, 30 días)",
+    modes: true,
+    group: true,
+  },
+};
+
+export function isPackKind(value: unknown): value is PackKind {
+  return typeof value === "string" && value in PACK_KINDS;
+}
+
 export interface PackGrant {
   paymentId: string;
+  kind: PackKind;
   credits: number;
   grantedAt: string;
   expiresAt: string;
@@ -24,7 +64,7 @@ export interface PackGrant {
 
 export interface DefensePackStore {
   /** Idempotent on the payment: a webhook and a return can both report it. */
-  grant(ownerId: string, paymentId: string, credits?: number, months?: number): Promise<boolean>;
+  grant(ownerId: string, paymentId: string, kind?: PackKind): Promise<boolean>;
   active(ownerId: string, now?: Date): Promise<PackGrant[]>;
   eraseOwner(ownerId: string): Promise<void>;
 }
@@ -38,32 +78,40 @@ export function remainingCredits(packs: readonly PackGrant[], fullDefencesStarte
   return Math.max(0, total - used);
 }
 
-function addMonths(date: Date, months: number): Date {
-  const next = new Date(date);
-  next.setMonth(next.getMonth() + months);
-  return next;
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * 86_400_000);
+}
+
+/** What an owner's packs in date unlock beyond credits. */
+export function unlocks(packs: readonly PackGrant[]): { modes: boolean; group: boolean } {
+  return {
+    modes: packs.some((pack) => PACK_KINDS[pack.kind]?.modes),
+    group: packs.some((pack) => PACK_KINDS[pack.kind]?.group),
+  };
 }
 
 class PostgresDefensePackStore implements DefensePackStore {
   constructor(private readonly pool: DbPool) {}
 
-  async grant(ownerId: string, paymentId: string, credits = PACK_CREDITS, months = PACK_MONTHS) {
+  async grant(ownerId: string, paymentId: string, kind: PackKind = "sustentacion") {
+    const offer = PACK_KINDS[kind];
     const result = await this.pool.query(
-      `INSERT INTO defense_packs (owner_id, payment_id, credits, expires_at)
-       VALUES ($1, $2, $3, $4) ON CONFLICT (payment_id) DO NOTHING`,
-      [ownerId, paymentId, credits, addMonths(new Date(), months).toISOString()],
+      `INSERT INTO defense_packs (owner_id, payment_id, kind, credits, expires_at)
+       VALUES ($1, $2, $3, $4, $5) ON CONFLICT (payment_id) DO NOTHING`,
+      [ownerId, paymentId, kind, offer.credits, addDays(new Date(), offer.days).toISOString()],
     );
     return (result.rowCount ?? 0) > 0;
   }
 
   async active(ownerId: string, now = new Date()) {
     const { rows } = await this.pool.query(
-      `SELECT payment_id, credits, granted_at, expires_at FROM defense_packs
+      `SELECT payment_id, kind, credits, granted_at, expires_at FROM defense_packs
         WHERE owner_id = $1 AND expires_at > $2 ORDER BY granted_at`,
       [ownerId, now.toISOString()],
     );
     return rows.map((row) => ({
       paymentId: row.payment_id as string,
+      kind: (isPackKind(row.kind) ? row.kind : "sustentacion") as PackKind,
       credits: Number(row.credits),
       grantedAt: new Date(row.granted_at).toISOString(),
       expiresAt: new Date(row.expires_at).toISOString(),
@@ -78,15 +126,16 @@ class PostgresDefensePackStore implements DefensePackStore {
 class MemoryDefensePackStore implements DefensePackStore {
   private readonly rows: (PackGrant & { ownerId: string })[] = [];
 
-  async grant(ownerId: string, paymentId: string, credits = PACK_CREDITS, months = PACK_MONTHS) {
+  async grant(ownerId: string, paymentId: string, kind: PackKind = "sustentacion") {
     if (this.rows.some((row) => row.paymentId === paymentId)) return false;
     const now = new Date();
     this.rows.push({
       ownerId,
       paymentId,
-      credits,
+      kind,
+      credits: PACK_KINDS[kind].credits,
       grantedAt: now.toISOString(),
-      expiresAt: addMonths(now, months).toISOString(),
+      expiresAt: addDays(now, PACK_KINDS[kind].days).toISOString(),
     });
     return true;
   }

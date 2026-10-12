@@ -106,6 +106,25 @@ export function ActaCard({ acta }: { acta: Acta }) {
         </ul>
       </Panel>
 
+      {(acta.members?.length ?? 0) > 0 && (
+        <Panel className="flex flex-col gap-4 p-6 sm:p-8">
+          <h2 className="text-base font-semibold text-cream-bright">{t("membersTitle")}</h2>
+          <ul className="flex flex-col gap-4">
+            {acta.members!.map((member) => (
+              <li key={member.name} className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold tabular-nums text-accent-text">
+                  {grade(member.grade)}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-cream-bright">{member.name}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-cream">{member.feedback}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+
       <Panel className="grid gap-8 p-6 sm:grid-cols-2 sm:p-8 [&>*]:min-w-0">
         <div className="flex flex-col gap-3">
           <h2 className="text-base font-semibold text-cream-bright">{t("axesTitle")}</h2>

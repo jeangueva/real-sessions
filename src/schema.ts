@@ -82,6 +82,8 @@ export const ActaSchema = z.object({
   }),
   readiness: z.number().min(0).max(100),
   chapters: z.array(z.object({ name: z.string(), readiness: z.number().min(0).max(100) })),
+  /** A group thesis: how each member did. Empty for one author. */
+  members: z.array(z.object({ name: z.string(), grade: z.number().min(0), feedback: z.string() })).default([]),
 });
 
 export type Acta = z.infer<typeof ActaSchema>;

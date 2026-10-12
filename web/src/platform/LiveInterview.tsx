@@ -52,6 +52,10 @@ interface SetupState {
     country?: string;
     /** The panel of that country's format, for the names on screen. */
     jurors?: Record<JurorTag, { name: string; role: string }>;
+    focus?: string;
+    setting?: "presencial" | "virtual";
+    material?: string;
+    members?: string[];
   };
 }
 
@@ -261,7 +265,15 @@ export function LiveInterview() {
         jobPosting,
         ...(applicationId === "" ? {} : { applicationId }),
         ...(defense
-          ? { university: defense.university, difficulty: defense.difficulty, ...(defense.country ? { country: defense.country } : {}) }
+          ? {
+              university: defense.university,
+              difficulty: defense.difficulty,
+              ...(defense.country ? { country: defense.country } : {}),
+              ...(defense.focus ? { focus: defense.focus } : {}),
+              ...(defense.setting ? { setting: defense.setting } : {}),
+              ...(defense.material ? { material: defense.material } : {}),
+              ...(defense.members && defense.members.length > 1 ? { members: defense.members } : {}),
+            }
           : {}),
       },
       {

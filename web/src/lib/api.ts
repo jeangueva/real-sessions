@@ -502,6 +502,11 @@ export function startSessionStream(
   difficulty?: "calentamiento" | "estandar" | "exigente" | "hostil";
   /** A thesis defence: the country whose format it follows. */
   country?: string;
+  /** A thesis defence: what it trains, where, the pasted material and the group. */
+  focus?: string;
+  setting?: "presencial" | "virtual";
+  material?: string;
+  members?: string[];
   },
   handlers: {
     onDelta: (text: string) => void;
@@ -1342,6 +1347,22 @@ export interface StoredThesis {
 export interface DefenseAllowance {
   credits: number;
   freeLeft: number;
+  /** An Intensivo or Grupal pass in date: every mode and the setting. */
+  modes?: boolean;
+  /** A Grupal pass in date: the group rehearsal. */
+  group?: boolean;
+}
+
+export type PackKind = "sustentacion" | "intensivo" | "grupal";
+
+export interface PackOfferDetail {
+  kind: PackKind;
+  amount: number;
+  currency: string;
+  credits: number;
+  days: number;
+  modes: boolean;
+  group: boolean;
 }
 
 /** A country's defence format, as the server describes it. */
@@ -1361,15 +1382,27 @@ export interface PackOffer {
 
 export function fetchThesis() {
   return withIdentity(() =>
-    request<{ thesis: StoredThesis | null; allowance?: DefenseAllowance; pack?: PackOffer; formats?: DefenseFormatInfo[] }>("/api/thesis", {
+    request<{
+      thesis: StoredThesis | null;
+      allowance?: DefenseAllowance;
+      pack?: PackOffer;
+      offers?: PackOfferDetail[];
+      formats?: DefenseFormatInfo[];
+    }>("/api/thesis", {
       method: "GET",
     }),
   );
 }
 
 /** A Mercado Pago checkout for the Pack Sustentación. */
-export function buyDefensePack() {
-  return withIdentity(() => request<{ initPoint: string }>("/api/billing/defense-pack", { method: "POST" }));
+export function buyDefensePack(kind: PackKind = "sustentacion") {
+  return withIdentity(() =>
+    request<{ initPoint: string }>("/api/billing/defense-pack", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind }),
+    }),
+  );
 }
 
 /** Settles a pack payment on the payer's return from the checkout. */

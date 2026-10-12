@@ -54,6 +54,7 @@ export interface Evaluation {
     axes: { contenido: number; metodologia: number; claridad: number; preguntas: number; tiempo: number; seguridad: number };
     readiness: number;
     chapters: { name: string; readiness: number }[];
+    members?: { name: string; grade: number; feedback: string }[];
   } | null;
 }
 

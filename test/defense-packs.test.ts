@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createDefensePackStore, remainingCredits } from "../src/defense-packs.js";
+import { createDefensePackStore, remainingCredits, unlocks } from "../src/defense-packs.js";
 
 const pack = (grantedAt: string, credits = 5) => ({
   paymentId: grantedAt,
+  kind: "sustentacion" as const,
   credits,
   grantedAt,
   expiresAt: "2099-01-01T00:00:00.000Z",
@@ -32,5 +33,18 @@ describe("the pack store", () => {
     expect(await store.grant("ana", "123")).toBe(true);
     expect(await store.grant("ana", "123")).toBe(false);
     expect(await store.active("ana")).toHaveLength(1);
+  });
+});
+
+describe("what a pass unlocks", () => {
+  it("opens the modes with the intensive pass and the group rehearsal only with the group one", async () => {
+    const store = createDefensePackStore(null);
+    await store.grant("ana", "1", "sustentacion");
+    expect(unlocks(await store.active("ana"))).toEqual({ modes: false, group: false });
+    await store.grant("ana", "2", "intensivo");
+    expect(unlocks(await store.active("ana"))).toEqual({ modes: true, group: false });
+    await store.grant("ana", "3", "grupal");
+    expect(unlocks(await store.active("ana"))).toEqual({ modes: true, group: true });
+    expect(remainingCredits(await store.active("ana"), [])).toBe(45);
   });
 });

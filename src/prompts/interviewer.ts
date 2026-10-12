@@ -2,7 +2,18 @@ import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, isAfterTheOffer, isDefense, resolveStages } from "../stages.js";
-import { DEFENSE_TEMPLATE, DIFFICULTIES, PANEL_SHAPES, REGISTERS, panelFor, type Difficulty } from "./defense.js";
+import {
+  DEFENSE_TEMPLATE,
+  DIFFICULTIES,
+  PANEL_SHAPES,
+  REGISTERS,
+  focusBlock,
+  panelFor,
+  soloJurorFor,
+  type DefenseFocus,
+  type DefenseSetting,
+  type Difficulty,
+} from "./defense.js";
 import { findFormat, type CountryCode } from "../defense-formats.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
@@ -237,6 +248,13 @@ export interface DefenseSetup {
   field: string;
   /** The country whose format the defence follows. Peru when absent. */
   country?: CountryCode;
+  /** What this rehearsal trains; a full defence when absent. */
+  focus?: DefenseFocus;
+  setting?: DefenseSetting | null;
+  /** Pasted statistical output or reviewers' observations, for those modes. */
+  material?: string | null;
+  /** The members of a group thesis, by name. */
+  members?: string[];
 }
 
 /**
@@ -286,17 +304,25 @@ export function buildInterviewerPrompt(
     if (!defense) throw new Error("A thesis defence needs the thesis dossier.");
     const express = stages[0]?.id === "sustentacion-express";
     const format = findFormat(defense.country);
+    const focus = defense.focus ?? "completa";
+    const solo = soloJurorFor(focus);
     return renderTemplate(DEFENSE_TEMPLATE, {
       university: defense.university,
       field: defense.field,
       candidate_name: context.candidateName,
-      panel: panelFor(format, defense.university, defense.field, express),
+      panel: panelFor(format, defense.university, defense.field, express, solo),
       country: format.countryName,
       event_name: format.eventName,
       register: REGISTERS[format.language],
       address: format.address,
       vocabulary: format.vocabulary,
-      panel_shape: express ? PANEL_SHAPES.express : PANEL_SHAPES.full,
+      panel_shape: solo ? PANEL_SHAPES.coach : express ? PANEL_SHAPES.express : PANEL_SHAPES.full,
+      focus: focusBlock({
+        focus,
+        setting: defense.setting ?? null,
+        material: defense.material ?? null,
+        members: defense.members ?? [],
+      }),
       language: findLanguage(options.language).promptLabel,
       difficulty: DIFFICULTIES[defense.difficulty],
       min_turns: String(minTurns),

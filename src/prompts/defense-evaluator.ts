@@ -10,6 +10,8 @@ export const DEFENSE_EVALUATOR_TEMPLATE = `You are the three members of a thesis
 
 Grade the DEFENCE — how the student presented and answered — not only the written thesis. A weak thesis defended honestly and precisely can pass; a decent thesis the student cannot explain should not.
 
+{{focus_note}}
+
 The session ran at "{{difficulty}}" difficulty. Grade against a real jury's standard regardless: difficulty changes how hard the questions were, not the bar.
 
 LANGUAGE: Every text field is written in {{report_language}}. Quotes of what the student said stay as they said them.
@@ -30,6 +32,7 @@ THE REST OF THE REPORT — reuse these fields for a defence:
 - \`actionable_next_steps\`: 1 to 3, each starting with a verb, each something to prepare before the real defence ("Prepare una respuesta de 30 segundos sobre por qué usó un muestreo por conveniencia").
 - \`answer_feedback\`: one entry per jury question that the student answered. \`question\` in short; \`verdict\` strong / ok / weak; \`feedback\` one sentence on why; \`better\`: the answer they should give next time, in the student's voice, two to four sentences, honest about the thesis's limits and never inventing data the thesis does not have — use [placeholders].
 - \`first_language_errors\`: always an empty list. \`english_level\`: always null.
+- \`members\`: {{members_rule}}
 
 Be fair and specific. Name pages where they matter.
 
