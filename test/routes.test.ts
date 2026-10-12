@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest";
 import { createHmac, randomUUID } from "node:crypto";
 import { completeInterview, post, startHarness, type Harness } from "./support/http.js";
 
@@ -1301,6 +1301,12 @@ describe("the interviewer's voice", () => {
 
   it("answers 503 when no key is configured", async () => {
     delete process.env.DEEPGRAM_API_KEY;
+    // Neither provider: Google speaks Portuguese when its key is present.
+    const google = process.env.GOOGLE_TTS_API_KEY;
+    delete process.env.GOOGLE_TTS_API_KEY;
+    onTestFinished(() => {
+      if (google !== undefined) process.env.GOOGLE_TTS_API_KEY = google;
+    });
     const response = await api.call("/api/voice/speak", post({ text: "Hello." }));
     expect(response.status).toBe(503);
   });
