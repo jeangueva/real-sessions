@@ -16,7 +16,7 @@ import type { RedisClientType } from "redis";
 
 export class ActionError extends Error {}
 
-export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days"] as const;
+export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid"] as const;
 export type ActionName = (typeof ACTIONS)[number];
 
 const accountKey = (id: string) => `rs:account:${id}`;
@@ -236,4 +236,30 @@ export async function setCouponDays(deps: Deps, rawCode: unknown, rawDays: unkno
   return moveExisting
     ? `${code} ahora da ${days} días. ${moved} ${moved === 1 ? "persona pasó" : "personas pasaron"} a ${days} días desde su canje.`
     : `${code} ahora da ${days} días a quien lo canjee desde hoy.`;
+}
+
+/**
+ * Records that an advisor's pending commissions were paid out — after the
+ * money has gone, by Yape or transfer, outside this system.
+ */
+export async function markCommissionsPaid(deps: Deps, rawCode: unknown): Promise<string> {
+  const code = String(rawCode ?? "").trim().toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(code)) throw new ActionError("Ese no es un código de asesor.");
+  const total = await inTransaction(deps.pool, async (client) => {
+    const updated = await client.query(
+      `UPDATE advisor_commissions SET paid_at = now()
+        WHERE advisor_code = $1 AND paid_at IS NULL
+        RETURNING amount, currency`,
+      [code],
+    );
+    if (updated.rowCount === 0) throw new ActionError(`${code} no tiene comisiones por pagar.`);
+    const sum = updated.rows.reduce((acc, row) => acc + Number(row.amount), 0);
+    await audit(client, deps.actor, "commission.paid", code, {
+      payments: updated.rowCount,
+      amount: Math.round(sum * 100) / 100,
+      currency: updated.rows[0]?.currency ?? null,
+    });
+    return { sum, currency: (updated.rows[0]?.currency as string | undefined) ?? "" };
+  });
+  return `Marcado como pagado: ${total.currency} ${total.sum.toFixed(2)} a ${code}.`;
 }

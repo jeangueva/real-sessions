@@ -4,7 +4,8 @@ Growth numbers, users, coupons and recommendations, for the team only. A
 separate Render service (`mockio-admin` in `render.yaml`, free plan).
 
 What it can change, and nothing else: give or remove premium, mark an email
-verified, rename a user, create or disable a coupon. Every change is written
+verified, rename a user, create or disable a coupon, mark an advisor's
+commissions paid. Every change is written
 to `admin_audit` with who made it (the Actividad page). Reading goes through a
 connection forced read-only.
 
@@ -30,6 +31,17 @@ once.
    GRANT INSERT ON admin_audit TO mockio_admin;
    GRANT USAGE ON SEQUENCE entitlements_id_seq, admin_audit_id_seq TO mockio_admin;
    ```
+
+   For the Sustentación section (theses, defences, packs, advisors), once the
+   product has deployed and created those tables:
+
+   ```sql
+   GRANT SELECT ON theses, defense_packs, defense_questions, advisors, advisor_links, advisor_commissions TO mockio_admin;
+   GRANT UPDATE (paid_at) ON advisor_commissions TO mockio_admin;
+   ```
+
+   Without these the section shows zeros and the rest of the admin works as
+   before. The admin can mark commissions paid and nothing else on them.
 
    `ADMIN_DATABASE_URL` is the production URL with this user and password.
    It can read interviews but never change them, and cannot delete anything.

@@ -45,6 +45,7 @@ import {
   renameUser,
   revokePremium,
   setCouponDays,
+  markCommissionsPaid,
   verifyEmail,
 } from "./actions.js";
 import { aiInsights, ruleInsights } from "./insights.js";
@@ -275,6 +276,7 @@ const server = createServer(async (req, res) => {
           else if (path === "/api/coupons") message = await createCoupon(deps, body as never);
           else if (path === "/api/coupons/disable") message = await disableCoupon(deps, body.code);
           else if (path === "/api/coupons/days") message = await setCouponDays(deps, body.code, body.days, body.extend);
+          else if (path === "/api/advisors/paid") message = await markCommissionsPaid(deps, body.code);
           else if (path === "/api/refresh") {
             cache = null;
             return json(res, 200, { ok: true });

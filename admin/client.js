@@ -20,7 +20,7 @@
    * Navigation: one section at a time, by hash. Switching is instant —
    * it happens dozens of times a session.
    * ------------------------------------------------------------------- */
-  const SECTIONS = ["resumen", "usuarios", "abandono", "cupones", "recomendaciones", "actividad"];
+  const SECTIONS = ["resumen", "usuarios", "abandono", "cupones", "sustentacion", "recomendaciones", "actividad"];
   function show() {
     const id = SECTIONS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "resumen";
     for (const section of $$("[data-section]")) section.hidden = section.dataset.section !== id;
@@ -432,6 +432,53 @@
   });
 
   /* ---------------------------------------------------------------------
+   * Sustentación
+   * ------------------------------------------------------------------- */
+  const PACK_NAME = { sustentacion: "Pack Sustentación", intensivo: "Pase Intensivo", grupal: "Tesis grupal" };
+  const money = (amount, currency) => `${currency === "PEN" ? "S/" : currency} ${Number(amount).toFixed(2)}`;
+  function renderDefense() {
+    const d = data.summary.defense;
+    if (!d) return;
+    const sold = d.packs.reduce((sum, p) => sum + p.count, 0);
+    const revenue = d.packs.reduce((sum, p) => sum + p.revenue, 0);
+    $("#defense-kpis").innerHTML = [
+      card("Tesis subidas", fmt(d.theses), "con diagnóstico"),
+      card("Ensayos · 7 días", fmt(d.defenses.d7), `${fmt(d.defenses.d30)} en 30 días`),
+      card("Ensayos terminados", fmt(d.defenses.completed), `de ${fmt(d.defenses.total)} empezados`),
+      card("Packs y pases", fmt(sold), d.packs.map((p) => `${PACK_NAME[p.kind] ?? p.kind}: ${p.count}`).join(" · ") || "ninguno aún"),
+      card("Ingresos aprox.", `S/ ${fmt(revenue)}`, "a precio de lista"),
+      card("Preguntas por revisar", fmt(d.questionsPending), "en /app/review del producto"),
+    ].join("");
+    $("#advisors-body").innerHTML = d.advisors.length
+      ? d.advisors
+          .map(
+            (a) => `<tr>
+<td data-label="Asesor">${esc(a.name)}<br><span class="dim small">${esc(a.email ?? "")}</span></td>
+<td data-label="Código"><code>${esc(a.code)}</code></td>
+<td data-label="Vinculados" class="r">${a.linked}</td>
+<td data-label="Comparten" class="r">${a.shared}</td>
+<td data-label="Ventas" class="r">${a.sales}</td>
+<td data-label="Por pagar" class="r">${money(a.pending, a.currency)}</td>
+<td data-label="Pagado" class="r">${money(a.paid, a.currency)}</td>
+<td>${a.pending > 0 ? `<button class="btn" type="button" data-paid="${esc(a.code)}" data-amount="${esc(money(a.pending, a.currency))}">Marcar pagado</button>` : ""}</td>
+</tr>`,
+          )
+          .join("")
+      : `<tr><td colspan="8" class="dim">Todavía no hay asesores.</td></tr>`;
+  }
+  $("#advisors-body").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-paid]");
+    if (!button) return;
+    const code = button.dataset.paid;
+    confirmDialog({
+      title: `Pagar a ${code}`,
+      body: `Marca ${button.dataset.amount} como pagado. Hazlo después de enviar el dinero por Yape o transferencia.`,
+      confirm: "Marcar pagado",
+      run: () => post("/api/advisors/paid", { code }),
+    });
+  });
+
+  /* ---------------------------------------------------------------------
    * Recommendations and activity
    * ------------------------------------------------------------------- */
   const SEVERITY = { high: "Alta", medium: "Media", low: "Baja" };
@@ -466,7 +513,7 @@
     }
   });
 
-  const ACTION = { grant: "Dio premium", revoke: "Quitó premium", verify: "Verificó email", rename: "Cambió nombre", "coupon.create": "Creó cupón", "coupon.disable": "Desactivó cupón", "coupon.days": "Cambió la duración" };
+  const ACTION = { grant: "Dio premium", revoke: "Quitó premium", verify: "Verificó email", rename: "Cambió nombre", "coupon.create": "Creó cupón", "coupon.disable": "Desactivó cupón", "coupon.days": "Cambió la duración", "commission.paid": "Pagó comisiones" };
   function renderAudit() {
     $("#audit").innerHTML = data.summary.audit.length
       ? data.summary.audit
@@ -577,6 +624,7 @@
     renderDropOff();
     renderUsers();
     renderCoupons();
+    renderDefense();
     renderInsights();
     renderAudit();
     $("#updated").textContent = `Actualizado ${new Date(data.summary.generatedAt).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`;

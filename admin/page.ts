@@ -50,6 +50,7 @@ const NAV: [string, string, string][] = [
   ["usuarios", "users", "Usuarios"],
   ["abandono", "funnel", "Embudo y abandono"],
   ["cupones", "ticket", "Cupones"],
+  ["sustentacion", "crown", "Sustentación"],
   ["recomendaciones", "spark", "Recomendaciones"],
   ["actividad", "list", "Actividad"],
 ];
@@ -124,6 +125,13 @@ export function renderApp(payload: unknown, viewer: string): string {
         <div class="page-head"><div><h1>Cupones</h1><p class="dim small">Códigos que dan premium por unos días al canjearlos.</p></div>
           <button class="btn primary" id="new-coupon" type="button">${icon("plus")}Nuevo cupón</button></div>
         <div class="table-wrap cards"><table><thead><tr><th>Código</th><th>Estado</th><th class="r">Días</th><th>Usos</th><th>Vence</th><th></th></tr></thead><tbody id="coupons-body"></tbody></table></div>
+      </section>
+
+      <section data-section="sustentacion" hidden>
+        <div class="page-head"><div><h1>Sustentación</h1><p class="dim small">Tesis, ensayos, packs vendidos y lo que se debe a los asesores.</p></div></div>
+        <div class="grid" id="defense-kpis"></div>
+        <h2 class="small dim">Asesores</h2>
+        <div class="table-wrap cards"><table><thead><tr><th>Asesor</th><th>Código</th><th class="r">Vinculados</th><th class="r">Comparten</th><th class="r">Ventas</th><th class="r">Por pagar</th><th class="r">Pagado</th><th></th></tr></thead><tbody id="advisors-body"></tbody></table></div>
       </section>
 
       <section data-section="recomendaciones" hidden>

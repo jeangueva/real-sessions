@@ -48,6 +48,103 @@ export interface SubscriptionRow {
   createdAt: string;
 }
 
+/**
+ * Sustentación: the thesis product, in numbers and in the advisors owed money.
+ * Every query is guarded — on a database the product has not migrated yet, or
+ * a role not yet granted these tables, the section reads as empty instead of
+ * taking the whole dashboard down.
+ */
+export interface DefenseSummary {
+  theses: number;
+  defenses: { total: number; d7: number; d30: number; completed: number };
+  packs: { kind: string; count: number; revenue: number }[];
+  questionsPending: number;
+  advisors: {
+    code: string;
+    name: string;
+    email: string | null;
+    linked: number;
+    shared: number;
+    sales: number;
+    pending: number;
+    paid: number;
+    currency: string;
+  }[];
+}
+
+const EMPTY_DEFENSE: DefenseSummary = {
+  theses: 0,
+  defenses: { total: 0, d7: 0, d30: 0, completed: 0 },
+  packs: [],
+  questionsPending: 0,
+  advisors: [],
+};
+
+async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseSummary> {
+  const quiet = <T>(promise: Promise<{ rows: T[] }>) => promise.catch(() => ({ rows: [] as T[] }));
+  const [theses, defenses, packs, questions, advisors, links, commissions] = await Promise.all([
+    quiet(pool.query(`SELECT count(*)::int AS n FROM theses`)),
+    quiet(
+      pool.query(
+        `SELECT count(*)::int AS total,
+                count(*) FILTER (WHERE started_at >= now() - interval '7 days')::int AS d7,
+                count(*) FILTER (WHERE started_at >= now() - interval '30 days')::int AS d30,
+                count(completed_at)::int AS completed
+           FROM sessions WHERE stage LIKE 'Sustentación%'`,
+      ),
+    ),
+    // Payment ids from the local tests are not sales: only Mercado Pago's.
+    quiet(pool.query(`SELECT kind, count(*)::int AS n FROM defense_packs WHERE payment_id ~ '^[0-9]+$' GROUP BY kind`)),
+    quiet(pool.query(`SELECT count(*)::int AS n FROM defense_questions WHERE status = 'pending'`)),
+    quiet(pool.query(`SELECT owner_id, code, name FROM advisors`)),
+    quiet(
+      pool.query(
+        `SELECT advisor_code, count(*)::int AS linked, count(*) FILTER (WHERE share)::int AS shared
+           FROM advisor_links GROUP BY advisor_code`,
+      ),
+    ),
+    quiet(
+      pool.query(
+        `SELECT advisor_code, count(*)::int AS sales,
+                COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL), 0)::float AS pending,
+                COALESCE(sum(amount) FILTER (WHERE paid_at IS NOT NULL), 0)::float AS paid,
+                max(currency) AS currency
+           FROM advisor_commissions GROUP BY advisor_code`,
+      ),
+    ),
+  ]);
+  const prices: Record<string, number> = { sustentacion: 39, intensivo: 79, grupal: 119 };
+  const byCode = <T extends { advisor_code: string }>(rows: T[]) => new Map(rows.map((row) => [row.advisor_code, row]));
+  const linkRows = byCode(links.rows as { advisor_code: string; linked: number; shared: number }[]);
+  const moneyRows = byCode(commissions.rows as { advisor_code: string; sales: number; pending: number; paid: number; currency: string }[]);
+  const emails = new Map(accounts.map((account) => [account.id, account.email]));
+  const first = (rows: { n?: number }[]) => rows[0]?.n ?? 0;
+  const d = (defenses.rows[0] ?? {}) as { total?: number; d7?: number; d30?: number; completed?: number };
+  return {
+    theses: first(theses.rows as { n: number }[]),
+    defenses: { total: d.total ?? 0, d7: d.d7 ?? 0, d30: d.d30 ?? 0, completed: d.completed ?? 0 },
+    packs: (packs.rows as { kind: string; n: number }[]).map((row) => ({
+      kind: row.kind,
+      count: row.n,
+      revenue: row.n * (prices[row.kind] ?? 0),
+    })),
+    questionsPending: first(questions.rows as { n: number }[]),
+    advisors: (advisors.rows as { owner_id: string; code: string; name: string }[])
+      .map((row) => ({
+        code: row.code,
+        name: row.name,
+        email: emails.get(row.owner_id) ?? null,
+        linked: linkRows.get(row.code)?.linked ?? 0,
+        shared: linkRows.get(row.code)?.shared ?? 0,
+        sales: moneyRows.get(row.code)?.sales ?? 0,
+        pending: Number(moneyRows.get(row.code)?.pending ?? 0),
+        paid: Number(moneyRows.get(row.code)?.paid ?? 0),
+        currency: moneyRows.get(row.code)?.currency ?? "PEN",
+      }))
+      .sort((a, b) => b.pending - a.pending || b.linked - a.linked),
+  };
+}
+
 export interface Raw {
   accounts: AccountRow[];
   activity: OwnerActivity[];
@@ -62,6 +159,8 @@ export interface Raw {
   unfinished: UnfinishedRow[];
   coupons: CouponRow[];
   audit: AuditRow[];
+  /** Absent on fixtures written before the thesis product existed. */
+  defense?: DefenseSummary;
 }
 
 export interface UnfinishedRow {
@@ -142,6 +241,7 @@ export interface Summary {
   signupsByDay: { day: string; count: number }[];
   interviewsByDay: DayCount[];
   users: UserRow[];
+  defense: DefenseSummary;
 }
 
 /** Statuses the providers use for a subscription that is currently paid for. */
@@ -235,6 +335,7 @@ export function summarise(raw: Raw, now = new Date()): Summary {
 
   const total = raw.accounts.length;
   return {
+    defense: raw.defense ?? EMPTY_DEFENSE,
     generatedAt: now.toISOString(),
     accounts: {
       total,
@@ -385,5 +486,6 @@ export async function load(pool: Pool, redis: RedisClientType): Promise<Raw> {
       target: row.target as string,
       detail: (row.detail as Record<string, unknown>) ?? {},
     })),
+    defense: await loadDefense(pool, accounts).catch(() => EMPTY_DEFENSE),
   };
 }
