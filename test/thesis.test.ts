@@ -5,7 +5,8 @@ describe("paginate", () => {
   it("cuts running text into page-sized pieces at paragraph breaks", () => {
     const paragraph = "x".repeat(1_000);
     const pages = paginate(Array(9).fill(paragraph).join("\n"));
-    expect(pages.length).toBe(4);
+    // Two 1,000-character paragraphs fit under the 2,800 cap; a third does not.
+    expect(pages.length).toBe(5);
     expect(pages.every((page) => page.length <= 2_800 + 1_000)).toBe(true);
   });
 });
