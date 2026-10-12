@@ -7,6 +7,7 @@ import { EASE_OUT } from "@/design-system/motion";
 import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { AnswerByAnswer } from "./AnswerByAnswer";
+import { ActaCard } from "./ActaCard";
 import { FirstLanguageErrors } from "./FirstLanguageErrors";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { LevelUp, levelForXp } from "./LevelUp";
@@ -536,7 +537,15 @@ function FeedbackBody({
           practise — and only then the numbers, folded away. `minmax(0,1fr)`
           and `min-w-0` keep a long unbreakable word from widening the page. */}
       <PageBody className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-4 [&>*]:min-w-0">
+        {/* 1a. A thesis defence opens on the jury's record instead. */}
+        {evaluation.acta && (
+          <FadeRise>
+            <ActaCard acta={evaluation.acta} />
+          </FadeRise>
+        )}
+
         {/* 1. How did it go — Duolingo's lesson-complete card. */}
+        {!evaluation.acta && (
         <FadeRise>
           <Panel variant="raised" className="flex flex-col items-center gap-5 p-6 text-center shadow-lift sm:flex-row sm:p-8 sm:text-left">
             <ScoreRing value={evaluation.overall_score_percentage}>
@@ -614,6 +623,7 @@ function FeedbackBody({
             </div>
           </Panel>
         </FadeRise>
+        )}
 
         {/* 2. One thing to do next. Not a list: a list of six is six things
             to put off; one is a plan. */}

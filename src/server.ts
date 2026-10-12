@@ -1312,6 +1312,8 @@ function evaluateOnce(
         ...(stored.level ? { level: stored.level } : {}),
         ...(stored.pressure ? { pressure: true } : {}),
         ...(reportLanguage ? { reportLanguage } : {}),
+        // A defence is deliberated by its jury, on the dossier it read.
+        ...(stored.snapshot.defense ? { defense: stored.snapshot.defense } : {}),
       },
     );
     const score = evaluation.overall_score_percentage;

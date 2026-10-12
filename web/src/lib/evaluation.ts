@@ -37,6 +37,17 @@ export interface Evaluation {
   }[];
   /** Estimated level and agency-screen outlook. Absent on older reports, null when too short. */
   english_level?: { cefr: "A2" | "B1" | "B2" | "C1" | "C2"; screen: "likely" | "borderline" | "not-yet" } | null;
+  /** Only on a thesis defence: the simulated jury record. */
+  acta?: {
+    grade: number;
+    grade_max: number;
+    pass_mark: number;
+    verdict: "aprobado-unanimidad" | "aprobado-mayoria" | "desaprobado";
+    deliberation: { juror: "presidente" | "metodologo" | "especialista"; grade: number; opinion: string }[];
+    axes: { contenido: number; metodologia: number; claridad: number; preguntas: number; tiempo: number; seguridad: number };
+    readiness: number;
+    chapters: { name: string; readiness: number }[];
+  } | null;
 }
 
 export interface SessionSummary {

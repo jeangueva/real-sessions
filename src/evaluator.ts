@@ -7,6 +7,9 @@ import type {
   ProviderUsage,
 } from "./providers/index.js";
 import { buildEvaluatorPrompt, formatTranscript } from "./prompts/evaluator.js";
+import { DEFENSE_EVALUATOR_TEMPLATE } from "./prompts/defense-evaluator.js";
+import type { DefenseSetup } from "./prompts/interviewer.js";
+import { renderTemplate } from "./prompts/template.js";
 import { EvaluationSchema, RetryFeedbackSchema, type Evaluation, type RetryFeedback } from "./schema.js";
 import type { InterviewContext, TranscriptTurn } from "./types.js";
 
@@ -36,6 +39,8 @@ export interface EvaluateOptions {
   pressure?: boolean;
   /** The language the report is written in — the reader's interface language. */
   reportLanguage?: string;
+  /** A thesis defence: the dossier the panel read, so the jury deliberates on it. */
+  defense?: DefenseSetup | null;
   /** Defaults to the vendor implied by `model`. Inject a stub in tests. */
   provider?: ModelProvider;
   model?: string;
@@ -68,6 +73,10 @@ export async function evaluateInterview(
   const model = options.model ?? EVALUATOR_MODEL;
   const provider = options.provider ?? resolveProvider(model);
 
+  if (options.defense) {
+    return evaluateDefense(context, transcript, options.defense, options, model, provider);
+  }
+
   const response = await provider.json({
     model,
     system: buildEvaluatorPrompt(
@@ -82,7 +91,7 @@ export async function evaluateInterview(
     // last: buried mid-prompt it was ignored, and Spanish readers got English.
     prompt:
       formatTranscript(transcript, context) +
-      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words, the corrected phrasings and every \`better\` answer in ${findLanguage(options.language).promptLabel} — never invent numbers they did not say; use [placeholders]. Always fill \`english_level\` with your CEFR estimate and screen outlook unless the candidate said fewer than 40 words in total. Be brief.`,
+      `\n\nWrite all feedback in ${options.reportLanguage ?? "English"}. Keep only the candidate's quoted words, the corrected phrasings and every \`better\` answer in ${findLanguage(options.language).promptLabel} — never invent numbers they did not say; use [placeholders]. Always fill \`english_level\` with your CEFR estimate and screen outlook unless the candidate said fewer than 40 words in total. \`acta\` is always null. Be brief.`,
     maxTokens: options.maxTokens ?? 4096,
     schema: EvaluationSchema,
     ...(options.effort ? { effort: options.effort } : {}),
@@ -149,4 +158,63 @@ Plain text only, no markdown.`,
     throw new EvaluationParseError("The retry grader returned no usable JSON.", response.raw);
   }
   return RetryFeedbackSchema.parse(response.value);
+}
+
+/** A defence model: the deliberation is long reasoning over a long dossier. */
+const DEFENSE_EVALUATOR_MODEL =
+  process.env.REALSESSIONS_DEFENSE_EVALUATOR_MODEL ?? "anthropic/claude-sonnet-5";
+
+/**
+ * The jury's deliberation and record for a thesis defence.
+ *
+ * The same report shape as an interview — strengths, answer by answer, next
+ * steps — so every screen that shows a report shows this one, with the
+ * record added on top.
+ */
+async function evaluateDefense(
+  context: InterviewContext,
+  transcript: readonly TranscriptTurn[],
+  defense: DefenseSetup,
+  options: EvaluateOptions,
+  model: string,
+  provider: ModelProvider,
+): Promise<Evaluation> {
+  const chosen = options.model ? model : DEFENSE_EVALUATOR_MODEL;
+  const runner = options.provider ?? (options.model ? provider : resolveProvider(chosen));
+  const report = options.reportLanguage ?? "Spanish";
+  const response = await runner.json({
+    model: chosen,
+    system: renderTemplate(DEFENSE_EVALUATOR_TEMPLATE, {
+      university: defense.university,
+      difficulty: defense.difficulty,
+      report_language: report,
+      dossier: defense.dossier,
+    }),
+    prompt:
+      formatTranscript(transcript, { ...context, candidateName: "STUDENT" }) +
+      `\n\nDeliberate and write the record. Every text field in ${report}.`,
+    maxTokens: options.maxTokens ?? 6_000,
+    schema: EvaluationSchema,
+    ...((options.fallbackModels ?? EVALUATOR_FALLBACKS).length > 0
+      ? { fallbacks: options.fallbackModels ?? EVALUATOR_FALLBACKS }
+      : {}),
+  });
+  options.onUsage?.({ usage: response.usage, latency: response.latency });
+  if (response.refused || !response.value) {
+    throw new EvaluationParseError("The jury could not write the record.", response.raw);
+  }
+  const parsed = EvaluationSchema.parse(response.value);
+  const acta = parsed.acta;
+  if (!acta) throw new EvaluationParseError("The jury returned no record.", response.raw);
+  // The verdict follows from the grades; a model that rounds generously in
+  // the prose should not be able to pass someone the numbers fail.
+  const passing = acta.deliberation.filter((entry) => entry.grade >= acta.pass_mark).length;
+  const verdict = passing === 3 ? "aprobado-unanimidad" : passing === 2 ? "aprobado-mayoria" : "desaprobado";
+  return {
+    ...parsed,
+    first_language_errors: [],
+    english_level: null,
+    overall_score_percentage: Math.round((acta.grade / acta.grade_max) * 100),
+    acta: { ...acta, verdict },
+  };
 }

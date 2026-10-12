@@ -50,6 +50,37 @@ export const FirstLanguageErrorSchema = z.object({
 
 export type FirstLanguageError = z.infer<typeof FirstLanguageErrorSchema>;
 
+/**
+ * The simulated record of a thesis defence: what a jury writes after it
+ * deliberates. Peruvian scale for now — 0 to 20, passing at 11 — carried in
+ * the record itself so a later country's scale reads back correctly.
+ */
+export const ActaSchema = z.object({
+  grade: z.number().min(0),
+  grade_max: z.number().positive(),
+  pass_mark: z.number().min(0),
+  verdict: z.enum(["aprobado-unanimidad", "aprobado-mayoria", "desaprobado"]),
+  deliberation: z.array(
+    z.object({
+      juror: z.enum(["presidente", "metodologo", "especialista"]),
+      grade: z.number().min(0),
+      opinion: z.string(),
+    }),
+  ),
+  axes: z.object({
+    contenido: z.number().min(0).max(100),
+    metodologia: z.number().min(0).max(100),
+    claridad: z.number().min(0).max(100),
+    preguntas: z.number().min(0).max(100),
+    tiempo: z.number().min(0).max(100),
+    seguridad: z.number().min(0).max(100),
+  }),
+  readiness: z.number().min(0).max(100),
+  chapters: z.array(z.object({ name: z.string(), readiness: z.number().min(0).max(100) })),
+});
+
+export type Acta = z.infer<typeof ActaSchema>;
+
 export const EvaluationSchema = z.object({
   overall_score_percentage: z.number().min(0).max(100),
   strengths: z.array(z.string()).min(1),
@@ -72,6 +103,8 @@ export const EvaluationSchema = z.object({
     })
     .nullable()
     .default(null),
+  /** Only on a thesis defence: the simulated jury record. */
+  acta: ActaSchema.nullable().default(null),
 });
 
 /** The input shape: `answer_feedback` is optional, as it is on older stored reports. */
