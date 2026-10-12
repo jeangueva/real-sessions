@@ -73,6 +73,14 @@ export const JURORS = {
 } as const;
 export type JurorTag = keyof typeof JURORS;
 
+const JUROR_ORDER: JurorTag[] = ["presidente", "metodologo", "especialista"];
+/** Pace and pitch per juror, for the browser voice. */
+const JUROR_DELIVERY: Record<JurorTag, { rate: number; pitch: number }> = {
+  presidente: { rate: 0.95, pitch: 0.85 },
+  metodologo: { rate: 1.05, pitch: 1.2 },
+  especialista: { rate: 1, pitch: 1 },
+};
+
 const TAG = /\[\[(presidente|metodologo|especialista)\]\]/g;
 const LEADING_TAG = /^\s*\[\[(presidente|metodologo|especialista)\]\]\s*/;
 
@@ -86,10 +94,11 @@ export function splitJuror(phrase: string): { juror: JurorTag | null; text: stri
 }
 
 /** Tags turned into names, for the screen: "Dra. Vidal: Bachiller, …". */
-export function showJurors(text: string): string {
+export function showJurors(text: string, names?: Partial<Record<JurorTag, string>>): string {
+  const name = (tag: string) => names?.[tag as JurorTag] ?? JURORS[tag as JurorTag]?.name ?? "";
   return text
-    .replace(/^\s*\[\[(\w+)\]\]\s*/, (_, tag: string) => `${JURORS[tag as JurorTag]?.name ?? ""}: `)
-    .replace(/\s*\[\[(\w+)\]\]\s*/g, (_, tag: string) => `\n\n${JURORS[tag as JurorTag]?.name ?? ""}: `)
+    .replace(/^\s*\[\[(\w+)\]\]\s*/, (_, tag: string) => `${name(tag)}: `)
+    .replace(/\s*\[\[(\w+)\]\]\s*/g, (_, tag: string) => `\n\n${name(tag)}: `)
     // A tag still arriving in the stream, cut off mid-word.
     .replace(/\[\[\w*\]?$/, "")
     .trim();
@@ -294,7 +303,7 @@ export function createSpeechOutput(
    * The voice list loads asynchronously and is empty on first call in most
    * browsers, so it is resolved lazily rather than captured at module load.
    */
-  const pickVoice = (): SpeechSynthesisVoice | null => {
+  const pickVoice = (juror: JurorTag | null = null): SpeechSynthesisVoice | null => {
     const voices = synth.getVoices();
     if (voices.length === 0) return null;
     const english = voices.filter((voice) =>
@@ -310,6 +319,15 @@ export function createSpeechOutput(
     // browser and language pack, so this is a preference and never a
     // requirement — an unmatched persona still sounds distinct, because rate
     // and pitch apply to whatever voice is found.
+    // A thesis panel through the browser — Portuguese, which the voice
+    // provider does not speak. Each juror takes a different installed voice
+    // where there are several, so three people do not share one.
+    if (juror) {
+      const local = pool.filter((voice) => voice.lang === lang);
+      const choices = local.length > 0 ? local : pool;
+      return choices[JUROR_ORDER.indexOf(juror) % choices.length] ?? null;
+    }
+
     for (const wanted of profile.prefer) {
       const match = pool.find((voice) =>
         voice.name.toLowerCase().includes(wanted.toLowerCase()),
@@ -335,19 +353,22 @@ export function createSpeechOutput(
     },
 
     speak(text) {
-      const trimmed = splitJuror(text).text;
+      const { juror, text: trimmed } = splitJuror(text);
       if (trimmed === "") return Promise.resolve("ok" as const);
 
       return new Promise<"ok" | "blocked" | "error">((resolve) => {
         const utterance = new SpeechSynthesisUtterance(trimmed);
         utterance.lang = lang;
-        const voice = pickVoice();
+        const voice = pickVoice(juror);
         if (voice) utterance.voice = voice;
         // The archetype's own delivery. Clamped because the browser silently
         // ignores an out-of-range rate rather than clipping it, which would
         // drop the persona back to default without saying so.
-        utterance.rate = Math.min(1.4, Math.max(0.6, profile.rate));
-        utterance.pitch = Math.min(1.4, Math.max(0.6, profile.pitch));
+        // A juror on a single installed voice still sounds like a different
+        // person: pitch and pace carry it.
+        const delivery = juror ? JUROR_DELIVERY[juror] : profile;
+        utterance.rate = Math.min(1.4, Math.max(0.6, delivery.rate));
+        utterance.pitch = Math.min(1.4, Math.max(0.6, delivery.pitch));
 
         // Resolve on every outcome — a rejection here would break the queue
         // for every later phrase. But "not-allowed" must be reported, not

@@ -46,7 +46,22 @@ describe("the thesis panel", () => {
     expect(express).toContain("Universidad X");
     expect(express).not.toContain("[[metodologo]] Dra.");
     const full = buildInterviewerPrompt(ctx, { stages: ["sustentacion-pe"], defense, minTurns: 9, maxTurns: 12 });
-    expect(full).toContain("[[metodologo]] Dra. Lucía Vidal");
+    expect(full).toContain("[[metodologo]] Dra. Vidal, Metodóloga");
+    const brazil = buildInterviewerPrompt(ctx, {
+      stages: ["sustentacion-pe"],
+      defense: { ...defense, country: "BR" },
+      minTurns: 9,
+      maxTurns: 12,
+    });
+    expect(brazil).toContain("Avaliador externo");
+    expect(brazil).toContain("banca");
+  });
+
+  it("decides the verdict from the grades, on each country's scale", async () => {
+    const { FORMATS, verdictFor } = await import("../src/defense-formats.js");
+    expect(verdictFor(FORMATS.PE, [11, 12, 10])).toEqual({ code: "aprobado-mayoria", label: "Aprobado por mayoría" });
+    expect(verdictFor(FORMATS.CL, [4.0, 4.5, 5.1]).code).toBe("aprobado-unanimidad");
+    expect(verdictFor(FORMATS.BR, [6.5, 5, 7]).label).toBe("Reprovado");
   });
 });
 

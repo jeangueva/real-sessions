@@ -10,6 +10,8 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  country: "País y formato",
+  countryNote: "Así se arma el jurado y se califica en tu país.",
   dateTitle: "¿Cuándo sustentas?",
   dateBody: "Te escribimos 7, 5, 3 y 1 día antes, y la mañana del día, con lo que toca preparar.",
   daysLeft: "Faltan {count} días",
@@ -138,6 +140,8 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  country: "País e formato",
+  countryNote: "É assim que a banca é formada e avalia no seu país.",
   dateTitle: "Quando é a sua defesa?",
   dateBody: "Escrevemos 7, 5, 3 e 1 dia antes, e na manhã do dia, com o que preparar.",
   daysLeft: "Faltam {count} dias",
@@ -264,6 +268,8 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  country: "Country and format",
+  countryNote: "How the panel is made up and grades in your country.",
   dateTitle: "When do you defend?",
   dateBody: "We write 7, 5, 3 and 1 day before, and on the morning, with what to prepare.",
   daysLeft: "{count} days to go",

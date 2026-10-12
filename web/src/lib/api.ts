@@ -500,6 +500,8 @@ export function startSessionStream(
   university?: string;
   /** A thesis defence: how hard the panel presses. */
   difficulty?: "calentamiento" | "estandar" | "exigente" | "hostil";
+  /** A thesis defence: the country whose format it follows. */
+  country?: string;
   },
   handlers: {
     onDelta: (text: string) => void;
@@ -1342,6 +1344,15 @@ export interface DefenseAllowance {
   freeLeft: number;
 }
 
+/** A country's defence format, as the server describes it. */
+export interface DefenseFormatInfo {
+  country: string;
+  countryName: string;
+  language: "es" | "pt";
+  jurors: Record<"presidente" | "metodologo" | "especialista", { name: string; role: string }>;
+  scale: { min: number; max: number; pass: number; decimals: boolean };
+}
+
 export interface PackOffer {
   amount: number;
   currency: string;
@@ -1350,7 +1361,7 @@ export interface PackOffer {
 
 export function fetchThesis() {
   return withIdentity(() =>
-    request<{ thesis: StoredThesis | null; allowance?: DefenseAllowance; pack?: PackOffer }>("/api/thesis", {
+    request<{ thesis: StoredThesis | null; allowance?: DefenseAllowance; pack?: PackOffer; formats?: DefenseFormatInfo[] }>("/api/thesis", {
       method: "GET",
     }),
   );

@@ -2,7 +2,8 @@ import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, isAfterTheOffer, isDefense, resolveStages } from "../stages.js";
-import { DEFENSE_TEMPLATE, DIFFICULTIES, PANELS, PANEL_SHAPES, type Difficulty } from "./defense.js";
+import { DEFENSE_TEMPLATE, DIFFICULTIES, PANEL_SHAPES, REGISTERS, panelFor, type Difficulty } from "./defense.js";
+import { findFormat, type CountryCode } from "../defense-formats.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
 import { interviewerTitle } from "../roles.js";
@@ -234,6 +235,8 @@ export interface DefenseSetup {
   difficulty: Difficulty;
   university: string;
   field: string;
+  /** The country whose format the defence follows. Peru when absent. */
+  country?: CountryCode;
 }
 
 /**
@@ -282,16 +285,17 @@ export function buildInterviewerPrompt(
     const defense = options.defense;
     if (!defense) throw new Error("A thesis defence needs the thesis dossier.");
     const express = stages[0]?.id === "sustentacion-express";
+    const format = findFormat(defense.country);
     return renderTemplate(DEFENSE_TEMPLATE, {
       university: defense.university,
       field: defense.field,
       candidate_name: context.candidateName,
-      // Rendered first: the template pass is single, and the panel names
-      // the university and field itself.
-      panel: renderTemplate(express ? PANELS.express : PANELS.full, {
-        university: defense.university,
-        field: defense.field,
-      }),
+      panel: panelFor(format, defense.university, defense.field, express),
+      country: format.countryName,
+      event_name: format.eventName,
+      register: REGISTERS[format.language],
+      address: format.address,
+      vocabulary: format.vocabulary,
       panel_shape: express ? PANEL_SHAPES.express : PANEL_SHAPES.full,
       language: findLanguage(options.language).promptLabel,
       difficulty: DIFFICULTIES[defense.difficulty],

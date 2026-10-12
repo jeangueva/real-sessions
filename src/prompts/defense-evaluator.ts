@@ -6,7 +6,7 @@
  * failed them on the sample while the specialist was satisfied. The record
  * that comes out is the one a real jury signs, on the country's own scale.
  */
-export const DEFENSE_EVALUATOR_TEMPLATE = `You are the three members of a thesis jury at {{university}}, deliberating in private after a defence. You heard the whole session (the transcript follows; each jury line opens with the juror's tag) and you have the thesis dossier below.
+export const DEFENSE_EVALUATOR_TEMPLATE = `You are the three members of a thesis jury at {{university}} ({{country}}: {{jurors}}), deliberating in private after a defence. You heard the whole session (the transcript follows; each jury line opens with the juror's tag) and you have the thesis dossier below.
 
 Grade the DEFENCE — how the student presented and answered — not only the written thesis. A weak thesis defended honestly and precisely can pass; a decent thesis the student cannot explain should not.
 
@@ -15,15 +15,15 @@ The session ran at "{{difficulty}}" difficulty. Grade against a real jury's stan
 LANGUAGE: Every text field is written in {{report_language}}. Quotes of what the student said stay as they said them.
 
 THE RECORD (\`acta\`):
-- Peruvian scale: \`grade_max\` 20, \`pass_mark\` 11. \`grade\` is the jury's final grade, an integer from 0 to 20 — the average of the three jurors' grades, rounded.
-- \`deliberation\`: one entry per juror (presidente, metodologo, especialista), each with their own integer grade and a two-sentence opinion in their own voice, naming the moment in the defence that decided it.
-- \`verdict\`: "aprobado-unanimidad" if all three grades are 11 or more, "aprobado-mayoria" if two are, "desaprobado" otherwise.
+- {{scale_line}} \`grade\` is the jury's final grade — the average of the three jurors' grades{{rounding}}.
+- \`deliberation\`: one entry per juror (presidente, metodologo, especialista), each with their own grade on the same scale and a two-sentence opinion in their own voice, naming the moment in the defence that decided it. Leave \`name\` and \`role\` null.
+- \`verdict\`: "aprobado-unanimidad" if all three grades reach the pass mark, "aprobado-mayoria" if two do, "desaprobado" otherwise. Leave \`verdict_label\` null.
 - \`axes\`, each 0 to 100: contenido (command of their own thesis), metodologia (could they defend design, sample, instruments and statistics), claridad (clear, ordered exposition and answers), preguntas (answered what was asked, admitted limits honestly, did not dodge), tiempo (concise; did not ramble or run out), seguridad (composure and conviction).
 - \`readiness\`: 0 to 100, how ready they are for the real defence today. Never call it a probability of passing.
 - \`chapters\`: the thesis chapters from the dossier, each with a 0 to 100 readiness from how well the student defended what is in it. A chapter nobody asked about gets the readiness its risks suggest.
 
 THE REST OF THE REPORT — reuse these fields for a defence:
-- \`overall_score_percentage\`: grade / 20 × 100, rounded.
+- \`overall_score_percentage\`: (grade − scale minimum) / (scale maximum − scale minimum) × 100, rounded.
 - \`strengths\` (1–2) and \`areas_for_improvement\` (1–2): about the defence, one sentence each, at most 20 words.
 - \`vocabulary_feedback\`: the academic and disciplinary vocabulary. \`good_usage\`: terms they used correctly; \`missed_opportunities_or_errors\`: terms misused or missing (e.g. "causa" for a correlation, "muestra representativa" for a convenience sample), at most 4.
 - \`structure_feedback\`: how their answers were built — did they answer first and then justify, cite their own data, stay on the question.

@@ -46,7 +46,13 @@ interface SetupState {
   /** Set when this rehearses for a tracked application. */
   applicationId?: string;
   /** A thesis defence, started from the thesis screen. */
-  defense?: { university: string; difficulty: "calentamiento" | "estandar" | "exigente" | "hostil" };
+  defense?: {
+    university: string;
+    difficulty: "calentamiento" | "estandar" | "exigente" | "hostil";
+    country?: string;
+    /** The panel of that country's format, for the names on screen. */
+    jurors?: Record<JurorTag, { name: string; role: string }>;
+  };
 }
 
 /** Until the session says otherwise. The round decides the real number. */
@@ -88,6 +94,14 @@ export function LiveInterview() {
   const jobPosting = setup.jobPosting ?? "";
   const applicationId = setup.applicationId ?? "";
   const defense = setup.defense ?? null;
+  /** That country's names for the three tags, for every line on screen. */
+  const jurorNames = defense?.jurors
+    ? {
+        presidente: defense.jurors.presidente.name,
+        metodologo: defense.jurors.metodologo.name,
+        especialista: defense.jurors.especialista.name,
+      }
+    : undefined;
   /**
    * The language the server actually ran, not the one requested — free plans
    * get English whatever was asked for, and the voice has to match the words.
@@ -166,7 +180,7 @@ export function LiveInterview() {
   const lineSeq = useRef(0);
 
   const addLine = (speaker: TranscriptLine["speaker"], text: string) => {
-    const trimmed = (speaker === "interviewer" ? showJurors(text) : text).trim();
+    const trimmed = (speaker === "interviewer" ? showJurors(text, jurorNames) : text).trim();
     if (trimmed === "") return;
     lineSeq.current += 1;
     setLines((current) => [
@@ -246,7 +260,9 @@ export function LiveInterview() {
         pressure,
         jobPosting,
         ...(applicationId === "" ? {} : { applicationId }),
-        ...(defense ? { university: defense.university, difficulty: defense.difficulty } : {}),
+        ...(defense
+          ? { university: defense.university, difficulty: defense.difficulty, ...(defense.country ? { country: defense.country } : {}) }
+          : {}),
       },
       {
         // The session id arrives first so a mid-stream failure is still
@@ -358,7 +374,8 @@ export function LiveInterview() {
     if (!defense) return null;
     const tags = [...(turn?.text || streaming).matchAll(/\[\[(presidente|metodologo|especialista)\]\]/g)];
     const tag = (tags.at(-1)?.[1] ?? "presidente") as JurorTag;
-    return { ...JURORS[tag], role: tag };
+    const local = defense.jurors?.[tag];
+    return { ...JURORS[tag], ...(local ? { name: local.name } : {}), role: tag, title: local?.role ?? null };
   }, [defense, turn?.text, streaming]);
 
   // Keep the ref pointing at the current submit so a transcript arriving from
@@ -564,7 +581,7 @@ export function LiveInterview() {
               <CallStage
                 initials={juror ? juror.name.replace(/^Dra?\.\s*/, "").slice(0, 2).toUpperCase() : (persona?.initials ?? "…")}
                 name={juror?.name ?? persona?.name ?? t("call.interviewerFallback")}
-                title={juror ? `${tt(juror.role)} · ${defense?.university ?? ""}` : (persona?.title ?? t("call.joining"))}
+                title={juror ? `${juror.title ?? tt(juror.role)} · ${defense?.university ?? ""}` : (persona?.title ?? t("call.joining"))}
                 speaking={voice.speaking}
                 voiceLevel={voice.voiceLevel}
                 voiceMeasured={voice.voiceMeasured}
@@ -574,7 +591,7 @@ export function LiveInterview() {
                 status={status}
                 caption={voice.transcript}
                 listening={voice.listening}
-                turnText={showJurors(turn?.text || streaming) || undefined}
+                turnText={showJurors(turn?.text || streaming, jurorNames) || undefined}
               />
 
               {/* Desktop subtitle text under stage. Not drawn at all on an
@@ -587,7 +604,7 @@ export function LiveInterview() {
                   aria-live="polite"
                   aria-busy={busy}
                 >
-                  {showJurors(turn?.text || streaming) || (
+                  {showJurors(turn?.text || streaming, jurorNames) || (
                     <span className="text-cream-faint">{t("call.connectingTo")}</span>
                   )}
                 </p>
@@ -666,7 +683,7 @@ export function LiveInterview() {
               <div className="sheet-in fixed inset-x-4 bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] top-[calc(5rem+env(safe-area-inset-top,0px))] z-40 flex min-h-0 flex-col shadow-float lg:static lg:inset-auto lg:z-auto lg:h-full lg:w-[26rem] lg:shrink-0 lg:shadow-none">
                 <TranscriptPanel
                   lines={lines}
-                  pending={busy ? showJurors(streaming) : ""}
+                  pending={busy ? showJurors(streaming, jurorNames) : ""}
                   interviewerName={defense ? null : (persona?.name ?? null)}
                   {...(defense ? { panelLabel: tt("panel") } : {})}
                   tab={tab}

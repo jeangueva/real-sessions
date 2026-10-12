@@ -46,6 +46,9 @@ function Bar({ value }: { value: number }) {
 export function ActaCard({ acta }: { acta: Acta }) {
   const t = useThesisT();
   const verdict = VERDICT[acta.verdict];
+  // Chile's 5,8 and Brazil's 7,5 keep their decimal, written the local way.
+  const grade = (value: number) =>
+    new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
   return (
     <div className="flex flex-col gap-4">
       {/* On paper only: what this document is, for the advisor reading it. */}
@@ -61,11 +64,13 @@ export function ActaCard({ acta }: { acta: Acta }) {
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <Eyebrow>{t("actaTitle")}</Eyebrow>
             <p className="flex items-baseline gap-2">
-              <span className="text-[2.75rem] font-bold leading-none tabular-nums text-cream-bright">{acta.grade}</span>
+              <span className="text-[2.75rem] font-bold leading-none tabular-nums text-cream-bright">{grade(acta.grade)}</span>
               <span className="text-lg font-semibold text-cream-faint">{t("outOf", { max: acta.grade_max })}</span>
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <span className={`rounded-full px-3 py-1 text-sm font-semibold ${verdict.tone}`}>{t(verdict.key)}</span>
+              <span className={`rounded-full px-3 py-1 text-sm font-semibold ${verdict.tone}`}>
+                {acta.verdict_label ?? t(verdict.key)}
+              </span>
               <span className="text-xs text-cream-dim">{t("passMark", { mark: acta.pass_mark })}</span>
             </div>
           </div>
@@ -87,11 +92,12 @@ export function ActaCard({ acta }: { acta: Acta }) {
           {acta.deliberation.map((entry) => (
             <li key={entry.juror} className="flex gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-lift text-sm font-bold tabular-nums text-cream-bright">
-                {entry.grade}
+                {grade(entry.grade)}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-cream-bright">
-                  {JURORS[entry.juror].name} <span className="font-normal text-cream-dim">· {t(entry.juror)}</span>
+                  {entry.name ?? JURORS[entry.juror].name}{" "}
+                  <span className="font-normal text-cream-dim">· {entry.role ?? t(entry.juror)}</span>
                 </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-cream">{entry.opinion}</p>
               </div>

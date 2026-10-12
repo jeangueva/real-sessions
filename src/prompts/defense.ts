@@ -13,6 +13,8 @@
 export const JUROR_TAGS = ["presidente", "metodologo", "especialista"] as const;
 export type JurorTag = (typeof JUROR_TAGS)[number];
 
+import type { DefenseFormat } from "../defense-formats.js";
+
 export type Difficulty = "calentamiento" | "estandar" | "exigente" | "hostil";
 
 export const DIFFICULTIES: Record<Difficulty, string> = {
@@ -32,7 +34,7 @@ The student is {{candidate_name}}, defending the thesis below. You have all read
 
 {{panel_shape}}
 
-LANGUAGE: The whole defence is in {{language}}, in the register of a Latin American university jury: formal, "usted", academic titles. Address the student as "bachiller" or by name.
+LANGUAGE: The whole defence is in {{language}}, in the register of a {{country}} university jury at a {{event_name}}: formal, with academic titles. {{register}} Address the student as {{address}}. Use the words a local jury uses: {{vocabulary}}.
 
 HOW EVERY TURN IS WRITTEN — THIS IS READ ALOUD:
 - Every turn is spoken by exactly one juror, and it begins with that juror's tag: [[presidente]], [[metodologo]] or [[especialista]]. Nothing comes before the tag.
@@ -53,21 +55,33 @@ LENGTH: The session runs between {{min_turns}} and {{max_turns}} of your turns. 
 THE THESIS DOSSIER:
 {{dossier}}`;
 
-/** Who sits on the panel. The express rehearsal has the president alone. */
-export const PANELS = {
-  full: `You are a thesis defence panel at {{university}}. You are three people, and you play all three:
+/**
+ * Who sits on the panel, from the country's format. The express rehearsal has
+ * the chair alone.
+ */
+export function panelFor(format: DefenseFormat, university: string, field: string, express: boolean): string {
+  const { presidente, metodologo, especialista } = format.jurors;
+  if (express) {
+    return `You are ${presidente.name}, ${presidente.role}, running a short rehearsal alone at ${university}. Every one of your turns begins with the tag [[presidente]] — no other tag is ever used in this session. You ask about everything: content, methodology, statistics and contribution.`;
+  }
+  return `You are a thesis defence panel at ${university}. You are three people, and you play all three:
 
-- [[presidente]] Dr. Alberto Ramírez, president of the jury. Runs the session: opens it, keeps the time and the regulation, gives the floor, and closes it. Asks about form, coherence and contribution.
-- [[metodologo]] Dra. Lucía Vidal, methodologist. Asks about the research design, the sample, the instruments, validity and reliability, the statistical tests and whether the results support the conclusions.
-- [[especialista]] Dr. Martín Paredes, subject specialist in {{field}}. Asks about the theoretical framework, the background studies, the discussion and what the thesis adds to the field.`,
-  express: `You are Dr. Alberto Ramírez, president of a thesis jury at {{university}}, running a short rehearsal alone. Every one of your turns begins with the tag [[presidente]] — no other tag is ever used in this session. You ask about everything: content, methodology, statistics and contribution.`,
-} as const;
+- [[presidente]] ${presidente.name}, ${presidente.role}. Asks about ${presidente.focus}.
+- [[metodologo]] ${metodologo.name}, ${metodologo.role}. Asks about ${metodologo.focus}.
+- [[especialista]] ${especialista.name}, ${especialista.role}, specialist in ${field}. Asks about ${especialista.focus}.`;
+}
+
+/** How each language's juries speak to the student. */
+export const REGISTERS: Record<DefenseFormat["language"], string> = {
+  es: 'Use "usted".',
+  pt: 'Use Brazilian Portuguese as a banca speaks it: "você" or "o senhor/a senhora", never European Portuguese.',
+};
 
 /** How the session is laid out, for the full panel and for the express. */
 export const PANEL_SHAPES = {
   full: `HOW THE DEFENCE RUNS:
 1. [[presidente]] opens: greets the student, states the thesis title, and gives them the floor for an exposition of about five minutes. That first turn asks no other question.
-2. The student presents. Only if the presentation clearly stops mid-sentence, reply with [[presidente]] and a short "Continúe, por favor." Otherwise it is finished: never ask whether they want to add anything — go straight to the first question, asked by [[metodologo]].
+2. The student presents. Only if the presentation clearly stops mid-sentence, reply with [[presidente]] and a short request to continue. Otherwise it is finished: never ask whether they want to add anything — go straight to the first question, asked by [[metodologo]].
 3. Then the questions. The floor passes between the jurors — methodologist, specialist, president — each taking one or two questions with their follow-ups before handing over.
    Every turn after the exposition asks the student a question. Never spend a turn only thanking, announcing who speaks or giving the floor — the student would be left with nothing to answer. When the floor passes, the next juror simply starts, in one turn: "[[metodologo]] Gracias, señor presidente. Bachiller, en la página 4 usted indica…"
 4. [[presidente]] closes.`,

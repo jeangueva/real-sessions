@@ -195,6 +195,7 @@ import {
   type ThesisStore,
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
+import { findFormat, publicFormats } from "./defense-formats.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import { createDefensePackStore, remainingCredits, type DefensePackStore } from "./defense-packs.js";
 
@@ -2785,6 +2786,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       thesis: await THESES.get(identity.id),
       allowance: await defenseAllowance(identity.id),
       pack: { amount: PACK_AMOUNT, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
+      formats: publicFormats(),
     });
     return;
   }
@@ -3294,6 +3296,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         difficulty,
         university,
         field: stored.analysis.field,
+        // The format they defend in: chosen on the thesis screen, or guessed
+        // from the thesis's language when an older client sends none.
+        country: findFormat(body["country"], stored.analysis.language).country,
       };
     }
     // The conversations after the offer are the paid plan. Checked on the

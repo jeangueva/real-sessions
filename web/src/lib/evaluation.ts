@@ -43,7 +43,14 @@ export interface Evaluation {
     grade_max: number;
     pass_mark: number;
     verdict: "aprobado-unanimidad" | "aprobado-mayoria" | "desaprobado";
-    deliberation: { juror: "presidente" | "metodologo" | "especialista"; grade: number; opinion: string }[];
+    verdict_label?: string | null;
+    deliberation: {
+      juror: "presidente" | "metodologo" | "especialista";
+      name?: string | null;
+      role?: string | null;
+      grade: number;
+      opinion: string;
+    }[];
     axes: { contenido: number; metodologia: number; claridad: number; preguntas: number; tiempo: number; seguridad: number };
     readiness: number;
     chapters: { name: string; readiness: number }[];

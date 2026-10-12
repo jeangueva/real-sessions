@@ -10,6 +10,7 @@ import { buildEvaluatorPrompt, formatTranscript } from "./prompts/evaluator.js";
 import { DEFENSE_EVALUATOR_TEMPLATE } from "./prompts/defense-evaluator.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { renderTemplate } from "./prompts/template.js";
+import { findFormat, verdictFor } from "./defense-formats.js";
 import { EvaluationSchema, RetryFeedbackSchema, type Evaluation, type RetryFeedback } from "./schema.js";
 import type { InterviewContext, TranscriptTurn } from "./types.js";
 
@@ -182,10 +183,15 @@ async function evaluateDefense(
   const chosen = options.model ? model : DEFENSE_EVALUATOR_MODEL;
   const runner = options.provider ?? (options.model ? provider : resolveProvider(chosen));
   const report = options.reportLanguage ?? "Spanish";
+  const format = findFormat(defense.country);
   const response = await runner.json({
     model: chosen,
     system: renderTemplate(DEFENSE_EVALUATOR_TEMPLATE, {
       university: defense.university,
+      country: format.countryName,
+      jurors: `${format.jurors.presidente.name}, ${format.jurors.presidente.role}; ${format.jurors.metodologo.name}, ${format.jurors.metodologo.role}; ${format.jurors.especialista.name}, ${format.jurors.especialista.role}`,
+      scale_line: `The ${format.countryName} scale: \`grade_max\` ${format.scale.max}, \`pass_mark\` ${format.scale.pass}, grades from ${format.scale.min} to ${format.scale.max}.`,
+      rounding: format.scale.decimals ? ", to one decimal" : ", rounded to a whole number",
       difficulty: defense.difficulty,
       report_language: report,
       dossier: defense.dossier,
@@ -206,15 +212,35 @@ async function evaluateDefense(
   const parsed = EvaluationSchema.parse(response.value);
   const acta = parsed.acta;
   if (!acta) throw new EvaluationParseError("The jury returned no record.", response.raw);
-  // The verdict follows from the grades; a model that rounds generously in
-  // the prose should not be able to pass someone the numbers fail.
-  const passing = acta.deliberation.filter((entry) => entry.grade >= acta.pass_mark).length;
-  const verdict = passing === 3 ? "aprobado-unanimidad" : passing === 2 ? "aprobado-mayoria" : "desaprobado";
+  // The scale, the verdict and the names come from the country's format, not
+  // the model: a model that rounds generously in the prose should not be able
+  // to pass someone the numbers fail.
+  const { min, max, pass, decimals } = format.scale;
+  const clamp = (value: number) => {
+    const bounded = Math.min(max, Math.max(min, value));
+    return decimals ? Math.round(bounded * 10) / 10 : Math.round(bounded);
+  };
+  const deliberation = acta.deliberation.map((entry) => ({
+    ...entry,
+    grade: clamp(entry.grade),
+    name: format.jurors[entry.juror].name,
+    role: format.jurors[entry.juror].role,
+  }));
+  const verdict = verdictFor(format, deliberation.map((entry) => entry.grade));
+  const grade = clamp(acta.grade);
   return {
     ...parsed,
     first_language_errors: [],
     english_level: null,
-    overall_score_percentage: Math.round((acta.grade / acta.grade_max) * 100),
-    acta: { ...acta, verdict },
+    overall_score_percentage: Math.round(((grade - min) / (max - min)) * 100),
+    acta: {
+      ...acta,
+      grade,
+      grade_max: max,
+      pass_mark: pass,
+      verdict: verdict.code,
+      verdict_label: verdict.label,
+      deliberation,
+    },
   };
 }

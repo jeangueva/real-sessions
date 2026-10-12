@@ -60,9 +60,14 @@ export const ActaSchema = z.object({
   grade_max: z.number().positive(),
   pass_mark: z.number().min(0),
   verdict: z.enum(["aprobado-unanimidad", "aprobado-mayoria", "desaprobado"]),
+  /** The verdict in the country's own words; filled in after the model. */
+  verdict_label: z.string().nullable().default(null),
   deliberation: z.array(
     z.object({
       juror: z.enum(["presidente", "metodologo", "especialista"]),
+      /** Who they are on this country's panel; filled in after the model. */
+      name: z.string().nullable().default(null),
+      role: z.string().nullable().default(null),
       grade: z.number().min(0),
       opinion: z.string(),
     }),

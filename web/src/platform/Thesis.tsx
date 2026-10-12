@@ -4,7 +4,7 @@ import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "l
 import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { ApiError, buyDefensePack, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
-import type { DefenseAllowance, PackOffer } from "@/lib/api";
+import type { DefenseAllowance, DefenseFormatInfo, PackOffer } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
@@ -356,6 +356,17 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const navigate = useNavigate();
   const [allowance, setAllowance] = useState<DefenseAllowance | null>(null);
   const [pack, setPack] = useState<PackOffer | null>(null);
+  const [formats, setFormats] = useState<DefenseFormatInfo[]>([]);
+  /** Remembered on this device, else guessed from the thesis's language. */
+  const [country, setCountry] = useState(() => {
+    try {
+      const saved = localStorage.getItem("mockio.defenseCountry");
+      if (saved) return saved;
+    } catch {
+      // Private mode: guessed every time.
+    }
+    return thesis.analysis.language === "pt" ? "BR" : "PE";
+  });
   const [buying, setBuying] = useState(false);
   const [packNotice, setPackNotice] = useState<string | null>(null);
   const [packError, setPackError] = useState<string | null>(null);
@@ -379,6 +390,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     fetchThesis()
       .then((result) => {
         if (result.pack && !cancelled) setPack(result.pack);
+        if (result.formats && !cancelled) setFormats(result.formats);
         if (result.allowance) apply(result.allowance);
       })
       .catch(() => apply({ credits: 0, freeLeft: 0 }));
@@ -436,7 +448,15 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
       // Private mode: asked again next time.
     }
     const stage = full ? "sustentacion-pe" : "sustentacion-express";
-    const language = thesis.analysis.language;
+    const format = formats.find((entry) => entry.country === country);
+    try {
+      localStorage.setItem("mockio.defenseCountry", country);
+    } catch {
+      // Private mode: guessed again next time.
+    }
+    // The country's language wins over the thesis's: a thesis written in
+    // Spanish and defended at a Brazilian university is defended in Portuguese.
+    const language = format?.language ?? thesis.analysis.language;
     navigate("/app/session", {
       state: {
         company: place || "Universidad",
@@ -444,9 +464,14 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         stage,
         stages: [stage],
         language,
-        bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : "es-PE",
+        bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : `es-${country}`,
         mode: "real",
-        defense: { university: place || "la universidad", difficulty },
+        defense: {
+          university: place || (language === "pt" ? "a universidade" : "la universidad"),
+          difficulty,
+          country,
+          ...(format ? { jurors: format.jurors } : {}),
+        },
       },
     });
   };
@@ -468,6 +493,24 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 text-base text-cream-bright placeholder:text-cream-faint"
         />
       </label>
+
+      {formats.length > 0 && (
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold text-cream-dim">{t("country")}</span>
+          <select
+            value={country}
+            onChange={(event) => setCountry(event.target.value)}
+            className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 text-base text-cream-bright"
+          >
+            {formats.map((format) => (
+              <option key={format.country} value={format.country}>
+                {format.countryName} · {format.scale.min}–{format.scale.max}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-cream-dim">{t("countryNote")}</span>
+        </label>
+      )}
 
       <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{t("difficulty")}</legend>
