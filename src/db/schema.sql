@@ -420,3 +420,19 @@ CREATE TABLE IF NOT EXISTS admin_audit (
 );
 
 CREATE INDEX IF NOT EXISTS admin_audit_at_idx ON admin_audit (at DESC);
+
+-- A thesis for the defence simulator, one per person.
+--
+-- `pages` is the text page by page, so a juror can say where a question comes
+-- from. `analysis` is the diagnosis written at upload. Unpublished work: it is
+-- read for this person's practice only, never for training, and the row is the
+-- whole of it — deleting it deletes everything.
+CREATE TABLE IF NOT EXISTS theses (
+  owner_id    TEXT PRIMARY KEY,
+  file_name   TEXT NOT NULL,
+  page_count  INTEGER NOT NULL,
+  approximate BOOLEAN NOT NULL DEFAULT false,
+  pages       JSONB NOT NULL,
+  analysis    JSONB NOT NULL,
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

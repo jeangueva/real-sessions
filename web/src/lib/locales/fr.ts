@@ -133,6 +133,8 @@ const FR: Record<MessageKey, string> = {
   "feedback.words": "Mots",
   "feedback.fillers": "Tics de langage",
   "feedback.fillerUnit": "/ 100 mots",
+  "nav.thesis": "Ma thèse",
+  "nav.thesisShort": "Thèse",
   "lang.frLabel": "Français · bientôt",
   "lang.frSoon": "Touchez et on vous prévient",
   "lang.frAsked": "✓ Noté. Nous vous préviendrons dès que c'est prêt.",

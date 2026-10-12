@@ -132,6 +132,8 @@ const TH: Record<MessageKey, string> = {
   "feedback.words": "คำ",
   "feedback.fillers": "คำเติม",
   "feedback.fillerUnit": "/ 100 คำ",
+  "nav.thesis": "วิทยานิพนธ์ของฉัน",
+  "nav.thesisShort": "วิทยานิพนธ์",
   "lang.frLabel": "Français · เร็วๆ นี้",
   "lang.frSoon": "แตะแล้วเราจะแจ้ง",
   "lang.frAsked": "✓ บันทึกแล้ว เราจะแจ้งเมื่อพร้อม",

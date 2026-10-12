@@ -1256,3 +1256,73 @@ export function savePreferences(preferences: Preferences) {
     }),
   );
 }
+
+/* ------------------------------------------------------------------------- */
+/* Sustentación: the thesis                                                  */
+/* ------------------------------------------------------------------------- */
+
+export interface ThesisCited {
+  text: string;
+  page: number | null;
+}
+
+/** Mirrors `ThesisAnalysisSchema` in src/thesis.ts. */
+export interface ThesisAnalysis {
+  title: string;
+  degree: "pregrado" | "maestria" | "doctorado" | "no-claro";
+  field: string;
+  language: "es" | "pt" | "en";
+  summary: string;
+  ficha: {
+    problem: ThesisCited;
+    general_objective: ThesisCited;
+    specific_objectives: ThesisCited[];
+    hypotheses: ThesisCited[];
+    variables: ThesisCited[];
+    design: ThesisCited;
+    population_sample: ThesisCited;
+    instruments: ThesisCited;
+    main_results: ThesisCited[];
+    conclusions: ThesisCited[];
+  };
+  consistency: {
+    objective: string;
+    hypothesis: string | null;
+    result: string | null;
+    conclusion: string | null;
+    status: "coherente" | "debil" | "incoherente";
+    note: string;
+  }[];
+  risks: {
+    area: string;
+    severity: "alta" | "media" | "baja";
+    issue: string;
+    page: number | null;
+    likely_question: string;
+  }[];
+  chapters: { name: string; page: number | null }[];
+}
+
+export interface StoredThesis {
+  fileName: string;
+  pageCount: number;
+  approximate: boolean;
+  analysis: ThesisAnalysis;
+  uploadedAt: string;
+}
+
+export function fetchThesis() {
+  return withIdentity(() => request<{ thesis: StoredThesis | null }>("/api/thesis", { method: "GET" }));
+}
+
+export function uploadThesis(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis }>("/api/thesis", { method: "POST", body: form }),
+  );
+}
+
+export function deleteThesis() {
+  return withIdentity(() => request<{ thesis: null }>("/api/thesis", { method: "DELETE" }));
+}

@@ -132,6 +132,8 @@ const AR: Record<MessageKey, string> = {
   "feedback.words": "الكلمات",
   "feedback.fillers": "كلمات الحشو",
   "feedback.fillerUnit": "/ 100 كلمة",
+  "nav.thesis": "أطروحتي",
+  "nav.thesisShort": "أطروحة",
   "lang.frLabel": "Français · قريبًا",
   "lang.frSoon": "اضغط وسنخبرك",
   "lang.frAsked": "✓ سجّلنا طلبك. سنخبرك عندما يصبح جاهزًا.",

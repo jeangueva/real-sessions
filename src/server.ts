@@ -183,6 +183,14 @@ import {
   type ContributionStore,
 } from "./contributions.js";
 import { extractText, kindFor, MAX_UPLOAD_BYTES, ExtractionError } from "./extract.js";
+import {
+  analyzeThesis,
+  createThesisStore,
+  extractPages,
+  MAX_THESIS_BYTES,
+  ThesisAnalysisError,
+  type ThesisStore,
+} from "./thesis.js";
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
 import { MAX_POSTING_CHARS } from "./prompts/interviewer.js";
@@ -281,6 +289,7 @@ let USERS: UserStore;
 let PROGRESS: ProgressStore;
 let PLANS: EntitlementStore;
 let PROFILES: ProfileStore;
+let THESES: ThesisStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
 let LIFECYCLE: LifecycleStore;
@@ -310,6 +319,8 @@ export interface ServerDependencies {
   progress: ProgressStore;
   plans: EntitlementStore;
   profiles: ProfileStore;
+  /** Optional so every existing test keeps its wiring; memory when absent. */
+  theses?: ThesisStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
   lifecycle: LifecycleStore;
@@ -341,6 +352,7 @@ export function configure(deps: ServerDependencies): void {
   PROGRESS = deps.progress;
   PLANS = deps.plans;
   PROFILES = deps.profiles;
+  THESES = deps.theses ?? createThesisStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
   LIFECYCLE = deps.lifecycle;
@@ -448,13 +460,15 @@ function json(res: ServerResponse, status: number, body: unknown): void {
  */
 async function readUpload(
   req: IncomingMessage,
+  limit = MAX_UPLOAD_BYTES,
 ): Promise<{ filename: string; contentType: string; data: Buffer } | null> {
+  const tooLarge = `That file is too large. The limit is ${Math.round(limit / 1024 / 1024)} MB.`;
   const type = req.headers["content-type"] ?? "";
   if (!type.includes("multipart/form-data")) return null;
 
   const declared = Number(req.headers["content-length"] ?? 0);
-  if (declared > MAX_UPLOAD_BYTES) {
-    throw new Error("That file is too large. The limit is 8 MB.");
+  if (declared > limit) {
+    throw new Error(tooLarge);
   }
 
   const chunks: Buffer[] = [];
@@ -463,8 +477,8 @@ async function readUpload(
     size += (chunk as Buffer).length;
     // Checked while reading as well as up front: content-length is a claim by
     // the client, not a guarantee.
-    if (size > MAX_UPLOAD_BYTES) {
-      throw new Error("That file is too large. The limit is 8 MB.");
+    if (size > limit) {
+      throw new Error(tooLarge);
     }
     chunks.push(chunk as Buffer);
   }
@@ -2240,6 +2254,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // rest with no way to reach it.
     await recordQuietly(PROGRESS.eraseOwner(identity.id));
     await recordQuietly(PROFILES.clear(identity.id));
+    await recordQuietly(THESES.delete(identity.id));
     await recordQuietly(PLANS.eraseOwner(identity.id));
     await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
     await recordQuietly(USERS.eraseOwner(identity.id));
@@ -2635,6 +2650,41 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   if (req.method === "GET" && path === "/api/plan") {
     json(res, 200, { plan, capabilities: can, reviewer: reviewer !== null });
+    return;
+  }
+
+  /**
+   * The thesis behind a defence simulation.
+   *
+   * Uploading reads it page by page and writes the diagnosis in the same
+   * request — a minute or two for a long one, which the client shows as a
+   * progress state. Doing it in the background would need a job queue to say
+   * "ready" later, and the person is waiting on this screen either way.
+   */
+  if (req.method === "GET" && path === "/api/thesis") {
+    json(res, 200, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/thesis") {
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+    const upload = await readUpload(req, MAX_THESIS_BYTES);
+    if (!upload) return json(res, 400, { error: "Adjunta tu tesis en PDF o Word (.docx)." });
+    const kind = kindFor(upload.filename, upload.contentType);
+    if (!kind) {
+      return json(res, 415, { error: "Podemos leer PDF y Word (.docx). Exporta tu tesis a uno de esos formatos." });
+    }
+    const pages = await extractPages(upload.data, kind);
+    const analysis = await analyzeThesis(pages, PROVIDER ? { provider: PROVIDER } : {});
+    await THESES.put(identity.id, upload.filename, pages, analysis);
+    json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /** One click, everything: the pages and the diagnosis. */
+  if (req.method === "DELETE" && path === "/api/thesis") {
+    await THESES.delete(identity.id);
+    json(res, 200, { thesis: null });
     return;
   }
 
@@ -3621,6 +3671,9 @@ export const server = createServer((req, res) => {
     if (error instanceof ExtractionError || error instanceof BriefError) {
       return json(res, 422, { error: error.message });
     }
+    if (error instanceof ThesisAnalysisError) {
+      return json(res, 502, { error: error.message });
+    }
     const message = error instanceof Error ? error.message : String(error);
     if (/Missing or empty field|too large|empty|already/i.test(message)) {
       return json(res, 400, { error: message });
@@ -3672,6 +3725,7 @@ configure({
   progress: createProgressStore(db),
   plans,
   profiles: createProfileStore(db),
+  theses: createThesisStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
   lifecycle: createLifecycleStore(db),

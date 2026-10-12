@@ -133,6 +133,8 @@ const IT: Record<MessageKey, string> = {
   "feedback.words": "Parole",
   "feedback.fillers": "Intercalari",
   "feedback.fillerUnit": "/ 100 parole",
+  "nav.thesis": "La mia tesi",
+  "nav.thesisShort": "Tesi",
   "lang.frLabel": "Français · in arrivo",
   "lang.frSoon": "Tocca e ti avvisiamo",
   "lang.frAsked": "✓ Segnato. Ti avvisiamo quando è pronto.",

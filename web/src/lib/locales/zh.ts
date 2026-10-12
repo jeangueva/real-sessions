@@ -132,6 +132,8 @@ const ZH: Record<MessageKey, string> = {
   "feedback.words": "词数",
   "feedback.fillers": "填充词",
   "feedback.fillerUnit": "/ 100 词",
+  "nav.thesis": "我的论文",
+  "nav.thesisShort": "论文",
   "lang.frLabel": "Français · 即将推出",
   "lang.frSoon": "点一下，上线时通知你",
   "lang.frAsked": "✓ 已记下。准备好后通知你。",

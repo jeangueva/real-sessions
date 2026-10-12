@@ -132,6 +132,8 @@ const RU: Record<MessageKey, string> = {
   "feedback.words": "Слова",
   "feedback.fillers": "Слова-паразиты",
   "feedback.fillerUnit": "/ 100 слов",
+  "nav.thesis": "Моя диссертация",
+  "nav.thesisShort": "Диплом",
   "lang.frLabel": "Français · скоро",
   "lang.frSoon": "Нажмите, и мы сообщим",
   "lang.frAsked": "✓ Записали. Сообщим, когда будет готово.",

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ScreenBoundary } from "./ScreenBoundary";
 import {
+  GraduationCap,
   Briefcase,
   FileUser,
   LogIn,
@@ -45,6 +46,13 @@ const NAV = [
     short: "nav.newShort" as const,
     icon: Play,
     end: true,
+  },
+  {
+    to: "/app/thesis",
+    key: "nav.thesis" as const,
+    short: "nav.thesisShort" as const,
+    icon: GraduationCap,
+    end: false,
   },
   {
     to: "/app/progress",

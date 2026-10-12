@@ -132,6 +132,8 @@ const JA: Record<MessageKey, string> = {
   "feedback.words": "語数",
   "feedback.fillers": "つなぎ言葉",
   "feedback.fillerUnit": "/ 100語",
+  "nav.thesis": "私の論文",
+  "nav.thesisShort": "論文",
   "lang.frLabel": "Français · 近日公開",
   "lang.frSoon": "タップで公開時にお知らせ",
   "lang.frAsked": "✓ 受け付けました。準備ができたらお知らせします。",

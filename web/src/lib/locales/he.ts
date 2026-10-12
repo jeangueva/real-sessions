@@ -132,6 +132,8 @@ const HE: Record<MessageKey, string> = {
   "feedback.words": "מילים",
   "feedback.fillers": "מילות מילוי",
   "feedback.fillerUnit": "/ 100 מילים",
+  "nav.thesis": "התזה שלי",
+  "nav.thesisShort": "תזה",
   "lang.frLabel": "Français · בקרוב",
   "lang.frSoon": "הקישו ונעדכן",
   "lang.frAsked": "✓ נרשם. נעדכן כשזה יהיה מוכן.",
