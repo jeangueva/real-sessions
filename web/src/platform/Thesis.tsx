@@ -10,6 +10,7 @@ import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
 import { DefenseDate } from "./DefenseDate";
 import { ShareRealQuestions } from "./ShareRealQuestions";
+import { AdvisorCard } from "./AdvisorCard";
 
 const ACCEPT = ".pdf,.docx";
 
@@ -279,6 +280,7 @@ function Diagnosis({
       <Rehearse thesis={thesis} />
       <Ficha analysis={a} />
       <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
+      <AdvisorCard />
       <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
       <Privacy />
     </>

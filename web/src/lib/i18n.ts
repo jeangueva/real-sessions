@@ -214,6 +214,7 @@ const EN = {
   "feedback.words": "Words",
   "feedback.fillers": "Fillers",
   "feedback.fillerUnit": "/ 100 words",
+  "nav.advisor": "For advisors",
   "nav.thesis": "My thesis",
   "nav.thesisShort": "Thesis",
   "lang.frLabel": "Français · coming soon",

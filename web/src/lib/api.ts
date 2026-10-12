@@ -1498,3 +1498,71 @@ export function decideDefenseQuestion(id: number, status: "verified" | "rejected
     }),
   );
 }
+
+/* ------------------------------------------------------------------------- */
+/* Advisors                                                                  */
+/* ------------------------------------------------------------------------- */
+
+export interface AdvisorLinkInfo {
+  code: string;
+  advisorName: string;
+  share: boolean;
+}
+
+export interface AdvisorDashboard {
+  advisor: { ownerId: string; code: string; name: string; createdAt: string } | null;
+  link?: string;
+  linked?: number;
+  students?: {
+    name: string | null;
+    thesis: string | null;
+    defenseDate: string | null;
+    rehearsals: number;
+    lastScore: number | null;
+    firstScore: number | null;
+    lastAt: string | null;
+  }[];
+  commissions?: { count: number; pending: number; paid: number; currency: string; rate: number };
+}
+
+export function fetchAdvisor() {
+  return withIdentity(() => request<AdvisorDashboard>("/api/advisor", { method: "GET" }));
+}
+
+export function becomeAdvisor(name: string) {
+  return withIdentity(() =>
+    request<{ advisor: NonNullable<AdvisorDashboard["advisor"]> }>("/api/advisor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    }),
+  );
+}
+
+export function fetchAdvisorLink() {
+  return withIdentity(() => request<{ link: AdvisorLinkInfo | null }>("/api/advisor/link", { method: "GET" }));
+}
+
+export function linkAdvisor(code: string, share: boolean, replace = false) {
+  return withIdentity(() =>
+    request<{ link: AdvisorLinkInfo | null }>("/api/advisor/link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, share, replace }),
+    }),
+  );
+}
+
+export function shareWithAdvisor(share: boolean) {
+  return withIdentity(() =>
+    request<{ link: AdvisorLinkInfo | null }>("/api/advisor/link", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ share }),
+    }),
+  );
+}
+
+export function unlinkAdvisor() {
+  return withIdentity(() => request<{ link: null }>("/api/advisor/link", { method: "DELETE" }));
+}

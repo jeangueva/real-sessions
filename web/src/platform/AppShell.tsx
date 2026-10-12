@@ -13,7 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { fetchPlan, fetchPreferences, fetchSession, signOut } from "@/lib/api";
+import { fetchPlan, fetchPreferences, fetchSession, linkAdvisor, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import { Mark, PremiumMark, Wordmark } from "@/design-system";
@@ -88,6 +88,11 @@ const ACCOUNT = [
     icon: FileUser,
   },
   {
+    to: "/app/advisor",
+    key: "nav.advisor" as const,
+    icon: GraduationCap,
+  },
+  {
     to: "/app/settings",
     key: "nav.settings" as const,
     icon: Settings,
@@ -96,6 +101,26 @@ const ACCOUNT = [
 
 export function AppShell() {
   const t = useT();
+  // A student who arrived through an advisor's link is linked on their first
+  // visit inside the app — linked only: sharing progress is theirs to choose.
+  useEffect(() => {
+    let code: string | null = null;
+    try {
+      code = localStorage.getItem("mockio.advisorRef");
+    } catch {
+      return;
+    }
+    if (!code) return;
+    linkAdvisor(code, false)
+      .catch(() => undefined)
+      .finally(() => {
+        try {
+          localStorage.removeItem("mockio.advisorRef");
+        } catch {
+          // Nothing to clean up in private mode.
+        }
+      });
+  }, []);
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const location = useLocation();

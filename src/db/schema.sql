@@ -479,3 +479,30 @@ CREATE TABLE IF NOT EXISTS defense_questions (
   UNIQUE (university_key, question)
 );
 CREATE INDEX IF NOT EXISTS defense_questions_key_idx ON defense_questions (university_key, status);
+
+-- Thesis advisors and the students linked to them. A link records who
+-- brought the student (for the commission) and, separately, whether the
+-- student shares their progress with that advisor.
+CREATE TABLE IF NOT EXISTS advisors (
+  owner_id   TEXT PRIMARY KEY,
+  code       TEXT NOT NULL UNIQUE,
+  name       TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS advisor_links (
+  student_id   TEXT PRIMARY KEY,
+  advisor_code TEXT NOT NULL,
+  share        BOOLEAN NOT NULL DEFAULT false,
+  linked_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS advisor_links_code_idx ON advisor_links (advisor_code);
+-- One row per payment that earns a commission; paid_at is set when it is paid out.
+CREATE TABLE IF NOT EXISTS advisor_commissions (
+  payment_id   TEXT PRIMARY KEY,
+  advisor_code TEXT NOT NULL,
+  student_id   TEXT NOT NULL,
+  amount       NUMERIC(10, 2) NOT NULL,
+  currency     TEXT NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  paid_at      TIMESTAMPTZ
+);

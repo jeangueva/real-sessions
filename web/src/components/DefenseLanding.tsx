@@ -28,6 +28,11 @@ import { useLocale } from "@/hooks/useLocale";
  * defence screens; any other interface language reads the English.
  */
 const ES = {
+  advisorTitle: "¿Eres asesor de tesis?",
+  advisorBody: "Recomienda Mockio a tus tesistas con tu código: ves su avance (si ellos lo comparten) y ganas el 30% de cada compra.",
+  advisorCta: "Crear mi código de asesor",
+  institutionTitle: "¿Escuela de posgrado o facultad?",
+  institutionBody: "Licencias por cohorte, rúbrica propia e informes por alumno. Escríbenos y te enviamos una propuesta.",
   navHow: "Cómo funciona",
   navPanel: "El jurado",
   navPricing: "Precios",
@@ -93,6 +98,11 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  advisorTitle: "Você é orientador?",
+  advisorBody: "Recomende o Mockio aos seus orientandos com seu código: você acompanha o progresso (se eles compartilharem) e ganha 30% de cada compra.",
+  advisorCta: "Criar meu código",
+  institutionTitle: "Programa de pós-graduação ou faculdade?",
+  institutionBody: "Licenças por turma, rubrica própria e relatórios por aluno. Escreva e enviamos uma proposta.",
   navHow: "Como funciona",
   navPanel: "A banca",
   navPricing: "Preços",
@@ -156,6 +166,11 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  advisorTitle: "Are you a thesis advisor?",
+  advisorBody: "Recommend Mockio to your students with your code: follow their progress (if they share it) and earn 30% of every purchase.",
+  advisorCta: "Create my advisor code",
+  institutionTitle: "A graduate school or faculty?",
+  institutionBody: "Licences per cohort, your own rubric and reports per student. Write to us for a proposal.",
   navHow: "How it works",
   navPanel: "The panel",
   navPricing: "Pricing",
@@ -224,6 +239,18 @@ export function DefenseLanding() {
   const { locale } = useLocale();
   const c = BY_LOCALE[locale] ?? EN;
   const start = "/app/thesis";
+
+  // An advisor's link: remembered until the student is inside the app, where
+  // the link is made. Only a well-formed code is kept.
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("asesor")?.trim().toUpperCase();
+    if (!code || !/^[A-Z0-9]{6}$/.test(code)) return;
+    try {
+      localStorage.setItem("mockio.advisorRef", code);
+    } catch {
+      // Private mode: the student can still type the code later.
+    }
+  }, []);
 
   // The tab and the search result say what this page is, not the old one.
   useEffect(() => {
@@ -444,6 +471,34 @@ export function DefenseLanding() {
               >
                 {c.ladderCta}
               </Link>
+            </Panel>
+          </FadeRise>
+        </div>
+      </Section>
+
+      {/* The two channels beyond the student: the advisor who recommends it,
+          and the school that buys it for a cohort. */}
+      <Section>
+        <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2 [&>*]:min-w-0">
+          <FadeRise>
+            <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
+              <h2 className="text-lg font-semibold text-cream-bright">{c.advisorTitle}</h2>
+              <p className="text-sm text-cream-dim">{c.advisorBody}</p>
+              <Link to="/app/advisor" className="mt-auto">
+                <Action withArrow>{c.advisorCta}</Action>
+              </Link>
+            </Panel>
+          </FadeRise>
+          <FadeRise delay={0.08}>
+            <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
+              <h2 className="text-lg font-semibold text-cream-bright">{c.institutionTitle}</h2>
+              <p className="text-sm text-cream-dim">{c.institutionBody}</p>
+              <a
+                href="mailto:hello@getmockio.com?subject=Mockio%20Sustentaci%C3%B3n%20%E2%80%94%20instituci%C3%B3n"
+                className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline underline-offset-4"
+              >
+                hello@getmockio.com
+              </a>
             </Panel>
           </FadeRise>
         </div>

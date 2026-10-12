@@ -132,6 +132,7 @@ const DE: Record<MessageKey, string> = {
   "feedback.words": "Wörter",
   "feedback.fillers": "Füllwörter",
   "feedback.fillerUnit": "/ 100 Wörter",
+  "nav.advisor": "Für Betreuende",
   "nav.thesis": "Meine Abschlussarbeit",
   "nav.thesisShort": "Arbeit",
   "lang.frLabel": "Français · bald verfügbar",

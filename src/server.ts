@@ -196,6 +196,7 @@ import {
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
+import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore } from "./advisors.js";
 import { createDefenseQuestionStore, universityKey, type DefenseQuestionStore } from "./defense-questions.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import {
@@ -271,7 +272,23 @@ async function settlePackPayment(paymentId: string, expectedOwner?: string): Pro
   // Paid what that offer costs, in its currency: a preference is ours, but
   // the check is cheap and keeps a misconfigured price from granting a pass.
   if (payment.currency !== PACK_CURRENCY || payment.amount + 0.001 < PACK_KINDS[kind].amount) return "not-ours";
-  return (await PACKS.grant(ownerId, payment.id, kind)) ? "granted" : "already";
+  const granted = await PACKS.grant(ownerId, payment.id, kind);
+  // The advisor who brought this student earns their share of it. Quiet on
+  // failure: a missed commission is fixed by hand, a failed grant is not.
+  if (granted) {
+    const link = await readQuietly(ADVISORS.linkOf(ownerId), null);
+    if (link) {
+      await recordQuietly(
+        ADVISORS.recordCommission(link.code, {
+          paymentId: payment.id,
+          studentId: ownerId,
+          amount: Math.round(payment.amount * COMMISSION_RATE * 100) / 100,
+          currency: payment.currency,
+        }),
+      );
+    }
+  }
+  return granted ? "granted" : "already";
 }
 
 const DEFENSE_MODEL = process.env.REALSESSIONS_DEFENSE_MODEL ?? "anthropic/claude-sonnet-5";
@@ -383,6 +400,7 @@ let PROFILES: ProfileStore;
 let THESES: ThesisStore;
 let PACKS: DefensePackStore;
 let REAL_QUESTIONS: DefenseQuestionStore;
+let ADVISORS: AdvisorStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
 let LIFECYCLE: LifecycleStore;
@@ -416,6 +434,7 @@ export interface ServerDependencies {
   theses?: ThesisStore;
   packs?: DefensePackStore;
   realQuestions?: DefenseQuestionStore;
+  advisors?: AdvisorStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
   lifecycle: LifecycleStore;
@@ -450,6 +469,7 @@ export function configure(deps: ServerDependencies): void {
   THESES = deps.theses ?? createThesisStore(null);
   PACKS = deps.packs ?? createDefensePackStore(null);
   REAL_QUESTIONS = deps.realQuestions ?? createDefenseQuestionStore(null);
+  ADVISORS = deps.advisors ?? createAdvisorStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
   LIFECYCLE = deps.lifecycle;
@@ -2411,6 +2431,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await recordQuietly(PROFILES.clear(identity.id));
     await recordQuietly(THESES.delete(identity.id));
     await recordQuietly(PACKS.eraseOwner(identity.id));
+    await recordQuietly(ADVISORS.eraseOwner(identity.id));
     await recordQuietly(PLANS.eraseOwner(identity.id));
     await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
     await recordQuietly(USERS.eraseOwner(identity.id));
@@ -2987,6 +3008,101 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "DELETE" && path === "/api/thesis") {
     await THESES.delete(identity.id);
     json(res, 200, { thesis: null });
+    return;
+  }
+
+  /**
+   * Advisors: their own page, and the students linked to them.
+   *
+   * What an advisor sees of a student is limited to what the student chose to
+   * share, and to the thesis work itself — never transcripts, never an email.
+   */
+  if (req.method === "GET" && path === "/api/advisor") {
+    const advisor = await ADVISORS.get(identity.id);
+    if (!advisor) return json(res, 200, { advisor: null });
+    const links = await ADVISORS.students(advisor.code);
+    const students = await Promise.all(
+      links
+        .filter((link) => link.share)
+        .map(async (link) => {
+          const [thesis, sessions, preferences] = await Promise.all([
+            readQuietly(THESES.get(link.studentId), null),
+            readQuietly(PROGRESS.listSessions(link.studentId), []),
+            readQuietly(USERS.getPreferences(link.studentId), null),
+          ]);
+          const defences = sessions.filter((entry) => entry.stage.startsWith("Sustentación"));
+          const graded = defences.filter((entry) => entry.score !== null);
+          return {
+            name: preferences?.candidateName?.trim().split(/\s+/)[0] || null,
+            thesis: thesis?.analysis.title ?? null,
+            defenseDate: thesis?.defenseDate ?? null,
+            rehearsals: defences.length,
+            lastScore: graded[0]?.score ?? null,
+            firstScore: graded.at(-1)?.score ?? null,
+            lastAt: defences[0]?.startedAt ?? null,
+          };
+        }),
+    );
+    const earned = await ADVISORS.commissions(advisor.code);
+    json(res, 200, {
+      advisor,
+      link: `${siteUrl()}/?asesor=${advisor.code}`,
+      linked: links.length,
+      students,
+      commissions: {
+        count: earned.length,
+        pending: earned.filter((entry) => !entry.paidAt).reduce((sum, entry) => sum + entry.amount, 0),
+        paid: earned.filter((entry) => entry.paidAt).reduce((sum, entry) => sum + entry.amount, 0),
+        currency: earned[0]?.currency ?? PACK_CURRENCY,
+        rate: COMMISSION_RATE,
+      },
+    });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/advisor") {
+    const account = identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
+    if (!account) return json(res, 403, { error: "Crea una cuenta para tener tu código de asesor." });
+    const body = await readJson(req);
+    const name = typeof body["name"] === "string" ? body["name"].trim().slice(0, 80) : "";
+    if (name.length < 3) return json(res, 400, { error: "Escribe tu nombre como lo conocen tus alumnos." });
+    json(res, 201, { advisor: await ADVISORS.create(identity.id, name) });
+    return;
+  }
+
+  /** The student's side: their advisor, and whether they share their progress. */
+  if (req.method === "GET" && path === "/api/advisor/link") {
+    const link = await ADVISORS.linkOf(identity.id);
+    const advisor = link ? await ADVISORS.byCode(link.code) : null;
+    json(res, 200, { link: link && advisor ? { code: link.code, advisorName: advisor.name, share: link.share } : null });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/api/advisor/link") {
+    const body = await readJson(req);
+    const code = normalizeCode(body["code"]);
+    const advisor = code ? await ADVISORS.byCode(code) : null;
+    if (!code || !advisor) return json(res, 404, { error: "Ese código de asesor no existe." });
+    if (advisor.ownerId === identity.id) return json(res, 400, { error: "Ese es tu propio código." });
+    // From a link the student just followed: linked, not sharing. Typed in on
+    // purpose, with the share box ticked: the student's choice on both.
+    const share = body["share"] === true;
+    const link = await ADVISORS.link(identity.id, code, share, body["replace"] === true);
+    json(res, 200, { link: link ? { code: link.code, advisorName: advisor.name, share: link.share } : null });
+    return;
+  }
+
+  if (req.method === "PUT" && path === "/api/advisor/link") {
+    await ADVISORS.setShare(identity.id, (await readJson(req))["share"] === true);
+    const link = await ADVISORS.linkOf(identity.id);
+    const advisor = link ? await ADVISORS.byCode(link.code) : null;
+    json(res, 200, { link: link && advisor ? { code: link.code, advisorName: advisor.name, share: link.share } : null });
+    return;
+  }
+
+  if (req.method === "DELETE" && path === "/api/advisor/link") {
+    await ADVISORS.unlink(identity.id);
+    json(res, 200, { link: null });
     return;
   }
 
@@ -4139,6 +4255,7 @@ configure({
   theses: createThesisStore(db),
   packs: createDefensePackStore(db),
   realQuestions: createDefenseQuestionStore(db),
+  advisors: createAdvisorStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
   lifecycle: createLifecycleStore(db),
