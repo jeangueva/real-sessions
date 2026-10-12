@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, FileText, Loader2, Lock, ShieldCheck, Trash2, Upload } from "lucide-react";
-import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
+import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
+import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
 import type { DefenseAllowance, DefenseFormatInfo, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
@@ -164,128 +164,179 @@ function Diagnosis({
   const severityOrder = { alta: 0, media: 1, baja: 2 };
   const risks = [...a.risks].sort((x, y) => severityOrder[x.severity] - severityOrder[y.severity]);
 
+  const [tab, setTab] = useState<ThesisTab>(() => {
+    const hash = window.location.hash.slice(1);
+    return (TABS as readonly string[]).includes(hash) ? (hash as ThesisTab) : "ensayar";
+  });
+  const go = (next: ThesisTab) => {
+    setTab(next);
+    window.history.replaceState(null, "", `#${next}`);
+  };
+  const serious = risks.filter((risk) => risk.severity === "alta").length;
+
   return (
     <>
-      {/* What was read: so the student knows it is their thesis, whole. */}
-      <FadeRise>
-        <Panel variant="raised" className="flex flex-col gap-4 p-6 sm:p-8">
-          <div className="flex items-start gap-3">
-            <FileText aria-hidden className="mt-1 h-5 w-5 shrink-0 text-accent-text" />
-            <div className="min-w-0">
-              <h2 className="text-balance text-title font-semibold text-cream-bright">{a.title}</h2>
-              <p className="mt-1 text-sm text-cream-dim">
-                {thesis.fileName} · {t("pages", { count: thesis.pageCount })}
-                {thesis.approximate && ` · ${t("approx")}`} · {a.field}
-              </p>
-            </div>
+      {/* The thesis in one compact card: what was read, when it is defended,
+          and the two file actions as small buttons — not a page of its own. */}
+      <Panel variant="raised" className="flex flex-col gap-3 p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <FileText aria-hidden className="mt-1 h-5 w-5 shrink-0 text-accent-text" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-balance text-lg font-semibold leading-snug text-cream-bright">{a.title}</h2>
+            <p className="mt-0.5 text-xs text-cream-dim">
+              {thesis.fileName} · {t("pages", { count: thesis.pageCount })} · {a.field}
+            </p>
           </div>
-          <p className="max-w-prose text-base leading-relaxed text-cream">{a.summary}</p>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* The rehearsal itself arrives with the panel; until then the
-                diagnosis is the product. */}
+          <div className="flex shrink-0 gap-1">
             <button
               type="button"
               onClick={onReplace}
-              className="focus-ring inline-flex items-center gap-2 rounded-full bg-surface-card px-4 py-2 text-sm font-semibold text-cream-bright shadow-card transition-transform duration-150 active:scale-[0.97]"
+              title={t("replace")}
+              aria-label={t("replace")}
+              className="focus-ring grid h-9 w-9 place-items-center rounded-full bg-surface-lift text-cream-bright active:scale-[0.95]"
             >
               <Upload aria-hidden className="h-4 w-4" />
-              {t("replace")}
             </button>
             <button
               type="button"
               onClick={onDelete}
-              className="focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-step-text transition-transform duration-150 active:scale-[0.97]"
+              title={t("delete")}
+              aria-label={t("delete")}
+              className="focus-ring grid h-9 w-9 place-items-center rounded-full bg-surface-lift text-step-text active:scale-[0.95]"
             >
               <Trash2 aria-hidden className="h-4 w-4" />
-              {t("delete")}
             </button>
           </div>
-        </Panel>
-      </FadeRise>
-
-      <DefenseDate thesis={thesis} onChange={onChange} />
-
-      <section aria-labelledby="risks" className="flex flex-col gap-3">
-        <div>
-          <Eyebrow>
-            <span id="risks">{t("risksTitle")}</span>
-          </Eyebrow>
-          <p className="mt-1 text-sm text-cream-dim">{t("risksBody")}</p>
         </div>
-        <ol className="flex flex-col gap-3">
-          {risks.map((risk, index) => (
-            <li key={index}>
-              <Panel className="flex flex-col gap-2 p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${SEVERITY[risk.severity].tone}`}>
-                    {t(SEVERITY[risk.severity].key)}
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-cream-dim">
-                    {risk.area.replace("-", " ")}
-                  </span>
-                  <PageRef page={risk.page} />
-                </div>
-                <p className="text-base text-cream-bright">{risk.issue}</p>
-                <p className="flex gap-2 rounded-2xl bg-surface-lift px-4 py-3 text-sm text-cream">
-                  <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" />
-                  <span>
-                    <span className="font-semibold">{t("likely")}: </span>“{risk.likely_question}”
-                  </span>
-                </p>
-              </Panel>
-            </li>
-          ))}
-        </ol>
-      </section>
+        <details className="group">
+          <summary className="cursor-pointer list-none text-sm text-cream">
+            <span className="line-clamp-2 group-open:line-clamp-none">{a.summary}</span>
+          </summary>
+        </details>
+        <DefenseDate thesis={thesis} onChange={onChange} />
+      </Panel>
 
-      {a.consistency.length > 0 && (
-        <section aria-labelledby="matrix" className="flex flex-col gap-3">
-          <div>
-            <Eyebrow>
-              <span id="matrix">{t("matrixTitle")}</span>
-            </Eyebrow>
-            <p className="mt-1 text-sm text-cream-dim">{t("matrixBody")}</p>
-          </div>
-          <div className="flex flex-col gap-3">
-            {a.consistency.map((row, index) => (
-              <Panel key={index} className="flex flex-col gap-3 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="font-semibold text-cream-bright">{row.objective}</p>
-                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS[row.status].tone}`}>
-                    {t(STATUS[row.status].key)}
-                  </span>
-                </div>
-                <dl className="grid gap-2 text-sm sm:grid-cols-3">
-                  {(
-                    [
-                      ["hypothesis", row.hypothesis],
-                      ["result", row.result],
-                      ["conclusion", row.conclusion],
-                    ] as const
-                  ).map(([label, value]) => (
-                    <div key={label} className="min-w-0">
-                      <dt className="text-xs font-semibold text-cream-dim">{t(label)}</dt>
-                      <dd className={value ? "text-cream" : "italic text-step-text"}>{value ?? t("none")}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p className="text-sm text-cream-dim">{row.note}</p>
-              </Panel>
-            ))}
-          </div>
-        </section>
+      {/* Four tabs instead of one long page: each fits a screen. */}
+      <div role="tablist" aria-label={t("title")} className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        {TABS.map((entry) => (
+          <button
+            key={entry}
+            type="button"
+            role="tab"
+            aria-selected={tab === entry}
+            onClick={() => go(entry)}
+            className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+              tab === entry ? "bg-cream-bright text-surface-base" : "bg-surface-card text-cream-dim shadow-card hover:text-cream-bright"
+            }`}
+          >
+            {t(TAB_LABEL[entry])}
+            {entry === "diagnostico" && serious > 0 && (
+              <span className="rounded-full bg-step-soft px-1.5 text-xs text-step-text">{serious}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {tab === "ensayar" && <Rehearse thesis={thesis} />}
+
+      {tab === "diagnostico" && (
+        <div className="flex flex-col gap-4">
+          <section aria-labelledby="risks" className="flex flex-col gap-2">
+            <p id="risks" className="text-sm font-semibold text-cream-bright">
+              {t("risksTitle")}
+            </p>
+            {/* One line per risk; the likely question opens on tap. */}
+            <ol className="flex flex-col gap-2">
+              {risks.map((risk, index) => (
+                <li key={index}>
+                  <details className="group rounded-2xl bg-surface-card shadow-card">
+                    <summary className="focus-ring flex cursor-pointer list-none items-start gap-2 rounded-2xl p-3.5">
+                      <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY[risk.severity].tone}`}>
+                        {t(SEVERITY[risk.severity].key)}
+                      </span>
+                      <span className="min-w-0 flex-1 text-sm text-cream-bright">
+                        <span className="line-clamp-2 group-open:line-clamp-none">{risk.issue}</span>
+                      </span>
+                      <PageRef page={risk.page} />
+                    </summary>
+                    <p className="mx-3.5 mb-3.5 flex gap-2 rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream">
+                      <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" />
+                      <span>
+                        <span className="font-semibold">{t("likely")}: </span>“{risk.likely_question}”
+                      </span>
+                    </p>
+                  </details>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {a.consistency.length > 0 && (
+            <section aria-labelledby="matrix" className="flex flex-col gap-2">
+              <p id="matrix" className="text-sm font-semibold text-cream-bright">
+                {t("matrixTitle")}
+              </p>
+              <ul className="flex flex-col gap-2">
+                {a.consistency.map((row, index) => (
+                  <li key={index}>
+                    <details className="group rounded-2xl bg-surface-card shadow-card">
+                      <summary className="focus-ring flex cursor-pointer list-none items-start justify-between gap-3 rounded-2xl p-3.5">
+                        <span className="min-w-0 text-sm text-cream-bright">
+                          <span className="line-clamp-1 group-open:line-clamp-none">{row.objective}</span>
+                        </span>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS[row.status].tone}`}>
+                          {t(STATUS[row.status].key)}
+                        </span>
+                      </summary>
+                      <div className="flex flex-col gap-2 px-3.5 pb-3.5">
+                        <dl className="grid gap-2 text-sm sm:grid-cols-3">
+                          {(
+                            [
+                              ["hypothesis", row.hypothesis],
+                              ["result", row.result],
+                              ["conclusion", row.conclusion],
+                            ] as const
+                          ).map(([label, value]) => (
+                            <div key={label} className="min-w-0">
+                              <dt className="text-xs font-semibold text-cream-dim">{t(label)}</dt>
+                              <dd className={value ? "text-cream" : "italic text-step-text"}>{value ?? t("none")}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                        <p className="text-xs text-cream-dim">{row.note}</p>
+                      </div>
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <Ficha analysis={a} />
+        </div>
       )}
 
-      <ThesisSlides thesis={thesis} onChange={onChange} />
-      <Rehearse thesis={thesis} />
-      <Ficha analysis={a} />
-      <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
-      <AdvisorCard />
-      <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
-      <Privacy />
+      {tab === "diapositivas" && <ThesisSlides thesis={thesis} onChange={onChange} />}
+
+      {tab === "mas" && (
+        <div className="flex flex-col gap-3">
+          <AdvisorCard />
+          <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
+          <Privacy />
+          <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
+        </div>
+      )}
     </>
   );
 }
+
+const TABS = ["ensayar", "diagnostico", "diapositivas", "mas"] as const;
+type ThesisTab = (typeof TABS)[number];
+const TAB_LABEL = {
+  ensayar: "tabRehearse",
+  diagnostico: "tabDiagnosis",
+  diapositivas: "tabSlides",
+  mas: "tabMore",
+} as const;
 
 function Ficha({ analysis }: { analysis: ThesisAnalysis }) {
   const t = useThesisT();
@@ -512,98 +563,114 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     });
   };
 
+  const select =
+    "focus-ring w-full rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream-bright disabled:opacity-50";
+  const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
+  const locked = (entry: string) => entry !== "completa" && !allowance?.modes;
+
   return (
-    <Panel variant="raised" className="flex flex-col gap-5 p-6 sm:p-8">
-      <div>
-        <h2 className="text-title font-semibold text-cream-bright">{t("rehearseTitle")}</h2>
-        <p className="mt-1 max-w-prose text-sm text-cream-dim">{t("rehearseBody")}</p>
-      </div>
-
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold text-cream-dim">{t("university")}</span>
-        <input
-          value={university}
-          onChange={(event) => setUniversity(event.target.value)}
-          placeholder={t("universityPlaceholder")}
-          maxLength={120}
-          className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 text-base text-cream-bright placeholder:text-cream-faint"
-        />
-      </label>
-
-      {realCount > 0 && <p className="-mt-3 text-xs text-grow-text">{t("realQuestions", { count: realCount })}</p>}
-
-      {formats.length > 0 && (
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-cream-dim">{t("country")}</span>
-          <select
-            value={country}
-            onChange={(event) => setCountry(event.target.value)}
-            className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 text-base text-cream-bright"
-          >
-            {formats.map((format) => (
-              <option key={format.country} value={format.country}>
-                {format.countryName} · {format.scale.min}–{format.scale.max}
+    <Panel variant="raised" className="flex flex-col gap-4 p-5 sm:p-6">
+      {/* Where and how — one compact grid instead of a column of chip rows,
+          so the whole form and its button fit on one screen. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className={label}>
+          {t("university")}
+          <input
+            value={university}
+            onChange={(event) => setUniversity(event.target.value)}
+            placeholder={t("universityPlaceholder")}
+            maxLength={120}
+            className={`${select} placeholder:text-cream-faint`}
+          />
+          {realCount > 0 && <span className="font-normal text-grow-text">{t("realQuestions", { count: realCount })}</span>}
+        </label>
+        {formats.length > 0 && (
+          <label className={label}>
+            {t("country")}
+            <select value={country} onChange={(event) => setCountry(event.target.value)} className={select}>
+              {formats.map((format) => (
+                <option key={format.country} value={format.country}>
+                  {format.countryName} · {format.scale.min}–{format.scale.max}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label className={label}>
+          {t("difficulty")}
+          <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as Difficulty)} className={select}>
+            {(Object.keys(DIFFICULTY_LABEL) as Difficulty[]).map((entry) => (
+              <option key={entry} value={entry}>
+                {t(DIFFICULTY_LABEL[entry])}
               </option>
             ))}
           </select>
-          <span className="text-xs text-cream-dim">{t("countryNote")}</span>
         </label>
-      )}
-
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{t("difficulty")}</legend>
-        <div className="flex flex-wrap gap-2">
-          {(Object.keys(DIFFICULTY_LABEL) as Difficulty[]).map((entry) => (
-            <button
-              key={entry}
-              type="button"
-              aria-pressed={difficulty === entry}
-              onClick={() => setDifficulty(entry)}
-              className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
-                difficulty === entry ? "bg-cream-bright text-surface-base" : "bg-surface-lift text-cream-dim hover:text-cream-bright"
-              }`}
-            >
-              {t(DIFFICULTY_LABEL[entry])}
-            </button>
-          ))}
+        <label className={label}>
+          {t("mode")}
+          <select value={focus} onChange={(event) => setFocus(event.target.value as Focus)} className={select}>
+            {FOCUS_OPTIONS.map((entry) => (
+              <option key={entry} value={entry} disabled={locked(entry)}>
+                {locked(entry) ? "🔒 " : ""}
+                {t(FOCUS_LABEL[entry])}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={label}>
+          {t("setting")}
+          <select
+            value={setting ?? ""}
+            onChange={(event) => setSetting(event.target.value === "" ? null : (event.target.value as "presencial" | "virtual"))}
+            className={select}
+          >
+            <option value="">{t("settingAny")}</option>
+            <option value="presencial" disabled={!allowance?.modes}>
+              {!allowance?.modes ? "🔒 " : ""}
+              {t("settingPresencial")}
+            </option>
+            <option value="virtual" disabled={!allowance?.modes}>
+              {!allowance?.modes ? "🔒 " : ""}
+              {t("settingVirtual")}
+            </option>
+          </select>
+        </label>
+        {/* Express or the full panel, side by side. */}
+        <div className={label}>
+          {t("panelChoice")}
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-lift p-1">
+            {([false, true] as const).map((option) => (
+              <button
+                key={String(option)}
+                type="button"
+                aria-pressed={full === option}
+                disabled={option && allowance !== null && !hasCredits}
+                onClick={() => setFull(option)}
+                className={`focus-ring rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  full === option ? "bg-surface-card text-cream-bright shadow-card" : "text-cream-dim"
+                }`}
+              >
+                {t(option ? "fullShort" : "expressShort")}
+              </button>
+            ))}
+          </div>
         </div>
-      </fieldset>
+      </div>
 
-      <Chips
-        label={t("mode")}
-        options={FOCUS_OPTIONS.map((entry) => ({
-          value: entry,
-          label: t(FOCUS_LABEL[entry]),
-          locked: entry !== "completa" && !allowance?.modes,
-        }))}
-        value={focus}
-        onChange={(value) => setFocus(value as Focus)}
-      />
       {needsMaterial && (
         <textarea
           value={material}
           onChange={(event) => setMaterial(event.target.value)}
-          rows={6}
+          rows={4}
           maxLength={20_000}
           placeholder={t(focus === "estadistica" ? "materialStats" : "materialObs")}
-          className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 font-mono text-sm text-cream-bright placeholder:font-sans placeholder:text-cream-faint"
+          className="focus-ring rounded-xl bg-surface-lift px-3 py-2.5 font-mono text-sm text-cream-bright placeholder:font-sans placeholder:text-cream-faint"
         />
       )}
-      <Chips
-        label={t("setting")}
-        options={[
-          { value: "", label: t("settingAny"), locked: false },
-          { value: "presencial", label: t("settingPresencial"), locked: !allowance?.modes },
-          { value: "virtual", label: t("settingVirtual"), locked: !allowance?.modes },
-        ]}
-        value={setting ?? ""}
-        onChange={(value) => setSetting(value === "" ? null : (value as "presencial" | "virtual"))}
-      />
-      {allowance && !allowance.modes && <p className="-mt-3 text-xs text-cream-dim">{t("modesLocked")}</p>}
 
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{t("members")}</legend>
-        {allowance?.group ? (
+      {allowance?.group && (
+        <div className={label}>
+          {t("members")}
           <div className="grid gap-2 sm:grid-cols-3">
             {members.map((entry, index) => (
               <input
@@ -614,61 +681,43 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
                   setMembers((current) => current.map((value, at) => (at === index ? event.target.value : value)))
                 }
                 placeholder={t("memberPlaceholder", { n: index + 1 })}
-                className="focus-ring rounded-2xl bg-surface-lift px-4 py-2.5 text-sm text-cream-bright placeholder:text-cream-faint"
+                className={`${select} placeholder:text-cream-faint`}
               />
             ))}
           </div>
-        ) : (
-          <p className="text-xs text-cream-dim">{t("groupLocked")}</p>
-        )}
-      </fieldset>
+        </div>
+      )}
 
-      <div className="flex flex-col gap-2">
-        {([false, true] as const).map((option) => (
-          <button
-            key={String(option)}
-            type="button"
-            aria-pressed={full === option}
-            disabled={option && allowance !== null && !hasCredits}
-            onClick={() => setFull(option)}
-            className={`focus-ring flex items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              full === option ? "bg-surface-lift text-cream-bright ring-2 ring-accent" : "bg-surface-card text-cream-dim shadow-card"
-            }`}
-          >
-            {t(option ? "full" : "express")}
-          </button>
-        ))}
-        {allowance && (
-          <p className="text-sm text-cream-dim">
-            {hasCredits
-              ? t("creditsLeft", { count: allowance.credits })
-              : allowance.freeLeft > 0
-                ? `${t("freeAvailable")} ${t("fullLocked")}`
-                : `${t("freeUsed")} ${t("fullLocked")}`}
-          </p>
-        )}
-      </div>
-
-      {packNotice && <p className="rounded-2xl bg-grow-soft px-4 py-3 text-sm text-grow-text">{packNotice}</p>}
+      {packNotice && <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">{packNotice}</p>}
       {packError && (
-        <p role="alert" className="rounded-2xl bg-step-soft px-4 py-3 text-sm text-step-text">
+        <p role="alert" className="rounded-xl bg-step-soft px-3 py-2 text-sm text-step-text">
           {packError}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
+      {/* The way in, with what it will spend beside it. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         {canBegin && (
           <Action withArrow onClick={begin} className="px-6 py-3 text-base">
             {t("rehearse")}
           </Action>
         )}
+        {allowance && (
+          <p className="text-sm text-cream-dim">
+            {hasCredits
+              ? t("creditsLeft", { count: allowance.credits })
+              : allowance.freeLeft > 0
+                ? t("freeAvailable")
+                : t("freeUsed")}
+          </p>
+        )}
       </div>
+      {allowance && (!allowance.modes || !allowance.group) && (
+        <p className="-mt-2 text-xs text-cream-dim">{t("lockedSummary")}</p>
+      )}
 
-      {/* The plans, offered while one would add something — with the notices
-          a buyer must read first. */}
       {allowance && pack?.available && worthOffering.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <p className="text-sm font-semibold text-cream-bright">{t("offersTitle")}</p>
+        <section className="flex flex-col gap-2 border-t border-line pt-4">
           <div className="grid gap-2 sm:grid-cols-3">
             {worthOffering.map((offer) => (
               <button
@@ -676,16 +725,17 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
                 type="button"
                 disabled={buying}
                 onClick={() => void buy(offer.kind)}
-                className="focus-ring flex flex-col items-start gap-1 rounded-2xl bg-surface-card p-4 text-left shadow-card transition-transform duration-150 active:scale-[0.98] disabled:opacity-60"
+                className="focus-ring flex flex-col items-start gap-0.5 rounded-xl bg-surface-card px-3 py-2.5 text-left shadow-card transition-transform duration-150 active:scale-[0.98] disabled:opacity-60"
               >
-                <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind].name)}</span>
-                <span className="text-xl font-bold text-cream-bright">{money(offer.amount, offer.currency)}</span>
+                <span className="flex w-full items-baseline justify-between gap-2">
+                  <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind].name)}</span>
+                  <span className="text-base font-bold text-cream-bright">{money(offer.amount, offer.currency)}</span>
+                </span>
                 <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind].body)}</span>
               </button>
             ))}
           </div>
-          {buying && <p className="text-xs text-cream-dim">{t("buying")}</p>}
-          <p className="text-xs text-cream-dim">{t("beforePay")}</p>
+          <p className="text-xs text-cream-dim">{buying ? t("buying") : t("beforePay")}</p>
         </section>
       )}
     </Panel>
@@ -707,39 +757,3 @@ const OFFER_LABEL = {
   intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
   grupal: { name: "offerGrupal", body: "offerGrupalBody" },
 } as const;
-
-/** A row of choices, the locked ones marked and unpressable. */
-function Chips({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { value: string; label: string; locked: boolean }[];
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <fieldset className="flex flex-col gap-1.5">
-      <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{label}</legend>
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={value === option.value}
-            disabled={option.locked}
-            onClick={() => onChange(option.value)}
-            className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${
-              value === option.value ? "bg-cream-bright text-surface-base" : "bg-surface-lift text-cream-dim hover:text-cream-bright"
-            }`}
-          >
-            {option.locked && <Lock aria-hidden className="h-3.5 w-3.5" />}
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </fieldset>
-  );
-}

@@ -10,6 +10,14 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  tabRehearse: "Ensayar",
+  tabDiagnosis: "Diagnóstico",
+  tabSlides: "Diapositivas",
+  tabMore: "Asesor y más",
+  panelChoice: "Jurado",
+  expressShort: "Express",
+  fullShort: "Panel de 3",
+  lockedSummary: "Modos y modalidad: Pase Intensivo · Ensayo grupal: Tesis grupal.",
   advisorCardTitle: "Tu asesor de tesis",
   advisorCardBody: "Si tu asesor usa Mockio, vincúlate con su código. Tú decides si ve tu avance.",
   advisorCode: "Código del asesor",
@@ -230,6 +238,14 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  tabRehearse: "Ensaiar",
+  tabDiagnosis: "Diagnóstico",
+  tabSlides: "Slides",
+  tabMore: "Orientador e mais",
+  panelChoice: "Banca",
+  expressShort: "Express",
+  fullShort: "Banca de 3",
+  lockedSummary: "Modos e modalidade: Passe Intensivo · Ensaio em grupo: Trabalho em grupo.",
   advisorCardTitle: "Seu orientador",
   advisorCardBody: "Se o seu orientador usa o Mockio, vincule-se com o código dele. Você decide se ele vê seu progresso.",
   advisorCode: "Código do orientador",
@@ -448,6 +464,14 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  tabRehearse: "Rehearse",
+  tabDiagnosis: "Diagnosis",
+  tabSlides: "Slides",
+  tabMore: "Advisor & more",
+  panelChoice: "Panel",
+  expressShort: "Express",
+  fullShort: "Panel of 3",
+  lockedSummary: "Modes and setting: Intensive Pass · Group rehearsal: Group thesis.",
   advisorCardTitle: "Your thesis advisor",
   advisorCardBody: "If your advisor uses Mockio, link up with their code. You decide whether they see your progress.",
   advisorCode: "Advisor code",
