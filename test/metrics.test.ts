@@ -175,3 +175,12 @@ describe("computeMetrics", () => {
     expect(metrics.fromSpeech).toBe(false);
   });
 });
+
+describe("fillers in Spanish and Portuguese", () => {
+  it("counts the padding a thesis defence is full of, and not the ordinary words", async () => {
+    const { countFillers } = await import("../src/metrics.js");
+    expect(countFillers("Eh, o sea, la muestra fue, este, pequeña, digamos.")).toBe(4);
+    expect(countFillers("A amostra foi pequena, né, tipo assim, sem sorteio.")).toBe(2);
+    expect(countFillers("Este estudio usa un tipo de muestreo no probabilístico.")).toBe(0);
+  });
+});

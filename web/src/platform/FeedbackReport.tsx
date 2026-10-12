@@ -8,6 +8,7 @@ import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sp
 import { PageBody, PageHeader } from "./AppShell";
 import { AnswerByAnswer } from "./AnswerByAnswer";
 import { ActaCard } from "./ActaCard";
+import { NervesCard } from "./NervesCard";
 import { FirstLanguageErrors } from "./FirstLanguageErrors";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { LevelUp, levelForXp } from "./LevelUp";
@@ -541,6 +542,11 @@ function FeedbackBody({
         {evaluation.acta && (
           <FadeRise>
             <ActaCard acta={evaluation.acta} />
+          </FadeRise>
+        )}
+        {evaluation.acta && metrics && (
+          <FadeRise delay={0.05}>
+            <NervesCard metrics={metrics} />
           </FadeRise>
         )}
 

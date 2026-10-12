@@ -1048,7 +1048,8 @@ async function runDefenseCountdown(): Promise<void> {
         day,
         language: row.language,
         risks: row.risks,
-        url: `${siteUrl()}/app/thesis`,
+        // The morning mail opens the warm-up itself.
+        url: `${siteUrl()}/app/thesis${day === 0 ? "/warmup" : ""}`,
         unsubscribeUrl: unsubscribeUrl(siteUrl(), account.email),
       }),
     );

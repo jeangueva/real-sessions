@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
 import { Panel } from "@/design-system";
 import { ApiError, setDefenseDate } from "@/lib/api";
@@ -62,6 +63,14 @@ export function DefenseDate({ thesis, onChange }: { thesis: StoredThesis; onChan
         )}
       </div>
       <p className="text-sm text-cream-dim">{t("dateBody")}</p>
+      {/* The warm-up is for the day itself, and offered from here so it is
+          found when it is needed — on the morning, next to the countdown. */}
+      <Link
+        to="/app/thesis/warmup"
+        className="focus-ring self-start rounded-full text-sm font-semibold text-accent-text underline underline-offset-4"
+      >
+        {t("warmupCta")}
+      </Link>
       {error && (
         <p role="alert" className="text-sm text-step-text">
           {error}

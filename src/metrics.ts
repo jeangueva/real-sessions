@@ -48,7 +48,7 @@ const MATTR_WINDOW = 50;
  * Sounds with no lexical content. These are safe to count: they are never a
  * real word, so a match is never a false positive.
  */
-const DISFLUENCIES = /\b(?:u+m+|u+h+|e+r+m*|a+h+|h+m+|mm+)\b/gi;
+const DISFLUENCIES = /\b(?:u+m+|u+h+|e+r+m*|a+h+|h+m+|mm+|e+h+)\b/gi;
 
 /**
  * Discourse markers that pad an answer. Multi-word by design — the single-word
@@ -66,6 +66,14 @@ const HEDGES =
  */
 const FILLER_LIKE = /(?:,\s*like\s*,|\b(?:um|uh|er)\s*,?\s*like\b)/gi;
 
+/**
+ * The same, in Spanish and Portuguese — thesis defences are held in both.
+ * Multi-word or comma-fenced for the same reason as above: "este" and
+ * "tipo" are ordinary words far more often than they are filler.
+ */
+const LATAM_FILLERS =
+  /(?:(?<!\p{L})(?:o sea|digamos|tipo assim|né|ou seja)(?!\p{L})|,\s*(?:este|pues|tipo|então|bueno)\s*,)/giu;
+
 /** Splits on whitespace after stripping anything that is not a letter or apostrophe. */
 export function words(text: string): string[] {
   return text
@@ -79,7 +87,8 @@ export function countFillers(text: string): number {
   return (
     (text.match(DISFLUENCIES)?.length ?? 0) +
     (text.match(HEDGES)?.length ?? 0) +
-    (text.match(FILLER_LIKE)?.length ?? 0)
+    (text.match(FILLER_LIKE)?.length ?? 0) +
+    (text.match(LATAM_FILLERS)?.length ?? 0)
   );
 }
 
