@@ -19,6 +19,7 @@ import type {
 } from "@/lib/api";
 import { JURORS, NEUTRAL_VOICE, showJurors, type JurorTag } from "@/lib/voice";
 import { useThesisT } from "@/lib/thesis-copy";
+import { DefenseClock } from "./DefenseClock";
 import { useCamera, useScreenShare } from "@/hooks/useMediaStream";
 import { CallControls } from "./CallControls";
 import { CallStage } from "./CallStage";
@@ -340,6 +341,18 @@ export function LiveInterview() {
   }, [turn, voice.listening, voice.stopListening]);
 
   const speaking = busy && streaming !== "";
+  /**
+   * When the floor passed to the student: the clock runs from the moment the
+   * jury stopped talking, not from when the turn arrived on screen.
+   */
+  const [floorSince, setFloorSince] = useState<number | null>(null);
+  useEffect(() => {
+    if (!defense || !turn || turn.isComplete || busy || voice.speaking) return;
+    setFloorSince(Date.now());
+  }, [defense, turn, busy, voice.speaking]);
+  /** The first answer of a defence is the exposition, timed to its slot. */
+  const expositionTurn = !lines.some((line) => line.speaker === "candidate");
+
   /** Who on the panel is speaking: the last juror tag in the turn on screen. */
   const juror = useMemo(() => {
     if (!defense) return null;
@@ -591,6 +604,14 @@ export function LiveInterview() {
                 >
                   {tt("done")}
                 </button>
+              )}
+
+              {defense && floorSince !== null && turn && !turn.isComplete && !busy && (
+                <DefenseClock
+                  since={floorSince}
+                  limitSeconds={expositionTurn ? (stages[0] === "sustentacion-express" ? 60 : 300) : 90}
+                  label={tt(expositionTurn ? "clockExposition" : "clockAnswer")}
+                />
               )}
 
               {voice.listening && (

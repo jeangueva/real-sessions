@@ -10,6 +10,9 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  clockExposition: "Exposición",
+  clockAnswer: "Respuesta",
+  overTime: "te pasaste",
   creditsLeft: "Te quedan {count} sustentaciones con el panel de 3 jurados.",
   freeAvailable: "Tienes 1 ensayo express gratis.",
   freeUsed: "Ya usaste tu ensayo gratis.",
@@ -108,6 +111,9 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  clockExposition: "Apresentação",
+  clockAnswer: "Resposta",
+  overTime: "passou do tempo",
   creditsLeft: "Restam {count} defesas com a banca de 3.",
   freeAvailable: "Você tem 1 ensaio express grátis.",
   freeUsed: "Você já usou seu ensaio grátis.",
@@ -204,6 +210,9 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  clockExposition: "Exposition",
+  clockAnswer: "Answer",
+  overTime: "over time",
   creditsLeft: "You have {count} full defences left with the panel of three.",
   freeAvailable: "You have 1 free express rehearsal.",
   freeUsed: "You have used your free rehearsal.",
