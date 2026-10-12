@@ -1390,6 +1390,16 @@ export interface DefenseFormatInfo {
   scale: { min: number; max: number; pass: number; decimals: boolean };
 }
 
+/** One finished defence, for the progress strip. */
+export interface DefenseProgressPoint {
+  id: string;
+  at: string;
+  grade: number;
+  gradeMax: number;
+  passMark: number;
+  readiness: number;
+}
+
 export interface PackOffer {
   amount: number;
   currency: string;
@@ -1404,6 +1414,7 @@ export function fetchThesis() {
       pack?: PackOffer;
       offers?: PackOfferDetail[];
       formats?: DefenseFormatInfo[];
+      progress?: DefenseProgressPoint[];
     }>("/api/thesis", {
       method: "GET",
     }),

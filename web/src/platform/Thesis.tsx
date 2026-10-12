@@ -4,7 +4,7 @@ import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "l
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
-import type { DefenseAllowance, DefenseFormatInfo, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
+import type { DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
@@ -425,6 +425,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const [pack, setPack] = useState<PackOffer | null>(null);
   const [formats, setFormats] = useState<DefenseFormatInfo[]>([]);
   const [offers, setOffers] = useState<PackOfferDetail[]>([]);
+  const [progress, setProgress] = useState<DefenseProgressPoint[]>([]);
   const [focus, setFocus] = useState<Focus>("completa");
   const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
   const [material, setMaterial] = useState("");
@@ -480,6 +481,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         if (result.pack && !cancelled) setPack(result.pack);
         if (result.formats && !cancelled) setFormats(result.formats);
         if (result.offers && !cancelled) setOffers(result.offers);
+        if (result.progress && !cancelled) setProgress(result.progress);
         if (result.allowance) apply(result.allowance);
       })
       .catch(() => apply({ credits: 0, freeLeft: 0 }));
@@ -582,6 +584,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
 
   return (
     <Panel variant="raised" className="flex flex-col gap-4 p-5 sm:p-6">
+      {progress.length > 0 && <ProgressStrip points={progress} />}
       {/* Where and how — one compact grid instead of a column of chip rows,
           so the whole form and its button fit on one screen. */}
       <div className="grid grid-cols-2 gap-3">
@@ -772,3 +775,39 @@ const OFFER_LABEL = {
   intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
   grupal: { name: "offerGrupal", body: "offerGrupalBody" },
 } as const;
+
+/**
+ * The last rehearsals as a row of bars, each the grade against the pass
+ * mark: one glance says whether the practice is working. A line under it
+ * gives the readiness from the first to the latest.
+ */
+function ProgressStrip({ points }: { points: DefenseProgressPoint[] }) {
+  const t = useThesisT();
+  const first = points[0]!;
+  const last = points.at(-1)!;
+  const grade = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl bg-surface-lift p-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold text-cream-bright">{t("progressTitle")}</p>
+        <p className="text-xs text-cream-dim">
+          {t("progressReadiness", { from: first.readiness, to: last.readiness })} · {t("progressPass", { mark: grade(last.passMark) })}
+        </p>
+      </div>
+      <div className="flex h-16 items-end gap-1.5" role="img" aria-label={points.map((p) => `${grade(p.grade)}/${p.gradeMax}`).join(", ")}>
+        {points.map((point) => {
+          const passed = point.grade >= point.passMark;
+          return (
+            <div key={point.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+              <span className="text-[10px] font-semibold tabular-nums text-cream-dim">{grade(point.grade)}</span>
+              <span
+                className={`block w-full max-w-10 rounded-t-md ${passed ? "bg-grow" : "bg-step"}`}
+                style={{ height: `${Math.max(8, (point.grade / point.gradeMax) * 44)}px` }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

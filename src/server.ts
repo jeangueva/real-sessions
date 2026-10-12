@@ -238,6 +238,31 @@ async function defenseAllowance(
 }
 
 /**
+ * The student's last finished defences, oldest first: the grade on its own
+ * scale and the readiness index, for the "your progress" strip. Read from
+ * the stored records, a handful at a time — nobody rehearses fifty times.
+ */
+async function defenseProgress(ownerId: string) {
+  const sessions = await readQuietly(PROGRESS.listSessions(ownerId), []);
+  const finished = sessions.filter((entry) => entry.stage.startsWith("Sustentación") && entry.completedAt).slice(0, 8);
+  const details = await Promise.all(finished.map((entry) => readQuietly(PROGRESS.getSession(ownerId, entry.id), null)));
+  return details
+    .filter((detail): detail is NonNullable<typeof detail> => Boolean(detail?.evaluation?.acta))
+    .map((detail) => {
+      const acta = detail.evaluation!.acta!;
+      return {
+        id: detail.id,
+        at: detail.startedAt,
+        grade: acta.grade,
+        gradeMax: acta.grade_max,
+        passMark: acta.pass_mark,
+        readiness: acta.readiness,
+      };
+    })
+    .reverse();
+}
+
+/**
  * Questions real juries at this university asked, for the panel to draw on.
  *
  * Verified ones only, and fenced as quoted material: they were written by
@@ -2873,6 +2898,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         group: PACK_KINDS[kind].group,
       })),
       formats: publicFormats(),
+      progress: await defenseProgress(identity.id),
     });
     return;
   }

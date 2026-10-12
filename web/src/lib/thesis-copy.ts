@@ -10,6 +10,9 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  progressTitle: "Tu evolución",
+  progressReadiness: "Preparación: {from} → {to}",
+  progressPass: "Pasa con {mark}",
   tabStudy: "Repaso",
   studyIntro: "Una hoja de defensa de una página y 15 tarjetas de repaso, hechas de tu tesis.",
   studyPrepare: "Preparar mi hoja y mis tarjetas",
@@ -258,6 +261,9 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  progressTitle: "Sua evolução",
+  progressReadiness: "Preparação: {from} → {to}",
+  progressPass: "Aprova com {mark}",
   tabStudy: "Revisão",
   studyIntro: "Uma folha de defesa de uma página e 15 cartões de revisão, feitos a partir do seu trabalho.",
   studyPrepare: "Preparar minha folha e meus cartões",
@@ -504,6 +510,9 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  progressTitle: "Your progress",
+  progressReadiness: "Readiness: {from} → {to}",
+  progressPass: "Pass mark {mark}",
   tabStudy: "Review",
   studyIntro: "A one-page defence sheet and 15 review cards, made from your thesis.",
   studyPrepare: "Prepare my sheet and cards",
