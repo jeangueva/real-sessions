@@ -1315,8 +1315,43 @@ export interface StoredThesis {
   uploadedAt: string;
 }
 
+/** What is left to rehearse: full defences in packs, and the free express one. */
+export interface DefenseAllowance {
+  credits: number;
+  freeLeft: number;
+}
+
+export interface PackOffer {
+  amount: number;
+  currency: string;
+  available: boolean;
+}
+
 export function fetchThesis() {
-  return withIdentity(() => request<{ thesis: StoredThesis | null }>("/api/thesis", { method: "GET" }));
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis | null; allowance?: DefenseAllowance; pack?: PackOffer }>("/api/thesis", {
+      method: "GET",
+    }),
+  );
+}
+
+/** A Mercado Pago checkout for the Pack Sustentación. */
+export function buyDefensePack() {
+  return withIdentity(() => request<{ initPoint: string }>("/api/billing/defense-pack", { method: "POST" }));
+}
+
+/** Settles a pack payment on the payer's return from the checkout. */
+export function syncDefensePack(paymentId: string) {
+  return withIdentity(() =>
+    request<{ outcome: "granted" | "already" | "not-yet"; allowance: DefenseAllowance }>(
+      "/api/billing/defense-pack/sync",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId }),
+      },
+    ),
+  );
 }
 
 export function uploadThesis(file: File) {

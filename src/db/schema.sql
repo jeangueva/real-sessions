@@ -436,3 +436,15 @@ CREATE TABLE IF NOT EXISTS theses (
   analysis    JSONB NOT NULL,
   uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Pack Sustentación purchases. One row per approved payment; the payment id
+-- is unique so a webhook and the payer's return cannot grant it twice.
+CREATE TABLE IF NOT EXISTS defense_packs (
+  id          BIGSERIAL PRIMARY KEY,
+  owner_id    TEXT NOT NULL,
+  payment_id  TEXT NOT NULL UNIQUE,
+  credits     INTEGER NOT NULL,
+  granted_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at  TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS defense_packs_owner_idx ON defense_packs (owner_id, expires_at);

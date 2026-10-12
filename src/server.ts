@@ -193,6 +193,50 @@ import {
   type ThesisStore,
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
+import { createDefensePackStore, remainingCredits, type DefensePackStore } from "./defense-packs.js";
+
+/** Free rehearsals of a defence, per account, ever. */
+const FREE_DEFENSES = 1;
+
+/** What the Pack Sustentación costs, in the Mercado Pago account's currency. */
+const PACK_AMOUNT = Number(process.env.DEFENSE_PACK_AMOUNT ?? 39);
+const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPAGO_CURRENCY ?? "PEN";
+
+/**
+ * What someone may still rehearse: full defences left in their packs, and
+ * whether the free express one is spent.
+ */
+async function defenseAllowance(ownerId: string): Promise<{ credits: number; freeLeft: number }> {
+  const [packs, past] = await Promise.all([
+    readQuietly(PACKS.active(ownerId), []),
+    readQuietly(PROGRESS.listSessions(ownerId), []),
+  ]);
+  const full = past.filter((entry) => entry.stage === "Sustentación de tesis").map((entry) => entry.startedAt);
+  const express = past.filter((entry) => entry.stage.startsWith("Sustentación")).length;
+  return {
+    credits: remainingCredits(packs, full),
+    freeLeft: Math.max(0, FREE_DEFENSES - express),
+  };
+}
+
+/**
+ * Grants a pack for one Mercado Pago payment, after reading it back.
+ *
+ * The notification and the payer's return both land here; the payment id is
+ * unique in the store, so whichever arrives second changes nothing.
+ */
+async function settlePackPayment(paymentId: string, expectedOwner?: string): Promise<"granted" | "already" | "not-yet" | "not-ours"> {
+  const payment = await fetchPayment(paymentId);
+  const reference = payment.externalReference ?? "";
+  if (!reference.startsWith("pack:")) return "not-ours";
+  const ownerId = reference.slice("pack:".length);
+  if (expectedOwner && ownerId !== expectedOwner) return "not-ours";
+  if (payment.status !== "approved") return "not-yet";
+  // Paid what the pack costs, in its currency: a preference is ours, but the
+  // check is cheap and keeps a misconfigured price from granting a pack.
+  if (payment.currency !== PACK_CURRENCY || payment.amount + 0.001 < PACK_AMOUNT) return "not-ours";
+  return (await PACKS.grant(ownerId, payment.id)) ? "granted" : "already";
+}
 
 const DEFENSE_MODEL = process.env.REALSESSIONS_DEFENSE_MODEL ?? "anthropic/claude-sonnet-5";
 const DEFENSE_FALLBACKS = (process.env.REALSESSIONS_DEFENSE_FALLBACKS ?? "qwen/qwen3.7-plus")
@@ -250,6 +294,8 @@ import {
   cancelPreapproval,
   checkoutBlockReason,
   createPreapproval,
+  createPackPreference,
+  fetchPayment,
   fetchPreapproval,
   billingMode,
   grantsAccess,
@@ -299,6 +345,7 @@ let PROGRESS: ProgressStore;
 let PLANS: EntitlementStore;
 let PROFILES: ProfileStore;
 let THESES: ThesisStore;
+let PACKS: DefensePackStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
 let LIFECYCLE: LifecycleStore;
@@ -330,6 +377,7 @@ export interface ServerDependencies {
   profiles: ProfileStore;
   /** Optional so every existing test keeps its wiring; memory when absent. */
   theses?: ThesisStore;
+  packs?: DefensePackStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
   lifecycle: LifecycleStore;
@@ -362,6 +410,7 @@ export function configure(deps: ServerDependencies): void {
   PLANS = deps.plans;
   PROFILES = deps.profiles;
   THESES = deps.theses ?? createThesisStore(null);
+  PACKS = deps.packs ?? createDefensePackStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
   LIFECYCLE = deps.lifecycle;
@@ -1932,6 +1981,21 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     }
 
     const externalId = url.searchParams.get("data.id")!;
+    // One-time payments (the Pack Sustentación) arrive on the same URL as
+    // subscription changes, told apart by their type.
+    const kind = url.searchParams.get("type") ?? url.searchParams.get("topic");
+    if (kind === "payment") {
+      try {
+        const outcome = await settlePackPayment(externalId);
+        return json(res, 200, { ok: true, outcome });
+      } catch (error) {
+        if (error instanceof MercadoPagoError && error.status === 404) {
+          return json(res, 200, { ok: true, reconciled: false });
+        }
+        console.error("[mockio] pack webhook failed:", error);
+        return json(res, 500, { error: "We could not record that just now." });
+      }
+    }
     try {
       await reconcileSubscription(externalId);
     } catch (error) {
@@ -2266,6 +2330,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await recordQuietly(PROGRESS.eraseOwner(identity.id));
     await recordQuietly(PROFILES.clear(identity.id));
     await recordQuietly(THESES.delete(identity.id));
+    await recordQuietly(PACKS.eraseOwner(identity.id));
     await recordQuietly(PLANS.eraseOwner(identity.id));
     await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
     await recordQuietly(USERS.eraseOwner(identity.id));
@@ -2673,8 +2738,56 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * "ready" later, and the person is waiting on this screen either way.
    */
   if (req.method === "GET" && path === "/api/thesis") {
-    json(res, 200, { thesis: await THESES.get(identity.id) });
+    json(res, 200, {
+      thesis: await THESES.get(identity.id),
+      allowance: await defenseAllowance(identity.id),
+      pack: { amount: PACK_AMOUNT, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
+    });
     return;
+  }
+
+  /** Buys a Pack Sustentación: a Checkout Pro link for one payment. */
+  if (req.method === "POST" && path === "/api/billing/defense-pack") {
+    if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
+    if (!mercadoPagoConfigured()) {
+      return json(res, 503, { error: "Los pagos todavía no están activos.", code: "payOff" });
+    }
+    const blocked = checkoutBlockReason();
+    if (blocked) {
+      console.error("[mockio] pack checkout refused:", blocked);
+      return json(res, 503, { error: blocked });
+    }
+    const account = identity.kind === "user" ? await ACCOUNTS.findById(identity.id) : null;
+    if (!account) {
+      return json(res, 403, { error: "Crea una cuenta primero: tus ensayos tienen que quedar guardados." });
+    }
+    const created = await createPackPreference({
+      externalReference: `pack:${identity.id}`,
+      payerEmail: account.email,
+      title: "Mockio — Pack Sustentación (5 ensayos)",
+      amount: PACK_AMOUNT,
+      currency: PACK_CURRENCY,
+      backUrl: `${siteUrl()}/app/thesis`,
+      notificationUrl: `${siteUrl()}/api/billing/webhook?source_news=webhooks`,
+    });
+    json(res, 201, { initPoint: created.initPoint });
+    return;
+  }
+
+  /** The payer's return from Checkout Pro, settled without waiting on the webhook. */
+  if (req.method === "POST" && path === "/api/billing/defense-pack/sync") {
+    if (await limited(res, `checkout:${identity.id}`, RULES.checkout)) return;
+    const body = await readJson(req);
+    const paymentId = typeof body["paymentId"] === "string" ? body["paymentId"] : "";
+    if (!/^\d{3,20}$/.test(paymentId)) return json(res, 400, { error: "Ese pago no es reconocible." });
+    try {
+      const outcome = await settlePackPayment(paymentId, identity.id);
+      if (outcome === "not-ours") return json(res, 404, { error: "Ese pago no es reconocible." });
+      return json(res, 200, { outcome, allowance: await defenseAllowance(identity.id) });
+    } catch (error) {
+      console.error("[mockio] pack sync failed:", error);
+      return json(res, 502, { error: "No pudimos confirmar el pago ahora. Si se cobró, aparecerá en unos minutos." });
+    }
   }
 
   if (req.method === "POST" && path === "/api/thesis") {
@@ -3059,8 +3172,23 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       if (!stored || !pages) {
         return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
       }
-      if (!can.workScenes && rounds[0]?.id !== "sustentacion-express") {
-        rounds = resolveStages(null, ["sustentacion-express"]);
+      /**
+       * The full panel spends a pack credit; without one, the express
+       * rehearsal is the free one, once. Counted on sessions started rather
+       * than finished: abandoning one at the last question and starting again
+       * would otherwise be unlimited.
+       */
+      const allowance = await defenseAllowance(identity.id);
+      if (allowance.credits === 0) {
+        if (allowance.freeLeft === 0) {
+          return json(res, 402, {
+            error: "Ya usaste tu ensayo gratis. El Pack Sustentación incluye 5 con el panel de 3 jurados.",
+            code: "defenseFreeUsed",
+          });
+        }
+        if (rounds[0]?.id !== "sustentacion-express") {
+          rounds = resolveStages(null, ["sustentacion-express"]);
+        }
       }
       const difficulty = (["calentamiento", "estandar", "exigente", "hostil"] as const).find(
         (entry) => entry === body["difficulty"],
@@ -3773,6 +3901,7 @@ configure({
   plans,
   profiles: createProfileStore(db),
   theses: createThesisStore(db),
+  packs: createDefensePackStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
   lifecycle: createLifecycleStore(db),

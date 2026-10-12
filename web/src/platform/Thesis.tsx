@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, deleteThesis, fetchPlan, fetchThesis, uploadThesis } from "@/lib/api";
+import { ApiError, buyDefensePack, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
+import type { DefenseAllowance, PackOffer } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 
@@ -345,7 +346,11 @@ const DIFFICULTY_LABEL = {
 function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const t = useThesisT();
   const navigate = useNavigate();
-  const [paid, setPaid] = useState<boolean | null>(null);
+  const [allowance, setAllowance] = useState<DefenseAllowance | null>(null);
+  const [pack, setPack] = useState<PackOffer | null>(null);
+  const [buying, setBuying] = useState(false);
+  const [packNotice, setPackNotice] = useState<string | null>(null);
+  const [packError, setPackError] = useState<string | null>(null);
   const [university, setUniversity] = useState(() => {
     try {
       return localStorage.getItem("mockio.university") ?? "";
@@ -357,13 +362,63 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const [full, setFull] = useState(false);
 
   useEffect(() => {
-    fetchPlan()
+    let cancelled = false;
+    const apply = (next: DefenseAllowance) => {
+      if (cancelled) return;
+      setAllowance(next);
+      setFull(next.credits > 0);
+    };
+    fetchThesis()
       .then((result) => {
-        setPaid(Boolean(result.capabilities.workScenes));
-        setFull(Boolean(result.capabilities.workScenes));
+        if (result.pack && !cancelled) setPack(result.pack);
+        if (result.allowance) apply(result.allowance);
       })
-      .catch(() => setPaid(false));
+      .catch(() => apply({ credits: 0, freeLeft: 0 }));
+
+    /**
+     * Back from Mercado Pago. The payment is settled from here as well as by
+     * the webhook, which can be late — and the payer is looking at this
+     * screen now. The query is then removed, so a reload does not ask again.
+     */
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get("payment_id") ?? params.get("collection_id");
+    if (paymentId && /^\d+$/.test(paymentId)) {
+      syncDefensePack(paymentId)
+        .then((result) => {
+          apply(result.allowance);
+          if (!cancelled) setPackNotice(t(result.outcome === "not-yet" ? "packPending" : "packDone"));
+        })
+        .catch((caught) => {
+          if (!cancelled) setPackError(caught instanceof ApiError ? caught.message : t("error"));
+        })
+        .finally(() => window.history.replaceState(null, "", window.location.pathname));
+    }
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const buy = async () => {
+    setBuying(true);
+    setPackError(null);
+    try {
+      window.location.assign((await buyDefensePack()).initPoint);
+    } catch (caught) {
+      setPackError(caught instanceof ApiError ? caught.message : t("error"));
+      setBuying(false);
+    }
+  };
+
+  const price = pack
+    ? new Intl.NumberFormat(pack.currency === "PEN" ? "es-PE" : undefined, {
+        style: "currency",
+        currency: pack.currency,
+        minimumFractionDigits: Number.isInteger(pack.amount) ? 0 : 2,
+        maximumFractionDigits: 2,
+      }).format(pack.amount)
+    : "";
+  const hasCredits = (allowance?.credits ?? 0) > 0;
+  const canBegin = hasCredits || (allowance?.freeLeft ?? 0) > 0;
 
   const begin = () => {
     const place = university.trim();
@@ -431,7 +486,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             key={String(option)}
             type="button"
             aria-pressed={full === option}
-            disabled={option && paid === false}
+            disabled={option && allowance !== null && !hasCredits}
             onClick={() => setFull(option)}
             className={`focus-ring flex items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               full === option ? "bg-surface-lift text-cream-bright ring-2 ring-accent" : "bg-surface-card text-cream-dim shadow-card"
@@ -440,21 +495,49 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             {t(option ? "full" : "express")}
           </button>
         ))}
-        {paid === false && (
+        {allowance && (
           <p className="text-sm text-cream-dim">
-            {t("fullLocked")}{" "}
-            <Link to="/app/settings#plan" className="font-semibold text-accent-text underline underline-offset-4">
-              {t("seePlans")}
-            </Link>
+            {hasCredits
+              ? t("creditsLeft", { count: allowance.credits })
+              : allowance.freeLeft > 0
+                ? `${t("freeAvailable")} ${t("fullLocked")}`
+                : `${t("freeUsed")} ${t("fullLocked")}`}
           </p>
         )}
       </div>
 
-      <div>
-        <Action withArrow onClick={begin} className="px-6 py-3 text-base">
-          {t("rehearse")}
-        </Action>
+      {packNotice && <p className="rounded-2xl bg-grow-soft px-4 py-3 text-sm text-grow-text">{packNotice}</p>}
+      {packError && (
+        <p role="alert" className="rounded-2xl bg-step-soft px-4 py-3 text-sm text-step-text">
+          {packError}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-3">
+        {canBegin && (
+          <Action withArrow onClick={begin} className="px-6 py-3 text-base">
+            {t("rehearse")}
+          </Action>
+        )}
+        {/* The pack is offered to everyone without one, before and after the
+            free rehearsal — with the notices a buyer must read first. */}
+        {allowance && !hasCredits && pack?.available && (
+          <button
+            type="button"
+            onClick={() => void buy()}
+            disabled={buying}
+            className="focus-ring rounded-full bg-surface-card px-5 py-3 text-sm font-semibold text-cream-bright shadow-card transition-transform duration-150 active:scale-[0.97] disabled:opacity-60"
+          >
+            {buying ? t("buying") : t("buy", { price })}
+          </button>
+        )}
       </div>
+      {allowance && !hasCredits && pack?.available && (
+        <div className="flex flex-col gap-1 text-xs text-cream-dim">
+          <p>{t("buyNote")}</p>
+          <p>{t("beforePay")}</p>
+        </div>
+      )}
     </Panel>
   );
 }

@@ -10,6 +10,15 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  creditsLeft: "Te quedan {count} sustentaciones con el panel de 3 jurados.",
+  freeAvailable: "Tienes 1 ensayo express gratis.",
+  freeUsed: "Ya usaste tu ensayo gratis.",
+  buy: "Comprar Pack Sustentación · {price}",
+  buyNote: "5 sustentaciones con el panel de 3 · válido 6 meses · pago único con Mercado Pago",
+  buying: "Abriendo el pago…",
+  packDone: "¡Listo! Tu Pack Sustentación está activo.",
+  packPending: "Tu pago está en proceso. Lo activamos apenas Mercado Pago lo confirme.",
+  beforePay: "Mockio es una herramienta de práctica: no garantiza la aprobación de tu sustentación. La IA puede equivocarse; verifica con tu asesor y con el reglamento de tu universidad.",
   actaTitle: "Acta simulada",
   outOf: "de {max}",
   verdictUnanimidad: "Aprobado por unanimidad",
@@ -99,6 +108,15 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  creditsLeft: "Restam {count} defesas com a banca de 3.",
+  freeAvailable: "Você tem 1 ensaio express grátis.",
+  freeUsed: "Você já usou seu ensaio grátis.",
+  buy: "Comprar Pacote Defesa · {price}",
+  buyNote: "5 defesas com a banca de 3 · válido por 6 meses · pagamento único com Mercado Pago",
+  buying: "Abrindo o pagamento…",
+  packDone: "Pronto! Seu Pacote Defesa está ativo.",
+  packPending: "Seu pagamento está em processamento. Ativamos assim que o Mercado Pago confirmar.",
+  beforePay: "O Mockio é uma ferramenta de prática: não garante a aprovação da sua defesa. A IA pode errar; confirme com seu orientador e com o regulamento da sua universidade.",
   actaTitle: "Ata simulada",
   outOf: "de {max}",
   verdictUnanimidad: "Aprovado por unanimidade",
@@ -186,6 +204,15 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  creditsLeft: "You have {count} full defences left with the panel of three.",
+  freeAvailable: "You have 1 free express rehearsal.",
+  freeUsed: "You have used your free rehearsal.",
+  buy: "Buy the Defence Pack · {price}",
+  buyNote: "5 defences with the panel of three · valid 6 months · one-time payment via Mercado Pago",
+  buying: "Opening the payment…",
+  packDone: "Done! Your Defence Pack is active.",
+  packPending: "Your payment is processing. It activates as soon as Mercado Pago confirms it.",
+  beforePay: "Mockio is a practice tool: it does not guarantee you pass your defence. AI can be wrong; check with your advisor and your university's regulations.",
   actaTitle: "Simulated record",
   outOf: "out of {max}",
   verdictUnanimidad: "Passed unanimously",

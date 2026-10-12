@@ -3,6 +3,7 @@ import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Hero } from "@/components/Hero";
 import { LandingNav } from "@/components/LandingNav";
+import { DefenseLanding } from "@/components/DefenseLanding";
 import { Journey } from "@/components/Journey";
 import { Privacy, Terms } from "@/legal/LegalPage";
 import { InterviewPreview } from "@/components/InterviewPreview";
@@ -118,7 +119,10 @@ export function App() {
       {/* Worst-case data for break-ui — a dev build only. */}
       {import.meta.env.DEV && <DevDataToggle />}
       <Routes>
-        <Route path="/" element={<Landing />} />
+        {/* Sustentación is the front page; the English-interview landing
+            stays reachable, and is where the defence page sends graduates. */}
+        <Route path="/" element={<DefenseLanding />} />
+        <Route path="/entrevistas" element={<Landing />} />
         <Route path="/signin" element={<SignIn />} />
         {/* One route for both halves: request a link, or use one. */}
         <Route path="/reset" element={<ResetPassword />} />

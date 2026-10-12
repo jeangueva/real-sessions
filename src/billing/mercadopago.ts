@@ -522,3 +522,74 @@ export async function cancelPreapproval(id: string): Promise<void> {
 export function grantsAccess(status: PreapprovalStatus): boolean {
   return status === "authorized";
 }
+
+/* ------------------------------------------------------------------------- */
+/* One-time payments: the Pack Sustentación                                  */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * A Checkout Pro preference for a single payment.
+ *
+ * The pack is bought once, not subscribed to, so it is a preference rather
+ * than a preapproval — and Checkout Pro is Mercado Pago's own page, with the
+ * payment methods the payer's country offers rather than only a card form.
+ */
+export async function createPackPreference(input: {
+  externalReference: string;
+  payerEmail: string;
+  title: string;
+  amount: number;
+  currency: string;
+  backUrl: string;
+  notificationUrl: string;
+}): Promise<{ id: string; initPoint: string }> {
+  const raw = await call<{ id?: string; init_point?: string }>("/checkout/preferences", {
+    method: "POST",
+    body: JSON.stringify({
+      items: [
+        {
+          id: "pack-sustentacion",
+          title: input.title,
+          quantity: 1,
+          unit_price: input.amount,
+          currency_id: input.currency,
+        },
+      ],
+      payer: { email: input.payerEmail },
+      external_reference: input.externalReference,
+      back_urls: { success: input.backUrl, pending: input.backUrl, failure: input.backUrl },
+      auto_return: "approved",
+      notification_url: input.notificationUrl,
+    }),
+  });
+  if (!raw.id || !raw.init_point) {
+    throw new Error("Mercado Pago returned a preference with no id or checkout URL.");
+  }
+  return { id: String(raw.id), initPoint: raw.init_point };
+}
+
+export interface PaymentRecord {
+  id: string;
+  status: string;
+  externalReference: string | null;
+  amount: number;
+  currency: string;
+}
+
+/** Reads a payment back from the API — the only source of truth for it. */
+export async function fetchPayment(id: string): Promise<PaymentRecord> {
+  const raw = await call<{
+    id?: number | string;
+    status?: string;
+    external_reference?: string | null;
+    transaction_amount?: number;
+    currency_id?: string;
+  }>(`/v1/payments/${encodeURIComponent(id)}`, { method: "GET" });
+  return {
+    id: String(raw.id ?? id),
+    status: raw.status ?? "unknown",
+    externalReference: raw.external_reference ?? null,
+    amount: Number(raw.transaction_amount ?? 0),
+    currency: raw.currency_id ?? "",
+  };
+}

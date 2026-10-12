@@ -24,8 +24,17 @@ const NAV: { label: MessageKey; href: string }[] = [
   { label: "land.navContribute", href: "#contribute" },
 ];
 
-export function LandingNav() {
+export function LandingNav({
+  links,
+  cta,
+}: {
+  /** Another landing's sections, already in the reader's language. */
+  links?: { label: string; href: string }[];
+  /** Another landing's way in. */
+  cta?: { label: string; to: string };
+} = {}) {
   const t = useT();
+  const items = links ?? NAV.map(({ label, href }) => ({ label: t(label), href }));
   /* The hairline under the bar appears only once something has scrolled
      beneath it — a divider with nothing to divide is just a line. */
   const [scrolled, setScrolled] = useState(false);
@@ -62,8 +71,8 @@ export function LandingNav() {
         {/* Hidden on a phone: four labels do not fit beside the name and the
             way in, and every one of them is reachable by scrolling. */}
         <ul className="hidden items-center gap-1 md:flex">
-          {NAV.map(({ label, href }) => (
-            <li key={label}>
+          {items.map(({ label, href }) => (
+            <li key={href}>
               {/* A real href, so it opens in a new tab, copies as a link, and
                   works before the JS lands. */}
               <a
@@ -73,7 +82,7 @@ export function LandingNav() {
                   if (scrollToSection(href)) event.preventDefault();
                 }}
               >
-                {t(label)}
+                {label}
               </a>
             </li>
           ))}
@@ -84,10 +93,10 @@ export function LandingNav() {
             {t("land.signIn")}
           </Link>
           <Link
-            to="/app"
+            to={cta?.to ?? "/app"}
             className="focus-ring hidden rounded-full bg-cream-bright px-4 py-1.5 text-xs font-medium text-surface-base transition-[transform,opacity] duration-200 ease-press hover:opacity-85 active:scale-[0.97] sm:inline-flex"
           >
-            {t("cta.startInterview")}
+            {cta?.label ?? t("cta.startInterview")}
           </Link>
         </div>
       </nav>
