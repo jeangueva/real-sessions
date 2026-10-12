@@ -452,3 +452,8 @@ CREATE INDEX IF NOT EXISTS defense_packs_owner_idx ON defense_packs (owner_id, e
 -- The slide review, kept with the thesis it was checked against. Cleared when
 -- a new version of the thesis is uploaded, since it no longer applies.
 ALTER TABLE theses ADD COLUMN IF NOT EXISTS slides JSONB;
+
+-- The defence date, for the countdown mails, and which of them have gone out
+-- for that date. Changing the date starts the countdown again.
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS defense_date DATE;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS countdown_sent INTEGER[] NOT NULL DEFAULT '{}';

@@ -505,3 +505,184 @@ export function weeklyDigestEmail(
     footnote: unsubscribeNote(detail.unsubscribeUrl),
   });
 }
+
+/* ------------------------------------------------------------------------- */
+/* Sustentación: the week before the defence                                  */
+/* ------------------------------------------------------------------------- */
+
+/** The days before the defence that get a mail; 0 is the morning of it. */
+export const COUNTDOWN_DAYS = [7, 5, 3, 1, 0] as const;
+export type CountdownDay = (typeof COUNTDOWN_DAYS)[number];
+
+type CountdownLanguage = "es" | "pt" | "en";
+
+const COUNTDOWN_COPY: Record<
+  CountdownLanguage,
+  {
+    action: string;
+    stop: (url: string) => string;
+    days: Record<CountdownDay, { subject: string; body: (risks: string[]) => string[] }>;
+  }
+> = {
+  es: {
+    action: "Abrir mi tesis",
+    stop: (url) => `Dejar de recibir estos correos: ${url}`,
+    days: {
+      7: {
+        subject: "Faltan 7 días para tu sustentación",
+        body: () => [
+          "Hoy toca el primer ensayo completo, con el panel de 3 jurados y en dificultad estándar.",
+          "No busques que salga perfecto: busca saber dónde te trabas. El acta te dirá qué preparar el resto de la semana.",
+        ],
+      },
+      5: {
+        subject: "Faltan 5 días: tus 3 puntos débiles",
+        body: (risks) => [
+          "Estas son las preguntas que un jurado haría primero sobre tu tesis. Prepara una respuesta de 30 segundos para cada una:",
+          ...risks.map((risk, index) => `${index + 1}. ${risk}`),
+          "Luego haz un ensayo y comprueba si ya te salen.",
+        ],
+      },
+      3: {
+        subject: "Faltan 3 días: sube la dificultad",
+        body: () => [
+          "Hoy ensaya en modo exigente: repreguntas encadenadas, como las de un metodólogo de verdad.",
+          "Si todavía no revisaste tus diapositivas contra tu tesis, este es el día: un número distinto entre la diapositiva y la tesis es lo primero que nota un jurado.",
+        ],
+      },
+      1: {
+        subject: "Mañana sustentas",
+        body: (risks) => [
+          "Último ensayo, corto. Practica respuestas que empiecen por la respuesta y luego den la razón.",
+          "Tu hoja de defensa para repasar esta noche:",
+          ...risks.map((risk) => `• ${risk}`),
+          "Duerme. Lo que no se prepara hoy no se prepara a medianoche.",
+        ],
+      },
+      0: {
+        subject: "Hoy sustentas: 10 minutos antes de entrar",
+        body: () => [
+          "Una rutina corta antes de entrar:",
+          "1. Dos minutos de respiración: inhala en 4, sostén 4, exhala en 6.",
+          "2. Tres minutos de voz: lee en voz alta el título y el objetivo general de tu tesis, despacio y proyectando.",
+          "3. Cinco minutos para repasar tus tres respuestas más difíciles, una vez cada una, sin leer.",
+          "Si no sabes algo, dilo: “no lo consideré, pero lo abordaría así”. Un jurado respeta eso más que una respuesta inventada. Éxitos.",
+        ],
+      },
+    },
+  },
+  pt: {
+    action: "Abrir meu trabalho",
+    stop: (url) => `Parar de receber estes e-mails: ${url}`,
+    days: {
+      7: {
+        subject: "Faltam 7 dias para a sua defesa",
+        body: () => [
+          "Hoje é o primeiro ensaio completo, com a banca de 3 e na dificuldade padrão.",
+          "Não busque perfeição: busque saber onde você trava. A ata vai dizer o que preparar no resto da semana.",
+        ],
+      },
+      5: {
+        subject: "Faltam 5 dias: seus 3 pontos fracos",
+        body: (risks) => [
+          "Estas são as perguntas que uma banca faria primeiro sobre o seu trabalho. Prepare uma resposta de 30 segundos para cada uma:",
+          ...risks.map((risk, index) => `${index + 1}. ${risk}`),
+          "Depois faça um ensaio e veja se já saem.",
+        ],
+      },
+      3: {
+        subject: "Faltam 3 dias: aumente a dificuldade",
+        body: () => [
+          "Hoje ensaie no modo exigente: réplicas encadeadas, como as de um metodólogo de verdade.",
+          "Se ainda não revisou seus slides contra o trabalho, hoje é o dia: um número diferente entre o slide e o trabalho é a primeira coisa que a banca nota.",
+        ],
+      },
+      1: {
+        subject: "Amanhã é a sua defesa",
+        body: (risks) => [
+          "Último ensaio, curto. Pratique respostas que começam pela resposta e depois dão a razão.",
+          "Sua folha de defesa para revisar hoje à noite:",
+          ...risks.map((risk) => `• ${risk}`),
+          "Durma. O que não se prepara hoje não se prepara à meia-noite.",
+        ],
+      },
+      0: {
+        subject: "Hoje é a sua defesa: 10 minutos antes de entrar",
+        body: () => [
+          "Uma rotina curta antes de entrar:",
+          "1. Dois minutos de respiração: inspire em 4, segure 4, expire em 6.",
+          "2. Três minutos de voz: leia em voz alta o título e o objetivo geral, devagar e projetando.",
+          "3. Cinco minutos para repassar suas três respostas mais difíceis, uma vez cada, sem ler.",
+          "Se não souber algo, diga: “não considerei, mas abordaria assim”. A banca respeita isso mais que uma resposta inventada. Boa sorte.",
+        ],
+      },
+    },
+  },
+  en: {
+    action: "Open my thesis",
+    stop: (url) => `Stop these emails: ${url}`,
+    days: {
+      7: {
+        subject: "7 days to your defence",
+        body: () => [
+          "Today is the first full rehearsal, with the panel of three at standard difficulty.",
+          "Do not aim for perfect: aim to find where you get stuck. The record will tell you what to prepare this week.",
+        ],
+      },
+      5: {
+        subject: "5 days to go: your 3 weak points",
+        body: (risks) => [
+          "These are the questions a panel would ask first about your thesis. Prepare a 30-second answer to each:",
+          ...risks.map((risk, index) => `${index + 1}. ${risk}`),
+          "Then rehearse and check they come out.",
+        ],
+      },
+      3: {
+        subject: "3 days to go: raise the difficulty",
+        body: () => [
+          "Rehearse in demanding mode today: chained follow-ups, like a real methodologist's.",
+          "If you have not checked your slides against your thesis yet, today is the day: a number that differs between slide and thesis is the first thing a panel notices.",
+        ],
+      },
+      1: {
+        subject: "Your defence is tomorrow",
+        body: (risks) => [
+          "One last short rehearsal. Practise answers that start with the answer, then give the reason.",
+          "Your defence sheet for tonight:",
+          ...risks.map((risk) => `• ${risk}`),
+          "Sleep. What is not prepared today will not be prepared at midnight.",
+        ],
+      },
+      0: {
+        subject: "Defence day: 10 minutes before you go in",
+        body: () => [
+          "A short routine before you go in:",
+          "1. Two minutes of breathing: in for 4, hold 4, out for 6.",
+          "2. Three minutes of voice: read your title and general objective aloud, slowly, projecting.",
+          "3. Five minutes on your three hardest answers, once each, without reading.",
+          "If you do not know something, say so: “I did not consider it, but I would approach it like this.” A panel respects that more than an invented answer. Good luck.",
+        ],
+      },
+    },
+  },
+};
+
+/**
+ * One mail of the countdown to a thesis defence.
+ *
+ * Replaces the WhatsApp plan in the brief: the same days and the same tasks,
+ * by email — which is free to send and already respects every opt-out.
+ */
+export function defenseCountdownEmail(
+  email: string,
+  detail: { day: CountdownDay; language: string; risks: string[]; url: string; unsubscribeUrl: string },
+): EmailMessage {
+  const copy = COUNTDOWN_COPY[(detail.language as CountdownLanguage) in COUNTDOWN_COPY ? (detail.language as CountdownLanguage) : "es"];
+  const day = copy.days[detail.day];
+  return compose(email, day.subject, {
+    heading: day.subject,
+    body: day.body(detail.risks.slice(0, 3)),
+    action: { label: copy.action, url: detail.url },
+    footnote: copy.stop(detail.unsubscribeUrl),
+  });
+}

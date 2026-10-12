@@ -101,6 +101,8 @@ import {
   earlyAccessEmail,
   earlyAccessUnlockedEmail,
   inactivityEmail,
+  defenseCountdownEmail,
+  COUNTDOWN_DAYS,
   lastFreeInterviewEmail,
   passwordChangedEmail,
   googleOnlyEmail,
@@ -956,6 +958,7 @@ async function runLifecycleJobs(): Promise<void> {
     try {
       if (job === "inactivity") await runInactivityNudge();
       if (job === "weekly-digest") await runWeeklyDigest();
+      if (job === "defense-countdown") await runDefenseCountdown();
     } catch (error) {
       console.error(`[mockio] job ${job} failed:`, error);
     }
@@ -997,6 +1000,45 @@ async function runInactivityNudge(): Promise<void> {
       }),
     );
     await LIFECYCLE.markSent(email, "inactivity").catch(() => undefined);
+  }
+}
+
+/** Today as a calendar date in Lima, where the defences being counted down are. */
+export function limaDate(now = new Date(), offsetDays = 0): string {
+  const shifted = new Date(now.getTime() + offsetDays * 86_400_000);
+  return shifted.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+}
+
+/**
+ * The week before a defence: one mail on each of the countdown days.
+ *
+ * Only from 7 a.m. Lima time, so the day-of mail arrives before the student
+ * leaves rather than at midnight. Each day is recorded on the thesis once
+ * sent, so the job can run every few hours without repeating itself.
+ */
+async function runDefenseCountdown(): Promise<void> {
+  const now = new Date();
+  const hour = Number(now.toLocaleString("en-US", { timeZone: "America/Lima", hour: "numeric", hour12: false }));
+  if (hour < 7) return;
+  const today = limaDate(now);
+  const rows = await THESES.countdownCandidates(today, limaDate(now, 7));
+  for (const row of rows) {
+    const daysLeft = Math.round((Date.parse(row.defenseDate) - Date.parse(today)) / 86_400_000);
+    const day = COUNTDOWN_DAYS.find((entry) => entry === daysLeft);
+    if (day === undefined || row.sent.includes(day)) continue;
+    const account = await ACCOUNTS.findById(row.ownerId).catch(() => null);
+    if (!account?.email) continue;
+    if (await LIFECYCLE.hasOptedOut(account.email).catch(() => true)) continue;
+    await mail(
+      defenseCountdownEmail(account.email, {
+        day,
+        language: row.language,
+        risks: row.risks,
+        url: `${siteUrl()}/app/thesis`,
+        unsubscribeUrl: unsubscribeUrl(siteUrl(), account.email),
+      }),
+    );
+    await THESES.markCountdown(row.ownerId, day).catch(() => undefined);
   }
 }
 
@@ -2834,6 +2876,18 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       reviewedAt: new Date().toISOString(),
     });
     json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /** The defence date, for the countdown. Null clears it. */
+  if (req.method === "PUT" && path === "/api/thesis/date") {
+    const body = await readJson(req);
+    const raw = body["date"];
+    const date = raw === null ? null : typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : undefined;
+    if (date === undefined) return json(res, 400, { error: "Esa fecha no es válida." });
+    if (date !== null && date < limaDate()) return json(res, 400, { error: "Esa fecha ya pasó." });
+    await THESES.setDefenseDate(identity.id, date);
+    json(res, 200, { thesis: await THESES.get(identity.id) });
     return;
   }
 

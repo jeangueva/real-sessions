@@ -267,6 +267,17 @@ export interface StoredThesis {
   uploadedAt: string;
   /** The slide review, when the deck has been uploaded for this version. */
   slides?: StoredSlides | null;
+  /** When they defend, as YYYY-MM-DD, if they told us. */
+  defenseDate?: string | null;
+}
+
+/** A thesis whose defence is close enough for the countdown mails. */
+export interface CountdownCandidate {
+  ownerId: string;
+  defenseDate: string;
+  language: string;
+  risks: string[];
+  sent: number[];
 }
 
 export interface ThesisStore {
@@ -279,6 +290,11 @@ export interface ThesisStore {
   delete(ownerId: string): Promise<void>;
   /** Sets or clears the slide review. */
   putSlides(ownerId: string, slides: StoredSlides | null): Promise<void>;
+  /** Sets or clears the defence date; a new date restarts the countdown. */
+  setDefenseDate(ownerId: string, date: string | null): Promise<void>;
+  /** Theses defended between the two dates, inclusive. */
+  countdownCandidates(from: string, to: string): Promise<CountdownCandidate[]>;
+  markCountdown(ownerId: string, day: number): Promise<void>;
   transfer(fromOwnerId: string, toOwnerId: string): Promise<void>;
 }
 
@@ -287,7 +303,9 @@ class PostgresThesisStore implements ThesisStore {
 
   async get(ownerId: string): Promise<StoredThesis | null> {
     const { rows } = await this.pool.query(
-      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides FROM theses WHERE owner_id = $1`,
+      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides,
+              to_char(defense_date, 'YYYY-MM-DD') AS defense_date
+         FROM theses WHERE owner_id = $1`,
       [ownerId],
     );
     const row = rows[0];
@@ -299,6 +317,7 @@ class PostgresThesisStore implements ThesisStore {
       analysis: row.analysis as ThesisAnalysis,
       uploadedAt: new Date(row.uploaded_at).toISOString(),
       slides: (row.slides as StoredSlides | null) ?? null,
+      defenseDate: (row.defense_date as string | null) ?? null,
     };
   }
 
@@ -327,6 +346,29 @@ class PostgresThesisStore implements ThesisStore {
       ownerId,
       slides ? JSON.stringify(slides) : null,
     ]);
+  }
+
+  async setDefenseDate(ownerId: string, date: string | null) {
+    await this.pool.query(
+      `UPDATE theses SET defense_date = $2, countdown_sent = '{}' WHERE owner_id = $1`,
+      [ownerId, date],
+    );
+  }
+
+  async countdownCandidates(from: string, to: string) {
+    const { rows } = await this.pool.query(
+      `SELECT owner_id, to_char(defense_date, 'YYYY-MM-DD') AS defense_date, analysis, countdown_sent
+         FROM theses WHERE defense_date BETWEEN $1 AND $2 LIMIT 1000`,
+      [from, to],
+    );
+    return rows.map((row) => candidate(row.owner_id as string, row.defense_date as string, row.analysis as ThesisAnalysis, (row.countdown_sent as number[]) ?? []));
+  }
+
+  async markCountdown(ownerId: string, day: number) {
+    await this.pool.query(
+      `UPDATE theses SET countdown_sent = array_append(countdown_sent, $2) WHERE owner_id = $1`,
+      [ownerId, day],
+    );
   }
 
   async transfer(fromOwnerId: string, toOwnerId: string) {
@@ -374,11 +416,41 @@ class MemoryThesisStore implements ThesisStore {
     if (row) row.slides = slides;
   }
 
+  private readonly sent = new Map<string, number[]>();
+
+  async setDefenseDate(ownerId: string, date: string | null) {
+    const row = this.rows.get(ownerId);
+    if (row) row.defenseDate = date;
+    this.sent.delete(ownerId);
+  }
+
+  async countdownCandidates(from: string, to: string) {
+    return [...this.rows.entries()]
+      .filter(([, row]) => row.defenseDate && row.defenseDate >= from && row.defenseDate <= to)
+      .map(([ownerId, row]) => candidate(ownerId, row.defenseDate!, row.analysis, this.sent.get(ownerId) ?? []));
+  }
+
+  async markCountdown(ownerId: string, day: number) {
+    this.sent.set(ownerId, [...(this.sent.get(ownerId) ?? []), day]);
+  }
+
   async transfer(fromOwnerId: string, toOwnerId: string) {
     const row = this.rows.get(fromOwnerId);
     if (row && !this.rows.has(toOwnerId)) this.rows.set(toOwnerId, row);
     this.rows.delete(fromOwnerId);
   }
+}
+
+/** The three questions a jury would ask first, for the countdown mails. */
+function candidate(ownerId: string, defenseDate: string, analysis: ThesisAnalysis, sent: number[]): CountdownCandidate {
+  const order = { alta: 0, media: 1, baja: 2 };
+  return {
+    ownerId,
+    defenseDate,
+    language: analysis.language,
+    risks: [...analysis.risks].sort((a, b) => order[a.severity] - order[b.severity]).slice(0, 3).map((risk) => risk.likely_question),
+    sent,
+  };
 }
 
 export function createThesisStore(pool: DbPool | null): ThesisStore {

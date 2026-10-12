@@ -1332,6 +1332,8 @@ export interface StoredThesis {
   analysis: ThesisAnalysis;
   uploadedAt: string;
   slides?: StoredSlides | null;
+  /** YYYY-MM-DD, when they told us. */
+  defenseDate?: string | null;
 }
 
 /** What is left to rehearse: full defences in packs, and the free express one. */
@@ -1398,4 +1400,14 @@ export function uploadSlides(file: File, minutes: number) {
 
 export function deleteSlides() {
   return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/slides", { method: "DELETE" }));
+}
+
+export function setDefenseDate(date: string | null) {
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis }>("/api/thesis/date", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date }),
+    }),
+  );
 }

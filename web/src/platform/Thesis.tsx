@@ -8,6 +8,7 @@ import type { DefenseAllowance, PackOffer } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { ThesisSlides } from "./ThesisSlides";
+import { DefenseDate } from "./DefenseDate";
 
 const ACCEPT = ".pdf,.docx";
 
@@ -199,6 +200,8 @@ function Diagnosis({
           </div>
         </Panel>
       </FadeRise>
+
+      <DefenseDate thesis={thesis} onChange={onChange} />
 
       <section aria-labelledby="risks" className="flex flex-col gap-3">
         <div>

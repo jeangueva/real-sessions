@@ -52,6 +52,9 @@ export const JOBS: JobSchedule[] = [
   // running it more often than that only costs queries.
   { job: "inactivity", everyMs: 24 * 60 * 60 * 1000 },
   { job: "weekly-digest", everyMs: 7 * 24 * 60 * 60 * 1000 },
+  // Every few hours: each mail is due on a calendar day, and a run that only
+  // came once a day could land after the morning it was meant for.
+  { job: "defense-countdown", everyMs: 3 * 60 * 60 * 1000 },
 ];
 
 /**

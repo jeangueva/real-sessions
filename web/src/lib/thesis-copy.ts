@@ -10,6 +10,12 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  dateTitle: "¿Cuándo sustentas?",
+  dateBody: "Te escribimos 7, 5, 3 y 1 día antes, y la mañana del día, con lo que toca preparar.",
+  daysLeft: "Faltan {count} días",
+  dayTomorrow: "Es mañana",
+  dayToday: "Es hoy. Éxitos.",
+  dateClear: "Quitar fecha",
   printReport: "Descargar PDF para tu asesor",
   printHeading: "Informe de ensayo de sustentación · Mockio",
   slidesCount: "{count} diapositivas",
@@ -132,6 +138,12 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  dateTitle: "Quando é a sua defesa?",
+  dateBody: "Escrevemos 7, 5, 3 e 1 dia antes, e na manhã do dia, com o que preparar.",
+  daysLeft: "Faltam {count} dias",
+  dayTomorrow: "É amanhã",
+  dayToday: "É hoje. Boa sorte.",
+  dateClear: "Remover data",
   printReport: "Baixar PDF para seu orientador",
   printHeading: "Relatório de ensaio de defesa · Mockio",
   slidesCount: "{count} slides",
@@ -252,6 +264,12 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  dateTitle: "When do you defend?",
+  dateBody: "We write 7, 5, 3 and 1 day before, and on the morning, with what to prepare.",
+  daysLeft: "{count} days to go",
+  dayTomorrow: "It is tomorrow",
+  dayToday: "It is today. Good luck.",
+  dateClear: "Clear date",
   printReport: "Download a PDF for your advisor",
   printHeading: "Thesis defence rehearsal report · Mockio",
   slidesCount: "{count} slides",
