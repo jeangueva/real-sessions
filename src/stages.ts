@@ -32,7 +32,7 @@ import type { AreaId } from "./roles.js";
  * paying. The two later phases are what someone needs every week once they
  * have the job — which is when a subscription makes sense.
  */
-export type Phase = "prepare" | "drill" | "work" | "grow";
+export type Phase = "prepare" | "drill" | "work" | "grow" | "thesis";
 
 export interface Stage {
   id: string;
@@ -351,6 +351,48 @@ const DRILL_NUMBER: Stage = {
 };
 
 const DRILLS = [DRILL_FILLERS, DRILL_SIMPLE, DRILL_NUMBER];
+
+/*
+ * ---------------------------------------------------------------------------
+ * Sustentación: a thesis defence, not a job interview.
+ *
+ * Not in any role's list: these run against an uploaded thesis, whatever the
+ * person's job, and are reached from the thesis screen rather than the
+ * interview picker. The panel's own prompt (prompts/defense.ts) replaces the
+ * interviewer's; brief and rubric here are what the shared machinery reads.
+ * ---------------------------------------------------------------------------
+ */
+
+const DEFENSE_PE: Stage = {
+  id: "sustentacion-pe",
+  phase: "thesis",
+  label: "Sustentación de tesis",
+  summary: "Panel de 3 jurados: presidente, metodólogo y especialista. Exposición y preguntas sobre tu tesis.",
+  brief: "A thesis defence before a panel of three, in the Peruvian format.",
+  rubric:
+    "Weigh command of the content, methodology, clarity, how questions were handled, time and composure, as a Peruvian thesis jury would.",
+  // The opening, the reply to the exposition, about eight questions with
+  // follow-ups, and the close.
+  minTurns: 9,
+  maxTurns: 12,
+  titles: [],
+  solo: true,
+};
+
+const DEFENSE_EXPRESS: Stage = {
+  id: "sustentacion-express",
+  phase: "thesis",
+  label: "Sustentación express",
+  summary: "10 minutos con un jurado: un resumen de tu tesis y tres preguntas.",
+  brief: "A ten-minute defence rehearsal with a single juror.",
+  rubric: "Weigh command of the content, clarity and how the questions were handled.",
+  minTurns: 5,
+  maxTurns: 5,
+  titles: [],
+  solo: true,
+};
+
+const THESIS_STAGES = [DEFENSE_PE, DEFENSE_EXPRESS];
 
 /** The agency's last round: the foreign client deciding whether to take them. */
 const CLIENT_INTERVIEW: Stage = {
@@ -792,6 +834,7 @@ export const STAGES: Stage[] = [
   AGENCY_SCREEN,
   CLIENT_INTERVIEW,
   ...DRILLS,
+  ...THESIS_STAGES,
   ...AFTER_THE_OFFER,
   CODE_REVIEW,
   ON_CALL,
@@ -869,6 +912,11 @@ export function resolveStages(
   wanted: readonly (string | null | undefined)[] | string | null | undefined,
 ): Stage[] {
   const requested = typeof wanted === "string" ? [wanted] : (wanted ?? []);
+  // A defence runs against the thesis, not the role, and alone.
+  const defence = requested
+    .map((entry) => THESIS_STAGES.find((stage) => stage.id === entry || stage.label === entry))
+    .find(Boolean);
+  if (defence) return [defence];
   const allowed = stagesFor(role);
   const out: Stage[] = [];
   for (const entry of requested) {
@@ -1020,6 +1068,11 @@ export function phaseOf(stage: Stage): Phase {
 /** Whether a session runs any scene past the interview — the paid part. */
 export function isAfterTheOffer(stages: readonly Stage[]): boolean {
   return stages.some((stage) => phaseOf(stage) === "work" || phaseOf(stage) === "grow");
+}
+
+/** Whether a session is a thesis defence rather than an interview. */
+export function isDefense(stages: readonly Stage[]): boolean {
+  return stages.some((stage) => phaseOf(stage) === "thesis");
 }
 
 /** Whether a session is a two-minute drill rather than a round. */

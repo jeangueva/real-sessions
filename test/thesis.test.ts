@@ -22,3 +22,30 @@ describe("labelledText", () => {
     expect(text).toContain("b".repeat(50) + " […]");
   });
 });
+
+describe("the thesis panel", () => {
+  it("runs a defence alone, whatever else was asked for", async () => {
+    const { resolveStages } = await import("../src/stages.js");
+    expect(resolveStages("Backend Engineer", ["behavioral", "sustentacion-pe"]).map((s) => s.id)).toEqual([
+      "sustentacion-pe",
+    ]);
+  });
+
+  it("gives the express rehearsal a single juror", async () => {
+    const { buildInterviewerPrompt } = await import("../src/prompts/interviewer.js");
+    const ctx = {
+      candidateName: "Ana",
+      targetRole: "Administración",
+      companyName: "U",
+      companyCulture: "",
+      industry: "",
+      interviewStage: "sustentacion-express",
+    };
+    const defense = { dossier: "Title: X", difficulty: "estandar" as const, university: "Universidad X", field: "F" };
+    const express = buildInterviewerPrompt(ctx, { stages: ["sustentacion-express"], defense, minTurns: 5, maxTurns: 5 });
+    expect(express).toContain("Universidad X");
+    expect(express).not.toContain("[[metodologo]] Dra.");
+    const full = buildInterviewerPrompt(ctx, { stages: ["sustentacion-pe"], defense, minTurns: 9, maxTurns: 12 });
+    expect(full).toContain("[[metodologo]] Dra. Lucía Vidal");
+  });
+});

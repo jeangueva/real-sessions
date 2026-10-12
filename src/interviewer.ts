@@ -8,6 +8,7 @@ import type {
 import {
   buildInterviewerPrompt,
   WRAP_UP_INSTRUCTION,
+  type DefenseSetup,
 } from "./prompts/interviewer.js";
 import { defaultPersonaFor } from "./personas.js";
 import {
@@ -57,6 +58,8 @@ export interface SessionSnapshot {
   jobPosting?: string | null;
   /** Verified questions this session was built with. */
   knownQuestions?: string[];
+  /** A thesis defence's dossier, kept so the panel does not reread mid-session. */
+  defense?: DefenseSetup | null;
   messages: ChatTurn[];
   interviewerTurns: number;
   complete: boolean;
@@ -94,6 +97,8 @@ export interface InterviewSessionOptions {
   jobPosting?: string | null;
   /** Verified crowd-reported questions for this company. */
   knownQuestions?: readonly string[];
+  /** A thesis defence: the jurors' dossier and how hard they press. */
+  defense?: DefenseSetup | null;
 }
 
 /**
@@ -124,6 +129,7 @@ export class InterviewSession {
   private readonly candidateBrief: string | null;
   private readonly jobPosting: string | null;
   private readonly knownQuestions: string[];
+  private readonly defense: DefenseSetup | null;
   private readonly systemPrompt: string;
   private readonly messages: ChatTurn[] = [];
   private interviewerTurns = 0;
@@ -163,6 +169,7 @@ export class InterviewSession {
     this.candidateBrief = options.candidateBrief ?? null;
     this.jobPosting = options.jobPosting ?? null;
     this.knownQuestions = [...(options.knownQuestions ?? [])];
+    this.defense = options.defense ?? null;
     this.systemPrompt = buildInterviewerPrompt(context, {
       stages: stages.map((entry) => entry.id),
       ...(options.language ? { language: options.language } : {}),
@@ -174,6 +181,7 @@ export class InterviewSession {
       candidateBrief: this.candidateBrief,
       jobPosting: this.jobPosting,
       knownQuestions: this.knownQuestions,
+      defense: this.defense,
     });
   }
 
@@ -224,6 +232,7 @@ export class InterviewSession {
       candidateBrief: this.candidateBrief,
       jobPosting: this.jobPosting,
       knownQuestions: [...this.knownQuestions],
+      defense: this.defense,
       messages: this.messages.map((message) => ({ ...message })),
       interviewerTurns: this.interviewerTurns,
       complete: this.complete,
@@ -256,6 +265,7 @@ export class InterviewSession {
       candidateBrief: snapshot.candidateBrief ?? null,
       jobPosting: snapshot.jobPosting ?? null,
       knownQuestions: snapshot.knownQuestions ?? [],
+      defense: snapshot.defense ?? null,
     });
     session.messages.push(...snapshot.messages);
     session.interviewerTurns = snapshot.interviewerTurns;

@@ -496,6 +496,10 @@ export function startSessionStream(
    * ignores `jobPosting` — the advertisement is pasted once, against the job.
    */
   applicationId?: string;
+  /** A thesis defence: the university it is held at. */
+  university?: string;
+  /** A thesis defence: how hard the panel presses. */
+  difficulty?: "calentamiento" | "estandar" | "exigente" | "hostil";
   },
   handlers: {
     onDelta: (text: string) => void;

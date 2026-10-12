@@ -188,9 +188,17 @@ import {
   createThesisStore,
   extractPages,
   MAX_THESIS_BYTES,
+  renderDossier,
   ThesisAnalysisError,
   type ThesisStore,
 } from "./thesis.js";
+import type { DefenseSetup } from "./prompts/interviewer.js";
+
+const DEFENSE_MODEL = process.env.REALSESSIONS_DEFENSE_MODEL ?? "anthropic/claude-sonnet-5";
+const DEFENSE_FALLBACKS = (process.env.REALSESSIONS_DEFENSE_FALLBACKS ?? "qwen/qwen3.7-plus")
+  .split(",")
+  .map((entry) => entry.trim())
+  .filter(Boolean);
 import { attachVoiceGateway } from "./voice/gateway.js";
 import { isReviewer, reviewEnabled, reviewerEmails } from "./reviewers.js";
 import { MAX_POSTING_CHARS } from "./prompts/interviewer.js";
@@ -224,6 +232,7 @@ import type { PaddleSubscription } from "./billing/paddle.js";
 import {
   MAX_COMBINED,
   isAfterTheOffer,
+  isDefense,
   resolveStages,
   stageCatalogue,
   titlesFor,
@@ -3033,7 +3042,38 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
           .catch(() => [])
       : [];
 
-    const rounds = resolveStages(context.targetRole, wantedStages ?? context.interviewStage);
+    let rounds = resolveStages(context.targetRole, wantedStages ?? context.interviewStage);
+    /**
+     * A thesis defence: the panel needs the thesis, and the full panel is paid.
+     *
+     * Free gets the express rehearsal — one juror, ten minutes — which is the
+     * taste of the product the plan is built around. Downgraded here rather
+     * than refused, the same way a free interview loses its employer.
+     */
+    let defense: DefenseSetup | null = null;
+    if (isDefense(rounds)) {
+      const stored = await THESES.get(identity.id);
+      const pages = stored ? await THESES.pages(identity.id) : null;
+      if (!stored || !pages) {
+        return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+      }
+      if (!can.workScenes && rounds[0]?.id !== "sustentacion-express") {
+        rounds = resolveStages(null, ["sustentacion-express"]);
+      }
+      const difficulty = (["calentamiento", "estandar", "exigente", "hostil"] as const).find(
+        (entry) => entry === body["difficulty"],
+      ) ?? "estandar";
+      const university =
+        typeof body["university"] === "string" && body["university"].trim() !== ""
+          ? body["university"].trim().slice(0, 120)
+          : "la universidad";
+      defense = {
+        dossier: renderDossier(stored, pages),
+        difficulty,
+        university,
+        field: stored.analysis.field,
+      };
+    }
     // The conversations after the offer are the paid plan. Checked on the
     // rounds actually resolved, not on what the picker showed: the picker is
     // a courtesy and this is the paywall.
@@ -3056,6 +3096,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       candidateBrief: candidateBrief === "" ? null : candidateBrief,
       jobPosting,
       knownQuestions,
+      defense,
+      // Three jurors in one voice is beyond the flash model the interviews
+      // run on: it lost track of who had spoken. A defence is fewer, longer
+      // turns, so a slower first word costs less than a confused panel.
+      ...(defense ? { model: DEFENSE_MODEL, fallbackModels: DEFENSE_FALLBACKS } : {}),
       ...(PROVIDER ? { provider: PROVIDER } : {}),
     });
     const sessionId = randomUUID();

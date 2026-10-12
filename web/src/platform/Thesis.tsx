@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, deleteThesis, fetchThesis, uploadThesis } from "@/lib/api";
+import { ApiError, deleteThesis, fetchPlan, fetchThesis, uploadThesis } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 
@@ -265,6 +266,7 @@ function Diagnosis({
         </section>
       )}
 
+      <Rehearse thesis={thesis} />
       <Ficha analysis={a} />
       <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
       <Privacy />
@@ -321,5 +323,138 @@ function Ficha({ analysis }: { analysis: ThesisAnalysis }) {
         )}
       </dl>
     </details>
+  );
+}
+
+type Difficulty = "calentamiento" | "estandar" | "exigente" | "hostil";
+const DIFFICULTY_LABEL = {
+  calentamiento: "diffCalentamiento",
+  estandar: "diffEstandar",
+  exigente: "diffExigente",
+  hostil: "diffHostil",
+} as const;
+
+/**
+ * Where the rehearsal starts: the university, how hard, and which panel.
+ *
+ * Free gets the express rehearsal; the panel of three is the pack. The
+ * university is remembered on this device — it does not change between
+ * rehearsals, and asking every time is the kind of friction that makes the
+ * second rehearsal not happen.
+ */
+function Rehearse({ thesis }: { thesis: StoredThesis }) {
+  const t = useThesisT();
+  const navigate = useNavigate();
+  const [paid, setPaid] = useState<boolean | null>(null);
+  const [university, setUniversity] = useState(() => {
+    try {
+      return localStorage.getItem("mockio.university") ?? "";
+    } catch {
+      return "";
+    }
+  });
+  const [difficulty, setDifficulty] = useState<Difficulty>("estandar");
+  const [full, setFull] = useState(false);
+
+  useEffect(() => {
+    fetchPlan()
+      .then((result) => {
+        setPaid(Boolean(result.capabilities.workScenes));
+        setFull(Boolean(result.capabilities.workScenes));
+      })
+      .catch(() => setPaid(false));
+  }, []);
+
+  const begin = () => {
+    const place = university.trim();
+    try {
+      if (place) localStorage.setItem("mockio.university", place);
+    } catch {
+      // Private mode: asked again next time.
+    }
+    const stage = full ? "sustentacion-pe" : "sustentacion-express";
+    const language = thesis.analysis.language;
+    navigate("/app/session", {
+      state: {
+        company: place || "Universidad",
+        role: thesis.analysis.field,
+        stage,
+        stages: [stage],
+        language,
+        bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : "es-PE",
+        mode: "real",
+        defense: { university: place || "la universidad", difficulty },
+      },
+    });
+  };
+
+  return (
+    <Panel variant="raised" className="flex flex-col gap-5 p-6 sm:p-8">
+      <div>
+        <h2 className="text-title font-semibold text-cream-bright">{t("rehearseTitle")}</h2>
+        <p className="mt-1 max-w-prose text-sm text-cream-dim">{t("rehearseBody")}</p>
+      </div>
+
+      <label className="flex flex-col gap-1.5">
+        <span className="text-xs font-semibold text-cream-dim">{t("university")}</span>
+        <input
+          value={university}
+          onChange={(event) => setUniversity(event.target.value)}
+          placeholder={t("universityPlaceholder")}
+          maxLength={120}
+          className="focus-ring rounded-2xl bg-surface-lift px-4 py-3 text-base text-cream-bright placeholder:text-cream-faint"
+        />
+      </label>
+
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{t("difficulty")}</legend>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(DIFFICULTY_LABEL) as Difficulty[]).map((entry) => (
+            <button
+              key={entry}
+              type="button"
+              aria-pressed={difficulty === entry}
+              onClick={() => setDifficulty(entry)}
+              className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+                difficulty === entry ? "bg-cream-bright text-surface-base" : "bg-surface-lift text-cream-dim hover:text-cream-bright"
+              }`}
+            >
+              {t(DIFFICULTY_LABEL[entry])}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="flex flex-col gap-2">
+        {([false, true] as const).map((option) => (
+          <button
+            key={String(option)}
+            type="button"
+            aria-pressed={full === option}
+            disabled={option && paid === false}
+            onClick={() => setFull(option)}
+            className={`focus-ring flex items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              full === option ? "bg-surface-lift text-cream-bright ring-2 ring-accent" : "bg-surface-card text-cream-dim shadow-card"
+            }`}
+          >
+            {t(option ? "full" : "express")}
+          </button>
+        ))}
+        {paid === false && (
+          <p className="text-sm text-cream-dim">
+            {t("fullLocked")}{" "}
+            <Link to="/app/settings#plan" className="font-semibold text-accent-text underline underline-offset-4">
+              {t("seePlans")}
+            </Link>
+          </p>
+        )}
+      </div>
+
+      <div>
+        <Action withArrow onClick={begin} className="px-6 py-3 text-base">
+          {t("rehearse")}
+        </Action>
+      </div>
+    </Panel>
   );
 }

@@ -132,7 +132,12 @@ describe("the round changes the interview", () => {
     // against a stage added without a brief or a rubric.
     for (const stage of STAGES) {
       const ctx = context({ interviewStage: stage.label, targetRole: "Backend Engineer" });
-      expect(() => buildInterviewerPrompt(ctx, { personaId: "measured" })).not.toThrow();
+      // A defence runs against a thesis, so it is built with a dossier.
+      const defense =
+        stage.phase === "thesis"
+          ? { dossier: "Title: X", difficulty: "estandar" as const, university: "U", field: "F" }
+          : null;
+      expect(() => buildInterviewerPrompt(ctx, { personaId: "measured", defense })).not.toThrow();
       expect(() => buildEvaluatorPrompt(ctx)).not.toThrow();
     }
   });

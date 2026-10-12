@@ -361,3 +361,71 @@ class MemoryThesisStore implements ThesisStore {
 export function createThesisStore(pool: DbPool | null): ThesisStore {
   return pool ? new PostgresThesisStore(pool) : new MemoryThesisStore();
 }
+
+/* ------------------------------------------------------------------------- */
+/* What the jury reads                                                       */
+/* ------------------------------------------------------------------------- */
+
+/** Pages quoted to the jurors, and how much of each. */
+const DOSSIER_PAGES = 12;
+const DOSSIER_PAGE_CHARS = 1_800;
+
+/**
+ * The jurors' notes: the diagnosis, then the pages it points at.
+ *
+ * Not the whole thesis. The interviewer model answers in under a second or
+ * the call feels broken, and a 100k-token prompt on every turn would end that.
+ * The pages a jury would actually open — the ones the risks and the key
+ * results sit on — are enough to quote from, and the citations stay real.
+ */
+export function renderDossier(thesis: StoredThesis, pages: readonly string[]): string {
+  const a = thesis.analysis;
+  const at = (page: number | null) => (page ? ` (p. ${page})` : "");
+  const cited = (entry: { text: string; page: number | null }) => `${entry.text}${at(entry.page)}`;
+  const list = (label: string, entries: { text: string; page: number | null }[]) =>
+    entries.length > 0 ? [`${label}:`, ...entries.map((entry) => `- ${cited(entry)}`)] : [];
+  const f = a.ficha;
+
+  const lines = [
+    `Title: ${a.title}`,
+    `Degree: ${a.degree}. Field: ${a.field}. ${thesis.pageCount} pages${thesis.approximate ? " (page numbers approximate)" : ""}.`,
+    `Summary: ${a.summary}`,
+    "",
+    `Problem: ${cited(f.problem)}`,
+    `General objective: ${cited(f.general_objective)}`,
+    ...list("Specific objectives", f.specific_objectives),
+    ...list("Hypotheses", f.hypotheses),
+    ...list("Variables", f.variables),
+    `Design: ${cited(f.design)}`,
+    `Population and sample: ${cited(f.population_sample)}`,
+    `Instruments: ${cited(f.instruments)}`,
+    ...list("Main results", f.main_results),
+    ...list("Conclusions", f.conclusions),
+    "",
+    "RISKS — where to press, most serious first:",
+    ...a.risks.map(
+      (risk) => `- [${risk.severity}] ${risk.area}${at(risk.page)}: ${risk.issue} A juror might ask: "${risk.likely_question}"`,
+    ),
+  ];
+  const gaps = a.consistency.filter((row) => row.status !== "coherente");
+  if (gaps.length > 0) {
+    lines.push("", "CONSISTENCY GAPS:", ...gaps.map((row) => `- ${row.objective}: ${row.note}`));
+  }
+
+  // The pages the diagnosis points at, risks first.
+  const wanted: number[] = [];
+  const add = (page: number | null) => {
+    if (page && !wanted.includes(page) && page <= pages.length) wanted.push(page);
+  };
+  a.risks.forEach((risk) => add(risk.page));
+  [f.population_sample, f.instruments, f.design, ...f.main_results, ...f.conclusions].forEach((entry) => add(entry.page));
+  const excerpts = wanted.slice(0, DOSSIER_PAGES).sort((x, y) => x - y);
+  if (excerpts.length > 0) {
+    lines.push("", "PAGES YOU CAN QUOTE FROM:");
+    for (const page of excerpts) {
+      const text = pages[page - 1] ?? "";
+      lines.push(`[p. ${page}] ${text.length > DOSSIER_PAGE_CHARS ? text.slice(0, DOSSIER_PAGE_CHARS) + " […]" : text}`);
+    }
+  }
+  return lines.join("\n");
+}

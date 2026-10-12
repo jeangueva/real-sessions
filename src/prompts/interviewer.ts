@@ -1,7 +1,8 @@
 import type { InterviewContext } from "../types.js";
 import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
-import { composeBrief, isAfterTheOffer, resolveStages } from "../stages.js";
+import { composeBrief, isAfterTheOffer, isDefense, resolveStages } from "../stages.js";
+import { DEFENSE_TEMPLATE, DIFFICULTIES, PANELS, PANEL_SHAPES, type Difficulty } from "./defense.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
 import { interviewerTitle } from "../roles.js";
@@ -224,6 +225,15 @@ export interface InterviewerPromptOptions {
   jobPosting?: string | null;
   /** Verified crowd-reported questions for this company. */
   knownQuestions?: readonly string[];
+  /** A thesis defence: the jurors' dossier and how hard they press. */
+  defense?: DefenseSetup | null;
+}
+
+export interface DefenseSetup {
+  dossier: string;
+  difficulty: Difficulty;
+  university: string;
+  field: string;
 }
 
 /**
@@ -268,6 +278,28 @@ export function buildInterviewerPrompt(
     : defaultPersonaFor(context.companyName);
 
   const stages = resolveStages(context.targetRole, options.stages ?? context.interviewStage);
+  if (isDefense(stages)) {
+    const defense = options.defense;
+    if (!defense) throw new Error("A thesis defence needs the thesis dossier.");
+    const express = stages[0]?.id === "sustentacion-express";
+    return renderTemplate(DEFENSE_TEMPLATE, {
+      university: defense.university,
+      field: defense.field,
+      candidate_name: context.candidateName,
+      // Rendered first: the template pass is single, and the panel names
+      // the university and field itself.
+      panel: renderTemplate(express ? PANELS.express : PANELS.full, {
+        university: defense.university,
+        field: defense.field,
+      }),
+      panel_shape: express ? PANEL_SHAPES.express : PANEL_SHAPES.full,
+      language: findLanguage(options.language).promptLabel,
+      difficulty: DIFFICULTIES[defense.difficulty],
+      min_turns: String(minTurns),
+      max_turns: String(maxTurns),
+      dossier: defense.dossier,
+    });
+  }
   const template = isAfterTheOffer(stages) ? WORKPLACE_TEMPLATE : INTERVIEWER_TEMPLATE;
   return renderTemplate(template, {
     ...toTemplateVariables(context),

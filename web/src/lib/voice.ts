@@ -58,6 +58,44 @@ export interface SpeechOutput {
 }
 
 /* -------------------------------------------------------------------------
+ * The thesis panel: three jurors, three voices.
+ *
+ * The panel's turns open with a tag naming who speaks — [[presidente]],
+ * [[metodologo]], [[especialista]] — and a turn can pass the floor midway.
+ * Every phrase sent to an output carries the tag of the juror speaking it;
+ * the output picks the voice from it and never says it aloud.
+ * ---------------------------------------------------------------------- */
+
+export const JURORS = {
+  presidente: { personaId: "measured", name: "Dr. Ramírez" },
+  metodologo: { personaId: "skeptic", name: "Dra. Vidal" },
+  especialista: { personaId: "systems", name: "Dr. Paredes" },
+} as const;
+export type JurorTag = keyof typeof JURORS;
+
+const TAG = /\[\[(presidente|metodologo|especialista)\]\]/g;
+const LEADING_TAG = /^\s*\[\[(presidente|metodologo|especialista)\]\]\s*/;
+
+/** The juror a phrase opens with, if it names one, and the words without tags. */
+export function splitJuror(phrase: string): { juror: JurorTag | null; text: string } {
+  const match = phrase.match(LEADING_TAG);
+  return {
+    juror: (match?.[1] as JurorTag | undefined) ?? null,
+    text: phrase.replace(TAG, " ").replace(/\s+/g, " ").trim(),
+  };
+}
+
+/** Tags turned into names, for the screen: "Dra. Vidal: Bachiller, …". */
+export function showJurors(text: string): string {
+  return text
+    .replace(/^\s*\[\[(\w+)\]\]\s*/, (_, tag: string) => `${JURORS[tag as JurorTag]?.name ?? ""}: `)
+    .replace(/\s*\[\[(\w+)\]\]\s*/g, (_, tag: string) => `\n\n${JURORS[tag as JurorTag]?.name ?? ""}: `)
+    // A tag still arriving in the stream, cut off mid-word.
+    .replace(/\[\[\w*\]?$/, "")
+    .trim();
+}
+
+/* -------------------------------------------------------------------------
  * Minimal typings — the Web Speech API is not in TypeScript's DOM library.
  * ---------------------------------------------------------------------- */
 interface RecognitionAlternative {
@@ -297,7 +335,7 @@ export function createSpeechOutput(
     },
 
     speak(text) {
-      const trimmed = text.trim();
+      const trimmed = splitJuror(text).text;
       if (trimmed === "") return Promise.resolve("ok" as const);
 
       return new Promise<"ok" | "blocked" | "error">((resolve) => {
@@ -406,13 +444,17 @@ export function createAuraOutput(
    */
   let live: LevelMeter = UNMEASURED;
 
-  const fetchAudio = async (text: string): Promise<Blob | null> => {
+  const fetchAudio = async (phrase: string): Promise<Blob | null> => {
+    // A juror's tag picks their voice and is never read aloud.
+    const { juror, text } = splitJuror(phrase);
+    const speaker = juror ? JURORS[juror].personaId : personaId;
+    if (text === "") return new Blob([], { type: "audio/mpeg" });
     try {
       const response = await fetch("/api/voice/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ text, personaId, language }),
+        body: JSON.stringify({ text, personaId: speaker, language }),
       });
       if (!response.ok) return null;
       return await response.blob();

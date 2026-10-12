@@ -43,6 +43,7 @@ export function TranscriptPanel({
   lines,
   pending,
   interviewerName,
+  panelLabel,
   tab,
   onTab,
   answer,
@@ -56,6 +57,8 @@ export function TranscriptPanel({
   /** The turn still streaming in, shown greyed under the settled lines. */
   pending: string;
   interviewerName: string | null;
+  /** Replaces "Interviewer" — a thesis panel is a jury, and names itself per line. */
+  panelLabel?: string;
   tab: "transcript" | "chat";
   onTab: (next: "transcript" | "chat") => void;
   answer: string;
@@ -66,7 +69,7 @@ export function TranscriptPanel({
   onClose?: () => void;
 }) {
   const t = useT();
-  const words = { you: t("call.you"), interviewer: t("call.interviewer") };
+  const words = { you: t("call.you"), interviewer: panelLabel ?? t("call.interviewer") };
   const list = useRef<HTMLDivElement>(null);
 
   // Follows the conversation down. A transcript that has to be scrolled by

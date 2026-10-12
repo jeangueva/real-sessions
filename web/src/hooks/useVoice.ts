@@ -5,6 +5,7 @@ import {
   createSpeechOutput,
   takeSpeakablePhrases,
   NEUTRAL_VOICE,
+  splitJuror,
 } from "@/lib/voice";
 import type { VoiceProfile } from "@/lib/voice";
 import { createDeepgramInput, deepgramInputSupported } from "@/lib/deepgram-input";
@@ -49,6 +50,7 @@ export function useVoice({
   personaId = "",
   language = "en",
   bcp47 = "en-US",
+  silenceMs = SILENCE_MS,
 }: {
   enabled: boolean;
   onFinalAnswer: (text: string) => void;
@@ -68,6 +70,11 @@ export function useVoice({
   language?: string;
   /** The same language as a BCP-47 tag, for the browser synthesiser. */
   bcp47?: string;
+  /**
+   * How long a pause ends the answer. A thesis exposition runs for minutes
+   * with long pauses between slides; two seconds would cut it into pieces.
+   */
+  silenceMs?: number;
 }) {
   /**
    * Null until the server has said whether live transcription is configured.
@@ -147,6 +154,9 @@ export function useVoice({
   });
   /** The pending end-of-turn timer, so every path can cancel it. */
   const silence = useRef(0);
+  /** Read when the timer is armed, so a change applies to the next pause. */
+  const silenceRef = useRef(silenceMs);
+  silenceRef.current = silenceMs;
 
   const since = useCallback(
     () => Math.max(0, Date.now() - sessionStartedAt),
@@ -161,8 +171,18 @@ export function useVoice({
     };
   }, [input, output]);
 
+  /**
+   * The juror speaking, for a thesis panel. A phrase without a tag is spoken
+   * by whoever spoke last, so each one is stamped before it is queued — the
+   * output picks the voice per phrase and cannot remember on its own.
+   */
+  const juror = useRef<string | null>(null);
+
   const enqueue = useCallback(
-    (phrase: string) => {
+    (raw: string) => {
+      const opened = splitJuror(raw).juror;
+      if (opened) juror.current = opened;
+      const phrase = !opened && juror.current ? `[[${juror.current}]] ${raw}` : raw;
       // A phrase queued behind another is fetched now rather than when its
       // turn comes, so the round trip overlaps with the sentence still
       // playing. Without this every sentence boundary is a half-second gap.
@@ -217,7 +237,7 @@ export function useVoice({
       window.clearTimeout(silence.current);
       silence.current = window.setTimeout(() => {
         input.stop();
-      }, SILENCE_MS);
+      }, silenceRef.current);
     };
 
     input.start({
