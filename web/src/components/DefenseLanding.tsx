@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import type { ReactNode } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   BookOpenCheck,
   Briefcase,
+  Building2,
+  GraduationCap,
   FileSearch,
   Gavel,
   Grid3x3,
@@ -90,6 +93,9 @@ const ES = {
   pack4: "Cuatro niveles: de calentamiento a jurado hostil",
   pack5: "Válido 6 meses",
   packCta: "Empezar gratis",
+  packBadge: "Recomendado",
+  freeCta: "Probar gratis",
+  stepLabel: "Paso",
   passes: "¿Sustentas en menos de un mes? Pase Intensivo S/ 79: 20 sustentaciones y todos los modos (verificación de autoría, preguntas trampa, coach estadístico, levantar observaciones, virtual o presencial). ¿Tesis en pareja o trío? Tesis grupal S/ 119.",
   legal1: "Mockio es una herramienta de práctica. No garantiza la aprobación de tu sustentación: la decisión es solo de tu jurado.",
   legal2: "La IA puede equivocarse. Verifica con tu asesor y con el reglamento de tu universidad.",
@@ -185,6 +191,9 @@ const PT: Record<Key, string> = {
   pack4: "Quatro níveis: do aquecimento à banca hostil",
   pack5: "Válido por 6 meses",
   packCta: "Começar grátis",
+  packBadge: "Recomendado",
+  freeCta: "Testar grátis",
+  stepLabel: "Passo",
   passes: "Defende em menos de um mês? Passe Intensivo US$ 23: 20 defesas e todos os modos (verificação de autoria, perguntas armadilha, coach estatístico, responder às observações, virtual ou presencial). Trabalho em dupla ou trio? Trabalho em grupo US$ 35.",
   legal1: "O Mockio é uma ferramenta de prática. Não garante a aprovação da sua defesa: a decisão é só da sua banca.",
   legal2: "A IA pode errar. Confirme com seu orientador e com o regulamento da sua universidade.",
@@ -278,6 +287,9 @@ const EN: Record<Key, string> = {
   pack4: "Four levels, from warm-up to a hostile panel",
   pack5: "Valid for 6 months",
   packCta: "Start free",
+  packBadge: "Recommended",
+  freeCta: "Try it free",
+  stepLabel: "Step",
   passes: "Defending within a month? Intensive Pass US$ 23: 20 defences and every mode (authorship check, trick questions, statistics coach, answering reviewers, online or in person). A thesis by two or three? Group thesis US$ 35.",
   legal1: "Mockio is a practice tool. It does not guarantee you pass your defence: that decision is your jury's alone.",
   legal2: "AI can be wrong. Check with your advisor and your university's regulations.",
@@ -325,23 +337,71 @@ const BY_LOCALE: Record<string, Record<Key, string>> = { es: ES, pt: PT, en: EN 
  * eye reads them as three marks, not one block. Under reduced motion Motion
  * skips straight to the end.
  */
-function ActaBars({ values }: { values: number[] }) {
+function ActaBars({ rows }: { rows: { label: string; score: number }[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
+  // Drawn full rather than parked at zero: a bar waiting for a scroll that a
+  // reduced-motion reader's browser never animates would read as no grade.
+  const still = useReducedMotion();
   return (
-    <div ref={ref} className="flex flex-col gap-2">
-      {values.map((value, index) => (
-        <span key={index} className="block h-2 overflow-hidden rounded-full bg-surface-lift">
-          <motion.span
-            className={`block h-full origin-left rounded-full ${value >= 70 ? "bg-grow" : "bg-accent"}`}
-            style={{ width: `${value}%` }}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: inView ? 1 : 0 }}
-            transition={{ duration: 0.7, delay: 0.15 + index * 0.06, ease: EASE_OUT }}
-          />
-        </span>
+    <div ref={ref} className="flex flex-col gap-2.5">
+      {rows.map(({ label, score }, index) => (
+        <div key={label} className="flex flex-col gap-1">
+          <span className="flex items-baseline justify-between text-xs">
+            <span className="text-cream-dim">{label}</span>
+            <span className="font-semibold tabular-nums text-cream-bright">{score}</span>
+          </span>
+          <span className="block h-1.5 overflow-hidden rounded-full bg-surface-lift">
+            <motion.span
+              className={`block h-full origin-left rounded-full ${score >= 14 ? "bg-grow" : "bg-accent"}`}
+              style={{ width: `${(score / 20) * 100}%` }}
+              initial={still ? false : { scaleX: 0 }}
+              animate={{ scaleX: still || inView ? 1 : 0 }}
+              transition={{ duration: 0.7, delay: 0.15 + index * 0.06, ease: EASE_OUT }}
+            />
+          </span>
+        </div>
       ))}
     </div>
+  );
+}
+
+/** One of the four cards that close the page. */
+function ClosingCard({
+  icon,
+  tone,
+  title,
+  body,
+  children,
+}: {
+  icon: typeof Mic;
+  tone?: "accent" | "grow";
+  title: string;
+  body: string;
+  children?: ReactNode;
+}) {
+  return (
+    <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
+      <span className="flex items-center gap-4">
+        <IconTile icon={icon} tone={tone} />
+        <h2 className="text-lg font-semibold tracking-[-0.01em] text-cream-bright">{title}</h2>
+      </span>
+      <p className="text-pretty text-sm leading-relaxed text-cream-dim">{body}</p>
+      {children}
+    </Panel>
+  );
+}
+
+/** The icon in a soft tile — one shape for every icon on the page. */
+function IconTile({ icon: Icon, tone = "accent" }: { icon: typeof Mic; tone?: "accent" | "grow" }) {
+  return (
+    <span
+      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
+        tone === "grow" ? "bg-grow-soft text-grow-text" : "bg-accent-soft text-accent-text"
+      }`}
+    >
+      <Icon aria-hidden className="h-[1.125rem] w-[1.125rem]" />
+    </span>
   );
 }
 
@@ -452,14 +512,14 @@ export function DefenseLanding() {
             <li key={step.title}>
               <FadeRise delay={index * 0.08} className="h-full">
                 <Panel variant="raised" className="flex h-full flex-col gap-3 p-6 shadow-lift">
-                  <span className="flex items-center gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent-text">
-                      <step.icon aria-hidden className="h-4 w-4" />
+                  <span className="flex items-center justify-between">
+                    <IconTile icon={step.icon} />
+                    <span className="text-xs font-semibold tabular-nums text-cream-faint">
+                      {c.stepLabel} {index + 1}
                     </span>
-                    <span className="text-sm font-semibold text-cream-dim">{index + 1}</span>
                   </span>
-                  <h3 className="text-lg font-semibold text-cream-bright">{step.title}</h3>
-                  <p className="text-sm leading-relaxed text-cream-dim">{step.body}</p>
+                  <h3 className="mt-2 text-lg font-semibold tracking-[-0.01em] text-cream-bright">{step.title}</h3>
+                  <p className="text-pretty text-sm leading-relaxed text-cream-dim">{step.body}</p>
                 </Panel>
               </FadeRise>
             </li>
@@ -542,13 +602,19 @@ export function DefenseLanding() {
                 {c.actaLabel}
               </span>
               <p className="flex items-baseline gap-2">
-                <AnimatedCounter value={14} duration={0.9} className="text-[3.5rem] font-bold leading-none tabular-nums text-cream-bright" />
+                <AnimatedCounter value={14} duration={0.9} className="text-[3.5rem] font-bold leading-none tracking-[-0.03em] tabular-nums text-cream-bright" />
                 <span className="text-xl font-semibold text-cream-faint">/ 20</span>
               </p>
               <span className="self-start rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-text">
                 {c.actaVerdict}
               </span>
-              <ActaBars values={[78, 52, 70]} />
+              <ActaBars
+                rows={[
+                  { label: c.juror1, score: 16 },
+                  { label: c.juror2, score: 12 },
+                  { label: c.juror3, score: 14 },
+                ]}
+              />
             </Panel>
           </FadeRise>
         </div>
@@ -559,11 +625,11 @@ export function DefenseLanding() {
         <div className="mx-auto mt-6 grid max-w-5xl gap-4 sm:grid-cols-2 [&>*]:min-w-0">
           {edges.map((edge, index) => (
             <FadeRise key={edge.title} delay={index * 0.06}>
-              <div className="flex h-full gap-3 rounded-2xl bg-surface-card p-5 shadow-card">
-                <edge.icon aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-accent-text" />
+              <div className="flex h-full gap-4 rounded-2xl bg-surface-card p-5 shadow-card">
+                <IconTile icon={edge.icon} />
                 <div className="min-w-0">
                   <p className="font-semibold text-cream-bright">{edge.title}</p>
-                  <p className="mt-1 text-sm text-cream-dim">{edge.body}</p>
+                  <p className="mt-1 text-pretty text-sm text-cream-dim">{edge.body}</p>
                 </div>
               </div>
             </FadeRise>
@@ -581,7 +647,7 @@ export function DefenseLanding() {
           <FadeRise>
             <Panel variant="raised" className="flex h-full flex-col gap-4 p-7 shadow-lift">
               <p className="text-lg font-semibold text-cream-bright">{c.freeName}</p>
-              <p className="text-[2.5rem] font-bold leading-none text-cream-bright">{c.freePrice}</p>
+              <p className="text-[2.5rem] font-bold leading-none tracking-[-0.03em] tabular-nums text-cream-bright">{c.freePrice}</p>
               <ul className="flex flex-col gap-2 text-sm text-cream">
                 {[c.free1, c.free2, c.free3].map((item) => (
                   <li key={item} className="flex gap-2">
@@ -590,13 +656,21 @@ export function DefenseLanding() {
                   </li>
                 ))}
               </ul>
+              {/* The same way in as the pack, quieter: the two cards end on
+                  the same line instead of one trailing empty space. */}
+              <Link to={start} className="mt-auto self-start">
+                <Action tone="glass">{c.freeCta}</Action>
+              </Link>
             </Panel>
           </FadeRise>
           <FadeRise delay={0.08}>
             <Panel variant="raised" className="flex h-full flex-col gap-4 p-7 shadow-lift ring-2 ring-accent">
-              <p className="text-lg font-semibold text-cream-bright">{c.packName}</p>
+              <p className="flex items-center justify-between gap-2">
+                <span className="text-lg font-semibold text-cream-bright">{c.packName}</span>
+                <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-ink">{c.packBadge}</span>
+              </p>
               <p className="flex items-baseline gap-2">
-                <span className="text-[2.5rem] font-bold leading-none text-cream-bright">{c.packPrice}</span>
+                <span className="text-[2.5rem] font-bold leading-none tracking-[-0.03em] tabular-nums text-cream-bright">{c.packPrice}</span>
                 <span className="text-sm text-cream-dim">{c.packUnit}</span>
               </p>
               <ul className="flex flex-col gap-2 text-sm text-cream">
@@ -613,67 +687,49 @@ export function DefenseLanding() {
             </Panel>
           </FadeRise>
         </div>
-        <p className="mx-auto mt-6 max-w-3xl text-center text-sm text-cream">{c.passes}</p>
+        <p className="mx-auto mt-6 max-w-3xl text-balance text-center text-sm text-cream">{c.passes}</p>
         <div className="mx-auto mt-4 flex max-w-4xl flex-col gap-1 text-center text-xs text-cream-dim">
           <p>{c.legal1}</p>
           <p>{c.legal2}</p>
         </div>
       </Section>
 
-      {/* Privacy, then the way on to the rest of Mockio. */}
+      {/* What is left to know, in one place: the thesis is safe, what comes
+          after, and the two channels beyond the student — the advisor who
+          recommends it and the school that buys it for a cohort. One section
+          rather than two: four cards are one thought, not two pages. */}
       <Section className="bg-surface-deep">
         <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2 [&>*]:min-w-0">
+          {/* Four cards, one shape: the icon and title in a row, the body,
+              and the way on pinned to the bottom so the actions line up. */}
           <FadeRise>
-            <Panel variant="raised" className="flex h-full gap-4 p-7 shadow-lift">
-              <ShieldCheck aria-hidden className="h-6 w-6 shrink-0 text-grow-text" />
-              <div>
-                <h2 className="text-lg font-semibold text-cream-bright">{c.privacyTitle}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-cream-dim">{c.privacyBody}</p>
-              </div>
-            </Panel>
+            <ClosingCard icon={ShieldCheck} tone="grow" title={c.privacyTitle} body={c.privacyBody} />
           </FadeRise>
-          <FadeRise delay={0.08}>
-            <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
-              <span className="flex items-center gap-2 text-lg font-semibold text-cream-bright">
-                <Briefcase aria-hidden className="h-5 w-5 text-accent-text" />
-                <h2>{c.ladderTitle}</h2>
-              </span>
-              <p className="text-sm text-cream-dim">{c.ladderBody}</p>
-              <Link
-                to="/entrevistas"
-                className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline decoration-accent-text/40 underline-offset-4 transition-[text-decoration-color] duration-150 ease-press hover:decoration-accent-text"
-              >
+          <FadeRise delay={0.06}>
+            <ClosingCard icon={Briefcase} title={c.ladderTitle} body={c.ladderBody}>
+              <Link to="/entrevistas" className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline decoration-accent-text/40 underline-offset-4 transition-[text-decoration-color] duration-150 ease-press hover:decoration-accent-text">
                 {c.ladderCta}
               </Link>
-            </Panel>
+            </ClosingCard>
           </FadeRise>
-        </div>
-      </Section>
-
-      {/* The two channels beyond the student: the advisor who recommends it,
-          and the school that buys it for a cohort. */}
-      <Section>
-        <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2 [&>*]:min-w-0">
-          <FadeRise>
-            <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
-              <h2 className="text-lg font-semibold text-cream-bright">{c.advisorTitle}</h2>
-              <p className="text-sm text-cream-dim">{c.advisorBody}</p>
+          <FadeRise delay={0.12}>
+            <ClosingCard icon={GraduationCap} title={c.advisorTitle} body={c.advisorBody}>
+              {/* Neutral, not the accent: the page has one primary action,
+                  and it is the student's. */}
               <Link to="/app/advisor" className="mt-auto">
-                <Action withArrow>{c.advisorCta}</Action>
+                <Action tone="neutral" withArrow>{c.advisorCta}</Action>
               </Link>
-            </Panel>
+            </ClosingCard>
           </FadeRise>
-          <FadeRise delay={0.08}>
-            <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
-              <h2 className="text-lg font-semibold text-cream-bright">{c.institutionTitle}</h2>
-              <p className="text-sm text-cream-dim">{c.institutionBody}</p>
+          <FadeRise delay={0.18}>
+            <ClosingCard icon={Building2} title={c.institutionTitle} body={c.institutionBody}>
               <a
                 href="mailto:hello@getmockio.com?subject=Mockio%20Sustentaci%C3%B3n%20%E2%80%94%20instituci%C3%B3n"
                 className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline decoration-accent-text/40 underline-offset-4 transition-[text-decoration-color] duration-150 ease-press hover:decoration-accent-text"
               >
                 hello@getmockio.com
               </a>
-            </Panel>
+            </ClosingCard>
           </FadeRise>
         </div>
       </Section>
