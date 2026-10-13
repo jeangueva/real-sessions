@@ -10,6 +10,13 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  shortRehearse: "Ensayar",
+  shortDiagnosis: "Riesgos",
+  shortStudy: "Repaso",
+  shortSlides: "Láminas",
+  shortMore: "Más",
+  railMore: "Asesor y más",
+  railForAdvisors: "Para asesores",
   presenceTitle: "Tu presencia en cámara",
   presenceEye: "Contacto visual",
   presencePosture: "Postura",
@@ -303,6 +310,13 @@ type Key = keyof typeof ES;
 export type ThesisKey = Key;
 
 const PT: Record<Key, string> = {
+  shortRehearse: "Ensaiar",
+  shortDiagnosis: "Riscos",
+  shortStudy: "Revisão",
+  shortSlides: "Slides",
+  shortMore: "Mais",
+  railMore: "Orientador e mais",
+  railForAdvisors: "Para orientadores",
   presenceTitle: "Sua presença na câmera",
   presenceEye: "Contato visual",
   presencePosture: "Postura",
@@ -593,6 +607,13 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  shortRehearse: "Rehearse",
+  shortDiagnosis: "Risks",
+  shortStudy: "Review",
+  shortSlides: "Slides",
+  shortMore: "More",
+  railMore: "Advisor & more",
+  railForAdvisors: "For advisors",
   presenceTitle: "Your presence on camera",
   presenceEye: "Eye contact",
   presencePosture: "Posture",

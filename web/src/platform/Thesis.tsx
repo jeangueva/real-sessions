@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
@@ -7,6 +7,7 @@ import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis
 import type { DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { isThesisSection, thesisPath, type ThesisSection } from "@/lib/spaces";
 import { SCENARIO_OPTIONS, scenarioForDegree, type DefenseScenario } from "@/lib/defense-scenarios";
 import { ThesisSlides } from "./ThesisSlides";
 import { ThesisStudy } from "./ThesisStudy";
@@ -24,9 +25,24 @@ const ACCEPT = ".pdf,.docx,.jpg,.jpeg,.png,.webp";
  * product proves it read *their* thesis — which a chatbot they paste a
  * chapter into does not — so it comes before anything is asked of them.
  */
+/**
+ * The last thesis read, kept across sections.
+ *
+ * Each section is its own route, so moving from Ensayar to Diagnóstico mounts
+ * this screen afresh. Without the copy every switch showed an empty page while
+ * the thesis was fetched again; with it the section is there on the first
+ * frame and the fetch only refreshes it.
+ */
+let lastThesis: StoredThesis | null | undefined;
+
 export function Thesis() {
   const t = useThesisT();
-  const [thesis, setThesis] = useState<StoredThesis | null | undefined>(undefined);
+  const section = useThesisSection();
+  const [thesis, setThesisState] = useState<StoredThesis | null | undefined>(lastThesis);
+  const setThesis = (next: StoredThesis | null) => {
+    lastThesis = next;
+    setThesisState(next);
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -78,7 +94,10 @@ export function Thesis() {
 
   return (
     <>
-      <PageHeader title={t("title")} meta={t("meta")} />
+      <PageHeader
+        title={thesis ? t(TAB_LABEL[section]) : t("title")}
+        meta={thesis ? thesis.analysis.title : t("meta")}
+      />
       <PageBody className="flex flex-col gap-6">
         {picker}
         {error && (
@@ -105,6 +124,7 @@ export function Thesis() {
           </Panel>
         ) : thesis ? (
           <Diagnosis
+            tab={section}
             thesis={thesis}
             onChange={setThesis}
             onReplace={() => fileRef.current?.click()}
@@ -149,11 +169,14 @@ const STATUS = {
 } as const;
 
 function Diagnosis({
+  tab,
   thesis,
   onChange,
   onReplace,
   onDelete,
 }: {
+  /** The open section. It is the address: the rail and the tab bar link to it. */
+  tab: ThesisSection;
   thesis: StoredThesis;
   onChange: (next: StoredThesis) => void;
   onReplace: () => void;
@@ -164,22 +187,6 @@ function Diagnosis({
   const severityOrder = { alta: 0, media: 1, baja: 2 };
   const risks = [...a.risks].sort((x, y) => severityOrder[x.severity] - severityOrder[y.severity]);
 
-  const [tab, setTab] = useState<ThesisTab>(() => {
-    const hash = window.location.hash.slice(1);
-    return (TABS as readonly string[]).includes(hash) ? (hash as ThesisTab) : "ensayar";
-  });
-  // Follows the address too: a link to #diagnostico from anywhere — or the
-  // back button — opens that tab, not whichever was open before.
-  const location = useLocation();
-  const navigate = useNavigate();
-  useEffect(() => {
-    const hash = location.hash.slice(1);
-    if ((TABS as readonly string[]).includes(hash)) setTab(hash as ThesisTab);
-  }, [location.hash]);
-  const go = (next: ThesisTab) => {
-    setTab(next);
-    navigate({ hash: `#${next}` }, { replace: true });
-  };
   const serious = risks.filter((risk) => risk.severity === "alta").length;
 
   return (
@@ -224,26 +231,15 @@ function Diagnosis({
         <DefenseDate thesis={thesis} onChange={onChange} />
       </Panel>
 
-      {/* Four tabs instead of one long page: each fits a screen. */}
-      <div role="tablist" aria-label={t("title")} className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        {TABS.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            role="tab"
-            aria-selected={tab === entry}
-            onClick={() => go(entry)}
-            className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
-              tab === entry ? "bg-cream-bright text-surface-base" : "bg-surface-card text-cream-dim shadow-card hover:text-cream-bright"
-            }`}
-          >
-            {t(TAB_LABEL[entry])}
-            {entry === "diagnostico" && serious > 0 && (
-              <span className="rounded-full bg-step-soft px-1.5 text-xs text-step-text">{serious}</span>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* The sections are in the workspace's own navigation now — the rail
+          on a laptop, the tab bar on a phone — so the page is only the one
+          that is open. The count of serious risks stays here, where it is
+          read. */}
+      {tab === "diagnostico" && serious > 0 && (
+        <p className="self-start rounded-full bg-step-soft px-3 py-1 text-xs font-semibold text-step-text">
+          {t("severityAlta")} · {serious}
+        </p>
+      )}
 
       {tab === "ensayar" && <Rehearse thesis={thesis} />}
 
@@ -339,9 +335,25 @@ function Diagnosis({
   );
 }
 
-const TABS = ["ensayar", "diagnostico", "repaso", "diapositivas", "mas"] as const;
-type ThesisTab = (typeof TABS)[number];
-const TAB_LABEL = {
+/**
+ * The open section, from the route. The old addresses — `/app#diagnostico`
+ * and friends, from before the sections had paths — are moved to theirs.
+ */
+function useThesisSection(): ThesisSection {
+  const { section } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const legacy = location.hash.slice(1);
+  useEffect(() => {
+    if (!section && isThesisSection(legacy) && legacy !== "ensayar") {
+      navigate({ pathname: thesisPath(legacy), search: location.search }, { replace: true });
+    }
+  }, [section, legacy, location.search, navigate]);
+  if (isThesisSection(section)) return section;
+  return isThesisSection(legacy) ? legacy : "ensayar";
+}
+
+export const TAB_LABEL = {
   ensayar: "tabRehearse",
   diagnostico: "tabDiagnosis",
   repaso: "tabStudy",

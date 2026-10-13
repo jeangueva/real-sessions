@@ -1,106 +1,102 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ScreenBoundary } from "./ScreenBoundary";
 import {
-  GraduationCap,
+  BookOpenCheck,
   Briefcase,
+  FileSearch,
   FileUser,
+  GraduationCap,
   LogIn,
+  Mic,
   Play,
+  Presentation,
   Route,
   Settings,
   ShieldCheck,
-  UserRound,
+  Sparkles,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { fetchPlan, fetchPreferences, fetchSession, linkAdvisor, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
+import { useThesisT } from "@/lib/thesis-copy";
 import { Mark, PremiumMark, Wordmark } from "@/design-system";
+import {
+  SPACE_HOME,
+  rememberSpace,
+  spaceOf,
+  storedSpace,
+  thesisPath,
+  type Space,
+} from "@/lib/spaces";
 
 /**
- * The signed-in shell. It sits on `surface-deep` rather than pure black so the
- * app reads as a workspace, while the marketing pages keep the black field.
- * Same tokens, different weight — no second theme.
+ * The signed-in shell, in two workspaces.
  *
- * Three layouts, not one squeezed three ways. Below `md` the navigation is a
- * bottom bar, because a 64px side rail on a 390px screen spends a sixth of the
- * width on chrome and puts every target at the top of the reach. At `md` it is
- * an icon rail, and at `lg` it opens into labels.
- */
-/**
- * `short` is the phone label, and it is a separate string rather than a
- * shortening rule.
+ * Sustentación and Profesional sit as two tabs across the top — the way a
+ * bank puts Personas and Empresas above everything else — and the navigation
+ * under them belongs to whichever is open. One rail of seven entries made the
+ * thesis one screen among many; now it is a workspace with its own sections,
+ * and interview practice is the other one, a tab away.
  *
- * This used to render `t(key).split(" ")[0]`, which assumes the first word of
- * a label is the part worth keeping. That is true of "New session" and false
- * of "Your context" — the tab read "Your" in English, "Tu" in Spanish, "Seu"
- * in Portuguese, "Votre" in French and "Dein" in German: a bare possessive
- * pronoun in five languages, naming nothing. There is no rule that shortens a
- * phrase correctly across languages; there is only knowing the short word.
+ * Three layouts, not one squeezed three ways. Below `md` the sections are a
+ * bottom bar and the account is the avatar in the top bar. At `md` the rail is
+ * icons, and at `lg` it opens into labels.
  */
-const NAV = [
-  {
-    to: "/app",
-    key: "nav.thesis" as const,
-    short: "nav.thesisShort" as const,
-    icon: GraduationCap,
-    end: true,
-  },
-  {
-    to: "/app/practice",
-    key: "nav.interviews" as const,
-    short: "nav.interviewsShort" as const,
-    icon: Play,
-    end: false,
-  },
-  {
-    to: "/app/progress",
-    key: "nav.progress" as const,
-    short: "nav.progressShort" as const,
-    icon: Route,
-    end: false,
-  },
-  {
-    to: "/app/applications",
-    key: "nav.applications" as const,
-    short: "nav.applicationsShort" as const,
-    icon: Briefcase,
-    end: false,
-  },
-];
+
+type Icon = typeof Play;
+
+interface Entry {
+  to: string;
+  label: string;
+  short: string;
+  icon: Icon;
+  end: boolean;
+  /** For the tour, which points at entries by name. */
+  tour: string;
+}
+
+/** Each workspace's sections, in the order they are worked through. */
+function useSpaceEntries(space: Space): Entry[] {
+  const t = useT();
+  const tt = useThesisT();
+  if (space === "defense") {
+    return [
+      { to: thesisPath("ensayar"), label: tt("tabRehearse"), short: tt("shortRehearse"), icon: Mic, end: true, tour: "ensayar" },
+      { to: thesisPath("diagnostico"), label: tt("tabDiagnosis"), short: tt("shortDiagnosis"), icon: FileSearch, end: false, tour: "diagnostico" },
+      { to: thesisPath("repaso"), label: tt("tabStudy"), short: tt("shortStudy"), icon: BookOpenCheck, end: false, tour: "repaso" },
+      { to: thesisPath("diapositivas"), label: tt("tabSlides"), short: tt("shortSlides"), icon: Presentation, end: false, tour: "diapositivas" },
+      { to: thesisPath("mas"), label: tt("railMore"), short: tt("shortMore"), icon: Sparkles, end: false, tour: "mas" },
+    ];
+  }
+  return [
+    { to: "/app/practice", label: t("nav.interviews"), short: t("nav.interviewsShort"), icon: Play, end: false, tour: "practice" },
+    { to: "/app/progress", label: t("nav.progress"), short: t("nav.progressShort"), icon: Route, end: false, tour: "progress" },
+    { to: "/app/applications", label: t("nav.applications"), short: t("nav.applicationsShort"), icon: Briefcase, end: false, tour: "applications" },
+    { to: "/app/profile", label: t("nav.context"), short: t("nav.contextShort"), icon: FileUser, end: false, tour: "profile" },
+  ];
+}
 
 /**
- * Three places, in the order the product is for: practise, see that it is
- * working, take it to a real job.
- *
- * The rail used to list eight things side by side — History beside Progress,
- * Share beside both — which made every one of them read as equally important
- * and none of them as the point. History is the bottom half of the path now;
- * sharing is offered on the report and on the path, where there is something
- * worth sharing; context, settings and review are about the account, not
- * about the practice, so they sit with the account at the foot of the rail.
+ * The open workspace. A path that belongs to one decides it; the screens both
+ * share — settings, the review queue — stay under the one that was open.
  */
-const ACCOUNT = [
-  {
-    to: "/app/profile",
-    key: "nav.context" as const,
-    icon: FileUser,
-  },
-  {
-    to: "/app/advisor",
-    key: "nav.advisor" as const,
-    icon: GraduationCap,
-  },
-  {
-    to: "/app/settings",
-    key: "nav.settings" as const,
-    icon: Settings,
-  },
-];
+function useSpace(): Space {
+  const { pathname } = useLocation();
+  const owned = spaceOf(pathname);
+  const [last, setLast] = useState<Space>(() => owned ?? storedSpace());
+  useEffect(() => {
+    if (owned && owned !== last) setLast(owned);
+    if (owned) rememberSpace(owned);
+  }, [owned, last]);
+  return owned ?? last;
+}
 
 export function AppShell() {
   const t = useT();
+  const tt = useThesisT();
   // A student who arrived through an advisor's link is linked on their first
   // visit inside the app — linked only: sharing progress is theirs to choose.
   useEffect(() => {
@@ -124,6 +120,8 @@ export function AppShell() {
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const space = useSpace();
+  const entries = useSpaceEntries(space);
   /**
    * Whether to show the review entry point. The server decides — this only
    * hides a link, and the route itself is 404 for anyone not on the allowlist.
@@ -131,11 +129,8 @@ export function AppShell() {
   const [reviewer, setReviewer] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   /**
-   * Whether the CV screen is reachable on this plan.
-   *
-   * The nav listed "Your context" beside four screens that all work, and it
-   * opened on a page that only sells. The padlock says which it is before the
-   * click, the way the locked fields in the setup bar already do.
+   * Whether the CV screen is reachable on this plan. The padlock says so
+   * before the click, the way the locked fields in the setup bar already do.
    */
   const [locked, setLocked] = useState<string[]>([]);
   /** The name from Settings → Account, shown instead of the email. */
@@ -193,123 +188,210 @@ export function AppShell() {
   // to see.
   if (session === null || session.kind !== "user") return null;
 
+  const who = name || session.email || "";
+  const account = [
+    ...(space === "defense"
+      ? [{ to: "/app/advisor", label: tt("railForAdvisors"), icon: GraduationCap }]
+      : []),
+    { to: "/app/settings", label: t("nav.settings"), icon: Settings },
+    ...(reviewer ? [{ to: "/app/review", label: t("nav.review"), icon: ShieldCheck }] : []),
+  ];
+
   return (
-    <div className="flex min-h-dvh bg-surface-deep">
-      {/* Apple's sidebar: on the shell's own grey, no panel of its own, a
-          hairline where it meets the content. Selection is a white tile with
-          the card's shadow — the row lifts toward you, the way a selected row
-          in Music or Settings does — rather than a coloured wash. */}
-      <aside className="sticky top-0 hidden h-dvh w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-64 lg:items-stretch lg:px-3">
-        <div className="mb-7 flex items-center justify-between gap-2 px-2.5">
-          <div className="flex items-center gap-2.5">
-            {/* The mark alone when the rail is narrow, the full isologo when
-                it is wide: the same parrot as the tab icon. */}
-            <Mark size={32} className="shadow-card rounded-[0.6rem]" />
-            <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright lg:inline-flex" />
-          </div>
-          {isPremium && (
-            <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text lg:inline-flex">
-              Premium
-            </span>
-          )}
-        </div>
+    <div className="flex min-h-dvh flex-col bg-surface-deep">
+      <TopBar space={space} isPremium={isPremium} who={who} email={session.email} />
 
-        <nav aria-label={t("nav.sections")} className="flex flex-col gap-0.5">
-          {NAV.map(({ to, key, icon: Icon, end }) => (
-            <RailLink key={to} to={to} end={end} label={t(key)} icon={Icon} />
-          ))}
-        </nav>
-
-        <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-4">
-          <p className="hidden px-3 pb-1.5 text-xs font-semibold text-cream-faint lg:block">{t("nav.you")}</p>
-          <nav aria-label={t("nav.you")} className="flex flex-col gap-0.5">
-            {[
-              ...ACCOUNT,
-              ...(reviewer
-                ? [{ to: "/app/review", key: "nav.review" as const, icon: ShieldCheck }]
-                : []),
-            ].map(({ to, key, icon }) => (
+      <div className="flex min-w-0 flex-1">
+        {/* Apple's sidebar: on the shell's own grey, a hairline where it meets
+            the content. It holds only the open workspace's sections, so it
+            changes when the tab above it does. */}
+        <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-60 lg:items-stretch lg:px-3">
+          <p className="hidden px-3 pb-1.5 text-xs font-semibold text-cream-faint lg:block">
+            {space === "defense" ? t("nav.spaceDefense") : t("nav.spaceCareer")}
+          </p>
+          {/* Keyed by space so the new list arrives as a list, not as the old
+              one's rows relabelled in place. */}
+          <motion.nav
+            key={space}
+            aria-label={t("nav.sections")}
+            className="flex flex-col gap-0.5"
+            initial={{ opacity: 0, transform: "translateX(-4px)" }}
+            animate={{ opacity: 1, transform: "translateX(0px)", transitionEnd: { transform: "none" } }}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+          >
+            {entries.map(({ to, label, icon, end, tour }) => (
               <RailLink
                 key={to}
                 to={to}
-                end={false}
-                label={t(key)}
+                end={end}
+                label={label}
                 icon={icon}
-                quiet
+                tour={tour}
                 locked={locked.includes(to) ? t("nav.onPaidPlan") : undefined}
               />
             ))}
-          </nav>
-          {/* A person, not an address: the name when one is set, with the
-              email underneath for whoever has two accounts. */}
-          <div className="hidden px-3 pt-3 lg:block" title={session.email ?? undefined}>
-            <p className="truncate text-sm font-semibold text-cream-bright">
-              {name || session.email}
-            </p>
-            {name && <p className="truncate text-xs text-cream-faint">{session.email}</p>}
-          </div>
-          <button
-            onClick={() => {
-              void signOut().then(() => window.location.assign("/"));
-            }}
-            title={t("nav.signOut")}
-            className="focus-ring flex items-center gap-3 rounded-[0.625rem] px-3 py-2 text-sm text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright"
-          >
-            <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
-            <span className="hidden lg:inline">{t("nav.signOut")}</span>
-          </button>
-        </div>
-      </aside>
+          </motion.nav>
 
-      {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is fixed
-          and would otherwise sit on top of the last element on the page. */}
-      <div className="flex min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-        {/* No transition between screens. There used to be one — the old screen
-            faded out, then the new one rose in (`AnimatePresence mode="wait"`)
-            — and it was the cause of the blank screen after leaving an
-            interview or switching sections: the new screen mounts only once the
-            old one's exit finishes, and an exit that never finishes (a tab in
-            the background, a quick second click, a page tearing down its audio)
-            left the content area empty under a working sidebar. Switching
-            sections happens dozens of times a session; that is exactly the kind
-            of action that should not animate at all. */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          <ScreenBoundary
-            resetKey={location.pathname}
-            title={t("screen.failedTitle")}
-            body={t("screen.failedBody")}
-            action={t("screen.reload")}
-          >
-            <Outlet />
-          </ScreenBoundary>
+          <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-4">
+            <nav aria-label={t("nav.you")} className="flex flex-col gap-0.5">
+              {account.map(({ to, label, icon }) => (
+                <RailLink key={to} to={to} end={false} label={label} icon={icon} quiet />
+              ))}
+            </nav>
+            <button
+              onClick={() => {
+                void signOut().then(() => window.location.assign("/"));
+              }}
+              title={t("nav.signOut")}
+              className="focus-ring flex items-center gap-3 rounded-[0.625rem] px-3 py-2 text-sm text-cream-dim transition-[background-color,color,transform] duration-150 ease-press hover:bg-surface-lift hover:text-cream-bright active:scale-[0.98]"
+            >
+              <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
+              <span className="hidden lg:inline">{t("nav.signOut")}</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is
+            fixed and would otherwise sit on top of the last element. */}
+        <div className="flex min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+          {/* No transition between screens: switching sections happens dozens
+              of times a session, and an exit that never finishes (a tab in
+              the background, a quick second click) once left the content
+              area empty under a working sidebar. */}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <ScreenBoundary
+              resetKey={location.pathname}
+              title={t("screen.failedTitle")}
+              body={t("screen.failedBody")}
+              action={t("screen.reload")}
+            >
+              <Outlet />
+            </ScreenBoundary>
+          </div>
         </div>
       </div>
 
-      <MobileNav isPremium={isPremium} />
+      <MobileNav entries={entries} space={space} />
     </div>
+  );
+}
+
+/**
+ * The bar across the top: the mark, the two workspaces, the person.
+ *
+ * The workspaces are underlined tabs rather than pills — the same reading as
+ * a bank's Personas / Empresas — and the underline slides between them on a
+ * spring with no bounce, so the eye follows the switch instead of finding it
+ * again. On a phone the same two tabs sit in the middle and the avatar is the
+ * way to the account.
+ */
+function TopBar({
+  space,
+  isPremium,
+  who,
+  email,
+}: {
+  space: Space;
+  isPremium: boolean;
+  who: string;
+  email: string | null;
+}) {
+  const t = useT();
+  const spaces: { id: Space; label: string; icon: Icon }[] = [
+    { id: "defense", label: t("nav.spaceDefense"), icon: GraduationCap },
+    { id: "career", label: t("nav.spaceCareer"), icon: Briefcase },
+  ];
+  const initial = (who.trim()[0] ?? "·").toUpperCase();
+  return (
+    <header className="nav-lifted sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
+      <div className="flex h-16 items-center gap-3 px-3 sm:px-5 lg:gap-8 lg:px-6">
+        <Link to={SPACE_HOME[space]} className="focus-ring flex shrink-0 items-center gap-2.5 rounded-[0.6rem]" aria-label="Mockio">
+          <Mark size={30} className="rounded-[0.55rem] shadow-card" />
+          <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright lg:inline-flex" />
+        </Link>
+
+        <nav aria-label={t("nav.spaces")} className="flex h-full min-w-0 flex-1 items-stretch justify-center gap-1 md:justify-start sm:gap-2">
+          {spaces.map(({ id, label, icon: SpaceIcon }) => {
+            const active = id === space;
+            return (
+              <Link
+                key={id}
+                to={SPACE_HOME[id]}
+                onClick={() => rememberSpace(id)}
+                aria-current={active ? "page" : undefined}
+                className={`focus-ring group relative flex items-center gap-2 rounded-lg px-2.5 text-sm font-semibold transition-[color,transform] duration-150 ease-press active:scale-[0.97] sm:px-3 sm:text-base ${
+                  active ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
+                }`}
+              >
+                <SpaceIcon
+                  aria-hidden
+                  className={`hidden h-[1.125rem] w-[1.125rem] sm:block ${active ? "text-accent-text" : ""}`}
+                />
+                <span className="whitespace-nowrap">{label}</span>
+                {active && (
+                  <motion.span
+                    layoutId="space-underline"
+                    aria-hidden
+                    className="absolute inset-x-2 bottom-0 h-[3px] rounded-t-full bg-accent"
+                    transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex shrink-0 items-center gap-3">
+          {isPremium && (
+            <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text sm:inline-flex">
+              Premium
+            </span>
+          )}
+          <span className="hidden max-w-[12rem] truncate text-sm font-medium text-cream-dim lg:block" title={email ?? undefined}>
+            {who}
+          </span>
+          <NavLink
+            to="/app/settings"
+            aria-label={t("nav.settings")}
+            title={email ?? undefined}
+            className={({ isActive }) =>
+              `focus-ring relative grid h-9 w-9 place-items-center rounded-full text-sm font-semibold transition-[box-shadow,transform] duration-150 ease-press active:scale-[0.94] ${
+                isActive ? "bg-accent text-accent-ink" : "bg-surface-card text-cream-bright shadow-card hover:shadow-lift"
+              }`
+            }
+          >
+            {initial}
+            {isPremium && (
+              <span aria-hidden className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface-deep bg-accent sm:hidden" />
+            )}
+          </NavLink>
+        </div>
+      </div>
+    </header>
   );
 }
 
 /**
  * One entry in the rail.
  *
- * The three destinations carry weight: the active one sits on the accent's
- * soft wash with the accent's ink, so where you are is the warmest thing on
- * the left of the screen. Account entries are `quiet` — same shape, no colour
- * — because they are places you visit, not places you work.
+ * The workspace's sections carry weight: the active one lifts to a card with
+ * the accent's ink on its icon. Account entries are `quiet` — same shape, no
+ * colour — because they are places you visit, not places you work.
  */
 function RailLink({
   to,
   end,
   label,
   icon: Icon,
+  tour,
   quiet = false,
   locked,
 }: {
   to: string;
   end: boolean;
   label: string;
-  icon: typeof Play;
+  icon: Icon;
+  tour?: string;
   quiet?: boolean;
   locked?: string;
 }) {
@@ -320,9 +402,9 @@ function RailLink({
       title={label}
       // The tour points at the path; marking every item keeps that selector
       // honest if the list is ever reordered.
-      data-tour={to.split("/").pop()}
+      data-tour={tour ?? to.split("/").pop()}
       className={({ isActive }) =>
-        `focus-ring group/rail flex items-center gap-3 rounded-[0.625rem] px-3 text-sm transition-[background-color,color,box-shadow] duration-200 ease-press active:scale-[0.98] ${
+        `focus-ring group/rail flex items-center gap-3 rounded-[0.625rem] px-3 text-sm transition-[background-color,color,box-shadow,transform] duration-200 ease-press active:scale-[0.98] ${
           quiet ? "py-2" : "py-2.5 font-medium"
         } ${
           isActive
@@ -333,16 +415,14 @@ function RailLink({
     >
       {({ isActive }) => (
         <>
-      <Icon
-        className={`${quiet ? "h-4 w-4" : "h-[1.125rem] w-[1.125rem]"} shrink-0 ${
-          isActive && !quiet ? "text-accent-text" : ""
-        }`}
-        aria-hidden
-      />
-      <span className="hidden lg:inline">{label}</span>
-      {locked && (
-        <PremiumMark label={locked} className="ml-auto hidden lg:inline-grid" />
-      )}
+          <Icon
+            className={`${quiet ? "h-4 w-4" : "h-[1.125rem] w-[1.125rem]"} shrink-0 ${
+              isActive && !quiet ? "text-accent-text" : ""
+            }`}
+            aria-hidden
+          />
+          <span className="hidden truncate lg:inline">{label}</span>
+          {locked && <PremiumMark label={locked} className="ml-auto hidden lg:inline-grid" />}
         </>
       )}
     </NavLink>
@@ -350,19 +430,15 @@ function RailLink({
 }
 
 /**
- * Bottom bar, below `md` only.
+ * Bottom bar, below `md` only: the open workspace's sections.
  *
- * The three destinations and a fourth tab for the account. Four 97px targets
- * on a 390px screen, where the old bar squeezed five and still had to drop
- * settings to fit. "You" opens settings, which links on to context; it lights
- * up on any account screen so a person always knows which tab they are under.
+ * The account moved to the avatar in the top bar, so every slot here is a
+ * place to work — five for the thesis, four for the career side.
  */
-function MobileNav({ isPremium }: { isPremium: boolean }) {
+function MobileNav({ entries, space }: { entries: Entry[]; space: Space }) {
   const t = useT();
-  const { pathname } = useLocation();
-  const onAccount = ACCOUNT.some(({ to }) => pathname.startsWith(to)) || pathname.startsWith("/app/review");
   const tab = (active: boolean) =>
-    `focus-ring flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors ${
+    `focus-ring flex h-16 flex-col items-center justify-center gap-1 px-0.5 text-xs font-medium transition-[color,transform] duration-150 ease-press active:scale-[0.94] ${
       active ? "text-accent-text" : "text-cream-faint"
     }`;
   return (
@@ -372,34 +448,23 @@ function MobileNav({ isPremium }: { isPremium: boolean }) {
          it, and the safe-area inset so the labels clear the home indicator. */
       className="nav-lifted fixed inset-x-0 bottom-0 z-30 !border-b-0 border-t border-line pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      <ul className="mx-auto flex max-w-md items-stretch justify-around">
-        {NAV.map(({ to, short, icon: Icon, end }) => (
-          <li key={to} className="flex-1">
+      <ul key={space} className="mx-auto flex max-w-md items-stretch justify-around">
+        {entries.map(({ to, short, icon: EntryIcon, end, tour }) => (
+          <li key={to} className="min-w-0 flex-1">
             <NavLink
               to={to}
               end={end}
               // The rail is still in the DOM at this width, collapsed to a
               // zero-sized box. Marking this one too means the tour has a
               // real target to point at rather than the rail's empty rect.
-              data-tour={to.split("/").pop()}
+              data-tour={tour}
               className={({ isActive }) => tab(isActive)}
             >
-              <Icon className="h-5 w-5" aria-hidden />
-              {t(short)}
+              <EntryIcon className="h-5 w-5" aria-hidden />
+              <span className="max-w-full truncate">{short}</span>
             </NavLink>
           </li>
         ))}
-        <li className="flex-1">
-          <NavLink to="/app/settings" className={() => tab(onAccount)}>
-            <div className="relative inline-flex items-center justify-center">
-              <UserRound className="h-5 w-5" aria-hidden />
-              {isPremium && (
-                <span className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-accent" />
-              )}
-            </div>
-            {t("nav.youShort")}
-          </NavLink>
-        </li>
       </ul>
     </nav>
   );

@@ -167,6 +167,8 @@ export function App() {
           {/* Sustentación is the product: the app opens on the thesis. Interview
               practice lives one tab over, as what comes after the defence. */}
           <Route index element={<Suspense fallback={null}><Thesis /></Suspense>} />
+          {/* The thesis workspace's sections, one address each. */}
+          <Route path="tesis/:section" element={<Suspense fallback={null}><Thesis /></Suspense>} />
           <Route path="practice" element={<Suspense fallback={null}><SessionSetup /></Suspense>} />
           <Route path="session" element={<Suspense fallback={null}><LiveInterview /></Suspense>} />
           <Route path="feedback" element={<Suspense fallback={null}><FeedbackReport /></Suspense>} />
