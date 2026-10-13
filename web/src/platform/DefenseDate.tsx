@@ -33,46 +33,46 @@ export function DefenseDate({ thesis, onChange }: { thesis: StoredThesis; onChan
 
   // One line inside the thesis card: the date, the days left, the warm-up.
   // What the mails are lives in the input's tooltip, not in a paragraph.
+  // Inline in the thesis bar: the date, the days left, the warm-up once it
+  // is close. What the mails are lives in the input's tooltip.
   return (
-    <div className="flex flex-col gap-1 border-t border-line pt-3">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <CalendarDays aria-hidden className="h-4 w-4 text-accent-text" />
-        <label htmlFor="defense-date" className="text-sm font-semibold text-cream-bright">
-          {t("dateTitle")}
-        </label>
-        <input
-          id="defense-date"
-          type="date"
-          min={today()}
-          value={date}
-          title={t("dateBody")}
-          onChange={(event) => void save(event.target.value || null)}
-          className="focus-ring rounded-lg bg-surface-lift px-2.5 py-1.5 text-sm text-cream-bright"
-        />
-        {left !== null && left >= 0 && (
-          <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">
-            {left === 0 ? t("dayToday") : left === 1 ? t("dayTomorrow") : t("daysLeft", { count: left })}
-          </span>
-        )}
-        {date && (
-          <button
-            type="button"
-            onClick={() => void save(null)}
-            className="focus-ring rounded-full text-xs font-semibold text-cream-dim underline underline-offset-4"
-          >
-            {t("dateClear")}
-          </button>
-        )}
-        <Link
-          to="/app/thesis/warmup"
-          className="focus-ring ml-auto rounded-full text-xs font-semibold text-accent-text underline underline-offset-4"
-        >
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <CalendarDays aria-hidden className="h-4 w-4 text-accent-text" />
+      <label htmlFor="defense-date" className="text-sm font-medium text-cream-bright">
+        {t("dateShort")}
+      </label>
+      <input
+        id="defense-date"
+        type="date"
+        min={today()}
+        value={date}
+        title={t("dateBody")}
+        onChange={(event) => void save(event.target.value || null)}
+        className="focus-ring rounded-lg bg-surface-lift px-2 py-1 text-sm text-cream-bright"
+      />
+      {left !== null && left >= 0 && (
+        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">
+          {left === 0 ? t("dayToday") : left === 1 ? t("dayTomorrow") : t("daysLeft", { count: left })}
+        </span>
+      )}
+      {date && left !== null && left <= 1 && (
+        <Link to="/app/thesis/warmup" className="focus-ring rounded-full text-xs font-semibold text-accent-text underline underline-offset-4">
           {t("warmupCta")}
         </Link>
-      </div>
-      {!date && <p className="text-xs text-cream-dim">{t("dateBody")}</p>}
+      )}
+      {date && (
+        <button
+          type="button"
+          onClick={() => void save(null)}
+          aria-label={t("dateClear")}
+          title={t("dateClear")}
+          className="focus-ring grid h-6 w-6 place-items-center rounded-full text-cream-faint transition-colors hover:bg-surface-lift hover:text-cream-bright"
+        >
+          ×
+        </button>
+      )}
       {error && (
-        <p role="alert" className="text-sm text-step-text">
+        <p role="alert" className="w-full text-sm text-step-text">
           {error}
         </p>
       )}

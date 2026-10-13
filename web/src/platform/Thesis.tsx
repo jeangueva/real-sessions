@@ -289,43 +289,40 @@ function Diagnosis({
     <>
       {/* The thesis in one compact card: what was read, when it is defended,
           and the two file actions as small buttons — not a page of its own. */}
-      <Panel variant="raised" className="flex flex-col gap-3 p-5 sm:p-6">
-        <div className="flex items-start gap-3">
-          <FileText aria-hidden className="mt-1 h-5 w-5 shrink-0 text-accent-text" />
-          <div className="min-w-0 flex-1">
-            <h2 className="text-balance text-lg font-semibold leading-snug text-cream-bright">{a.title}</h2>
-            <p className="mt-0.5 text-xs text-cream-dim">
-              {thesis.fileName} · {t("pages", { count: thesis.pageCount })} · {a.field}
-            </p>
-          </div>
-          <div className="flex shrink-0 gap-1">
-            <button
-              type="button"
-              onClick={onReplace}
-              title={t("replace")}
-              aria-label={t("replace")}
-              className="focus-ring grid h-9 w-9 place-items-center rounded-full bg-surface-lift text-cream-bright active:scale-[0.95]"
-            >
-              <Upload aria-hidden className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              title={t("delete")}
-              aria-label={t("delete")}
-              className="focus-ring grid h-9 w-9 place-items-center rounded-full bg-surface-lift text-step-text active:scale-[0.95]"
-            >
-              <Trash2 aria-hidden className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <details className="group">
-          <summary className="cursor-pointer list-none text-sm text-cream">
-            <span className="line-clamp-2 group-open:line-clamp-none">{a.summary}</span>
-          </summary>
-        </details>
+      {/* The thesis as one quiet line: which file, the date it all counts
+          down to, and the two file actions. Its title is the page's own
+          subtitle already; its summary belongs to the diagnosis. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl bg-surface-card px-4 py-2.5 shadow-card">
+        <span className="flex min-w-0 items-center gap-2 text-sm text-cream-dim">
+          <FileText aria-hidden className="h-4 w-4 shrink-0 text-accent-text" />
+          <span className="truncate">
+            {thesis.fileName} · {t("pages", { count: thesis.pageCount })}
+          </span>
+        </span>
         <DefenseDate thesis={thesis} onChange={onChange} />
-      </Panel>
+        <div className="ml-auto flex shrink-0 gap-1">
+          <button
+            type="button"
+            onClick={onReplace}
+            title={t("replace")}
+            aria-label={t("replace")}
+            className="focus-ring grid h-8 w-8 place-items-center rounded-full text-cream-dim transition-[background-color,color,transform] duration-150 ease-press hover:bg-surface-lift hover:text-cream-bright active:scale-[0.92]"
+          >
+            <Upload aria-hidden className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            title={t("delete")}
+            aria-label={t("delete")}
+            className="focus-ring grid h-8 w-8 place-items-center rounded-full text-cream-dim transition-[background-color,color,transform] duration-150 ease-press hover:bg-step-soft hover:text-step-text active:scale-[0.92]"
+          >
+            <Trash2 aria-hidden className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {tab === "diagnostico" && <p className="max-w-prose text-sm leading-relaxed text-cream">{a.summary}</p>}
 
       {/* The sections are in the workspace's own navigation now — the rail
           on a laptop, the tab bar on a phone — so the page is only the one
@@ -339,8 +336,8 @@ function Diagnosis({
 
       {tab === "ensayar" && (
         <>
-          <DefensePlanCard thesis={thesis} />
           <Rehearse thesis={thesis} />
+          <DefensePlanCard thesis={thesis} />
           <RealJuryCard thesis={thesis} onChange={onChange} />
         </>
       )}
@@ -757,36 +754,58 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
   const locked = (entry: string) => entry !== "completa" && !allowance?.modes;
 
-  return (
-    <Panel variant="raised" className="flex flex-col gap-4 p-5 sm:p-6">
-      {progress.length > 0 && <ProgressStrip points={progress} />}
+  const formatName = formats.find((entry) => entry.country === country);
+  /** What the folded settings currently say, so nothing is hidden by folding. */
+  const summary = [
+    t(shape.label),
+    formatName ? `${formatName.countryName} ${formatName.scale.min}–${formatName.scale.max}` : null,
+    university.trim() || t("settingsNoUniversity"),
+    focus !== "completa" ? t(FOCUS_LABEL[focus]) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const cheapest = offers.find((offer) => offer.kind === "sustentacion");
 
-      {/* The two choices that shape the jury most, first and in full view:
-          which defence this is, and how hard the panel is. */}
-      <div className="flex flex-col gap-3">
-        <label className={label}>
-          {t("scenario")}
-          <select
-            value={scenario}
-            onChange={(event) => setScenario(event.target.value as DefenseScenario)}
-            className={`${select} text-base font-semibold`}
-          >
-            {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((entry) => (
-              <option key={entry} value={entry}>
-                {t(SCENARIO_OPTIONS[entry].label)}
-              </option>
-            ))}
-          </select>
-          <span className="font-normal text-cream-dim">
-            {t(shape.hint)}{" "}
-            <span className="text-cream-faint">
-              ·{" "}
-              {full || focus !== "completa"
-                ? t("scenarioShape", { minutes: shape.exposition, questions: shape.questions })
-                : t("scenarioShapeExpress")}
-            </span>
-          </span>
-        </label>
+  return (
+    <>
+      <Panel variant="raised" className="flex flex-col gap-6 p-5 sm:p-7">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-title font-semibold text-cream-bright">{t("nextTitle")}</h2>
+          <p className="text-sm text-cream-dim">{summary}</p>
+        </div>
+
+        {/* The two choices that change the rehearsal most, as two big
+            options rather than a row of small ones. */}
+        <div role="radiogroup" aria-label={t("panelChoice")} className="grid gap-2 sm:grid-cols-2">
+          {([false, true] as const).map((option) => {
+            const lockedPanel = option && allowance !== null && !hasCredits;
+            const chosen = full === option;
+            return (
+              <button
+                key={String(option)}
+                type="button"
+                role="radio"
+                aria-checked={chosen}
+                disabled={lockedPanel}
+                onClick={() => setFull(option)}
+                className={`focus-ring flex flex-col items-start gap-1 rounded-2xl px-4 py-3.5 text-left transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.98] disabled:cursor-not-allowed ${
+                  chosen ? "bg-surface-card shadow-card ring-2 ring-accent" : "bg-surface-lift hover:bg-cream/10"
+                }`}
+              >
+                <span className="flex w-full items-center justify-between gap-2">
+                  <span className="text-base font-semibold text-cream-bright">{t(option ? "fullShort" : "expressShort")}</span>
+                  {lockedPanel && <span className="text-xs font-semibold text-cream-dim">🔒 {t("panelLocked")}</span>}
+                </span>
+                <span className="text-sm text-cream-dim">
+                  {option
+                    ? t("scenarioShape", { minutes: shape.exposition, questions: shape.questions })
+                    : t("scenarioShapeExpress")}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className={label} role="group" aria-label={t("level")}>
           {t("level")}
           <div className="grid grid-cols-4 gap-1 rounded-xl bg-surface-lift p-1">
@@ -796,11 +815,10 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
                 type="button"
                 aria-pressed={difficulty === entry}
                 onClick={() => setDifficulty(entry)}
-                className={`focus-ring flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+                className={`focus-ring flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-xs font-semibold transition-[background-color,color,transform] duration-150 ease-press active:scale-[0.97] ${
                   difficulty === entry ? "bg-surface-card text-cream-bright shadow-card" : "text-cream-dim hover:text-cream"
                 }`}
               >
-                {/* Four bars, filled to the level: readable before the word is. */}
                 <span aria-hidden className="flex items-end gap-0.5">
                   {[0, 1, 2, 3].map((bar) => (
                     <span
@@ -823,211 +841,236 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           </div>
           <span className="font-normal text-cream-dim">{t(DIFFICULTY_HINT[difficulty])}</span>
         </div>
-      </div>
-      {/* Where and how — one compact grid instead of a column of chip rows,
-          so the whole form and its button fit on one screen. */}
-      <div className="grid grid-cols-2 gap-3">
-        <label className={`${label} col-span-2 sm:col-span-1`}>
-          {t("university")}
-          <input
-            value={university}
-            onChange={(event) => setUniversity(event.target.value)}
-            placeholder={t("universityPlaceholder")}
-            maxLength={120}
-            className={`${select} placeholder:text-cream-faint`}
-          />
-          {realCount > 0 && <span className="font-normal text-grow-text">{t("realQuestions", { count: realCount })}</span>}
-        </label>
-        {formats.length > 0 && (
-          <label className={label}>
-            {t("country")}
-            <select value={country} onChange={(event) => setCountry(event.target.value)} className={select}>
-              {formats.map((format) => (
-                <option key={format.country} value={format.country}>
-                  {format.countryName} · {format.scale.min}–{format.scale.max}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label className={label}>
-          {t("mode")}
-          <select value={focus} onChange={(event) => setFocus(event.target.value as Focus)} className={select}>
-            {FOCUS_OPTIONS.map((entry) => (
-              <option key={entry} value={entry} disabled={locked(entry)}>
-                {locked(entry) ? "🔒 " : ""}
-                {t(FOCUS_LABEL[entry])}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={label}>
-          {t("setting")}
-          <select
-            value={setting ?? ""}
-            onChange={(event) => setSetting(event.target.value === "" ? null : (event.target.value as "presencial" | "virtual"))}
-            className={select}
-          >
-            <option value="">{t("settingAny")}</option>
-            <option value="presencial" disabled={!allowance?.modes}>
-              {!allowance?.modes ? "🔒 " : ""}
-              {t("settingPresencial")}
-            </option>
-            <option value="virtual" disabled={!allowance?.modes}>
-              {!allowance?.modes ? "🔒 " : ""}
-              {t("settingVirtual")}
-            </option>
-          </select>
-        </label>
-        {/* Express or the full panel, side by side. */}
-        <div className={`${label} col-span-2 sm:col-span-1`}>
-          {t("panelChoice")}
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-lift p-1">
-            {([false, true] as const).map((option) => (
-              <button
-                key={String(option)}
-                type="button"
-                aria-pressed={full === option}
-                disabled={option && allowance !== null && !hasCredits}
-                onClick={() => setFull(option)}
-                className={`focus-ring rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                  full === option ? "bg-surface-card text-cream-bright shadow-card" : "text-cream-dim"
-                }`}
-              >
-                {t(option ? "fullShort" : "expressShort")}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {needsMaterial && (
-        <textarea
-          value={material}
-          onChange={(event) => setMaterial(event.target.value)}
-          rows={4}
-          maxLength={20_000}
-          placeholder={t(focus === "estadistica" ? "materialStats" : "materialObs")}
-          className="focus-ring rounded-xl bg-surface-lift px-3 py-2.5 font-mono text-sm text-cream-bright placeholder:font-sans placeholder:text-cream-faint"
-        />
-      )}
+        {/* Everything else, folded: set once, rarely changed. The line under
+            the title says what it is set to, so folding hides nothing. */}
+        <details
+          className="group rounded-2xl bg-surface-lift"
+          open={needsMaterial || undefined}
+        >
+          <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-cream-bright">
+            {t("settingsToggle")}
+            <span aria-hidden className="text-cream-dim transition-transform duration-200 ease-press group-open:rotate-180">
+              ⌄
+            </span>
+          </summary>
+          <div className="flex flex-col gap-3 px-4 pb-4">
+            <div className="grid grid-cols-2 gap-3">
+              <label className={`${label} col-span-2`}>
+                {t("scenario")}
+                <select value={scenario} onChange={(event) => setScenario(event.target.value as DefenseScenario)} className={select}>
+                  {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((entry) => (
+                    <option key={entry} value={entry}>
+                      {t(SCENARIO_OPTIONS[entry].label)}
+                    </option>
+                  ))}
+                </select>
+                <span className="font-normal text-cream-dim">{t(shape.hint)}</span>
+              </label>
+              <label className={`${label} col-span-2 sm:col-span-1`}>
+                {t("university")}
+                <input
+                  value={university}
+                  onChange={(event) => setUniversity(event.target.value)}
+                  placeholder={t("universityPlaceholder")}
+                  maxLength={120}
+                  className={`${select} placeholder:text-cream-faint`}
+                />
+                {realCount > 0 && <span className="font-normal text-grow-text">{t("realQuestions", { count: realCount })}</span>}
+              </label>
+              {formats.length > 0 && (
+                <label className={`${label} col-span-2 sm:col-span-1`}>
+                  {t("country")}
+                  <select value={country} onChange={(event) => setCountry(event.target.value)} className={select}>
+                    {formats.map((format) => (
+                      <option key={format.country} value={format.country}>
+                        {format.countryName} · {format.scale.min}–{format.scale.max}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className={label}>
+                {t("mode")}
+                <select value={focus} onChange={(event) => setFocus(event.target.value as Focus)} className={select}>
+                  {FOCUS_OPTIONS.map((entry) => (
+                    <option key={entry} value={entry} disabled={locked(entry)}>
+                      {locked(entry) ? "🔒 " : ""}
+                      {t(FOCUS_LABEL[entry])}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className={label}>
+                {t("setting")}
+                <select
+                  value={setting ?? ""}
+                  onChange={(event) => setSetting(event.target.value === "" ? null : (event.target.value as "presencial" | "virtual"))}
+                  className={select}
+                >
+                  <option value="">{t("settingAny")}</option>
+                  <option value="presencial" disabled={!allowance?.modes}>
+                    {!allowance?.modes ? "🔒 " : ""}
+                    {t("settingPresencial")}
+                  </option>
+                  <option value="virtual" disabled={!allowance?.modes}>
+                    {!allowance?.modes ? "🔒 " : ""}
+                    {t("settingVirtual")}
+                  </option>
+                </select>
+              </label>
+            </div>
 
-      {/* Accessibility: free for everyone, remembered on this device. */}
-      <label className="flex items-start gap-2 text-sm text-cream">
-        <input
-          type="checkbox"
-          className="mt-1"
-          checked={fluencyNeutral}
-          onChange={(event) => {
-            setFluencyNeutral(event.target.checked);
-            try {
-              localStorage.setItem("mockio.fluencyNeutral", event.target.checked ? "1" : "0");
-            } catch {
-              // Private mode: asked again next time.
-            }
-          }}
-        />
-        <span>
-          {t("fluencyNeutral")} <span className="text-xs text-cream-dim">{t("fluencyNeutralNote")}</span>
-        </span>
-      </label>
-
-      {filmable && (
-        <label className="flex items-start gap-2 text-sm text-cream">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={record}
-            onChange={(event) => {
-              setRecord(event.target.checked);
-              try {
-                localStorage.setItem("mockio.recordRehearsal", event.target.checked ? "1" : "0");
-              } catch {
-                // Private mode: asked again next time.
-              }
-            }}
-          />
-          <span>
-            {t("recordLabel")} <span className="text-xs text-cream-dim">{t("recordNote")}</span>
-          </span>
-        </label>
-      )}
-
-      {allowance?.group && (
-        <div className={label}>
-          {t("members")}
-          <div className="grid grid-cols-3 gap-2">
-            {members.map((entry, index) => (
-              <input
-                key={index}
-                value={entry}
-                maxLength={40}
-                onChange={(event) =>
-                  setMembers((current) => current.map((value, at) => (at === index ? event.target.value : value)))
-                }
-                placeholder={t("memberPlaceholder", { n: index + 1 })}
-                className={`${select} placeholder:text-cream-faint`}
+            {needsMaterial && (
+              <textarea
+                value={material}
+                onChange={(event) => setMaterial(event.target.value)}
+                rows={4}
+                maxLength={20_000}
+                placeholder={t(focus === "estadistica" ? "materialStats" : "materialObs")}
+                className="focus-ring rounded-xl bg-surface-card px-3 py-2.5 font-mono text-sm text-cream-bright placeholder:font-sans placeholder:text-cream-faint"
               />
-            ))}
+            )}
+
+            {allowance?.group && (
+              <div className={label}>
+                {t("members")}
+                <div className="grid grid-cols-3 gap-2">
+                  {members.map((entry, index) => (
+                    <input
+                      key={index}
+                      value={entry}
+                      maxLength={40}
+                      onChange={(event) =>
+                        setMembers((current) => current.map((value, at) => (at === index ? event.target.value : value)))
+                      }
+                      placeholder={t("memberPlaceholder", { n: index + 1 })}
+                      className={`${select} placeholder:text-cream-faint`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <label className="flex items-start gap-2 text-sm text-cream">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={fluencyNeutral}
+                onChange={(event) => {
+                  setFluencyNeutral(event.target.checked);
+                  try {
+                    localStorage.setItem("mockio.fluencyNeutral", event.target.checked ? "1" : "0");
+                  } catch {
+                    // Private mode: asked again next time.
+                  }
+                }}
+              />
+              <span>
+                {t("fluencyNeutral")} <span className="text-xs text-cream-dim">{t("fluencyNeutralNote")}</span>
+              </span>
+            </label>
+
+            {filmable && (
+              <label className="flex items-start gap-2 text-sm text-cream">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={record}
+                  onChange={(event) => {
+                    setRecord(event.target.checked);
+                    try {
+                      localStorage.setItem("mockio.recordRehearsal", event.target.checked ? "1" : "0");
+                    } catch {
+                      // Private mode: asked again next time.
+                    }
+                  }}
+                />
+                <span>
+                  {t("recordLabel")} <span className="text-xs text-cream-dim">{t("recordNote")}</span>
+                </span>
+              </label>
+            )}
           </div>
-        </div>
-      )}
+        </details>
 
-      {packNotice && <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">{packNotice}</p>}
-      {packError && (
-        <p role="alert" className="rounded-xl bg-step-soft px-3 py-2 text-sm text-step-text">
-          {packError}
-        </p>
-      )}
-
-      {/* The way in, with what it will spend beside it. On a phone it stays
-          pinned above the tab bar, so it is never a scroll away. */}
-      <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-30 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-card/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
-        {canBegin && (
-          <Action withArrow onClick={begin} className="px-6 py-3 text-base">
-            {t("rehearse")}
-          </Action>
-        )}
-        {allowance && (
-          <p className="text-sm text-cream-dim">
-            {hasCredits
-              ? `${t("creditsLeft", { count: allowance.credits })}${allowance.sponsor ? ` (${t("sponsoredBy", { name: allowance.sponsor.name })})` : ""}`
-              : allowance.freeLeft > 0
-                ? t("freeAvailable")
-                : t("freeUsed")}
+        {packNotice && <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">{packNotice}</p>}
+        {packError && (
+          <p role="alert" className="rounded-xl bg-step-soft px-3 py-2 text-sm text-step-text">
+            {packError}
           </p>
         )}
-      </div>
-      {allowance && (!allowance.modes || !allowance.group) && (
-        <p className="-mt-2 text-xs text-cream-dim">{t("lockedSummary")}</p>
+
+        {/* The way in, with what it will spend beside it. On a phone it stays
+            pinned above the tab bar, so it is never a scroll away. */}
+        <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-30 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-card/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+          {canBegin && (
+            <Action withArrow onClick={begin} className="px-6 py-3 text-base">
+              {t("rehearse")}
+            </Action>
+          )}
+          {allowance && (
+            <p className="text-sm text-cream-dim">
+              {hasCredits
+                ? `${t("creditsLeft", { count: allowance.credits })}${allowance.sponsor ? ` (${t("sponsoredBy", { name: allowance.sponsor.name })})` : ""}`
+                : allowance.freeLeft > 0
+                  ? t("freeAvailable")
+                  : t("freeUsed")}
+            </p>
+          )}
+        </div>
+        <div aria-hidden className="h-12 md:hidden" />
+      </Panel>
+
+      {/* The plans, as one line until the student asks to see them. */}
+      {allowance && pack?.available && worthOffering.length > 0 && (
+        <details className="group rounded-card bg-surface-raised shadow-card">
+          <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 rounded-card px-5 py-4 sm:px-7">
+            <span className="min-w-0">
+              <span className="block text-base font-semibold text-cream-bright">
+                {hasCredits ? t("upgradeTitle") : t("plansTitle")}
+              </span>
+              {!hasCredits && cheapest && (
+                <span className="block text-sm text-cream-dim">
+                  {t("plansBody", { price: money(cheapest.amount, cheapest.currency) })}
+                </span>
+              )}
+            </span>
+            <span className="rounded-full bg-surface-lift px-3.5 py-1.5 text-sm font-semibold text-cream-bright transition-colors group-open:bg-cream/15">
+              <span className="group-open:hidden">{t("plansShow")}</span>
+              <span className="hidden group-open:inline">{t("plansHide")}</span>
+            </span>
+          </summary>
+          <div className="flex flex-col gap-3 px-5 pb-5 sm:px-7 sm:pb-6">
+            <div className="grid gap-2 sm:grid-cols-3">
+              {worthOffering.map((offer) => (
+                <button
+                  key={offer.kind}
+                  type="button"
+                  disabled={buying}
+                  onClick={() => void buy(offer.kind)}
+                  className="focus-ring flex flex-col items-start gap-1 rounded-xl bg-surface-card px-4 py-3 text-left shadow-card transition-transform duration-150 ease-press active:scale-[0.98] disabled:opacity-60"
+                >
+                  <span className="flex w-full items-baseline justify-between gap-2">
+                    <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].name)}</span>
+                    <span className="text-base font-bold tabular-nums text-cream-bright">{money(offer.amount, offer.currency)}</span>
+                  </span>
+                  <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].body)}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-cream-dim">{buying ? t("buying") : t("beforePay")}</p>
+            {!allowance.paid && <GiftCard compact />}
+          </div>
+        </details>
       )}
 
-      {allowance && pack?.available && worthOffering.length > 0 && (
-        <section className="flex flex-col gap-2 border-t border-line pt-4">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {worthOffering.map((offer) => (
-              <button
-                key={offer.kind}
-                type="button"
-                disabled={buying}
-                onClick={() => void buy(offer.kind)}
-                className="focus-ring flex flex-col items-start gap-0.5 rounded-xl bg-surface-card px-3 py-2.5 text-left shadow-card transition-transform duration-150 active:scale-[0.98] disabled:opacity-60"
-              >
-                <span className="flex w-full items-baseline justify-between gap-2">
-                  <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].name)}</span>
-                  <span className="text-base font-bold text-cream-bright">{money(offer.amount, offer.currency)}</span>
-                </span>
-                <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].body)}</span>
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-cream-dim">{buying ? t("buying") : t("beforePay")}</p>
-          {!allowance.paid && <GiftCard compact />}
-        </section>
+      {progress.length > 0 && (
+        <Panel variant="raised" className="p-5 sm:p-6">
+          <ProgressStrip points={progress} />
+        </Panel>
       )}
-      {/* Room for the pinned bar on a phone, so it never covers the plans. */}
-      <div aria-hidden className="h-16 md:hidden" />
-    </Panel>
+    </>
   );
 }
 
