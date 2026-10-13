@@ -138,7 +138,8 @@ export function renderApp(payload: unknown, viewer: string): string {
         <div class="table-wrap cards"><table><thead><tr><th>Plataforma</th><th>Client ID</th><th>Institución</th><th class="r">Usuarios</th></tr></thead><tbody id="platforms-body"></tbody></table></div>
         <h2 class="small dim">Instituciones interesadas</h2>
         <div class="table-wrap cards"><table><thead><tr><th>Contacto</th><th>Institución</th><th class="r">Estudiantes</th><th>Plataforma</th><th>Mensaje</th><th>Fecha</th></tr></thead><tbody id="leads-body"></tbody></table></div>
-        <h2 class="small dim">Afiliados y asesores</h2>
+        <div class="page-head"><h2 class="small dim">Afiliados y asesores</h2>
+          <button class="btn" id="void-commission" type="button">Anular comisión</button></div>
         <div class="table-wrap cards"><table><thead><tr><th>Asesor</th><th>Código</th><th class="r">Vinculados</th><th class="r">Comparten</th><th class="r">Ventas</th><th class="r">Por pagar</th><th class="r">Pagado</th><th></th></tr></thead><tbody id="advisors-body"></tbody></table></div>
       </section>
 

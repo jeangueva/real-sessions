@@ -500,7 +500,7 @@
 <td data-label="Ventas" class="r">${a.sales}</td>
 <td data-label="Por pagar" class="r">${money(a.pending, a.currency)}${a.held > 0 ? `<br><span class="dim small">+ ${money(a.held, a.currency)} en espera</span>` : ""}</td>
 <td data-label="Pagado" class="r">${money(a.paid, a.currency)}</td>
-<td>${a.pending >= 50 ? `<button class="btn" type="button" data-paid="${esc(a.code)}" data-amount="${esc(money(a.pending, a.currency))}">Marcar pagado</button>` : ""}</td>
+<td>${a.pending >= (d.payoutMinimum ?? 50) ? `<button class="btn" type="button" data-paid="${esc(a.code)}" data-amount="${esc(money(a.pending, a.currency))}">Marcar pagado</button>` : ""}</td>
 </tr>`,
           )
           .join("")
@@ -520,6 +520,18 @@
       ],
       confirm: "Crear",
       run: (v) => post("/api/institutions", v),
+    }),
+  );
+  $("#void-commission").addEventListener("click", () =>
+    formDialog({
+      title: "Anular comisión",
+      subtitle: "Para una venta que devolviste. Busca el ID del pago en Mercado Pago (Actividad → el pago reembolsado). Solo se anula si aún no se pagó al afiliado.",
+      fields: [
+        { name: "paymentId", label: "ID del pago de Mercado Pago", type: "text", attrs: 'required maxlength="64" inputmode="numeric"' },
+        { name: "reason", label: "Motivo", type: "text", value: "Reembolso", attrs: 'maxlength="300"' },
+      ],
+      confirm: "Anular",
+      run: (v) => post("/api/advisors/void", v),
     }),
   );
   $("#new-lti").addEventListener("click", () =>

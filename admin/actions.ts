@@ -16,7 +16,7 @@ import type { RedisClientType } from "redis";
 
 export class ActionError extends Error {}
 
-export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create", "lti.register"] as const;
+export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create", "lti.register", "commission.void"] as const;
 export type ActionName = (typeof ACTIONS)[number];
 
 const accountKey = (id: string) => `rs:account:${id}`;
@@ -250,7 +250,7 @@ export async function markCommissionsPaid(deps: Deps, rawCode: unknown): Promise
       // Only what is past the seven-day refund window: a sale still inside
       // it may come back, and its commission waits for the next payout.
       `UPDATE advisor_commissions SET paid_at = now()
-        WHERE advisor_code = $1 AND paid_at IS NULL AND created_at <= now() - interval '7 days'
+        WHERE advisor_code = $1 AND paid_at IS NULL AND voided_at IS NULL AND created_at <= now() - interval '7 days'
         RETURNING amount, currency`,
       [code],
     );
@@ -361,4 +361,38 @@ export async function registerLtiPlatform(
     await audit(client, deps.actor, "lti.register", issuer, { clientId, deploymentIds, institutionCode });
   });
   return `Plataforma conectada: ${issuer}${institutionCode ? ` → ${institutionCode}` : ""}.`;
+}
+
+/**
+ * A commission on a refunded sale, taken out of the affiliate's balance.
+ *
+ * By the Mercado Pago payment id, which is what the refund screen shows.
+ * Only an unpaid one: money already sent is settled with the affiliate by
+ * hand, not by rewriting the record. Marked rather than deleted, so the
+ * history still says what happened and why.
+ */
+export async function voidCommission(deps: Deps, input: { paymentId?: unknown; reason?: unknown }): Promise<string> {
+  const paymentId = String(input.paymentId ?? "").trim();
+  if (!/^[A-Za-z0-9:_-]{3,64}$/.test(paymentId)) throw new ActionError("Escribe el ID del pago de Mercado Pago.");
+  const reason = String(input.reason ?? "").trim().slice(0, 300) || "Reembolso";
+  return inTransaction(deps.pool, async (client) => {
+    const found = await client.query(
+      `SELECT advisor_code, amount, currency, paid_at, voided_at FROM advisor_commissions WHERE payment_id = $1 FOR UPDATE`,
+      [paymentId],
+    );
+    const row = found.rows[0];
+    if (!row) throw new ActionError(`El pago ${paymentId} no generó ninguna comisión.`);
+    if (row.voided_at) throw new ActionError(`La comisión del pago ${paymentId} ya estaba anulada.`);
+    if (row.paid_at) {
+      throw new ActionError(`La comisión del pago ${paymentId} ya se pagó a ${row.advisor_code}. Arréglalo directamente con el afiliado.`);
+    }
+    await client.query(`UPDATE advisor_commissions SET voided_at = now(), void_reason = $2 WHERE payment_id = $1`, [paymentId, reason]);
+    await audit(client, deps.actor, "commission.void", String(row.advisor_code), {
+      paymentId,
+      amount: Number(row.amount),
+      currency: row.currency,
+      reason,
+    });
+    return `Comisión anulada: ${row.currency} ${Number(row.amount).toFixed(2)} de ${row.advisor_code} (pago ${paymentId}).`;
+  });
 }

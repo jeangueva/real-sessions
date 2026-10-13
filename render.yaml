@@ -136,6 +136,10 @@ services:
         sync: false
       - key: MENTOR_INBOX
         sync: false
+      # Affiliates: the smallest balance paid out, in soles (50 when unset).
+      # Set the same value on mockio-admin below, which shows the pay button.
+      - key: AFFILIATE_MIN_PAYOUT
+        sync: false
 
   # The internal dashboard (admin/server.ts): growth numbers and the user
   # list. Separate from the product so the public app has no admin routes.
@@ -175,6 +179,9 @@ services:
         sync: false
       - key: ADMIN_INSIGHTS_MODEL
         value: anthropic/claude-sonnet-5.5
+      # The same minimum as the web service's, for the affiliates' pay button.
+      - key: AFFILIATE_MIN_PAYOUT
+        sync: false
 
   - type: redis
     name: real-sessions-redis

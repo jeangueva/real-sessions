@@ -591,3 +591,8 @@ CREATE TABLE IF NOT EXISTS b2b_leads (
 
 -- How an affiliate wants to be paid: Yape, Plin, a bank transfer or PayPal.
 ALTER TABLE advisors ADD COLUMN IF NOT EXISTS payout JSONB;
+
+-- A commission on a sale that was refunded: voided from the admin, kept for
+-- the record, and left out of every balance.
+ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ;
+ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS void_reason TEXT;

@@ -48,6 +48,7 @@ import {
   markCommissionsPaid,
   createInstitution,
   registerLtiPlatform,
+  voidCommission,
   verifyEmail,
 } from "./actions.js";
 import { aiInsights, ruleInsights } from "./insights.js";
@@ -281,6 +282,7 @@ const server = createServer(async (req, res) => {
           else if (path === "/api/advisors/paid") message = await markCommissionsPaid(deps, body.code);
           else if (path === "/api/institutions") message = await createInstitution(deps, body as never);
           else if (path === "/api/lti") message = await registerLtiPlatform(deps, body as never);
+          else if (path === "/api/advisors/void") message = await voidCommission(deps, body as never);
           else if (path === "/api/refresh") {
             cache = null;
             return json(res, 200, { ok: true });

@@ -240,7 +240,7 @@ class PostgresAdvisorStore implements AdvisorStore {
 
   async commissions(code: string) {
     const { rows } = await this.pool.query(
-      `SELECT * FROM advisor_commissions WHERE advisor_code = $1 ORDER BY created_at DESC LIMIT 500`,
+      `SELECT * FROM advisor_commissions WHERE advisor_code = $1 AND voided_at IS NULL ORDER BY created_at DESC LIMIT 500`,
       [code],
     );
     return rows.map((row) => ({

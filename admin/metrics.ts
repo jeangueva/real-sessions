@@ -10,7 +10,8 @@
  * the `owner_id` in every table, which is the one join this needs.
  */
 import type { Pool } from "pg";
-import type { RedisClientType } from "redis";
+import type { RedisClientType } from "redis";import { MIN_PAYOUT } from "../src/advisors.js";
+
 
 export interface AccountRow {
   id: string;
@@ -62,6 +63,8 @@ export interface DefenseSummary {
   institutions: { code: string; name: string; seats: number; members: number; credits: number; expiresAt: string; owner: string | null }[];
   /** Universities' platforms connected over LTI, and who has launched from each. */
   platforms: { issuer: string; clientId: string; institution: string | null; users: number }[];
+  /** The smallest balance an affiliate is paid, from AFFILIATE_MIN_PAYOUT. */
+  payoutMinimum: number;
   /** The latest schools that asked to talk. */
   leads: { name: string; email: string; institution: string; role: string | null; country: string | null; students: number | null; platform: string | null; message: string | null; at: string }[];
   advisors: {
@@ -90,6 +93,7 @@ const EMPTY_DEFENSE: DefenseSummary = {
   institutions: [],
   platforms: [],
   leads: [],
+  payoutMinimum: MIN_PAYOUT,
   advisors: [],
 };
 
@@ -123,7 +127,7 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
                 COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL AND created_at > now() - interval '7 days'), 0)::float AS held,
                 COALESCE(sum(amount) FILTER (WHERE paid_at IS NOT NULL), 0)::float AS paid,
                 max(currency) AS currency
-           FROM advisor_commissions GROUP BY advisor_code`,
+           FROM advisor_commissions WHERE voided_at IS NULL GROUP BY advisor_code`,
       ),
     ),
     quiet(
@@ -167,6 +171,7 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
       expiresAt: iso(row.expires_at),
       owner: emails.get(row.owner_id as string) ?? null,
     })),
+    payoutMinimum: MIN_PAYOUT,
     platforms: (platforms.rows as Record<string, unknown>[]).map((row) => ({
       issuer: row.issuer as string,
       clientId: row.client_id as string,
