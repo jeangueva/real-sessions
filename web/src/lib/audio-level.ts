@@ -185,3 +185,44 @@ export function resumeAudio(): void {
   const context = sharedContext();
   if (context && context.state === "suspended") void context.resume().catch(() => undefined);
 }
+
+/**
+ * The jury's voice as one steady track, for a group call.
+ *
+ * The real voice plays one element per sentence, and a call needs one track
+ * that stays put while sentences come and go. So each element, once it is
+ * playing, is tapped (the same `captureStream` copy the meter uses, never a
+ * reroute) into a destination node whose stream is what the call sends.
+ * Created only when a call asks for it: an ordinary rehearsal taps nothing.
+ */
+let juryDestination: MediaStreamAudioDestinationNode | null = null;
+
+export function juryBusTrack(): MediaStreamTrack | null {
+  const context = sharedContext();
+  if (!context || typeof context.createMediaStreamDestination !== "function") return null;
+  juryDestination ??= context.createMediaStreamDestination();
+  return juryDestination.stream.getAudioTracks()[0] ?? null;
+}
+
+/** Whether a playing element can be tapped at all (Safari cannot). */
+export function juryBusSupported(): boolean {
+  if (typeof HTMLMediaElement === "undefined") return false;
+  const proto = HTMLMediaElement.prototype as unknown as CapturableAudio;
+  return Boolean(sharedContext()?.createMediaStreamDestination) && Boolean(proto.captureStream ?? proto.mozCaptureStream);
+}
+
+/** Taps a playing element into the bus. Returns how to untap it. */
+export function feedJuryBus(element: HTMLAudioElement): () => void {
+  const context = sharedContext();
+  if (!juryDestination || !context) return () => undefined;
+  const capturable = element as CapturableAudio;
+  const capture = capturable.captureStream ?? capturable.mozCaptureStream;
+  if (!capture) return () => undefined;
+  try {
+    const source = context.createMediaStreamSource(capture.call(capturable));
+    source.connect(juryDestination);
+    return () => source.disconnect();
+  } catch {
+    return () => undefined;
+  }
+}

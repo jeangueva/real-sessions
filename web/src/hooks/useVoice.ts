@@ -337,6 +337,8 @@ export function useVoice({
   return {
     /** Voice is only offered when both halves exist. */
     supported: input.supported && output.supported,
+    /** The jury speaks with a real voice, which a group call can pass on. */
+    realVoice: aura,
     inputSupported: input.supported,
     listening,
     speaking,

@@ -88,8 +88,11 @@ function useSpaceEntries(space: Space): Entry[] {
  * share — settings, the review queue — stay under the one that was open.
  */
 function useSpace(): Space {
-  const { pathname } = useLocation();
-  const owned = spaceOf(pathname);
+  const { pathname, state } = useLocation();
+  // The call screen is shared: a thesis defence runs on it too, and then it
+  // is Sustentación's, not Profesional's.
+  const defenseCall = Boolean((state as { defense?: unknown } | null)?.defense);
+  const owned = defenseCall ? "defense" : spaceOf(pathname);
   const [last, setLast] = useState<Space>(() => owned ?? storedSpace());
   useEffect(() => {
     if (owned && owned !== last) setLast(owned);

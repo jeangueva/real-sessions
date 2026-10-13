@@ -66,6 +66,7 @@ const AffiliatesPage = lazy(() => import("@/components/AffiliatesPage").then((m)
 const InstitutionsPage = lazy(() => import("@/components/InstitutionsPage").then((m) => ({ default: m.InstitutionsPage })));
 /** Public and reached from a link a student sent, like a shared report. */
 const GiftPage = lazy(() => import("@/platform/GiftPage").then((m) => ({ default: m.GiftPage })));
+const JoinCall = lazy(() => import("@/platform/JoinCall").then((m) => ({ default: m.JoinCall })));
 
 /**
  * One page view per route change.
@@ -159,6 +160,15 @@ export function App() {
           element={
             <Suspense fallback={null}>
               <GiftPage />
+            </Suspense>
+          }
+        />
+        {/* A classmate joining a group defence from the host's link: no account. */}
+        <Route
+          path="/llamada/:roomId"
+          element={
+            <Suspense fallback={null}>
+              <JoinCall />
             </Suspense>
           }
         />

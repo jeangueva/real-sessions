@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { VideoOff } from "lucide-react";
 import { InterviewerPresence, Waveform } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
+import type { JurorTag } from "@/lib/voice";
+import { JuryRow, PersonTile, type JurorSeat } from "./CallPeople";
 
 /**
  * The two tiles: whoever is talking, and you in the corner.
@@ -29,6 +31,12 @@ export function CallStage({
   caption,
   listening,
   turnText,
+  jury,
+  activeJuror = null,
+  people = [],
+  selfName,
+  selfAnswering = false,
+  selfMuted = false,
 }: {
   initials: string;
   name: string;
@@ -50,6 +58,15 @@ export function CallStage({
   status: string;
   /** The current interviewer question to display inside the stage on mobile. */
   turnText?: string;
+  /** A defence: the whole panel sits at the table, not one face at a time. */
+  jury?: JurorSeat[];
+  activeJuror?: JurorTag | null;
+  /** The classmates defending with you, on their own devices. */
+  people?: { id: string; name: string; stream: MediaStream | null; answering?: boolean; muted?: boolean }[];
+  /** Your name on your own tile, in a group call. */
+  selfName?: string;
+  selfAnswering?: boolean;
+  selfMuted?: boolean;
 }) {
   const t = useT();
   const self = useRef<HTMLVideoElement>(null);
@@ -72,6 +89,66 @@ export function CallStage({
   }, [screenStream]);
 
   const sharing = screenStream !== null;
+
+  if (jury && !sharing) {
+    const group = people.length > 0 || selfName !== undefined;
+    return (
+      /* The defence room: the panel across the top, the people defending
+         along the bottom. A column rather than overlays, so with three
+         cameras in a group nobody's tile covers a juror. */
+      <div className="on-media relative flex min-h-[50svh] flex-1 flex-col items-center justify-between gap-3 overflow-hidden rounded-[1.75rem] bg-surface-base p-3 pt-12 shadow-float sm:gap-4 sm:p-6 sm:pt-14 lg:min-h-0">
+        <span className="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-cream-bright backdrop-blur-xl">
+          {status}
+        </span>
+        <div className="flex w-full flex-1 items-center justify-center">
+          <JuryRow
+            jury={jury}
+            active={activeJuror}
+            speaking={speaking}
+            level={voiceLevel}
+            measured={voiceMeasured}
+            compact={group || Boolean(cameraStream || cameraError)}
+          />
+        </div>
+
+        {listening && caption && (
+          <p className="pointer-events-none hidden min-h-[1.5rem] w-full text-center text-sm text-cream-dim sm:block">{caption}</p>
+        )}
+
+        {(group || cameraStream || cameraError) && (
+          <div className="flex w-full flex-wrap items-end justify-center gap-2 sm:justify-end sm:gap-3">
+            {people.map((person) => (
+              <PersonTile
+                key={person.id}
+                name={person.name}
+                label={person.name}
+                stream={person.stream}
+                answering={person.answering ?? false}
+                muted={person.muted ?? false}
+              />
+            ))}
+            <PersonTile
+              self
+              name={selfName ?? t("call.you")}
+              label={t("call.selfView")}
+              stream={cameraStream}
+              note={cameraError}
+              answering={selfAnswering}
+              muted={selfMuted}
+            />
+          </div>
+        )}
+
+        {turnText && (
+          <div className="w-full max-h-24 overflow-y-auto rounded-2xl bg-black/60 p-3 ring-1 ring-white/10 backdrop-blur-xl sm:hidden">
+            <p className="text-xs leading-relaxed text-cream-bright" aria-live="polite">
+              {turnText}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     /* FaceTime's stage: a dark room in both themes. The interviewer is the

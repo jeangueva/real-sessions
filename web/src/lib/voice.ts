@@ -14,7 +14,7 @@
  *    remain a first-class path rather than a fallback nobody maintains.
  */
 
-import { meterFromElement, UNMEASURED } from "./audio-level";
+import { feedJuryBus, meterFromElement, UNMEASURED } from "./audio-level";
 import type { LevelMeter } from "./audio-level";
 
 export interface SpeechInput {
@@ -506,14 +506,19 @@ export function createAuraOutput(
       // Attached on `playing`, not before it. `captureStream` hands back a
       // stream with no audio track until the element is actually playing, so
       // metering at construction time silently produces a dead meter.
+      let untap = () => undefined as void;
       audio.onplaying = () => {
         if (current !== audio) return;
         live.stop();
         live = meterFromElement(audio);
+        // In a group call, the others hear the jury through it.
+        untap();
+        untap = feedJuryBus(audio);
       };
 
       const done = (result: "ok" | "blocked" | "error") => {
         URL.revokeObjectURL(url);
+        untap();
         if (current === audio) {
           current = null;
           playing = false;

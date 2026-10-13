@@ -27,7 +27,13 @@ import { useRehearsalRecorder } from "@/hooks/useRehearsalRecorder";
 import { CallControls } from "./CallControls";
 import { CallStage } from "./CallStage";
 import { TranscriptPanel, type TranscriptLine } from "./TranscriptPanel";
-import { resumeAudio } from "@/lib/audio-level";
+import { juryBusSupported, juryBusTrack, resumeAudio } from "@/lib/audio-level";
+import { initialsOf, openCallRoom, useGroupCall, type CallParticipant, type CallSeat } from "@/lib/group-call";
+import type { JurorSeat } from "./CallPeople";
+import type { RoomState } from "@/lib/group-call";
+
+type RoomStateJurors = RoomState["jurors"];
+import { GroupInvite } from "./GroupInvite";
 import { useLocale, useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -264,6 +270,90 @@ export function LiveInterview() {
     accent: defense?.country ?? null,
   });
 
+  /**
+   * A group thesis, as a call: the classmates join from a link on their own
+   * devices. Only offered when the rehearsal was started as a group's.
+   */
+  const groupMembers = defense?.members && defense.members.length > 1 ? defense.members : null;
+  const hostName = groupMembers?.[0] ?? "";
+  const [seat, setSeat] = useState<CallSeat | null>(null);
+  const [opening, setOpening] = useState(false);
+  const [openFailed, setOpenFailed] = useState(false);
+  const openRoom = () => {
+    if (!groupMembers || opening) return;
+    setOpening(true);
+    setOpenFailed(false);
+    // A group call is a video call: the classmates expect to see you.
+    if (camera.supported && !camera.on && !camera.starting) camera.start();
+    openCallRoom(groupMembers, hostName)
+      .then(setSeat)
+      .catch(() => setOpenFailed(true))
+      .finally(() => setOpening(false));
+  };
+
+  /** The microphone the classmates hear: open only while you hold the floor. */
+  const [callMic, setCallMic] = useState<MediaStreamTrack | null>(null);
+  useEffect(() => {
+    if (!seat || !navigator.mediaDevices?.getUserMedia) return;
+    let track: MediaStreamTrack | null = null;
+    let cancelled = false;
+    navigator.mediaDevices
+      .getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+      .then((stream) => {
+        track = stream.getAudioTracks()[0] ?? null;
+        if (cancelled) track?.stop();
+        else setCallMic(track);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+      track?.stop();
+    };
+  }, [seat]);
+  useEffect(() => {
+    if (callMic) callMic.enabled = voice.listening;
+  }, [callMic, voice.listening]);
+
+  /** Who is answering now, so every screen lights the same tile. */
+  const [answering, setAnswering] = useState<string | null>(null);
+  useEffect(() => {
+    if (!seat) return;
+    if (voice.listening) setAnswering(seat.participantId);
+    else setAnswering((current) => (current === seat.participantId ? null : current));
+  }, [voice.listening, seat]);
+
+  // A new question passes the floor back: nobody is answering it yet.
+  const turnNumber = turn?.turnNumber;
+  useEffect(() => {
+    setAnswering((current) => (current === seat?.participantId ? current : null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turnNumber]);
+
+  /** The jury's real voice, passed on so the classmates hear the same panel. */
+  const juryTrack = useMemo(
+    () => (seat && voice.realVoice && juryBusSupported() ? juryBusTrack() : null),
+    [seat, voice.realVoice],
+  );
+  const callTracks = useMemo(
+    () => [
+      ...(camera.stream?.getVideoTracks() ?? []),
+      ...(callMic ? [callMic] : []),
+      ...(juryTrack ? [juryTrack] : []),
+    ],
+    [camera.stream, callMic, juryTrack],
+  );
+  const group = useGroupCall({
+    seat,
+    tracks: callTracks,
+    // A classmate's answer is the turn. Their name goes first, so the jury
+    // and the report know whose it was.
+    onSay: (from: CallParticipant, text: string) => {
+      setAnswering(from.id);
+      if (voice.listening) voice.stopListening();
+      submitRef.current(`${from.name}: ${text}`);
+    },
+  });
+
   // The analyser is suspended until something resumes it, and nothing here
   // will be clicked. Harmless when the browser refuses: the waveform stays
   // flat and the interview is unaffected.
@@ -417,6 +507,17 @@ export function LiveInterview() {
     const local = defense.jurors?.[tag];
     return { ...JURORS[tag], ...(local ? { name: local.name } : {}), role: tag, title: local?.role ?? null };
   }, [defense, turn?.text, streaming]);
+
+  /** The whole panel, for the table on screen: all three sit there throughout. */
+  const jury = useMemo<JurorSeat[] | undefined>(() => {
+    if (!defense) return undefined;
+    return (["presidente", "metodologo", "especialista"] as JurorTag[]).map((tag) => {
+      const local = defense.jurors?.[tag];
+      const name = local?.name ?? JURORS[tag].name;
+      return { tag, name, title: local?.role ?? tt(tag), initials: initialsOf(name) };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defense?.jurors, locale]);
 
   // Keep the ref pointing at the current submit so a transcript arriving from
   // the microphone never calls a stale closure with an old session id.
@@ -586,6 +687,35 @@ export function LiveInterview() {
     stage: running?.interviewStage ?? stage,
   });
 
+  /** The floor's time limit: the exposition's slot, then ninety seconds an answer. */
+  const floorSeconds = expositionTurn
+    ? stages[0] === "sustentacion-express"
+      ? 60
+      : SCENARIO_OPTIONS[defense?.scenario ?? "titulo"].exposition * 60
+    : 90;
+
+  // What the classmates' screens mirror. Sent only when something in it
+  // changed, which is a handful of times a turn.
+  const publishRoom = group.publish;
+  useEffect(() => {
+    if (!seat || !defense || !jury) return;
+    publishRoom({
+      university: defense.university,
+      jurors: Object.fromEntries(jury.map((seatOf) => [seatOf.tag, { name: seatOf.name, title: seatOf.title }])) as RoomStateJurors,
+      juror: juror?.role ?? "presidente",
+      juryTalking: voice.speaking,
+      turnText: showJurors(turn?.text || streaming, jurorNames),
+      status,
+      floorSince: floorSince !== null && turn && !turn.isComplete && !busy ? floorSince : null,
+      floorSeconds,
+      floorLabel: tt(expositionTurn ? "clockExposition" : "clockAnswer"),
+      complete: Boolean(turn?.isComplete),
+      juryAudio: juryTrack !== null,
+      bcp47,
+      answering,
+    });
+  });
+
   const leave = () => {
     voice.cancelSpeech();
     voice.stopListening();
@@ -629,6 +759,15 @@ export function LiveInterview() {
               so every new line of transcript made the whole room taller and
               pushed the controls down the page. Bounded here, the transcript
               scrolls inside its own card and nothing around it moves. */}
+          {groupMembers && (
+            <GroupInvite
+              roomId={seat?.roomId ?? null}
+              opening={opening}
+              failed={openFailed}
+              joined={group.participants}
+              onOpen={openRoom}
+            />
+          )}
           <div className="relative flex min-h-0 flex-1 flex-col gap-3 lg:h-[clamp(26rem,calc(100svh-16rem),46rem)] lg:flex-none lg:flex-row lg:gap-4">
             <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:gap-3">
               <CallStage
@@ -645,7 +784,22 @@ export function LiveInterview() {
                 caption={voice.transcript}
                 listening={voice.listening}
                 turnText={showJurors(turn?.text || streaming, jurorNames) || undefined}
+                {...(jury ? { jury, activeJuror: juror?.role ?? null } : {})}
+                {...(seat
+                  ? {
+                      selfName: hostName || tt("callYou"),
+                      selfAnswering: answering === seat.participantId,
+                      selfMuted: !voice.listening,
+                      people: group.participants.map((person) => ({
+                        id: person.id,
+                        name: person.name,
+                        stream: group.remotes[person.id] ?? null,
+                        answering: answering === person.id,
+                      })),
+                    }
+                  : {})}
               />
+
 
               {/* Desktop subtitle text under stage. Not drawn at all on an
                   error: the alert below says what happened, and a lone "—"
@@ -679,13 +833,7 @@ export function LiveInterview() {
               {defense && floorSince !== null && turn && !turn.isComplete && !busy && (
                 <DefenseClock
                   since={floorSince}
-                  limitSeconds={
-                    expositionTurn
-                      ? stages[0] === "sustentacion-express"
-                        ? 60
-                        : SCENARIO_OPTIONS[defense?.scenario ?? "titulo"].exposition * 60
-                      : 90
-                  }
+                  limitSeconds={floorSeconds}
                   label={tt(expositionTurn ? "clockExposition" : "clockAnswer")}
                 />
               )}
