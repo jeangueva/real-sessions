@@ -21,9 +21,12 @@ export const PACK_MONTHS = 6;
  * for a thesis written by two or three. Prices are in the Mercado Pago
  * account's currency and overridable per deployment.
  */
-export type PackKind = "sustentacion" | "intensivo" | "grupal";
+export type PackKind = "sustentacion" | "intensivo" | "grupal" | "asesor_pro";
 
-export const PACK_KINDS: Record<PackKind, { credits: number; days: number; amount: number; title: string; modes: boolean; group: boolean }> = {
+export const PACK_KINDS: Record<
+  PackKind,
+  { credits: number; days: number; amount: number; title: string; modes: boolean; group: boolean; advisor?: boolean }
+> = {
   sustentacion: {
     credits: PACK_CREDITS,
     days: PACK_MONTHS * 30,
@@ -48,7 +51,24 @@ export const PACK_KINDS: Record<PackKind, { credits: number; days: number; amoun
     modes: true,
     group: true,
   },
+  /**
+   * For advisors: their students' rehearsals, paid by them. No credits of its
+   * own — while it runs, up to ADVISOR_PRO_SEATS students who share their
+   * progress get ADVISOR_PRO_CREDITS full defences each.
+   */
+  asesor_pro: {
+    credits: 0,
+    days: 30,
+    amount: Number(process.env.DEFENSE_ASESOR_PRO_AMOUNT ?? 290),
+    title: "Mockio — Asesor Pro (20 tesistas, 30 días)",
+    modes: false,
+    group: false,
+    advisor: true,
+  },
 };
+
+export const ADVISOR_PRO_SEATS = 20;
+export const ADVISOR_PRO_CREDITS = 3;
 
 export function isPackKind(value: unknown): value is PackKind {
   return typeof value === "string" && value in PACK_KINDS;

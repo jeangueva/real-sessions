@@ -257,6 +257,8 @@ export interface DefenseSetup {
   members?: string[];
   /** Accessibility: a stutter or similar; fluency is not judged at all. */
   fluencyNeutral?: boolean;
+  /** A school's own rubric, when the rehearsal is on its account. */
+  rubric?: string | null;
 }
 
 /**

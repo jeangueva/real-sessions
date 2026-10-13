@@ -1368,9 +1368,11 @@ export interface DefenseAllowance {
   modes?: boolean;
   /** A Grupal pass in date: the group rehearsal. */
   group?: boolean;
+  /** Who pays for rehearsals beyond the student's own. */
+  sponsor?: { kind: "advisor" | "institution"; name: string } | null;
 }
 
-export type PackKind = "sustentacion" | "intensivo" | "grupal";
+export type PackKind = "sustentacion" | "intensivo" | "grupal" | "asesor_pro";
 
 export interface PackOfferDetail {
   kind: PackKind;
@@ -1551,6 +1553,15 @@ export interface AdvisorDashboard {
     lastAt: string | null;
   }[];
   commissions?: { count: number; pending: number; paid: number; currency: string; rate: number };
+  pro?: { active: boolean; expiresAt: string | null; seats: number; creditsPerStudent: number; used: number; amount: number; currency: string };
+  cohort?: {
+    name: string;
+    code: string;
+    seats: number;
+    creditsPerStudent: number;
+    expiresAt: string;
+    students: NonNullable<AdvisorDashboard["students"]>;
+  } | null;
 }
 
 export function fetchAdvisor() {
@@ -1567,13 +1578,24 @@ export function becomeAdvisor(name: string) {
   );
 }
 
+export interface InstitutionInfo {
+  name: string;
+  code: string;
+}
+
 export function fetchAdvisorLink() {
-  return withIdentity(() => request<{ link: AdvisorLinkInfo | null }>("/api/advisor/link", { method: "GET" }));
+  return withIdentity(() =>
+    request<{ link: AdvisorLinkInfo | null; institution?: InstitutionInfo | null }>("/api/advisor/link", { method: "GET" }),
+  );
+}
+
+export function leaveInstitution() {
+  return withIdentity(() => request<{ institution: null }>("/api/institution", { method: "DELETE" }));
 }
 
 export function linkAdvisor(code: string, share: boolean, replace = false) {
   return withIdentity(() =>
-    request<{ link: AdvisorLinkInfo | null }>("/api/advisor/link", {
+    request<{ link: AdvisorLinkInfo | null; institution?: InstitutionInfo | null }>("/api/advisor/link", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, share, replace }),

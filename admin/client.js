@@ -449,6 +449,20 @@
       card("Ingresos aprox.", `S/ ${fmt(revenue)}`, "a precio de lista"),
       card("Preguntas por revisar", fmt(d.questionsPending), "en /app/review del producto"),
     ].join("");
+    $("#institutions-body").innerHTML = (d.institutions ?? []).length
+      ? d.institutions
+          .map(
+            (i) => `<tr>
+<td data-label="Institución">${esc(i.name)}</td>
+<td data-label="Código"><code>${esc(i.code)}</code></td>
+<td data-label="Alumnos" class="r">${i.members} / ${i.seats}</td>
+<td data-label="Sust./alumno" class="r">${i.credits}</td>
+<td data-label="Vence">${esc(new Date(i.expiresAt).toLocaleDateString("es"))}</td>
+<td data-label="Coordinador">${esc(i.owner ?? "—")}</td>
+</tr>`,
+          )
+          .join("")
+      : `<tr><td colspan="6" class="dim">Todavía no hay instituciones.</td></tr>`;
     $("#advisors-body").innerHTML = d.advisors.length
       ? d.advisors
           .map(
@@ -466,6 +480,22 @@
           .join("")
       : `<tr><td colspan="8" class="dim">Todavía no hay asesores.</td></tr>`;
   }
+  $("#new-institution").addEventListener("click", () =>
+    formDialog({
+      title: "Nueva institución",
+      subtitle: "Cupos y sustentaciones según lo acordado. Los alumnos se unen con el código que se genera.",
+      fields: [
+        { name: "name", label: "Nombre", type: "text", attrs: 'required maxlength="120"' },
+        { name: "ownerEmail", label: "Email del coordinador (debe tener cuenta)", type: "email", help: "Opcional. Verá el avance del grupo." },
+        { name: "seats", label: "Cupos (alumnos)", type: "number", value: "30", attrs: 'min="1" max="5000" required' },
+        { name: "credits", label: "Sustentaciones completas por alumno", type: "number", value: "5", attrs: 'min="1" max="100" required' },
+        { name: "days", label: "Días de vigencia", type: "number", value: "180", attrs: 'min="1" max="730" required' },
+        { name: "rubric", label: "Rúbrica propia (opcional)", type: "textarea", help: "Criterios que el jurado usará al calificar a sus alumnos." },
+      ],
+      confirm: "Crear",
+      run: (v) => post("/api/institutions", v),
+    }),
+  );
   $("#advisors-body").addEventListener("click", (event) => {
     const button = event.target.closest("[data-paid]");
     if (!button) return;
@@ -540,7 +570,11 @@
         (f) =>
           f.type === "checkbox"
             ? `<label class="check"><input id="f-${f.name}" name="${f.name}" type="checkbox" value="on"> <span>${esc(f.label)}</span></label>`
-            : `<div class="field"><label for="f-${f.name}">${esc(f.label)}</label><input id="f-${f.name}" name="${f.name}" type="${f.type}" value="${esc(
+            : f.type === "textarea"
+              ? `<div class="field"><label for="f-${f.name}">${esc(f.label)}</label><textarea id="f-${f.name}" name="${f.name}" rows="4" ${f.attrs ?? ""}>${esc(
+                  f.value ?? "",
+                )}</textarea>${f.help ? `<span class="help">${esc(f.help)}</span>` : ""}</div>`
+              : `<div class="field"><label for="f-${f.name}">${esc(f.label)}</label><input id="f-${f.name}" name="${f.name}" type="${f.type}" value="${esc(
                 f.value ?? "",
               )}" ${f.attrs ?? ""}>${f.help ? `<span class="help">${esc(f.help)}</span>` : ""}</div>`,
       )

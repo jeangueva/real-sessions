@@ -201,6 +201,9 @@ async function evaluateDefense(
       fluency_note: defense.fluencyNeutral
         ? "ACCESSIBILITY: the student asked that fluency not count (a stutter or a similar condition). Do not lower any grade or axis for pauses, blocks, repetitions, fillers or pace; judge \`seguridad\` on the conviction of what they said, never on how smoothly. Leave \`fluency_neutral\` null."
         : "Leave \`fluency_neutral\` null.",
+      rubric_note: defense.rubric
+        ? `THE UNIVERSITY'S OWN RUBRIC — grade against these criteria as well, and say in the deliberation where the student met or missed them:\n${defense.rubric}`
+        : "Grade against the usual criteria of a thesis jury.",
       members_rule:
         (defense.members?.length ?? 0) > 1
           ? `a group thesis by ${defense.members!.join(", ")}. One entry per member, in that order, with their own grade on the same scale and two sentences on how they did, from the questions addressed to them.`

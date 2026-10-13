@@ -59,6 +59,7 @@ export interface DefenseSummary {
   defenses: { total: number; d7: number; d30: number; completed: number };
   packs: { kind: string; count: number; revenue: number }[];
   questionsPending: number;
+  institutions: { code: string; name: string; seats: number; members: number; credits: number; expiresAt: string; owner: string | null }[];
   advisors: {
     code: string;
     name: string;
@@ -77,12 +78,13 @@ const EMPTY_DEFENSE: DefenseSummary = {
   defenses: { total: 0, d7: 0, d30: 0, completed: 0 },
   packs: [],
   questionsPending: 0,
+  institutions: [],
   advisors: [],
 };
 
 async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseSummary> {
   const quiet = <T>(promise: Promise<{ rows: T[] }>) => promise.catch(() => ({ rows: [] as T[] }));
-  const [theses, defenses, packs, questions, advisors, links, commissions] = await Promise.all([
+  const [theses, defenses, packs, questions, advisors, links, commissions, institutions] = await Promise.all([
     quiet(pool.query(`SELECT count(*)::int AS n FROM theses`)),
     quiet(
       pool.query(
@@ -112,6 +114,13 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
            FROM advisor_commissions GROUP BY advisor_code`,
       ),
     ),
+    quiet(
+      pool.query(
+        `SELECT i.code, i.name, i.seats, i.credits_per_student, i.expires_at, i.owner_id,
+                (SELECT count(*)::int FROM institution_members m WHERE m.code = i.code) AS members
+           FROM institutions i ORDER BY i.created_at DESC`,
+      ),
+    ),
   ]);
   const prices: Record<string, number> = { sustentacion: 39, intensivo: 79, grupal: 119 };
   const byCode = <T extends { advisor_code: string }>(rows: T[]) => new Map(rows.map((row) => [row.advisor_code, row]));
@@ -129,6 +138,15 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
       revenue: row.n * (prices[row.kind] ?? 0),
     })),
     questionsPending: first(questions.rows as { n: number }[]),
+    institutions: (institutions.rows as Record<string, unknown>[]).map((row) => ({
+      code: row.code as string,
+      name: row.name as string,
+      seats: Number(row.seats),
+      members: Number(row.members),
+      credits: Number(row.credits_per_student),
+      expiresAt: iso(row.expires_at),
+      owner: emails.get(row.owner_id as string) ?? null,
+    })),
     advisors: (advisors.rows as { owner_id: string; code: string; name: string }[])
       .map((row) => ({
         code: row.code,

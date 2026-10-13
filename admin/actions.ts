@@ -16,7 +16,7 @@ import type { RedisClientType } from "redis";
 
 export class ActionError extends Error {}
 
-export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid"] as const;
+export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create"] as const;
 export type ActionName = (typeof ACTIONS)[number];
 
 const accountKey = (id: string) => `rs:account:${id}`;
@@ -262,4 +262,44 @@ export async function markCommissionsPaid(deps: Deps, rawCode: unknown): Promise
     return { sum, currency: (updated.rows[0]?.currency as string | undefined) ?? "" };
   });
   return `Marcado como pagado: ${total.currency} ${total.sum.toFixed(2)} a ${code}.`;
+}
+
+/**
+ * A school or faculty, sold by quote: its code is what students type to join.
+ * The coordinator's account (by email) sees the cohort in the product's
+ * advisor page; the rubric, if any, is added to every record of its students.
+ */
+export async function createInstitution(
+  deps: Deps,
+  input: { name?: unknown; ownerEmail?: unknown; seats?: unknown; credits?: unknown; days?: unknown; rubric?: unknown },
+): Promise<string> {
+  const name = String(input.name ?? "").trim();
+  if (name.length < 3 || name.length > 120) throw new ActionError("Escribe el nombre de la institución (3 a 120 caracteres).");
+  const seats = readCount(input.seats, "Los cupos", 5000);
+  const credits = readCount(input.credits, "Las sustentaciones por alumno", 100);
+  const days = readCount(input.days, "Los días de vigencia", 730);
+  const rubric = String(input.rubric ?? "").trim().slice(0, 4000) || null;
+  const email = String(input.ownerEmail ?? "").trim().toLowerCase();
+  let ownerId: string | null = null;
+  if (email) {
+    ownerId = await deps.redis.get(`rs:account-email:${email}`);
+    if (!ownerId) throw new ActionError(`No hay una cuenta con ${email}. Pídele que se registre primero.`);
+  }
+  const code = await inTransaction(deps.pool, async (client) => {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const candidate = Array.from({ length: 6 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
+      const inserted = await client.query(
+        `INSERT INTO institutions (code, name, owner_id, seats, credits_per_student, rubric, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, now() + make_interval(days => $7)) ON CONFLICT DO NOTHING RETURNING code`,
+        [candidate, name, ownerId, seats, credits, rubric, days],
+      );
+      if (inserted.rows[0]) {
+        await audit(client, deps.actor, "institution.create", candidate, { name, seats, credits, days, owner: email || null });
+        return candidate;
+      }
+    }
+    throw new ActionError("No se pudo crear el código. Inténtalo de nuevo.");
+  });
+  return `${name}: código ${code}. ${seats} cupos, ${credits} sustentaciones por alumno, ${days} días.`;
 }

@@ -130,6 +130,9 @@ export function renderApp(payload: unknown, viewer: string): string {
       <section data-section="sustentacion" hidden>
         <div class="page-head"><div><h1>Sustentación</h1><p class="dim small">Tesis, ensayos, packs vendidos y lo que se debe a los asesores.</p></div></div>
         <div class="grid" id="defense-kpis"></div>
+        <div class="page-head"><h2 class="small dim">Instituciones</h2>
+          <button class="btn" id="new-institution" type="button">${icon("plus")}Nueva institución</button></div>
+        <div class="table-wrap cards"><table><thead><tr><th>Institución</th><th>Código</th><th class="r">Alumnos</th><th class="r">Sust./alumno</th><th>Vence</th><th>Coordinador</th></tr></thead><tbody id="institutions-body"></tbody></table></div>
         <h2 class="small dim">Asesores</h2>
         <div class="table-wrap cards"><table><thead><tr><th>Asesor</th><th>Código</th><th class="r">Vinculados</th><th class="r">Comparten</th><th class="r">Ventas</th><th class="r">Por pagar</th><th class="r">Pagado</th><th></th></tr></thead><tbody id="advisors-body"></tbody></table></div>
       </section>

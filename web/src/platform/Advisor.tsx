@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Copy, Users, Wallet } from "lucide-react";
+import { Building2, Copy, Crown, Users, Wallet } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, becomeAdvisor, fetchAdvisor } from "@/lib/api";
+import { ApiError, becomeAdvisor, buyDefensePack, fetchAdvisor, syncDefensePack } from "@/lib/api";
 import type { AdvisorDashboard } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 
@@ -25,7 +25,28 @@ export function Advisor() {
       .catch((caught) => setError(caught instanceof ApiError ? caught.message : t("error")));
   useEffect(() => {
     void load();
+    // Back from paying for Asesor Pro: settle it here, then forget the query.
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get("payment_id") ?? params.get("collection_id");
+    if (paymentId && /^\d+$/.test(paymentId)) {
+      syncDefensePack(paymentId)
+        .then(() => load())
+        .catch(() => undefined)
+        .finally(() => window.history.replaceState(null, "", window.location.pathname));
+    }
   }, []);
+
+  const [buying, setBuying] = useState(false);
+  const buyPro = async () => {
+    setBuying(true);
+    setError(null);
+    try {
+      window.location.assign((await buyDefensePack("asesor_pro")).initPoint);
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : t("error"));
+      setBuying(false);
+    }
+  };
 
   const create = async () => {
     setError(null);
@@ -59,6 +80,8 @@ export function Advisor() {
             {error}
           </p>
         )}
+
+        {data?.cohort && <Cohort cohort={data.cohort} />}
 
         {data && !data.advisor && (
           <Panel variant="raised" className="flex flex-col gap-4 p-6 sm:p-8">
@@ -102,6 +125,33 @@ export function Advisor() {
               <p className="max-w-prose text-sm text-cream-dim">{t("advisorHow")}</p>
             </Panel>
 
+            {data.pro && (
+              <Panel className="flex flex-col gap-3 p-6 sm:p-8">
+                <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">
+                  <Crown aria-hidden className="h-5 w-5 text-premium" />
+                  {t("proTitle")}
+                </h2>
+                <p className="text-sm text-cream-dim">
+                  {t("proBody", { seats: data.pro.seats, credits: data.pro.creditsPerStudent })}
+                </p>
+                {data.pro.active && data.pro.expiresAt ? (
+                  <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">
+                    {t("proActive", {
+                      date: new Date(data.pro.expiresAt).toLocaleDateString(),
+                      used: data.pro.used,
+                      seats: data.pro.seats,
+                    })}
+                  </p>
+                ) : (
+                  <div>
+                    <Action withArrow disabled={buying} onClick={() => void buyPro()}>
+                      {t("proBuy", { price: money(data.pro.amount, data.pro.currency) })}
+                    </Action>
+                  </div>
+                )}
+              </Panel>
+            )}
+
             <Panel className="flex flex-col gap-3 p-6 sm:p-8">
               <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">
                 <Users aria-hidden className="h-5 w-5 text-accent-text" />
@@ -113,23 +163,7 @@ export function Advisor() {
               {(data.students?.length ?? 0) === 0 ? (
                 <p className="text-sm text-cream-dim">{t("advisorNoStudents")}</p>
               ) : (
-                <ul className="flex flex-col gap-2">
-                  {data.students!.map((student, index) => (
-                    <li key={index} className="rounded-2xl bg-surface-lift p-4">
-                      <p className="text-sm font-semibold text-cream-bright">
-                        {student.name ?? "—"}
-                        {student.thesis && <span className="font-normal text-cream-dim"> · {student.thesis}</span>}
-                      </p>
-                      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-cream-dim">
-                        <span>{t("advisorRehearsals", { count: student.rehearsals })}</span>
-                        {student.firstScore !== null && student.lastScore !== null && (
-                          <span>{t("advisorScore", { first: student.firstScore, last: student.lastScore })}</span>
-                        )}
-                        {student.defenseDate && <span>{t("advisorDefense", { date: student.defenseDate })}</span>}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+                <StudentList students={data.students!} />
               )}
             </Panel>
 
@@ -160,5 +194,54 @@ export function Advisor() {
         )}
       </PageBody>
     </>
+  );
+}
+
+type Student = NonNullable<AdvisorDashboard["students"]>[number];
+
+/** One row per student: who, which thesis, how many rehearsals, first and latest score, when. */
+function StudentList({ students }: { students: Student[] }) {
+  const t = useThesisT();
+  return (
+    <ul className="flex flex-col gap-2">
+      {students.map((student, index) => (
+        <li key={index} className="rounded-2xl bg-surface-lift p-4">
+          <p className="text-sm font-semibold text-cream-bright">
+            {student.name ?? "—"}
+            {student.thesis && <span className="font-normal text-cream-dim"> · {student.thesis}</span>}
+          </p>
+          <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-cream-dim">
+            <span>{t("advisorRehearsals", { count: student.rehearsals })}</span>
+            {student.firstScore !== null && student.lastScore !== null && (
+              <span>{t("advisorScore", { first: student.firstScore, last: student.lastScore })}</span>
+            )}
+            {student.defenseDate && <span>{t("advisorDefense", { date: student.defenseDate })}</span>}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A school's coordinator: the cohort, its seats and the code to hand out. */
+function Cohort({ cohort }: { cohort: NonNullable<AdvisorDashboard["cohort"]> }) {
+  const t = useThesisT();
+  return (
+    <Panel variant="raised" className="flex flex-col gap-3 p-6 sm:p-8">
+      <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">
+        <Building2 aria-hidden className="h-5 w-5 text-accent-text" />
+        {t("cohortTitle", { name: cohort.name })}
+      </h2>
+      <p className="text-xs text-cream-dim">
+        {t("cohortMeta", {
+          code: cohort.code,
+          count: cohort.students.length,
+          seats: cohort.seats,
+          credits: cohort.creditsPerStudent,
+          date: new Date(cohort.expiresAt).toLocaleDateString(),
+        })}
+      </p>
+      {cohort.students.length > 0 && <StudentList students={cohort.students} />}
+    </Panel>
   );
 }

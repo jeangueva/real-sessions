@@ -10,6 +10,16 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  sponsoredBy: "cortesía de {name}",
+  advisorCodeOrSchool: "Código del asesor o de tu institución",
+  institutionMember: "Perteneces a {name}: tus ensayos están incluidos y tu institución ve tu avance.",
+  institutionLeave: "Salir de la institución",
+  proTitle: "Asesor Pro",
+  proBody: "Patrocina a tus tesistas: hasta {seats} de los que comparten su avance reciben {credits} sustentaciones completas al mes, con tu nombre.",
+  proActive: "Activo hasta el {date} · {used} de {seats} tesistas patrocinados",
+  proBuy: "Activar Asesor Pro · {price} / 30 días",
+  cohortTitle: "Tu institución: {name}",
+  cohortMeta: "Código {code} · {count} de {seats} alumnos · {credits} sustentaciones cada uno · vence el {date}",
   ladderTitle: "¿Y después de sustentar?",
   ladderBody: "Tu primera entrevista de trabajo o de posgrado también se ensaya. Practica una gratis →",
   fluencyNeutral: "Sin penalización de fluidez",
@@ -265,6 +275,16 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  sponsoredBy: "cortesia de {name}",
+  advisorCodeOrSchool: "Código do orientador ou da sua instituição",
+  institutionMember: "Você faz parte de {name}: seus ensaios estão incluídos e sua instituição vê seu progresso.",
+  institutionLeave: "Sair da instituição",
+  proTitle: "Orientador Pro",
+  proBody: "Patrocine seus orientandos: até {seats} dos que compartilham o progresso recebem {credits} defesas completas por mês, com o seu nome.",
+  proActive: "Ativo até {date} · {used} de {seats} orientandos patrocinados",
+  proBuy: "Ativar Orientador Pro · {price} / 30 dias",
+  cohortTitle: "Sua instituição: {name}",
+  cohortMeta: "Código {code} · {count} de {seats} alunos · {credits} defesas cada · vence em {date}",
   ladderTitle: "E depois da defesa?",
   ladderBody: "Sua primeira entrevista de emprego ou de pós-graduação também se ensaia. Pratique uma grátis →",
   fluencyNeutral: "Sem penalização de fluência",
@@ -518,6 +538,16 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  sponsoredBy: "courtesy of {name}",
+  advisorCodeOrSchool: "Advisor or school code",
+  institutionMember: "You belong to {name}: your rehearsals are included and your school sees your progress.",
+  institutionLeave: "Leave the school",
+  proTitle: "Advisor Pro",
+  proBody: "Sponsor your students: up to {seats} who share their progress get {credits} full defences a month, under your name.",
+  proActive: "Active until {date} · {used} of {seats} students sponsored",
+  proBuy: "Activate Advisor Pro · {price} / 30 days",
+  cohortTitle: "Your school: {name}",
+  cohortMeta: "Code {code} · {count} of {seats} students · {credits} defences each · ends {date}",
   ladderTitle: "And after the defence?",
   ladderBody: "Your first job or graduate-school interview can be rehearsed too. Practise one free →",
   fluencyNeutral: "Fluency not graded",

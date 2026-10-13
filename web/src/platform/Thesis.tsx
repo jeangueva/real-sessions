@@ -532,7 +532,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const canBegin = (hasCredits || (allowance?.freeLeft ?? 0) > 0) && (!needsMaterial || material.trim().length >= 40);
   const named = members.map((entry) => entry.trim()).filter(Boolean);
   /** The offers that would add something to what they hold. */
-  const worthOffering = offers.filter((offer) =>
+  const worthOffering = offers.filter((offer) => offer.kind !== "asesor_pro").filter((offer) =>
     !hasCredits ? true : offer.group ? !allowance?.group : offer.modes ? !allowance?.modes : false,
   );
   const money = (amount: number, currency: string) =>
@@ -749,7 +749,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         {allowance && (
           <p className="text-sm text-cream-dim">
             {hasCredits
-              ? t("creditsLeft", { count: allowance.credits })
+              ? `${t("creditsLeft", { count: allowance.credits })}${allowance.sponsor ? ` (${t("sponsoredBy", { name: allowance.sponsor.name })})` : ""}`
               : allowance.freeLeft > 0
                 ? t("freeAvailable")
                 : t("freeUsed")}
@@ -772,10 +772,10 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
                 className="focus-ring flex flex-col items-start gap-0.5 rounded-xl bg-surface-card px-3 py-2.5 text-left shadow-card transition-transform duration-150 active:scale-[0.98] disabled:opacity-60"
               >
                 <span className="flex w-full items-baseline justify-between gap-2">
-                  <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind].name)}</span>
+                  <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].name)}</span>
                   <span className="text-base font-bold text-cream-bright">{money(offer.amount, offer.currency)}</span>
                 </span>
-                <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind].body)}</span>
+                <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].body)}</span>
               </button>
             ))}
           </div>
@@ -798,7 +798,7 @@ const FOCUS_LABEL = {
   observaciones: "modeObservaciones",
   divulgacion: "modeDivulgacion",
 } as const;
-const OFFER_LABEL = {
+const OFFER_LABEL: Record<Exclude<PackKind, "asesor_pro">, { name: Parameters<ReturnType<typeof useThesisT>>[0]; body: Parameters<ReturnType<typeof useThesisT>>[0] }> = {
   sustentacion: { name: "offerSustentacion", body: "offerSustentacionBody" },
   intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
   grupal: { name: "offerGrupal", body: "offerGrupalBody" },

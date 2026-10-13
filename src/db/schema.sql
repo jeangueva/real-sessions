@@ -510,3 +510,22 @@ CREATE TABLE IF NOT EXISTS advisor_commissions (
 -- The defence sheet and review cards, written from the thesis on request and
 -- kept with the version they were written from (cleared on a new upload).
 ALTER TABLE theses ADD COLUMN IF NOT EXISTS study JSONB;
+
+-- Schools and faculties that buy rehearsals for a cohort, set up by hand from
+-- the admin, and the students who joined with their code.
+CREATE TABLE IF NOT EXISTS institutions (
+  code                TEXT PRIMARY KEY,
+  name                TEXT NOT NULL,
+  owner_id            TEXT,
+  seats               INTEGER NOT NULL,
+  credits_per_student INTEGER NOT NULL,
+  rubric              TEXT,
+  expires_at          TIMESTAMPTZ NOT NULL,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS institution_members (
+  student_id TEXT PRIMARY KEY,
+  code       TEXT NOT NULL,
+  joined_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS institution_members_code_idx ON institution_members (code, joined_at);

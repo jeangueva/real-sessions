@@ -197,6 +197,7 @@ import {
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
+import { createInstitutionStore, seatHeld, type InstitutionStore } from "./institutions.js";
 import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore } from "./advisors.js";
 import { googleTtsConfigured, googleVoiceFor, synthesizeGoogle } from "./voice/google-tts.js";
 import { azureConfigured, azureVoiceFor, synthesizeAzure } from "./voice/azure-tts.js";
@@ -209,7 +210,10 @@ import {
   PACK_KINDS,
   remainingCredits,
   unlocks,
+  ADVISOR_PRO_CREDITS,
+  ADVISOR_PRO_SEATS,
   type DefensePackStore,
+  type PackGrant,
   type PackKind,
 } from "./defense-packs.js";
 
@@ -223,19 +227,93 @@ const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPA
  * What someone may still rehearse: full defences left in their packs, and
  * whether the free express one is spent.
  */
-async function defenseAllowance(
-  ownerId: string,
-): Promise<{ credits: number; freeLeft: number; modes: boolean; group: boolean }> {
-  const [packs, past] = await Promise.all([
+async function defenseAllowance(ownerId: string): Promise<{
+  credits: number;
+  freeLeft: number;
+  modes: boolean;
+  group: boolean;
+  /** Who pays for the rehearsals beyond the student's own: an advisor or a school. */
+  sponsor: { kind: "advisor" | "institution"; name: string } | null;
+  /** The school's rubric, when the student rehearses on its account. */
+  rubric: string | null;
+}> {
+  const [packs, past, sponsored] = await Promise.all([
     readQuietly(PACKS.active(ownerId), []),
     readQuietly(PROGRESS.listSessions(ownerId), []),
+    readQuietly(sponsorship(ownerId), null),
   ]);
   const full = past.filter((entry) => entry.stage === "Sustentación de tesis").map((entry) => entry.startedAt);
   const express = past.filter((entry) => entry.stage.startsWith("Sustentación")).length;
+  // A sponsor's rehearsals count as one more grant: whatever is used is
+  // used from all of them together, so nobody is charged twice for one.
+  const grants = sponsored ? [...packs, sponsored.grant] : packs;
+  const own = unlocks(packs);
   return {
-    credits: remainingCredits(packs, full),
+    credits: remainingCredits(grants, full),
     freeLeft: Math.max(0, FREE_DEFENSES - express),
-    ...unlocks(packs),
+    modes: own.modes || sponsored?.modes === true,
+    group: own.group,
+    sponsor: sponsored ? { kind: sponsored.kind, name: sponsored.name } : null,
+    rubric: sponsored?.rubric ?? null,
+  };
+}
+
+/**
+ * The rehearsals someone else pays for: the student's school, if they hold a
+ * seat in a cohort in date, or else their advisor's Pro plan, if they share
+ * their progress and are among its first students.
+ */
+async function sponsorship(studentId: string): Promise<{
+  kind: "advisor" | "institution";
+  name: string;
+  modes: boolean;
+  rubric: string | null;
+  grant: PackGrant;
+} | null> {
+  const membership = await INSTITUTIONS.membership(studentId);
+  if (membership) {
+    const institution = await INSTITUTIONS.byCode(membership.code);
+    if (institution && seatHeld(institution, await INSTITUTIONS.members(institution.code), studentId)) {
+      return {
+        kind: "institution",
+        name: institution.name,
+        modes: true,
+        rubric: institution.rubric,
+        grant: {
+          paymentId: `institution:${institution.code}`,
+          kind: "sustentacion",
+          credits: institution.creditsPerStudent,
+          grantedAt: membership.joinedAt,
+          expiresAt: institution.expiresAt,
+        },
+      };
+    }
+  }
+  const link = await ADVISORS.linkOf(studentId);
+  if (!link?.share) return null;
+  const advisor = await ADVISORS.byCode(link.code);
+  if (!advisor) return null;
+  const pro = (await PACKS.active(advisor.ownerId)).find((pack) => pack.kind === "asesor_pro");
+  if (!pro) return null;
+  const seated = (await ADVISORS.students(link.code))
+    .filter((entry) => entry.share)
+    .sort((a, b) => Date.parse(a.linkedAt) - Date.parse(b.linkedAt))
+    .slice(0, ADVISOR_PRO_SEATS)
+    .some((entry) => entry.studentId === studentId);
+  if (!seated) return null;
+  return {
+    kind: "advisor",
+    name: advisor.name,
+    modes: false,
+    rubric: null,
+    grant: {
+      paymentId: `advisor:${link.code}`,
+      kind: "sustentacion",
+      credits: ADVISOR_PRO_CREDITS,
+      // From when this student's sponsored month began.
+      grantedAt: Date.parse(link.linkedAt) > Date.parse(pro.grantedAt) ? link.linkedAt : pro.grantedAt,
+      expiresAt: pro.expiresAt,
+    },
   };
 }
 
@@ -262,6 +340,30 @@ async function defenseProgress(ownerId: string) {
       };
     })
     .reverse();
+}
+
+/**
+ * One student as their advisor or school sees them: first name, thesis title
+ * and date, how many rehearsals, first and latest score. Never the thesis
+ * text, never an answer, never an email.
+ */
+async function studentSummary(studentId: string) {
+  const [thesis, sessions, preferences] = await Promise.all([
+    readQuietly(THESES.get(studentId), null),
+    readQuietly(PROGRESS.listSessions(studentId), []),
+    readQuietly(USERS.getPreferences(studentId), null),
+  ]);
+  const defences = sessions.filter((entry) => entry.stage.startsWith("Sustentación"));
+  const graded = defences.filter((entry) => entry.score !== null);
+  return {
+    name: preferences?.candidateName?.trim().split(/\s+/)[0] || null,
+    thesis: thesis?.analysis.title ?? null,
+    defenseDate: thesis?.defenseDate ?? null,
+    rehearsals: defences.length,
+    lastScore: graded[0]?.score ?? null,
+    firstScore: graded.at(-1)?.score ?? null,
+    lastAt: defences[0]?.startedAt ?? null,
+  };
 }
 
 /**
@@ -431,6 +533,7 @@ let THESES: ThesisStore;
 let PACKS: DefensePackStore;
 let REAL_QUESTIONS: DefenseQuestionStore;
 let ADVISORS: AdvisorStore;
+let INSTITUTIONS: InstitutionStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
 let LIFECYCLE: LifecycleStore;
@@ -465,6 +568,7 @@ export interface ServerDependencies {
   packs?: DefensePackStore;
   realQuestions?: DefenseQuestionStore;
   advisors?: AdvisorStore;
+  institutions?: InstitutionStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
   lifecycle: LifecycleStore;
@@ -500,6 +604,7 @@ export function configure(deps: ServerDependencies): void {
   PACKS = deps.packs ?? createDefensePackStore(null);
   REAL_QUESTIONS = deps.realQuestions ?? createDefenseQuestionStore(null);
   ADVISORS = deps.advisors ?? createAdvisorStore(null);
+  INSTITUTIONS = deps.institutions ?? createInstitutionStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
   LIFECYCLE = deps.lifecycle;
@@ -2462,6 +2567,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await recordQuietly(THESES.delete(identity.id));
     await recordQuietly(PACKS.eraseOwner(identity.id));
     await recordQuietly(ADVISORS.eraseOwner(identity.id));
+    await recordQuietly(INSTITUTIONS.eraseOwner(identity.id));
     await recordQuietly(PLANS.eraseOwner(identity.id));
     await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
     await recordQuietly(USERS.eraseOwner(identity.id));
@@ -2914,7 +3020,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       thesis: await THESES.get(identity.id),
       allowance: await defenseAllowance(identity.id),
       pack: { amount: PACK_KINDS.sustentacion.amount, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
-      offers: (Object.keys(PACK_KINDS) as PackKind[]).map((kind) => ({
+      // What a student can buy; the advisor plan is offered on the advisor page.
+      offers: (Object.keys(PACK_KINDS) as PackKind[]).filter((kind) => !PACK_KINDS[kind].advisor).map((kind) => ({
         kind,
         amount: PACK_KINDS[kind].amount,
         currency: PACK_CURRENCY,
@@ -2946,13 +3053,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     }
     const requested = (await readJson(req))["kind"];
     const kind: PackKind = isPackKind(requested) ? requested : "sustentacion";
+    if (PACK_KINDS[kind].advisor && !(await ADVISORS.get(identity.id))) {
+      return json(res, 403, { error: "Crea tu código de asesor antes de activar Asesor Pro." });
+    }
     const created = await createPackPreference({
       externalReference: `pack:${kind}:${identity.id}`,
       payerEmail: account.email,
       title: PACK_KINDS[kind].title,
       amount: PACK_KINDS[kind].amount,
       currency: PACK_CURRENCY,
-      backUrl: `${siteUrl()}/app/thesis`,
+      backUrl: `${siteUrl()}${PACK_KINDS[kind].advisor ? "/app/advisor" : "/app/thesis"}`,
       notificationUrl: `${siteUrl()}/api/billing/webhook?source_news=webhooks`,
     });
     json(res, 201, { initPoint: created.initPoint });
@@ -3114,32 +3224,36 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    */
   if (req.method === "GET" && path === "/api/advisor") {
     const advisor = await ADVISORS.get(identity.id);
-    if (!advisor) return json(res, 200, { advisor: null });
+    // A school's coordinator sees the cohort here too, advisor or not.
+    const owned = await readQuietly(INSTITUTIONS.ownedBy(identity.id), null);
+    const cohort = owned
+      ? {
+          name: owned.name,
+          code: owned.code,
+          seats: owned.seats,
+          creditsPerStudent: owned.creditsPerStudent,
+          expiresAt: owned.expiresAt,
+          students: await Promise.all(
+            (await INSTITUTIONS.members(owned.code)).slice(0, owned.seats).map((member) => studentSummary(member.studentId)),
+          ),
+        }
+      : null;
+    if (!advisor) return json(res, 200, { advisor: null, cohort });
     const links = await ADVISORS.students(advisor.code);
-    const students = await Promise.all(
-      links
-        .filter((link) => link.share)
-        .map(async (link) => {
-          const [thesis, sessions, preferences] = await Promise.all([
-            readQuietly(THESES.get(link.studentId), null),
-            readQuietly(PROGRESS.listSessions(link.studentId), []),
-            readQuietly(USERS.getPreferences(link.studentId), null),
-          ]);
-          const defences = sessions.filter((entry) => entry.stage.startsWith("Sustentación"));
-          const graded = defences.filter((entry) => entry.score !== null);
-          return {
-            name: preferences?.candidateName?.trim().split(/\s+/)[0] || null,
-            thesis: thesis?.analysis.title ?? null,
-            defenseDate: thesis?.defenseDate ?? null,
-            rehearsals: defences.length,
-            lastScore: graded[0]?.score ?? null,
-            firstScore: graded.at(-1)?.score ?? null,
-            lastAt: defences[0]?.startedAt ?? null,
-          };
-        }),
-    );
+    const students = await Promise.all(links.filter((link) => link.share).map((link) => studentSummary(link.studentId)));
     const earned = await ADVISORS.commissions(advisor.code);
+    const pro = (await readQuietly(PACKS.active(identity.id), [])).find((pack) => pack.kind === "asesor_pro") ?? null;
     json(res, 200, {
+      cohort,
+      pro: {
+        active: pro !== null,
+        expiresAt: pro?.expiresAt ?? null,
+        seats: ADVISOR_PRO_SEATS,
+        creditsPerStudent: ADVISOR_PRO_CREDITS,
+        used: Math.min(ADVISOR_PRO_SEATS, students.length),
+        amount: PACK_KINDS.asesor_pro.amount,
+        currency: PACK_CURRENCY,
+      },
       advisor,
       link: `${siteUrl()}/?asesor=${advisor.code}`,
       linked: links.length,
@@ -3169,7 +3283,18 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "GET" && path === "/api/advisor/link") {
     const link = await ADVISORS.linkOf(identity.id);
     const advisor = link ? await ADVISORS.byCode(link.code) : null;
-    json(res, 200, { link: link && advisor ? { code: link.code, advisorName: advisor.name, share: link.share } : null });
+    const membership = await INSTITUTIONS.membership(identity.id);
+    const institution = membership ? await INSTITUTIONS.byCode(membership.code) : null;
+    json(res, 200, {
+      link: link && advisor ? { code: link.code, advisorName: advisor.name, share: link.share } : null,
+      institution: institution ? { name: institution.name, code: institution.code } : null,
+    });
+    return;
+  }
+
+  if (req.method === "DELETE" && path === "/api/institution") {
+    await INSTITUTIONS.leave(identity.id);
+    json(res, 200, { institution: null });
     return;
   }
 
@@ -3177,7 +3302,19 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await readJson(req);
     const code = normalizeCode(body["code"]);
     const advisor = code ? await ADVISORS.byCode(code) : null;
-    if (!code || !advisor) return json(res, 404, { error: "Ese código de asesor no existe." });
+    // The same box takes a school's code. Joining a cohort shares progress
+    // with the school — that is what it pays for — so it needs the box ticked.
+    const institution = !advisor && code ? await INSTITUTIONS.byCode(code) : null;
+    if (institution) {
+      if (body["share"] !== true) {
+        return json(res, 400, {
+          error: `Para unirte a ${institution.name} marca la casilla de compartir tu avance: tu institución lo ve porque paga tus ensayos.`,
+        });
+      }
+      await INSTITUTIONS.join(identity.id, institution.code);
+      return json(res, 200, { link: null, institution: { name: institution.name, code: institution.code } });
+    }
+    if (!code || !advisor) return json(res, 404, { error: "Ese código no existe." });
     if (advisor.ownerId === identity.id) return json(res, 400, { error: "Ese es tu propio código." });
     // From a link the student just followed: linked, not sharing. Typed in on
     // purpose, with the share box ticked: the student's choice on both.
@@ -3648,6 +3785,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         difficulty,
         university,
         field: stored.analysis.field,
+        // The school's own rubric, when it pays for this rehearsal.
+        rubric: allowance.rubric,
         // The format they defend in: chosen on the thesis screen, or guessed
         // from the thesis's language when an older client sends none.
         country: findFormat(body["country"], stored.analysis.language).country,
@@ -4353,6 +4492,7 @@ configure({
   packs: createDefensePackStore(db),
   realQuestions: createDefenseQuestionStore(db),
   advisors: createAdvisorStore(db),
+  institutions: createInstitutionStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
   lifecycle: createLifecycleStore(db),

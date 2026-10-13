@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { GraduationCap } from "lucide-react";
 import { Panel } from "@/design-system";
-import { ApiError, fetchAdvisorLink, linkAdvisor, shareWithAdvisor, unlinkAdvisor } from "@/lib/api";
-import type { AdvisorLinkInfo } from "@/lib/api";
+import { ApiError, fetchAdvisorLink, leaveInstitution, linkAdvisor, shareWithAdvisor, unlinkAdvisor } from "@/lib/api";
+import type { AdvisorLinkInfo, InstitutionInfo } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 
 /**
@@ -12,20 +12,27 @@ import { useThesisT } from "@/lib/thesis-copy";
 export function AdvisorCard() {
   const t = useThesisT();
   const [link, setLink] = useState<AdvisorLinkInfo | null | undefined>(undefined);
+  const [institution, setInstitution] = useState<InstitutionInfo | null>(null);
   const [code, setCode] = useState("");
   const [share, setShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAdvisorLink()
-      .then((result) => setLink(result.link))
+      .then((result) => {
+        setLink(result.link);
+        setInstitution(result.institution ?? null);
+      })
       .catch(() => setLink(null));
   }, []);
 
-  const run = async (action: () => Promise<{ link: AdvisorLinkInfo | null }>) => {
+  const run = async (action: () => Promise<{ link: AdvisorLinkInfo | null; institution?: InstitutionInfo | null }>) => {
     setError(null);
     try {
-      setLink((await action()).link);
+      const result = await action();
+      // A school's code joins the school and leaves the advisor link as it was.
+      if (result.institution) setInstitution(result.institution);
+      else setLink(result.link);
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : t("error"));
     }
@@ -38,6 +45,21 @@ export function AdvisorCard() {
         <GraduationCap aria-hidden className="h-5 w-5 text-accent-text" />
         {t("advisorCardTitle")}
       </h2>
+      {institution && (
+        <div className="flex flex-col gap-1 rounded-xl bg-grow-soft px-3 py-2.5">
+          <p className="text-sm text-grow-text">{t("institutionMember", { name: institution.name })}</p>
+          <button
+            type="button"
+            onClick={async () => {
+              await leaveInstitution().catch(() => undefined);
+              setInstitution(null);
+            }}
+            className="focus-ring self-start text-xs font-semibold text-cream-dim underline underline-offset-4"
+          >
+            {t("institutionLeave")}
+          </button>
+        </div>
+      )}
       {link ? (
         <>
           <p className="text-sm text-cream">{t("advisorLinked", { name: link.advisorName })}</p>
@@ -66,9 +88,9 @@ export function AdvisorCard() {
             <input
               value={code}
               onChange={(event) => setCode(event.target.value.toUpperCase())}
-              placeholder={t("advisorCode")}
+              placeholder={t("advisorCodeOrSchool")}
               maxLength={6}
-              className="focus-ring w-40 rounded-2xl bg-surface-lift px-4 py-2.5 font-mono text-sm tracking-widest text-cream-bright placeholder:font-sans placeholder:tracking-normal placeholder:text-cream-faint"
+              className="focus-ring w-56 rounded-2xl bg-surface-lift px-4 py-2.5 font-mono text-sm tracking-widest text-cream-bright placeholder:font-sans placeholder:tracking-normal placeholder:text-cream-faint"
             />
             <button
               type="button"
