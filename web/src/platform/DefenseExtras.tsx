@@ -342,7 +342,7 @@ export function DefensePlanCard({ thesis }: { thesis: StoredThesis }) {
     });
   };
 
-  const shown = all ? plan : plan.slice(0, 5);
+  const shown = all ? plan : plan.slice(0, 3);
   const weekday = (value: string) =>
     new Date(`${value}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric" });
 
