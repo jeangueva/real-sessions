@@ -24,7 +24,7 @@ import {
   Users,
   Video,
 } from "lucide-react";
-import { Action, Panel } from "@/design-system";
+import { Action, Panel, DisclosureMark } from "@/design-system";
 import {
   analyzeObservations,
   ApiError,
@@ -198,6 +198,7 @@ export function RealJuryCard({
           </span>
         </span>
         {!paid && <Lock aria-hidden className="h-4 w-4 shrink-0 text-cream-faint" />}
+        <DisclosureMark label={named.length > 0 ? t("juryEdit") : t("juryOpen")} openLabel={t("discClose")} />
       </summary>
       <div className="flex flex-col gap-4 px-5 pb-5 sm:px-6 sm:pb-6">
         {!paid && <LockedNote>{t("juryLocked")}</LockedNote>}
@@ -659,6 +660,7 @@ export function ObservationsSection({
                         </span>
                       </span>
                     </span>
+                    <DisclosureMark className="-my-1" />
                   </summary>
                   <p className="mx-3.5 mb-3.5 rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream">
                     <span className="font-semibold">{t("obsHow")}: </span>
