@@ -21,11 +21,85 @@ import type { DbPool } from "./db/index.js";
 
 export const COMMISSION_RATE = 0.3;
 
+/**
+ * How commissions are paid out.
+ *
+ * A commission waits HOLD_DAYS before it can be paid — the same seven days a
+ * buyer has to ask for a refund, so nobody is paid for a sale that comes back.
+ * Payouts go out in the first PAYOUT_DAY days of each month, for whatever is
+ * available, once it reaches MIN_PAYOUT; below that it rolls over, because a
+ * transfer for a few soles costs more attention than it is worth.
+ */
+export const HOLD_DAYS = 7;
+export const MIN_PAYOUT = Number(process.env.AFFILIATE_MIN_PAYOUT ?? 50);
+export const PAYOUT_DAY = 10;
+
+export interface PayoutSummary {
+  /** Inside the refund window. */
+  held: number;
+  /** Past it and unpaid: what the next payout covers. */
+  available: number;
+  paid: number;
+  count: number;
+  /** YYYY-MM-DD: the last day of the next payout window. */
+  nextPayout: string;
+  /** Whether `available` reaches the minimum. */
+  payable: boolean;
+  minimum: number;
+  holdDays: number;
+}
+
+export function payoutSummary(commissions: readonly Commission[], now = new Date()): PayoutSummary {
+  const cutoff = now.getTime() - HOLD_DAYS * 86_400_000;
+  const round = (value: number) => Math.round(value * 100) / 100;
+  let held = 0;
+  let available = 0;
+  let paid = 0;
+  for (const entry of commissions) {
+    if (entry.paidAt) paid += entry.amount;
+    else if (Date.parse(entry.createdAt) > cutoff) held += entry.amount;
+    else available += entry.amount;
+  }
+  // This month's window while it is open, otherwise next month's.
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + (now.getUTCDate() <= PAYOUT_DAY ? 0 : 1);
+  const next = new Date(Date.UTC(year, month, PAYOUT_DAY)).toISOString().slice(0, 10);
+  return {
+    held: round(held),
+    available: round(available),
+    paid: round(paid),
+    count: commissions.length,
+    nextPayout: next,
+    payable: available >= MIN_PAYOUT,
+    minimum: MIN_PAYOUT,
+    holdDays: HOLD_DAYS,
+  };
+}
+
 export interface Advisor {
   ownerId: string;
   code: string;
   name: string;
   createdAt: string;
+  /** How they want to be paid; null until they say. */
+  payout?: Payout | null;
+}
+
+/** Where an affiliate's commissions go. Paid by hand from the admin. */
+export interface Payout {
+  method: "yape" | "plin" | "transferencia" | "paypal";
+  /** The phone, account number or PayPal email. */
+  account: string;
+  holder: string;
+}
+
+export function readPayout(body: Record<string, unknown>): Payout | null {
+  const method = (["yape", "plin", "transferencia", "paypal"] as const).find((entry) => entry === body["method"]);
+  const text = (value: unknown, max: number) => (typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "");
+  const account = text(body["account"], 120);
+  const holder = text(body["holder"], 120);
+  if (!method || account.length < 4 || holder.length < 3) return null;
+  return { method, account, holder };
 }
 
 export interface AdvisorLink {
@@ -71,6 +145,7 @@ export interface AdvisorStore {
   recordCommission(code: string, commission: Omit<Commission, "createdAt" | "paidAt">): Promise<boolean>;
   commissions(code: string): Promise<Commission[]>;
   eraseOwner(ownerId: string): Promise<void>;
+  setPayout(ownerId: string, payout: Payout): Promise<void>;
 }
 
 class PostgresAdvisorStore implements AdvisorStore {
@@ -82,6 +157,7 @@ class PostgresAdvisorStore implements AdvisorStore {
       code: row.code as string,
       name: row.name as string,
       createdAt: new Date(row.created_at as string).toISOString(),
+      payout: (row.payout as Payout | null) ?? null,
     };
   }
 
@@ -164,7 +240,7 @@ class PostgresAdvisorStore implements AdvisorStore {
 
   async commissions(code: string) {
     const { rows } = await this.pool.query(
-      `SELECT * FROM advisor_commissions WHERE advisor_code = $1 ORDER BY created_at DESC LIMIT 500`,
+      `SELECT * FROM advisor_commissions WHERE advisor_code = $1 AND voided_at IS NULL ORDER BY created_at DESC LIMIT 500`,
       [code],
     );
     return rows.map((row) => ({
@@ -182,6 +258,10 @@ class PostgresAdvisorStore implements AdvisorStore {
     // An advisor's own record goes; commissions already earned stay on the
     // books under the code, since they record payments that happened.
     await this.pool.query(`DELETE FROM advisors WHERE owner_id = $1`, [ownerId]);
+  }
+
+  async setPayout(ownerId: string, payout: Payout) {
+    await this.pool.query(`UPDATE advisors SET payout = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(payout)]);
   }
 }
 
@@ -233,6 +313,11 @@ class MemoryAdvisorStore implements AdvisorStore {
   async eraseOwner(ownerId: string) {
     this.links.delete(ownerId);
     this.advisors.delete(ownerId);
+  }
+
+  async setPayout(ownerId: string, payout: Payout) {
+    const advisor = this.advisors.get(ownerId);
+    if (advisor) advisor.payout = payout;
   }
 }
 

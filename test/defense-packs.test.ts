@@ -40,11 +40,18 @@ describe("what a pass unlocks", () => {
   it("opens the modes with the intensive pass and the group rehearsal only with the group one", async () => {
     const store = createDefensePackStore(null);
     await store.grant("ana", "1", "sustentacion");
-    expect(unlocks(await store.active("ana"))).toEqual({ modes: false, group: false });
+    expect(unlocks(await store.active("ana"))).toEqual({ modes: false, group: false, mentor: false });
     await store.grant("ana", "2", "intensivo");
-    expect(unlocks(await store.active("ana"))).toEqual({ modes: true, group: false });
+    expect(unlocks(await store.active("ana"))).toEqual({ modes: true, group: false, mentor: false });
     await store.grant("ana", "3", "grupal");
-    expect(unlocks(await store.active("ana"))).toEqual({ modes: true, group: true });
+    expect(unlocks(await store.active("ana"))).toEqual({ modes: true, group: true, mentor: false });
     expect(remainingCredits(await store.active("ana"), [])).toBe(45);
+  });
+
+  it("includes the session with a teacher only in the top pack, with every mode", async () => {
+    const store = createDefensePackStore(null);
+    await store.grant("leo", "9", "docente");
+    expect(unlocks(await store.active("leo"))).toEqual({ modes: true, group: false, mentor: true });
+    expect(remainingCredits(await store.active("leo"), [])).toBe(20);
   });
 });

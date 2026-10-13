@@ -22,6 +22,8 @@ import { THESIS_ANALYSIS_TEMPLATE } from "./prompts/thesis.js";
 import { ocrImage, ocrPdf } from "./ocr.js";
 import type { StoredSlides } from "./slides.js";
 import type { Study } from "./study.js";
+import type { MentorRequest, RealJuror, StoredObservations } from "./defense-extras.js";
+import { newGiftToken } from "./defense-extras.js";
 
 /** Theses are long and often full of figures; a CV-sized cap refuses most. */
 export const MAX_THESIS_BYTES = 30 * 1024 * 1024;
@@ -292,6 +294,12 @@ export interface StoredThesis {
   defenseDate?: string | null;
   /** The defence sheet and review cards, once written. */
   study?: Study | null;
+  /** The people who will really sit on the panel, as the student named them. */
+  jury?: RealJuror[] | null;
+  /** The jury's written observations, read against the thesis, with progress. */
+  observations?: StoredObservations | null;
+  /** The session with a real teacher, once requested. */
+  mentor?: MentorRequest | null;
 }
 
 /** A thesis whose defence is close enough for the countdown mails. */
@@ -320,6 +328,12 @@ export interface ThesisStore {
   countdownCandidates(from: string, to: string): Promise<CountdownCandidate[]>;
   markCountdown(ownerId: string, day: number): Promise<void>;
   transfer(fromOwnerId: string, toOwnerId: string): Promise<void>;
+  putJury(ownerId: string, jury: RealJuror[]): Promise<void>;
+  putObservations(ownerId: string, observations: StoredObservations | null): Promise<void>;
+  putMentor(ownerId: string, mentor: MentorRequest): Promise<void>;
+  /** The gift link's token, made on first ask; null without a thesis. */
+  giftToken(ownerId: string): Promise<string | null>;
+  ownerByGift(token: string): Promise<string | null>;
 }
 
 class PostgresThesisStore implements ThesisStore {
@@ -327,7 +341,7 @@ class PostgresThesisStore implements ThesisStore {
 
   async get(ownerId: string): Promise<StoredThesis | null> {
     const { rows } = await this.pool.query(
-      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study,
+      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study, jury, observations, mentor,
               to_char(defense_date, 'YYYY-MM-DD') AS defense_date
          FROM theses WHERE owner_id = $1`,
       [ownerId],
@@ -343,6 +357,9 @@ class PostgresThesisStore implements ThesisStore {
       slides: (row.slides as StoredSlides | null) ?? null,
       defenseDate: (row.defense_date as string | null) ?? null,
       study: (row.study as Study | null) ?? null,
+      jury: (row.jury as RealJuror[] | null) ?? null,
+      observations: (row.observations as StoredObservations | null) ?? null,
+      mentor: (row.mentor as MentorRequest | null) ?? null,
     };
   }
 
@@ -409,6 +426,35 @@ class PostgresThesisStore implements ThesisStore {
     );
     await this.pool.query(`DELETE FROM theses WHERE owner_id = $1`, [fromOwnerId]);
   }
+
+  async putJury(ownerId: string, jury: RealJuror[]) {
+    await this.pool.query(`UPDATE theses SET jury = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(jury)]);
+  }
+
+  async putObservations(ownerId: string, observations: StoredObservations | null) {
+    await this.pool.query(`UPDATE theses SET observations = $2 WHERE owner_id = $1`, [
+      ownerId,
+      observations ? JSON.stringify(observations) : null,
+    ]);
+  }
+
+  async putMentor(ownerId: string, mentor: MentorRequest) {
+    await this.pool.query(`UPDATE theses SET mentor = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(mentor)]);
+  }
+
+  async giftToken(ownerId: string) {
+    // Set once and kept: a link already sent to a parent keeps working.
+    const { rows } = await this.pool.query(
+      `UPDATE theses SET gift_token = COALESCE(gift_token, $2) WHERE owner_id = $1 RETURNING gift_token`,
+      [ownerId, newGiftToken()],
+    );
+    return (rows[0]?.gift_token as string | undefined) ?? null;
+  }
+
+  async ownerByGift(token: string) {
+    const { rows } = await this.pool.query(`SELECT owner_id FROM theses WHERE gift_token = $1`, [token]);
+    return (rows[0]?.owner_id as string | undefined) ?? null;
+  }
 }
 
 class MemoryThesisStore implements ThesisStore {
@@ -425,8 +471,16 @@ class MemoryThesisStore implements ThesisStore {
     return this.rows.get(ownerId)?.pages ?? null;
   }
 
+  private readonly gifts = new Map<string, string>();
+
   async put(ownerId: string, fileName: string, thesis: ThesisPages, analysis: ThesisAnalysis) {
+    // A new version keeps what belongs to the student rather than the file:
+    // the jury, the observations, the request, the gift link.
+    const kept = this.rows.get(ownerId);
     this.rows.set(ownerId, {
+      jury: kept?.jury ?? null,
+      observations: kept?.observations ?? null,
+      mentor: kept?.mentor ?? null,
       fileName,
       pageCount: thesis.pages.length,
       approximate: thesis.approximate,
@@ -438,6 +492,35 @@ class MemoryThesisStore implements ThesisStore {
 
   async delete(ownerId: string) {
     this.rows.delete(ownerId);
+    for (const [token, owner] of this.gifts) if (owner === ownerId) this.gifts.delete(token);
+  }
+
+  async putJury(ownerId: string, jury: RealJuror[]) {
+    const row = this.rows.get(ownerId);
+    if (row) row.jury = jury;
+  }
+
+  async putObservations(ownerId: string, observations: StoredObservations | null) {
+    const row = this.rows.get(ownerId);
+    if (row) row.observations = observations;
+  }
+
+  async putMentor(ownerId: string, mentor: MentorRequest) {
+    const row = this.rows.get(ownerId);
+    if (row) row.mentor = mentor;
+  }
+
+  async giftToken(ownerId: string) {
+    if (!this.rows.has(ownerId)) return null;
+    for (const [token, owner] of this.gifts) if (owner === ownerId) return token;
+    const token = newGiftToken();
+    this.gifts.set(token, ownerId);
+    return token;
+  }
+
+  async ownerByGift(token: string) {
+    const owner = this.gifts.get(token) ?? null;
+    return owner && this.rows.has(owner) ? owner : null;
   }
 
   async putSlides(ownerId: string, slides: StoredSlides | null) {
@@ -536,6 +619,19 @@ export function renderDossier(thesis: StoredThesis, pages: readonly string[]): s
       (risk) => `- [${risk.severity}] ${risk.area}${at(risk.page)}: ${risk.issue} A juror might ask: "${risk.likely_question}"`,
     ),
   ];
+  // The deck, when it was reviewed: the jury can point at a slide by number,
+  // as a real one does with the projection behind the student.
+  const deck = thesis.slides?.review;
+  if (deck && deck.slides.length > 0) {
+    lines.push(
+      "",
+      "THE STUDENT'S SLIDES — they present with these on screen; refer to one by number when it helps (\"en su lámina 7…\"):",
+      ...deck.slides.slice(0, 40).map((slide) => `- ${slide.n}. ${slide.title}`),
+      ...deck.inconsistencies.slice(0, 6).map(
+        (entry) => `- Slide ${entry.slide} disagrees with the thesis${at(entry.thesis_page)}: ${entry.issue}`,
+      ),
+    );
+  }
   const gaps = a.consistency.filter((row) => row.status !== "coherente");
   if (gaps.length > 0) {
     lines.push("", "CONSISTENCY GAPS:", ...gaps.map((row) => `- ${row.objective}: ${row.note}`));

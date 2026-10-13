@@ -133,7 +133,13 @@ export function renderApp(payload: unknown, viewer: string): string {
         <div class="page-head"><h2 class="small dim">Instituciones</h2>
           <button class="btn" id="new-institution" type="button">${icon("plus")}Nueva institución</button></div>
         <div class="table-wrap cards"><table><thead><tr><th>Institución</th><th>Código</th><th class="r">Alumnos</th><th class="r">Sust./alumno</th><th>Vence</th><th>Coordinador</th></tr></thead><tbody id="institutions-body"></tbody></table></div>
-        <h2 class="small dim">Asesores</h2>
+        <div class="page-head"><h2 class="small dim">Plataformas conectadas (LTI 1.3)</h2>
+          <button class="btn" id="new-lti" type="button">${icon("plus")}Conectar plataforma</button></div>
+        <div class="table-wrap cards"><table><thead><tr><th>Plataforma</th><th>Client ID</th><th>Institución</th><th class="r">Usuarios</th></tr></thead><tbody id="platforms-body"></tbody></table></div>
+        <h2 class="small dim">Instituciones interesadas</h2>
+        <div class="table-wrap cards"><table><thead><tr><th>Contacto</th><th>Institución</th><th class="r">Estudiantes</th><th>Plataforma</th><th>Mensaje</th><th>Fecha</th></tr></thead><tbody id="leads-body"></tbody></table></div>
+        <div class="page-head"><h2 class="small dim">Afiliados y asesores</h2>
+          <button class="btn" id="void-commission" type="button">Anular comisión</button></div>
         <div class="table-wrap cards"><table><thead><tr><th>Asesor</th><th>Código</th><th class="r">Vinculados</th><th class="r">Comparten</th><th class="r">Ventas</th><th class="r">Por pagar</th><th class="r">Pagado</th><th></th></tr></thead><tbody id="advisors-body"></tbody></table></div>
       </section>
 

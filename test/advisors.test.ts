@@ -28,3 +28,39 @@ describe("advisors", () => {
     expect(await store.commissions(a.code)).toHaveLength(1);
   });
 });
+
+describe("the affiliate payout", () => {
+  const at = (iso: string) => new Date(iso);
+  const commission = (createdAt: string, amount: number, paidAt: string | null = null) => ({
+    paymentId: createdAt,
+    studentId: "s",
+    amount,
+    currency: "PEN",
+    createdAt,
+    paidAt,
+  });
+
+  it("holds a commission for the refund window, then makes it available", async () => {
+    const { payoutSummary } = await import("../src/advisors.js");
+    const summary = payoutSummary(
+      [
+        commission("2026-10-01T12:00:00Z", 23.7),
+        commission("2026-10-10T12:00:00Z", 11.7),
+        commission("2026-09-01T12:00:00Z", 35.7, "2026-09-10T12:00:00Z"),
+      ],
+      at("2026-10-12T12:00:00Z"),
+    );
+    expect(summary).toMatchObject({ held: 11.7, available: 23.7, paid: 35.7, count: 3, holdDays: 7 });
+    // Below the minimum: it rolls over to a later payout.
+    expect(summary.payable).toBe(false);
+  });
+
+  it("pays in the first ten days of each month", async () => {
+    const { payoutSummary } = await import("../src/advisors.js");
+    expect(payoutSummary([], at("2026-10-04T12:00:00Z")).nextPayout).toBe("2026-10-10");
+    expect(payoutSummary([], at("2026-10-12T12:00:00Z")).nextPayout).toBe("2026-11-10");
+    expect(payoutSummary([], at("2026-12-20T12:00:00Z")).nextPayout).toBe("2027-01-10");
+    const enough = payoutSummary([commission("2026-09-01T00:00:00Z", 60)], at("2026-10-12T12:00:00Z"));
+    expect(enough.payable).toBe(true);
+  });
+});

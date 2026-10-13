@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
@@ -7,12 +7,24 @@ import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis
 import type { DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { isThesisSection, thesisPath, type ThesisSection } from "@/lib/spaces";
 import { SCENARIO_OPTIONS, scenarioForDegree, type DefenseScenario } from "@/lib/defense-scenarios";
 import { ThesisSlides } from "./ThesisSlides";
 import { ThesisStudy } from "./ThesisStudy";
 import { DefenseDate } from "./DefenseDate";
 import { ShareRealQuestions } from "./ShareRealQuestions";
 import { AdvisorCard } from "./AdvisorCard";
+import {
+  DefensePlanCard,
+  GiftCard,
+  MentorCard,
+  ObservationsSection,
+  PreparationReportCard,
+  RealJuryCard,
+  RealQuestionsCard,
+  refreshDefenseStatus,
+} from "./DefenseExtras";
+import { canRecord } from "@/lib/recordings";
 
 const ACCEPT = ".pdf,.docx,.jpg,.jpeg,.png,.webp";
 
@@ -24,9 +36,24 @@ const ACCEPT = ".pdf,.docx,.jpg,.jpeg,.png,.webp";
  * product proves it read *their* thesis — which a chatbot they paste a
  * chapter into does not — so it comes before anything is asked of them.
  */
+/**
+ * The last thesis read, kept across sections.
+ *
+ * Each section is its own route, so moving from Ensayar to Diagnóstico mounts
+ * this screen afresh. Without the copy every switch showed an empty page while
+ * the thesis was fetched again; with it the section is there on the first
+ * frame and the fetch only refreshes it.
+ */
+let lastThesis: StoredThesis | null | undefined;
+
 export function Thesis() {
   const t = useThesisT();
-  const [thesis, setThesis] = useState<StoredThesis | null | undefined>(undefined);
+  const section = useThesisSection();
+  const [thesis, setThesisState] = useState<StoredThesis | null | undefined>(lastThesis);
+  const setThesis = (next: StoredThesis | null) => {
+    lastThesis = next;
+    setThesisState(next);
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -78,7 +105,10 @@ export function Thesis() {
 
   return (
     <>
-      <PageHeader title={t("title")} meta={t("meta")} />
+      <PageHeader
+        title={thesis ? t(TAB_LABEL[section]) : t("title")}
+        meta={thesis ? thesis.analysis.title : t("meta")}
+      />
       <PageBody className="flex flex-col gap-6">
         {picker}
         {error && (
@@ -97,16 +127,15 @@ export function Thesis() {
           <Panel variant="raised" className="flex flex-col items-start gap-4 p-6 sm:p-8">
             <h2 className="text-title font-semibold text-cream-bright">{t("uploadTitle")}</h2>
             <p className="max-w-prose text-base leading-relaxed text-cream">{t("uploadBody")}</p>
-            <button type="button" onClick={() => fileRef.current?.click()} className="focus-ring rounded-full">
-              <Action>
-                <Upload aria-hidden className="h-4 w-4" />
-                {t("uploadCta")}
-              </Action>
-            </button>
+            <Action type="button" onClick={() => fileRef.current?.click()}>
+              <Upload aria-hidden className="h-4 w-4" />
+              {t("uploadCta")}
+            </Action>
             <Privacy />
           </Panel>
         ) : thesis ? (
           <Diagnosis
+            tab={section}
             thesis={thesis}
             onChange={setThesis}
             onReplace={() => fileRef.current?.click()}
@@ -151,11 +180,14 @@ const STATUS = {
 } as const;
 
 function Diagnosis({
+  tab,
   thesis,
   onChange,
   onReplace,
   onDelete,
 }: {
+  /** The open section. It is the address: the rail and the tab bar link to it. */
+  tab: ThesisSection;
   thesis: StoredThesis;
   onChange: (next: StoredThesis) => void;
   onReplace: () => void;
@@ -166,22 +198,6 @@ function Diagnosis({
   const severityOrder = { alta: 0, media: 1, baja: 2 };
   const risks = [...a.risks].sort((x, y) => severityOrder[x.severity] - severityOrder[y.severity]);
 
-  const [tab, setTab] = useState<ThesisTab>(() => {
-    const hash = window.location.hash.slice(1);
-    return (TABS as readonly string[]).includes(hash) ? (hash as ThesisTab) : "ensayar";
-  });
-  // Follows the address too: a link to #diagnostico from anywhere — or the
-  // back button — opens that tab, not whichever was open before.
-  const location = useLocation();
-  const navigate = useNavigate();
-  useEffect(() => {
-    const hash = location.hash.slice(1);
-    if ((TABS as readonly string[]).includes(hash)) setTab(hash as ThesisTab);
-  }, [location.hash]);
-  const go = (next: ThesisTab) => {
-    setTab(next);
-    navigate({ hash: `#${next}` }, { replace: true });
-  };
   const serious = risks.filter((risk) => risk.severity === "alta").length;
 
   return (
@@ -226,28 +242,23 @@ function Diagnosis({
         <DefenseDate thesis={thesis} onChange={onChange} />
       </Panel>
 
-      {/* Four tabs instead of one long page: each fits a screen. */}
-      <div role="tablist" aria-label={t("title")} className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        {TABS.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            role="tab"
-            aria-selected={tab === entry}
-            onClick={() => go(entry)}
-            className={`focus-ring inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
-              tab === entry ? "bg-cream-bright text-surface-base" : "bg-surface-card text-cream-dim shadow-card hover:text-cream-bright"
-            }`}
-          >
-            {t(TAB_LABEL[entry])}
-            {entry === "diagnostico" && serious > 0 && (
-              <span className="rounded-full bg-step-soft px-1.5 text-xs text-step-text">{serious}</span>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* The sections are in the workspace's own navigation now — the rail
+          on a laptop, the tab bar on a phone — so the page is only the one
+          that is open. The count of serious risks stays here, where it is
+          read. */}
+      {tab === "diagnostico" && serious > 0 && (
+        <p className="self-start rounded-full bg-step-soft px-3 py-1 text-xs font-semibold text-step-text">
+          {t("severityAlta")} · {serious}
+        </p>
+      )}
 
-      {tab === "ensayar" && <Rehearse thesis={thesis} />}
+      {tab === "ensayar" && (
+        <>
+          <DefensePlanCard thesis={thesis} />
+          <Rehearse thesis={thesis} />
+          <RealJuryCard thesis={thesis} onChange={onChange} />
+        </>
+      )}
 
       {tab === "diagnostico" && (
         <div className="flex flex-col gap-4">
@@ -325,12 +336,31 @@ function Diagnosis({
         </div>
       )}
 
-      {tab === "repaso" && <ThesisStudy thesis={thesis} onChange={onChange} />}
+      {tab === "repaso" && (
+        <>
+          <ThesisStudy thesis={thesis} onChange={onChange} />
+          <RealQuestionsCard />
+        </>
+      )}
+
+      {tab === "observaciones" && <ObservationsSection thesis={thesis} onChange={onChange} />}
 
       {tab === "diapositivas" && <ThesisSlides thesis={thesis} onChange={onChange} />}
 
       {tab === "mas" && (
         <div className="flex flex-col gap-3">
+          {/* On a phone the tab bar has room for five; observations are
+              reached from here. */}
+          <Link
+            to={thesisPath("observaciones")}
+            className="focus-ring flex items-center justify-between gap-3 rounded-2xl bg-surface-card px-4 py-3 text-sm font-semibold text-cream-bright shadow-card transition-transform duration-150 ease-press active:scale-[0.98] md:hidden"
+          >
+            {t("obsTitle")}
+            <span aria-hidden>→</span>
+          </Link>
+          <MentorCard thesis={thesis} onChange={onChange} />
+          <PreparationReportCard thesis={thesis} />
+          <GiftCard />
           <AdvisorCard />
           <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
           <Privacy />
@@ -341,13 +371,30 @@ function Diagnosis({
   );
 }
 
-const TABS = ["ensayar", "diagnostico", "repaso", "diapositivas", "mas"] as const;
-type ThesisTab = (typeof TABS)[number];
-const TAB_LABEL = {
+/**
+ * The open section, from the route. The old addresses — `/app#diagnostico`
+ * and friends, from before the sections had paths — are moved to theirs.
+ */
+function useThesisSection(): ThesisSection {
+  const { section } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const legacy = location.hash.slice(1);
+  useEffect(() => {
+    if (!section && isThesisSection(legacy) && legacy !== "ensayar") {
+      navigate({ pathname: thesisPath(legacy), search: location.search }, { replace: true });
+    }
+  }, [section, legacy, location.search, navigate]);
+  if (isThesisSection(section)) return section;
+  return isThesisSection(legacy) ? legacy : "ensayar";
+}
+
+export const TAB_LABEL = {
   ensayar: "tabRehearse",
   diagnostico: "tabDiagnosis",
   repaso: "tabStudy",
   diapositivas: "tabSlides",
+  observaciones: "tabObservations",
   mas: "tabMore",
 } as const;
 
@@ -428,14 +475,26 @@ const DIFFICULTY_HINT = {
 function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const t = useThesisT();
   const navigate = useNavigate();
+  /** Sent here from the observations, with the mode and the material set. */
+  const arrived = (useLocation().state ?? null) as { focus?: Focus; material?: string } | null;
   const [allowance, setAllowance] = useState<DefenseAllowance | null>(null);
   const [pack, setPack] = useState<PackOffer | null>(null);
   const [formats, setFormats] = useState<DefenseFormatInfo[]>([]);
   const [offers, setOffers] = useState<PackOfferDetail[]>([]);
   const [progress, setProgress] = useState<DefenseProgressPoint[]>([]);
-  const [focus, setFocus] = useState<Focus>("completa");
+  const [focus, setFocus] = useState<Focus>(() =>
+    arrived?.focus && FOCUS_OPTIONS.includes(arrived.focus) ? arrived.focus : "completa",
+  );
   const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
-  const [material, setMaterial] = useState("");
+  const [material, setMaterial] = useState(() => arrived?.material?.slice(0, 20_000) ?? "");
+  /** Filmed on this device for the replay; remembered, and off by default. */
+  const [record, setRecord] = useState(() => {
+    try {
+      return localStorage.getItem("mockio.recordRehearsal") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [members, setMembers] = useState(["", "", ""]);
   const [fluencyNeutral, setFluencyNeutral] = useState(() => {
     try {
@@ -513,6 +572,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     if (paymentId && /^\d+$/.test(paymentId)) {
       syncDefensePack(paymentId)
         .then((result) => {
+          refreshDefenseStatus();
           apply(result.allowance);
           if (!cancelled) setPackNotice(t(result.outcome === "not-yet" ? "packPending" : "packDone"));
         })
@@ -538,12 +598,22 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   };
 
   const hasCredits = (allowance?.credits ?? 0) > 0;
+  /** The replay is for the full panel: the express one is three questions. */
+  const filmable = canRecord() && (full || focus !== "completa");
   const needsMaterial = focus === "estadistica" || focus === "observaciones";
   const canBegin = (hasCredits || (allowance?.freeLeft ?? 0) > 0) && (!needsMaterial || material.trim().length >= 40);
   const named = members.map((entry) => entry.trim()).filter(Boolean);
   /** The offers that would add something to what they hold. */
   const worthOffering = offers.filter((offer) => offer.kind !== "asesor_pro").filter((offer) =>
-    !hasCredits ? true : offer.group ? !allowance?.group : offer.modes ? !allowance?.modes : false,
+    !hasCredits
+      ? true
+      : offer.kind === "docente"
+        ? !allowance?.mentor
+        : offer.group
+          ? !allowance?.group
+          : offer.modes
+            ? !allowance?.modes
+            : false,
   );
   const money = (amount: number, currency: string) =>
     new Intl.NumberFormat(currency === "PEN" ? "es-PE" : undefined, {
@@ -585,12 +655,13 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           difficulty,
           scenario,
           country,
-          ...(format ? { jurors: format.jurors } : {}),
+          ...(format ? { jurors: withRealJury(format.jurors, allowance?.paid && stage === "sustentacion-pe" ? thesis.jury : null) } : {}),
           focus,
           ...(setting ? { setting } : {}),
           ...(needsMaterial ? { material: material.trim() } : {}),
           ...(allowance?.group && named.length > 1 ? { members: named } : {}),
           ...(fluencyNeutral ? { fluencyNeutral: true } : {}),
+          ...(record && filmable ? { record: true } : {}),
         },
       },
     });
@@ -776,6 +847,27 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         </span>
       </label>
 
+      {filmable && (
+        <label className="flex items-start gap-2 text-sm text-cream">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={record}
+            onChange={(event) => {
+              setRecord(event.target.checked);
+              try {
+                localStorage.setItem("mockio.recordRehearsal", event.target.checked ? "1" : "0");
+              } catch {
+                // Private mode: asked again next time.
+              }
+            }}
+          />
+          <span>
+            {t("recordLabel")} <span className="text-xs text-cream-dim">{t("recordNote")}</span>
+          </span>
+        </label>
+      )}
+
       {allowance?.group && (
         <div className={label}>
           {t("members")}
@@ -827,7 +919,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
 
       {allowance && pack?.available && worthOffering.length > 0 && (
         <section className="flex flex-col gap-2 border-t border-line pt-4">
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             {worthOffering.map((offer) => (
               <button
                 key={offer.kind}
@@ -845,12 +937,29 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             ))}
           </div>
           <p className="text-xs text-cream-dim">{buying ? t("buying") : t("beforePay")}</p>
+          {!allowance.paid && <GiftCard compact />}
         </section>
       )}
       {/* Room for the pinned bar on a phone, so it never covers the plans. */}
       <div aria-hidden className="h-16 md:hidden" />
     </Panel>
   );
+}
+
+/**
+ * The names on screen: the real people in their seats when the panel plays
+ * them, the format's own jurors otherwise — what is shown matches who speaks.
+ */
+function withRealJury(
+  jurors: DefenseFormatInfo["jurors"],
+  jury: StoredThesis["jury"] | null | undefined,
+): DefenseFormatInfo["jurors"] {
+  if (!jury || jury.length === 0) return jurors;
+  const next = { ...jurors };
+  for (const juror of jury) {
+    next[juror.seat] = { name: juror.name, role: juror.specialty || jurors[juror.seat].role };
+  }
+  return next;
 }
 
 type Focus = "completa" | "autoria" | "trampa" | "estadistica" | "observaciones" | "divulgacion";
@@ -867,6 +976,7 @@ const OFFER_LABEL: Record<Exclude<PackKind, "asesor_pro">, { name: Parameters<Re
   sustentacion: { name: "offerSustentacion", body: "offerSustentacionBody" },
   intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
   grupal: { name: "offerGrupal", body: "offerGrupalBody" },
+  docente: { name: "offerDocente", body: "offerDocenteBody" },
 } as const;
 
 /**

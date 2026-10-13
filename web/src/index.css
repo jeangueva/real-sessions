@@ -491,6 +491,17 @@
  * page is printed on the light theme whatever the screen uses; the print
  * button switches to it for the moment of printing.
  */
+/* The readiness report prints alone: everything else on the page steps out
+   while it is on paper. */
+@media print {
+  html.print-report body > *:not(.print-report-root) {
+    display: none !important;
+  }
+  html.print-report .print-report-root {
+    display: block !important;
+  }
+}
+
 @media print {
   aside,
   nav,

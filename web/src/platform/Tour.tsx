@@ -224,13 +224,13 @@ export function Tour() {
             )}
             <button
               onClick={close}
-              className="focus-ring rounded-full px-3 py-1.5 text-xs text-cream-faint transition-colors hover:text-cream-bright"
+              className="focus-ring rounded-full px-3 py-1.5 text-xs text-cream-faint transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:text-cream-bright"
             >
               {t("tour.skip")}
             </button>
             <button
               onClick={() => (last ? close() : setIndex((current) => current + 1))}
-              className="focus-ring rounded-full bg-cream px-4 py-1.5 text-xs text-surface-base"
+              className="focus-ring rounded-full bg-cream px-4 py-1.5 text-xs text-surface-base transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:bg-cream-bright"
             >
               {last ? t("tour.done") : t("tour.next")}
             </button>

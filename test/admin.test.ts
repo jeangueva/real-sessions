@@ -165,3 +165,40 @@ describe("rule insights", () => {
     expect(insights.map((i) => i.area)).toContain("Activación");
   });
 });
+
+describe("voiding a commission", () => {
+  /** A stand-in database holding one commission row. */
+  function fakePool(row: Record<string, unknown> | null) {
+    const statements: string[] = [];
+    const client = {
+      async query(sql: string) {
+        statements.push(sql.trim().split(/\s+/).slice(0, 2).join(" "));
+        if (sql.startsWith("SELECT")) return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
+        if (sql.startsWith("UPDATE") && row) row.voided_at = new Date();
+        return { rows: [], rowCount: 1 };
+      },
+      release() {},
+    };
+    return { pool: { connect: async () => client }, statements };
+  }
+  const deps = (pool: unknown) => ({ pool, redis: null, actor: "jean@example.com" }) as never;
+
+  it("takes an unpaid commission out of the balance and records why", async () => {
+    const { voidCommission } = await import("../admin/actions.js");
+    const row = { advisor_code: "K7P2QM", amount: "23.70", currency: "PEN", paid_at: null, voided_at: null };
+    const { pool, statements } = fakePool(row);
+    await expect(voidCommission(deps(pool), { paymentId: "1234567890", reason: "Reembolso" })).resolves.toContain("PEN 23.70 de K7P2QM");
+    expect(statements).toContain("INSERT INTO");
+    expect(row.voided_at).not.toBeNull();
+  });
+
+  it("refuses one already paid, already voided, or unknown", async () => {
+    const { voidCommission } = await import("../admin/actions.js");
+    const paid = fakePool({ advisor_code: "K7P2QM", amount: "11.70", currency: "PEN", paid_at: new Date(), voided_at: null });
+    await expect(voidCommission(deps(paid.pool), { paymentId: "1234567890" })).rejects.toThrow(/ya se pagó/);
+    const voided = fakePool({ advisor_code: "K7P2QM", amount: "11.70", currency: "PEN", paid_at: null, voided_at: new Date() });
+    await expect(voidCommission(deps(voided.pool), { paymentId: "1234567890" })).rejects.toThrow(/ya estaba anulada/);
+    await expect(voidCommission(deps(fakePool(null).pool), { paymentId: "1234567890" })).rejects.toThrow(/no generó/);
+    await expect(voidCommission(deps(fakePool(null).pool), { paymentId: "" })).rejects.toThrow(ActionError);
+  });
+});

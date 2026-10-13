@@ -61,6 +61,11 @@ const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m)
  * bundle, and everyone who only reads the landing page would carry it.
  */
 const SharedReport = lazy(() => import("@/platform/SharedReport").then((m) => ({ default: m.SharedReport })));
+/** The two pages for the people around the student: affiliates and schools. */
+const AffiliatesPage = lazy(() => import("@/components/AffiliatesPage").then((m) => ({ default: m.AffiliatesPage })));
+const InstitutionsPage = lazy(() => import("@/components/InstitutionsPage").then((m) => ({ default: m.InstitutionsPage })));
+/** Public and reached from a link a student sent, like a shared report. */
+const GiftPage = lazy(() => import("@/platform/GiftPage").then((m) => ({ default: m.GiftPage })));
 
 /**
  * One page view per route change.
@@ -131,6 +136,8 @@ export function App() {
             stays reachable, and is where the defence page sends graduates. */}
         <Route path="/" element={<DefenseLanding />} />
         <Route path="/entrevistas" element={<Landing />} />
+        <Route path="/afiliados" element={<Suspense fallback={null}><AffiliatesPage /></Suspense>} />
+        <Route path="/instituciones" element={<Suspense fallback={null}><InstitutionsPage /></Suspense>} />
         <Route path="/signin" element={<SignIn />} />
         {/* One route for both halves: request a link, or use one. */}
         <Route path="/reset" element={<ResetPassword />} />
@@ -143,6 +150,15 @@ export function App() {
           element={
             <Suspense fallback={null}>
               <SharedReport />
+            </Suspense>
+          }
+        />
+        {/* Someone else pays for a student's plan: no account involved. */}
+        <Route
+          path="/regalo/:token"
+          element={
+            <Suspense fallback={null}>
+              <GiftPage />
             </Suspense>
           }
         />
@@ -167,6 +183,8 @@ export function App() {
           {/* Sustentación is the product: the app opens on the thesis. Interview
               practice lives one tab over, as what comes after the defence. */}
           <Route index element={<Suspense fallback={null}><Thesis /></Suspense>} />
+          {/* The thesis workspace's sections, one address each. */}
+          <Route path="tesis/:section" element={<Suspense fallback={null}><Thesis /></Suspense>} />
           <Route path="practice" element={<Suspense fallback={null}><SessionSetup /></Suspense>} />
           <Route path="session" element={<Suspense fallback={null}><LiveInterview /></Suspense>} />
           <Route path="feedback" element={<Suspense fallback={null}><FeedbackReport /></Suspense>} />

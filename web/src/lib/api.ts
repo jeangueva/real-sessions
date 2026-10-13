@@ -1345,6 +1345,43 @@ export interface StoredThesis {
   /** YYYY-MM-DD, when they told us. */
   defenseDate?: string | null;
   study?: ThesisStudy | null;
+  /** The people who will really sit on the panel. */
+  jury?: RealJuror[] | null;
+  /** The jury's written observations, read against the thesis. */
+  observations?: StoredObservations | null;
+  /** The session with a real teacher, once requested. */
+  mentor?: MentorRequest | null;
+}
+
+export type JurorSeat = "presidente" | "metodologo" | "especialista";
+
+/** Mirrors `RealJuror` in src/defense-extras.ts. */
+export interface RealJuror {
+  seat: JurorSeat;
+  name: string;
+  specialty: string;
+  notes: string;
+}
+
+/** Mirrors `StoredObservations` in src/defense-extras.ts. */
+export interface StoredObservations {
+  items: {
+    observation: string;
+    kind: "forma" | "fondo" | "metodologia" | "redaccion" | "bibliografia";
+    page: number | null;
+    where: string;
+    how: string;
+    effort: "bajo" | "medio" | "alto";
+    done: boolean;
+  }[];
+  createdAt: string;
+}
+
+export interface MentorRequest {
+  availability: string;
+  phone: string | null;
+  note: string;
+  requestedAt: string;
 }
 
 /** Mirrors `StudySchema` in src/study.ts. */
@@ -1372,9 +1409,13 @@ export interface DefenseAllowance {
   group?: boolean;
   /** Who pays for rehearsals beyond the student's own. */
   sponsor?: { kind: "advisor" | "institution"; name: string } | null;
+  /** The top pack: a session with a real teacher is included. */
+  mentor?: boolean;
+  /** Anything paid for: the real jury, the observations, the real questions. */
+  paid?: boolean;
 }
 
-export type PackKind = "sustentacion" | "intensivo" | "grupal" | "asesor_pro";
+export type PackKind = "sustentacion" | "intensivo" | "grupal" | "docente" | "asesor_pro";
 
 export interface PackOfferDetail {
   kind: PackKind;
@@ -1513,7 +1554,66 @@ export function shareRealQuestions(input: { university: string; country: string;
 
 export function countRealQuestions(university: string) {
   return withIdentity(() =>
-    request<{ verified: number }>(`/api/thesis/questions?university=${encodeURIComponent(university)}`, { method: "GET" }),
+    request<{
+      verified: number;
+      sameField: number;
+      locked: boolean;
+      questions: { question: string; sameField: boolean }[];
+    }>(`/api/thesis/questions?university=${encodeURIComponent(university)}`, { method: "GET" }),
+  );
+}
+
+const sendJson = (method: string, body: unknown): RequestInit & { method: string } => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
+export function saveJury(jury: RealJuror[]) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/jury", sendJson("PUT", { jury })));
+}
+
+export function analyzeObservations(text: string) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/observations", sendJson("POST", { text })));
+}
+
+export function markObservation(index: number, done: boolean) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/observations", sendJson("PATCH", { index, done })));
+}
+
+export function clearObservations() {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/observations", { method: "DELETE" }));
+}
+
+export function requestMentor(input: { availability: string; phone: string; note: string }) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/mentor", sendJson("POST", input)));
+}
+
+export function fetchGiftLink() {
+  return withIdentity(() => request<{ url: string }>("/api/thesis/gift", { method: "GET" }));
+}
+
+/** The gift page, read by whoever holds the link: no identity involved. */
+export interface GiftInfo {
+  name: string | null;
+  thesis: string | null;
+  defenseDate: string | null;
+  available: boolean;
+  offers: { kind: PackKind; amount: number; currency: string; credits: number; days: number }[];
+}
+
+export function fetchGift(token: string) {
+  return request<GiftInfo>(`/api/gift/${encodeURIComponent(token)}`, { method: "GET" });
+}
+
+export function payGift(token: string, kind: PackKind, email: string) {
+  return request<{ initPoint: string }>(`/api/gift/${encodeURIComponent(token)}/checkout`, sendJson("POST", { kind, email }));
+}
+
+export function syncGift(token: string, paymentId: string) {
+  return request<{ outcome: "granted" | "already" | "not-yet" }>(
+    `/api/gift/${encodeURIComponent(token)}/sync`,
+    sendJson("POST", { paymentId }),
   );
 }
 
@@ -1542,7 +1642,14 @@ export interface AdvisorLinkInfo {
 }
 
 export interface AdvisorDashboard {
-  advisor: { ownerId: string; code: string; name: string; createdAt: string } | null;
+  advisor: {
+    ownerId: string;
+    code: string;
+    name: string;
+    createdAt: string;
+    /** How they want their commissions paid; null until they say. */
+    payout?: { method: PayoutMethod; account: string; holder: string } | null;
+  } | null;
   link?: string;
   linked?: number;
   students?: {
@@ -1554,7 +1661,23 @@ export interface AdvisorDashboard {
     firstScore: number | null;
     lastAt: string | null;
   }[];
-  commissions?: { count: number; pending: number; paid: number; currency: string; rate: number };
+  commissions?: {
+    count: number;
+    /** Everything unpaid, held or not. */
+    pending: number;
+    paid: number;
+    currency: string;
+    rate: number;
+    /** Inside the seven-day refund window. */
+    held?: number;
+    /** Past it: what the next payout covers. */
+    available?: number;
+    /** YYYY-MM-DD: the last day of the next payout window. */
+    nextPayout?: string;
+    payable?: boolean;
+    minimum?: number;
+    holdDays?: number;
+  };
   pro?: { active: boolean; expiresAt: string | null; seats: number; creditsPerStudent: number; used: number; amount: number; currency: string };
   cohort?: {
     name: string;
@@ -1649,5 +1772,35 @@ export function uploadPresence(sessionId: string, frames: string[], readerLangua
 export function fetchPresence(sessionId: string) {
   return withIdentity(() =>
     request<{ presence: Presence | null }>(`/api/sessions/${encodeURIComponent(sessionId)}/presence`, { method: "GET" }),
+  );
+}
+
+/** The institutions page's form. Public: the person asking has no account. */
+export function sendB2bLead(input: {
+  name: string;
+  email: string;
+  institution: string;
+  role: string;
+  country: string;
+  students: string;
+  platform: string;
+  message: string;
+}) {
+  return request<{ ok: true }>("/api/b2b/lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, students: Number(input.students) || null }),
+  });
+}
+
+export type PayoutMethod = "yape" | "plin" | "transferencia" | "paypal";
+
+export function saveAffiliatePayout(input: { method: PayoutMethod; account: string; holder: string }) {
+  return withIdentity(() =>
+    request<{ payout: { method: PayoutMethod; account: string; holder: string } }>("/api/advisor/payout", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
   );
 }

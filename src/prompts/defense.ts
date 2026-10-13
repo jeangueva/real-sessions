@@ -14,6 +14,7 @@ export const JUROR_TAGS = ["presidente", "metodologo", "especialista"] as const;
 export type JurorTag = (typeof JUROR_TAGS)[number];
 
 import type { DefenseFormat } from "../defense-formats.js";
+import { juryBlock, type RealJuror } from "../defense-extras.js";
 
 export type Difficulty = "calentamiento" | "estandar" | "exigente" | "hostil";
 
@@ -219,8 +220,10 @@ export function focusBlock(input: {
   material: string | null;
   members: readonly string[];
   fluencyNeutral?: boolean;
+  jury?: readonly RealJuror[];
 }): string {
   const parts = [`WHAT THIS REHEARSAL TRAINS: ${FOCUSES[input.focus]}`];
+  if (input.jury && input.jury.length > 0) parts.push(juryBlock(input.jury));
   if (input.fluencyNeutral) {
     parts.push(
       "FLUENCY: The student asked that fluency not count — a stutter or a similar condition. Wait patiently through pauses, blocks and repetitions; never comment on pace, hesitation or how something was said; never finish their sentences. Judge only what they say.",

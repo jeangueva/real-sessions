@@ -35,6 +35,9 @@ Each of these degrades on its own and says so in the startup line.
 | `REALSESSIONS_REVIEWERS` | Nobody can verify contributed questions, so none reach an interview |
 | `REALSESSIONS_SITE_URL` | Links in emails point at `http://localhost:5173` |
 | `REALSESSIONS_TRUST_PROXY=1` | Set **only** behind a proxy you control. Otherwise any caller can rotate `X-Forwarded-For` and mint unlimited rate-limit identities |
+| `B2B_INBOX` | The /instituciones form is mailed to hello@getmockio.com |
+| `LTI_PRIVATE_KEY` | A key is made at every boot, so a connected Moodle or Canvas stops trusting Mockio after each restart. Required before connecting any university — see "Connecting a university" below |
+| `DEFENSE_DOCENTE_ENABLED` | The plan with a real teacher is not offered or sold. Set to `1` once there are teachers |
 | `REALSESSIONS_EARLY_ACCESS_CLOSES_AT` | Early access never closes and the landing page shows no countdown. Set an ISO date (`2026-11-15T23:59:59-05:00`) and the page counts down to it, and the server stops recording new addresses from that moment. Addresses already on the list keep their grant |
 
 ## Render (recommended)
@@ -143,3 +146,76 @@ database, which is a port rather than a deploy.
   why the signature path is untestable locally.
 - The schema applies itself on boot. Every statement is `IF NOT EXISTS`, so
   there is no migration step and a restart is a no-op.
+
+## Connecting a university (LTI 1.3)
+
+Mockio is an LTI 1.3 tool: a university adds it to Moodle, Canvas,
+Blackboard, Brightspace or Sakai, its students open it from their course
+already signed in, and graded rehearsals go back to the course gradebook.
+Mockio has to be deployed on its public domain first — the university's
+platform reads Mockio's keys from it, and Mockio reads theirs.
+
+### 1. Once: the signing key
+
+```sh
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out lti.pem
+awk 'NF {printf "%s\\n", $0}' lti.pem   # one line, newlines as \n
+```
+
+Paste that line into `LTI_PRIVATE_KEY` in Render and redeploy. Check
+`https://www.getmockio.com/lti/jwks` shows one key. Keep `lti.pem` somewhere
+safe and never change it: every connected platform has cached its public half.
+
+### 2. In the admin: the institution
+
+Sustentación → **Nueva institución**: its name, seats, full defences per
+student, days, and its rubric if it has one. Note the six-letter code.
+
+### 3. In Moodle (Site administration → Plugins → Activity modules → External tool → Manage tools → configure a tool manually)
+
+| Moodle field | Value |
+| --- | --- |
+| Tool name | Mockio — Sustentación |
+| Tool URL | `https://www.getmockio.com/lti/launch` |
+| LTI version | LTI 1.3 |
+| Public key type | Keyset URL |
+| Public keyset | `https://www.getmockio.com/lti/jwks` |
+| Initiate login URL | `https://www.getmockio.com/lti/login` |
+| Redirection URI(s) | `https://www.getmockio.com/lti/launch` |
+| Default launch container | **New window** (the rehearsal needs the microphone, which Moodle's frame does not grant) |
+| IMS LTI Assignment and Grade Services | Use this service for grade sync and column management |
+| Share launcher's name / email with tool | Always |
+| Accept grades from the tool | Always |
+
+Save, then open the tool's **View configuration details** (the list icon).
+Moodle shows six values.
+
+Canvas: Admin → Developer Keys → + LTI Key, with the same three URLs, then
+install it under Settings → Apps → By Client ID. Canvas shows the Client ID
+and the Deployment ID; its issuer is `https://canvas.instructure.com` and its
+endpoints are on the school's Canvas domain.
+
+### 4. Back in the admin: the platform
+
+Sustentación → **Conectar plataforma**, with what the platform showed:
+
+| Admin field | Moodle's name for it |
+| --- | --- |
+| Emisor (issuer) | Platform ID |
+| Client ID | Client ID |
+| Deployment ID | Deployment ID |
+| URL de autenticación | Authentication request URL |
+| URL del token | Access token URL |
+| URL de claves (JWKS) | Public keyset URL |
+| Código de la institución | the code from step 2 |
+
+### 5. Test it
+
+In a course, add an activity → External tool → Mockio, with a grade out of
+20. Open it as a student: a new tab opens Mockio, signed in, on the thesis
+screen, and the student appears in the institution's cohort in the admin.
+Finish a full rehearsal: its grade appears in the course gradebook.
+
+If it fails, the launch page says why (another platform, an unknown
+deployment, an expired launch) and the server log has the detail under
+`LTI launch refused`.

@@ -96,7 +96,7 @@ export function AdvisorCard() {
               type="button"
               disabled={code.trim().length !== 6}
               onClick={() => void run(() => linkAdvisor(code, share))}
-              className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright active:scale-[0.97] disabled:opacity-50"
+              className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:bg-cream/15 disabled:opacity-50"
             >
               {t("advisorLink")}
             </button>

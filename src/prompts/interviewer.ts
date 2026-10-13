@@ -16,6 +16,7 @@ import {
   type DefenseSetting,
   type Difficulty,
 } from "./defense.js";
+import type { RealJuror } from "../defense-extras.js";
 import { findFormat, type CountryCode } from "../defense-formats.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
@@ -263,6 +264,8 @@ export interface DefenseSetup {
   rubric?: string | null;
   /** Which defence, by degree; a professional degree thesis when absent. */
   scenario?: DefenseScenario;
+  /** The people who will really sit on the panel, when the student named them. */
+  jury?: RealJuror[];
 }
 
 /**
@@ -340,6 +343,9 @@ export function buildInterviewerPrompt(
         material: defense.material ?? null,
         members: defense.members ?? [],
         fluencyNeutral: defense.fluencyNeutral ?? false,
+        // The real people only on the full panel: the express rehearsal and
+        // the statistics coach are one juror by design.
+        jury: express || solo ? [] : (defense.jury ?? []),
       }),
       language: findLanguage(options.language).promptLabel,
       difficulty: DIFFICULTIES[defense.difficulty],

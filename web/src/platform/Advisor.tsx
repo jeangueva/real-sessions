@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Building2, Copy, Crown, Users, Wallet } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, becomeAdvisor, buyDefensePack, fetchAdvisor, syncDefensePack } from "@/lib/api";
+import { ApiError, becomeAdvisor, buyDefensePack, fetchAdvisor, saveAffiliatePayout, syncDefensePack } from "@/lib/api";
+import type { PayoutMethod } from "@/lib/api";
 import type { AdvisorDashboard } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { useLocale } from "@/hooks/useLocale";
 
 /**
  * The advisor's side: their code, their students' progress, their earnings.
@@ -14,6 +16,7 @@ import { useThesisT } from "@/lib/thesis-copy";
  */
 export function Advisor() {
   const t = useThesisT();
+  const { locale } = useLocale();
   const [data, setData] = useState<AdvisorDashboard | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -173,23 +176,44 @@ export function Advisor() {
                   <Wallet aria-hidden className="h-5 w-5 text-accent-text" />
                   {t("advisorEarnings")}
                 </h2>
-                <dl className="grid grid-cols-3 gap-3">
+                <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div>
+                    <dt className="text-xs text-cream-dim">{t("advisorHeld")}</dt>
+                    <dd className="text-xl font-bold tabular-nums text-cream-dim">
+                      {money(data.commissions.held ?? 0, data.commissions.currency)}
+                    </dd>
+                  </div>
                   <div>
                     <dt className="text-xs text-cream-dim">{t("advisorPending")}</dt>
-                    <dd className="text-xl font-bold text-cream-bright">{money(data.commissions.pending, data.commissions.currency)}</dd>
+                    <dd className={`text-xl font-bold tabular-nums ${data.commissions.payable ? "text-grow-text" : "text-cream-bright"}`}>
+                      {money(data.commissions.available ?? data.commissions.pending, data.commissions.currency)}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-xs text-cream-dim">{t("advisorPaid")}</dt>
-                    <dd className="text-xl font-bold text-cream-bright">{money(data.commissions.paid, data.commissions.currency)}</dd>
+                    <dd className="text-xl font-bold tabular-nums text-cream-bright">{money(data.commissions.paid, data.commissions.currency)}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-cream-dim">{t("advisorSales", { count: data.commissions.count })}</dt>
                     <dd className="text-xl font-bold text-cream-bright">{Math.round(data.commissions.rate * 100)}%</dd>
                   </div>
                 </dl>
-                <p className="text-xs text-cream-dim">{t("advisorPayout")}</p>
+                <p className="text-xs text-cream-dim">
+                  {t("advisorPayout", {
+                    days: data.commissions.holdDays ?? 7,
+                    date: data.commissions.nextPayout
+                      ? new Date(`${data.commissions.nextPayout}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })
+                      : "10",
+                    min: money(data.commissions.minimum ?? 50, data.commissions.currency),
+                  })}
+                </p>
               </Panel>
             )}
+
+            <PayoutCard
+              saved={data.advisor.payout ?? null}
+              onSaved={(payout) => setData((current) => (current?.advisor ? { ...current, advisor: { ...current.advisor, payout } } : current))}
+            />
           </>
         )}
       </PageBody>
@@ -242,6 +266,93 @@ function Cohort({ cohort }: { cohort: NonNullable<AdvisorDashboard["cohort"]> })
         })}
       </p>
       {cohort.students.length > 0 && <StudentList students={cohort.students} />}
+    </Panel>
+  );
+}
+
+const METHODS: { id: PayoutMethod; key: "payoutYape" | "payoutPlin" | "payoutTransfer" | "payoutPaypal" }[] = [
+  { id: "yape", key: "payoutYape" },
+  { id: "plin", key: "payoutPlin" },
+  { id: "transferencia", key: "payoutTransfer" },
+  { id: "paypal", key: "payoutPaypal" },
+];
+
+/**
+ * Where an affiliate's commissions go. Paid by hand from the admin, which
+ * shows this line beside what is owed.
+ */
+function PayoutCard({
+  saved,
+  onSaved,
+}: {
+  saved: { method: PayoutMethod; account: string; holder: string } | null;
+  onSaved: (payout: { method: PayoutMethod; account: string; holder: string }) => void;
+}) {
+  const t = useThesisT();
+  const [method, setMethod] = useState<PayoutMethod>(saved?.method ?? "yape");
+  const [account, setAccount] = useState(saved?.account ?? "");
+  const [holder, setHolder] = useState(saved?.holder ?? "");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const field = "focus-ring w-full rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream-bright";
+  const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
+
+  const save = async () => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const result = await saveAffiliatePayout({ method, account, holder });
+      onSaved(result.payout);
+      setNotice(t("payoutSaved"));
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Panel className="flex flex-col gap-4 p-6 sm:p-8">
+      <h2 className="text-base font-semibold text-cream-bright">{t("payoutTitle")}</h2>
+      {saved && (
+        <p className="text-sm text-cream-dim">
+          {t("payoutCurrent", { method: t(METHODS.find((entry) => entry.id === saved.method)?.key ?? "payoutYape"), account: saved.account })}
+        </p>
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className={label}>
+          {t("payoutMethod")}
+          <select value={method} onChange={(event) => setMethod(event.target.value as PayoutMethod)} className={field}>
+            {METHODS.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {t(entry.key)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={label}>
+          {t("payoutHolder")}
+          <input value={holder} onChange={(event) => setHolder(event.target.value)} maxLength={120} autoComplete="name" className={field} />
+        </label>
+        <label className={`${label} sm:col-span-2`}>
+          {t("payoutAccount")}
+          <input value={account} onChange={(event) => setAccount(event.target.value)} maxLength={120} className={field} />
+          <span className="font-normal">{t("payoutAccountHint")}</span>
+        </label>
+      </div>
+      {error && (
+        <p role="alert" className="rounded-xl bg-step-soft px-3 py-2 text-sm text-step-text">
+          {error}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <Action tone="neutral" disabled={busy || account.trim().length < 4 || holder.trim().length < 3} onClick={() => void save()}>
+          {t("payoutSave")}
+        </Action>
+        {notice && <span className="text-sm text-grow-text">{notice}</span>}
+      </div>
     </Panel>
   );
 }

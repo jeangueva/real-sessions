@@ -16,7 +16,7 @@ import type { RedisClientType } from "redis";
 
 export class ActionError extends Error {}
 
-export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create"] as const;
+export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create", "lti.register", "commission.void"] as const;
 export type ActionName = (typeof ACTIONS)[number];
 
 const accountKey = (id: string) => `rs:account:${id}`;
@@ -247,12 +247,14 @@ export async function markCommissionsPaid(deps: Deps, rawCode: unknown): Promise
   if (!/^[A-Z0-9]{6}$/.test(code)) throw new ActionError("Ese no es un código de asesor.");
   const total = await inTransaction(deps.pool, async (client) => {
     const updated = await client.query(
+      // Only what is past the seven-day refund window: a sale still inside
+      // it may come back, and its commission waits for the next payout.
       `UPDATE advisor_commissions SET paid_at = now()
-        WHERE advisor_code = $1 AND paid_at IS NULL
+        WHERE advisor_code = $1 AND paid_at IS NULL AND voided_at IS NULL AND created_at <= now() - interval '7 days'
         RETURNING amount, currency`,
       [code],
     );
-    if (updated.rowCount === 0) throw new ActionError(`${code} no tiene comisiones por pagar.`);
+    if (updated.rowCount === 0) throw new ActionError(`${code} no tiene comisiones disponibles (las de los últimos 7 días siguen en espera).`);
     const sum = updated.rows.reduce((acc, row) => acc + Number(row.amount), 0);
     await audit(client, deps.actor, "commission.paid", code, {
       payments: updated.rowCount,
@@ -302,4 +304,95 @@ export async function createInstitution(
     throw new ActionError("No se pudo crear el código. Inténtalo de nuevo.");
   });
   return `${name}: código ${code}. ${seats} cupos, ${credits} sustentaciones por alumno, ${days} días.`;
+}
+
+/**
+ * A university's own platform, connected over LTI 1.3. The four values come
+ * from the platform's tool registration screen (Moodle: Site administration →
+ * Plugins → External tool → Manage tools); the institution code is the cohort
+ * its students join on their first launch.
+ */
+export async function registerLtiPlatform(
+  deps: Deps,
+  input: {
+    issuer?: unknown;
+    clientId?: unknown;
+    deploymentIds?: unknown;
+    authLoginUrl?: unknown;
+    authTokenUrl?: unknown;
+    jwksUrl?: unknown;
+    institutionCode?: unknown;
+  },
+): Promise<string> {
+  const url = (value: unknown, label: string) => {
+    try {
+      const parsed = new URL(String(value ?? "").trim());
+      if (parsed.protocol !== "https:") throw new Error();
+      return parsed.toString().replace(/\/$/, "");
+    } catch {
+      throw new ActionError(`${label} debe ser una URL https.`);
+    }
+  };
+  const issuer = url(input.issuer, "El emisor (issuer)");
+  const clientId = String(input.clientId ?? "").trim();
+  if (clientId.length < 1 || clientId.length > 200) throw new ActionError("Escribe el Client ID que te dio la plataforma.");
+  const deploymentIds = String(input.deploymentIds ?? "")
+    .split(/[\s,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+  const authLoginUrl = url(input.authLoginUrl, "La URL de autenticación");
+  const authTokenUrl = url(input.authTokenUrl, "La URL del token");
+  const jwksUrl = url(input.jwksUrl, "La URL de las claves (JWKS)");
+  const institutionCode = String(input.institutionCode ?? "").trim().toUpperCase() || null;
+  if (institutionCode) {
+    const found = await deps.pool.query(`SELECT 1 FROM institutions WHERE code = $1`, [institutionCode]);
+    if (!found.rows[0]) throw new ActionError(`No hay una institución con el código ${institutionCode}.`);
+  }
+  await inTransaction(deps.pool, async (client) => {
+    await client.query(
+      `INSERT INTO lti_platforms (issuer, client_id, deployment_ids, auth_login_url, auth_token_url, jwks_url, institution_code)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (issuer, client_id) DO UPDATE SET deployment_ids = EXCLUDED.deployment_ids,
+         auth_login_url = EXCLUDED.auth_login_url, auth_token_url = EXCLUDED.auth_token_url,
+         jwks_url = EXCLUDED.jwks_url, institution_code = EXCLUDED.institution_code`,
+      [issuer, clientId, deploymentIds, authLoginUrl, authTokenUrl, jwksUrl, institutionCode],
+    );
+    await audit(client, deps.actor, "lti.register", issuer, { clientId, deploymentIds, institutionCode });
+  });
+  return `Plataforma conectada: ${issuer}${institutionCode ? ` → ${institutionCode}` : ""}.`;
+}
+
+/**
+ * A commission on a refunded sale, taken out of the affiliate's balance.
+ *
+ * By the Mercado Pago payment id, which is what the refund screen shows.
+ * Only an unpaid one: money already sent is settled with the affiliate by
+ * hand, not by rewriting the record. Marked rather than deleted, so the
+ * history still says what happened and why.
+ */
+export async function voidCommission(deps: Deps, input: { paymentId?: unknown; reason?: unknown }): Promise<string> {
+  const paymentId = String(input.paymentId ?? "").trim();
+  if (!/^[A-Za-z0-9:_-]{3,64}$/.test(paymentId)) throw new ActionError("Escribe el ID del pago de Mercado Pago.");
+  const reason = String(input.reason ?? "").trim().slice(0, 300) || "Reembolso";
+  return inTransaction(deps.pool, async (client) => {
+    const found = await client.query(
+      `SELECT advisor_code, amount, currency, paid_at, voided_at FROM advisor_commissions WHERE payment_id = $1 FOR UPDATE`,
+      [paymentId],
+    );
+    const row = found.rows[0];
+    if (!row) throw new ActionError(`El pago ${paymentId} no generó ninguna comisión.`);
+    if (row.voided_at) throw new ActionError(`La comisión del pago ${paymentId} ya estaba anulada.`);
+    if (row.paid_at) {
+      throw new ActionError(`La comisión del pago ${paymentId} ya se pagó a ${row.advisor_code}. Arréglalo directamente con el afiliado.`);
+    }
+    await client.query(`UPDATE advisor_commissions SET voided_at = now(), void_reason = $2 WHERE payment_id = $1`, [paymentId, reason]);
+    await audit(client, deps.actor, "commission.void", String(row.advisor_code), {
+      paymentId,
+      amount: Number(row.amount),
+      currency: row.currency,
+      reason,
+    });
+    return `Comisión anulada: ${row.currency} ${Number(row.amount).toFixed(2)} de ${row.advisor_code} (pago ${paymentId}).`;
+  });
 }

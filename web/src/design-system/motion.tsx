@@ -15,7 +15,8 @@ import type { ReactNode } from "react";
 export const CINEMATIC = [0.16, 1, 0.3, 1] as const;
 /** The UI ease-out — the same curve as `ease-press` and `--ease-out`. */
 export const EASE_OUT = [0.23, 1, 0.32, 1] as const;
-const WORD_STAGGER = 0.08;
+// 50ms a word: a ten-word headline is whole in about a second.
+const WORD_STAGGER = 0.05;
 
 /** One text segment with its own styling, for mixed-weight headlines. */
 export interface StyledSegment {
@@ -86,15 +87,18 @@ export function WordsPullUp({
           className={`inline-block ${item.className}`}
           // `transform` strings, not `y`: Motion's shorthands run on the main
           // thread, and these play while the hero video is still loading.
-          initial={{ opacity: 0, transform: "translateY(20px)" }}
+          // A short rise out of a light blur: the blur hides the frames where
+          // a word is half there, so each one reads as arriving, not sliding.
+          initial={{ opacity: 0, transform: "translateY(12px)", filter: "blur(6px)" }}
           animate={{
             opacity: inView ? 1 : 0,
-            transform: inView ? "translateY(0px)" : "translateY(20px)",
-            // No transform left behind once visible — see FadeRise.
-            ...(inView ? { transitionEnd: { transform: "none" } } : {}),
+            transform: inView ? "translateY(0px)" : "translateY(12px)",
+            filter: inView ? "blur(0px)" : "blur(6px)",
+            // No transform or filter left behind once visible — see FadeRise.
+            ...(inView ? { transitionEnd: { transform: "none", filter: "none" } } : {}),
           }}
           transition={{
-            duration: 0.7,
+            duration: 0.6,
             delay: delay + index * WORD_STAGGER,
             ease: CINEMATIC,
           }}
@@ -128,18 +132,20 @@ export function FadeRise({
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, transform: "translateY(24px)" }}
+      // 16px over 0.6s: enough travel to read as arrival, short enough that a
+      // block scrolled into view is readable before the reader looks for it.
+      initial={{ opacity: 0, transform: "translateY(16px)" }}
       // Animating to an explicit visible state either way: passing `undefined`
       // leaves the element parked at `initial`, so anything whose entrance
       // never fires stays invisible rather than merely un-animated.
       animate={{
         opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0px)" : "translateY(24px)",
+        transform: inView ? "translateY(0px)" : "translateY(16px)",
         // A resting transform would make this block the containing block for
         // anything `position: fixed` inside it, so it is cleared on arrival.
         ...(inView ? { transitionEnd: { transform: "none" } } : {}),
       }}
-      transition={{ duration: 0.8, delay, ease: CINEMATIC }}
+      transition={{ duration: 0.6, delay, ease: CINEMATIC }}
     >
       {children}
     </motion.div>

@@ -79,7 +79,7 @@ export function ThesisStudy({ thesis, onChange }: { thesis: StoredThesis; onChan
           <button
             type="button"
             onClick={() => window.print()}
-            className="focus-ring ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3.5 py-1.5 text-sm font-semibold text-cream-bright shadow-card"
+            className="focus-ring ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3.5 py-1.5 text-sm font-semibold text-cream-bright shadow-card transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:shadow-lift"
           >
             <FileDown aria-hidden className="h-4 w-4" />
             {t("sheetPrint")}
@@ -184,7 +184,7 @@ function Cards({ cards }: { cards: NonNullable<StoredThesis["study"]>["cards"] }
         </span>
       </button>
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={() => move(index - 1)} className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright">
+        <button type="button" onClick={() => move(index - 1)} className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:bg-cream/15">
           {t("cardPrev")}
         </button>
         <button
@@ -194,12 +194,12 @@ function Cards({ cards }: { cards: NonNullable<StoredThesis["study"]>["cards"] }
             setIndex(0);
             setFlipped(false);
           }}
-          className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-cream-dim"
+          className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-cream-dim transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:text-cream-bright"
         >
           <Shuffle aria-hidden className="h-4 w-4" />
           {t("cardShuffle")}
         </button>
-        <button type="button" onClick={() => move(index + 1)} className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright">
+        <button type="button" onClick={() => move(index + 1)} className="focus-ring rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:bg-cream/15">
           {t("cardNext")}
         </button>
       </div>

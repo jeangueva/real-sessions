@@ -538,3 +538,61 @@ CREATE TABLE IF NOT EXISTS session_presence (
   presence   JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- What the paid defence keeps beside the thesis: the real jury the student
+-- named, the reviewers' observations read against the pages, the request for
+-- a session with a real teacher, and the token of the link that lets someone
+-- else pay. All of it goes with the row when the thesis is deleted.
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS jury JSONB;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS observations JSONB;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS mentor JSONB;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS gift_token TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS theses_gift_token_idx ON theses (gift_token);
+
+-- LTI 1.3: a university's own platform (Moodle, Canvas, Blackboard,
+-- Brightspace), registered by hand from the admin. Its students launch Mockio
+-- from their course and join the institution's cohort.
+CREATE TABLE IF NOT EXISTS lti_platforms (
+  id               SERIAL PRIMARY KEY,
+  issuer           TEXT NOT NULL,
+  client_id        TEXT NOT NULL,
+  deployment_ids   TEXT[] NOT NULL DEFAULT '{}',
+  auth_login_url   TEXT NOT NULL,
+  auth_token_url   TEXT NOT NULL,
+  jwks_url         TEXT NOT NULL,
+  institution_code TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (issuer, client_id)
+);
+-- Who a platform's user is here, and where their grade goes.
+CREATE TABLE IF NOT EXISTS lti_users (
+  platform_id INTEGER NOT NULL,
+  sub         TEXT NOT NULL,
+  account_id  TEXT NOT NULL,
+  lineitem    TEXT,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (platform_id, sub)
+);
+CREATE INDEX IF NOT EXISTS lti_users_account_idx ON lti_users (account_id, updated_at);
+
+-- Universities and institutes asking to talk: the B2B form.
+CREATE TABLE IF NOT EXISTS b2b_leads (
+  id          BIGSERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  institution TEXT NOT NULL,
+  role        TEXT,
+  country     TEXT,
+  students    INTEGER,
+  platform    TEXT,
+  message     TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- How an affiliate wants to be paid: Yape, Plin, a bank transfer or PayPal.
+ALTER TABLE advisors ADD COLUMN IF NOT EXISTS payout JSONB;
+
+-- A commission on a sale that was refunded: voided from the admin, kept for
+-- the record, and left out of every balance.
+ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ;
+ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS void_reason TEXT;

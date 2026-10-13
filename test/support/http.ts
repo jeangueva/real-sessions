@@ -37,7 +37,9 @@ import { issueToken } from "../../src/auth.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
 import type { EmailMessage, EmailSender } from "../../src/email.js";
 import type { ModelProvider } from "../../src/providers/index.js";
-import { SAMPLE_EVALUATION } from "../fixtures.js";
+import { SAMPLE_EVALUATION } from "../fixtures.js";import { createLtiStore, type LtiStore } from "../../src/lti.js";
+import type { JsonWebKey } from "node:crypto";
+
 
 const USAGE = {
   inputTokens: 0,
@@ -145,6 +147,10 @@ export interface Harness {
   accounts: AccountStore;
   /** Puts the current identity on premium. Requires an identity already. */
   makePremium(): Promise<void>;
+  /** The connected university platforms, for arranging an LTI launch. */
+  lti: LtiStore;
+  /** The key sets the platforms "publish", read by the launch. */
+  ltiKeys: Map<string, { keys: JsonWebKey[] }>;
   mailer: StubMailer;
   /** fetch with the cookie jar attached, so an identity persists across calls. */
   call(path: string, init?: RequestInit): Promise<Response>;
@@ -183,6 +189,8 @@ export async function startHarness(): Promise<Harness> {
   const contributions = createContributionStore(null);
   const plans = createEntitlementStore(null);
   const accounts = createAccountStore(null);
+  const lti = createLtiStore(null);
+  const ltiKeys = new Map<string, { keys: JsonWebKey[] }>();
 
   // Wrapped so a test can pull the database out from under a request.
   const realProgress = createProgressStore(null);
@@ -212,6 +220,8 @@ export async function startHarness(): Promise<Harness> {
     mailer,
     limiter: new MemoryRateLimiter(),
     provider,
+    lti,
+    ltiJwks: async (url: string) => ltiKeys.get(url) ?? { keys: [] },
     /**
      * Stands in for Google.
      *
@@ -279,6 +289,8 @@ export async function startHarness(): Promise<Harness> {
     contributions,
     plans,
     accounts,
+    lti,
+    ltiKeys,
     call,
     async json(path, init) {
       const response = await call(path, init);
