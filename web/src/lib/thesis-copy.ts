@@ -243,6 +243,10 @@ const ES = {
   uploadBody:
     "PDF (también escaneado), Word o una foto, hasta 300 páginas. La leemos página por página y te mostramos por dónde te va a atacar el jurado.",
   uploadCta: "Elegir archivo",
+  discOpen: "Ver",
+  discClose: "Cerrar",
+  juryOpen: "Completar",
+  juryEdit: "Editar",
   nextTitle: "Tu próximo ensayo",
   settingsNoUniversity: "sin universidad",
   panelLocked: "Con un plan",
@@ -685,6 +689,10 @@ const PT: Record<Key, string> = {
   uploadBody:
     "PDF (também escaneado), Word ou uma foto, até 300 páginas. Lemos página por página e mostramos onde a banca vai pressionar.",
   uploadCta: "Escolher arquivo",
+  discOpen: "Ver",
+  discClose: "Fechar",
+  juryOpen: "Preencher",
+  juryEdit: "Editar",
   nextTitle: "Seu próximo ensaio",
   settingsNoUniversity: "sem universidade",
   panelLocked: "Com um plano",
@@ -1124,6 +1132,10 @@ const EN: Record<Key, string> = {
   uploadBody:
     "PDF (scanned is fine), Word or a photo, up to 300 pages. We read it page by page and show you where the panel will press.",
   uploadCta: "Choose file",
+  discOpen: "Show",
+  discClose: "Close",
+  juryOpen: "Fill in",
+  juryEdit: "Edit",
   nextTitle: "Your next rehearsal",
   settingsNoUniversity: "no university",
   panelLocked: "With a plan",

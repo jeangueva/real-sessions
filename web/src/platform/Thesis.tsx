@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
-import { Action, Panel } from "@/design-system";
+import { Action, Panel, DisclosureMark } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
 import type { DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
@@ -361,6 +361,7 @@ function Diagnosis({
                         <span className="line-clamp-2 group-open:line-clamp-none">{risk.issue}</span>
                       </span>
                       <PageRef page={risk.page} />
+                      <DisclosureMark className="-my-1" />
                     </summary>
                     <p className="mx-3.5 mb-3.5 flex gap-2 rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream">
                       <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" />
@@ -387,8 +388,11 @@ function Diagnosis({
                         <span className="min-w-0 text-sm text-cream-bright">
                           <span className="line-clamp-1 group-open:line-clamp-none">{row.objective}</span>
                         </span>
-                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS[row.status].tone}`}>
-                          {t(STATUS[row.status].key)}
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS[row.status].tone}`}>
+                            {t(STATUS[row.status].key)}
+                          </span>
+                          <DisclosureMark className="-my-1" />
                         </span>
                       </summary>
                       <div className="flex flex-col gap-2 px-3.5 pb-3.5">
@@ -497,8 +501,9 @@ function Ficha({ analysis }: { analysis: ThesisAnalysis }) {
   ];
   return (
     <details className="group rounded-3xl bg-surface-card p-5 shadow-card sm:p-6">
-      <summary className="focus-ring cursor-pointer list-none rounded-xl text-base font-semibold text-cream-bright">
+      <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl text-base font-semibold text-cream-bright">
         {t("fichaTitle")}
+        <DisclosureMark label={t("discOpen")} openLabel={t("discClose")} />
       </summary>
       <dl className="mt-4 flex flex-col gap-4">
         {rows.map(([label, value]) => {
@@ -850,9 +855,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         >
           <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-cream-bright">
             {t("settingsToggle")}
-            <span aria-hidden className="text-cream-dim transition-transform duration-200 ease-press group-open:rotate-180">
-              ⌄
-            </span>
+            <DisclosureMark label={t("discOpen")} openLabel={t("discClose")} className="bg-surface-card" />
           </summary>
           <div className="flex flex-col gap-3 px-4 pb-4">
             <div className="grid grid-cols-2 gap-3">
@@ -1036,10 +1039,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
                 </span>
               )}
             </span>
-            <span className="rounded-full bg-surface-lift px-3.5 py-1.5 text-sm font-semibold text-cream-bright transition-colors group-open:bg-cream/15">
-              <span className="group-open:hidden">{t("plansShow")}</span>
-              <span className="hidden group-open:inline">{t("plansHide")}</span>
-            </span>
+            <DisclosureMark label={t("plansShow")} openLabel={t("plansHide")} />
           </summary>
           <div className="flex flex-col gap-3 px-5 pb-5 sm:px-7 sm:pb-6">
             <div className="grid gap-2 sm:grid-cols-3">

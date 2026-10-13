@@ -40,3 +40,4 @@ export { SpotlightBorder } from "./spotlight-border";
 export { AnimatedCounter } from "./animated-counter";
 export { DecryptedText } from "./decrypted-text";
 export { Magnetic } from "./magnetic";
+export { DisclosureMark } from "./disclosure";

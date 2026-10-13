@@ -9,11 +9,11 @@ import {
   Panel,
   RadarChart,
   TrendChart,
+  DisclosureMark,
 } from "@/design-system";
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Avatar, PopIn } from "@/design-system";
-import { ChevronDown } from "lucide-react";
 import { TIER_COUNT, dominantAxis, nextEvolution } from "@/lib/avatar";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
@@ -383,7 +383,7 @@ export function Progress() {
                 <span className="block text-base font-semibold text-cream-bright">{t("progress.charts")}</span>
                 <span className="mt-0.5 block text-sm text-cream-dim">{t("progress.chartsHint")}</span>
               </span>
-              <ChevronDown aria-hidden className="h-5 w-5 shrink-0 text-cream-dim transition-transform duration-200 ease-press group-open:rotate-180" />
+              <DisclosureMark />
             </summary>
             <div className="border-t border-line p-4 sm:p-6">
         <div className="grid gap-4 xl:grid-cols-3">

@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Action, AnimatedCounter, DotMatrix, FadeRise, Meter, Panel, PopIn, PremiumMark, ScoreRing } from "@/design-system";
+import { Action, AnimatedCounter, DotMatrix, FadeRise, Meter, Panel, PopIn, PremiumMark, ScoreRing, DisclosureMark } from "@/design-system";
 import { EASE_OUT } from "@/design-system/motion";
-import { ArrowUpRight, Check, ChevronDown, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
+import { ArrowUpRight, Check, Image as ImageIcon, Link2, Share2, Sparkles, Target } from "lucide-react";
 import { PageBody, PageHeader } from "./AppShell";
 import { AnswerByAnswer } from "./AnswerByAnswer";
 import { ActaCard } from "./ActaCard";
@@ -776,7 +776,7 @@ function FeedbackBody({
                 <span className="block text-base font-semibold text-cream-bright">{t("feedback.advanced")}</span>
                 <span className="mt-0.5 block text-sm text-cream-dim">{t("feedback.advancedHint")}</span>
               </span>
-              <ChevronDown aria-hidden className="h-5 w-5 shrink-0 text-cream-dim transition-transform duration-200 ease-press group-open:rotate-180" />
+              <DisclosureMark />
             </summary>
             <div className="flex flex-col gap-6 border-t border-line p-6 sm:p-8">
               <div className="grid gap-4 sm:grid-cols-2">

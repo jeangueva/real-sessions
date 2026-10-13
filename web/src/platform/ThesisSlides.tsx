@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Loader2, Presentation, Trash2, Upload } from "lucide-react";
-import { Eyebrow, Panel } from "@/design-system";
+import { Eyebrow, Panel, DisclosureMark } from "@/design-system";
 import { ApiError, deleteSlides, uploadSlides } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
@@ -189,8 +189,9 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
           </section>
 
           <details className="rounded-2xl bg-surface-card p-4 shadow-card">
-            <summary className="focus-ring cursor-pointer list-none rounded-xl text-sm font-semibold text-cream-bright">
+            <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl text-sm font-semibold text-cream-bright">
               {t("script")}
+              <DisclosureMark />
             </summary>
             <ol className="mt-3 flex flex-col gap-3">
               {review.script.map((entry) => (

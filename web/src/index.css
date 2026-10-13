@@ -493,6 +493,32 @@
  */
 /* The readiness report prints alone: everything else on the page steps out
    while it is on paper. */
+/* Disclosures: the mark at a summary's edge turns over when its own
+   <details> opens, and its words swap. Direct-child selectors, so a closed
+   disclosure inside an open one is not turned with it. The summary lights on
+   hover like any other control, which is what tells it from a card. */
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details > summary .disclosure-mark {
+  transition: transform 200ms var(--ease-out);
+}
+details[open] > summary .disclosure-mark {
+  transform: rotate(180deg);
+}
+details > summary .disclosure-when-open,
+details[open] > summary .disclosure-when-closed {
+  display: none;
+}
+details[open] > summary .disclosure-when-open {
+  display: inline;
+}
+@media (hover: hover) and (pointer: fine) {
+  details > summary:hover .disclosure-pill {
+    background-color: rgb(var(--cream) / 0.14);
+  }
+}
+
 @media print {
   html.print-report body > *:not(.print-report-root) {
     display: none !important;

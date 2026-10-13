@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ChevronDown, RotateCcw, Sparkles } from "lucide-react";
-import { Action, FadeRise, Panel, ScoreRing } from "@/design-system";
+import { ArrowLeft, ArrowRight, RotateCcw, Sparkles } from "lucide-react";
+import { Action, FadeRise, Panel, ScoreRing, DisclosureMark } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, fetchHistoryEntry } from "@/lib/api";
 import { companyName, formatSessionDate } from "@/lib/format";
@@ -137,7 +137,7 @@ export function InterviewDetail() {
             <details className="group rounded-card bg-surface-card shadow-card">
               <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 rounded-card p-5 sm:px-6">
                 <span className="text-base font-semibold text-cream-bright">{t("detail.conversation")}</span>
-                <ChevronDown aria-hidden className="h-5 w-5 text-cream-dim transition-transform duration-200 group-open:rotate-180" />
+                <DisclosureMark />
               </summary>
               <ol className="flex flex-col gap-4 border-t border-line p-5 sm:p-6">
                 {entry.turns.map((turn) => (

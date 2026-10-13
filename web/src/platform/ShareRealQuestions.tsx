@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MessageSquareQuote } from "lucide-react";
-import { Panel } from "@/design-system";
+import { Panel, DisclosureMark } from "@/design-system";
 import { ApiError, shareRealQuestions } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 
@@ -42,7 +42,8 @@ export function ShareRealQuestions({ country }: { country: string }) {
     <details className="rounded-3xl bg-surface-card p-5 shadow-card sm:p-6">
       <summary className="focus-ring flex cursor-pointer list-none items-center gap-2 rounded-xl text-base font-semibold text-cream-bright">
         <MessageSquareQuote aria-hidden className="h-5 w-5 text-accent-text" />
-        {t("shareTitle")}
+        <span className="flex-1">{t("shareTitle")}</span>
+        <DisclosureMark />
       </summary>
       <Panel className="mt-4 flex flex-col gap-3 bg-transparent p-0 shadow-none">
         <p className="text-sm text-cream-dim">{t("shareBody")}</p>
