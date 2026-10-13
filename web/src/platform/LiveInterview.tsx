@@ -4,7 +4,7 @@ import { Lightbulb, Zap } from "lucide-react";
 import { Action, Badge, Panel, Waveform } from "@/design-system";
 import { useVoice } from "@/hooks/useVoice";
 import { PageBody, PageHeader } from "./AppShell";
-import {
+import { uploadPresence,
   ApiError,
   requestCoaching,
   sendAnswerStream,
@@ -19,6 +19,7 @@ import type {
 } from "@/lib/api";
 import { JURORS, NEUTRAL_VOICE, showJurors, type JurorTag } from "@/lib/voice";
 import { useThesisT } from "@/lib/thesis-copy";
+import { useFrameSampler } from "@/hooks/useFrameSampler";
 import { DefenseClock } from "./DefenseClock";
 import { useCamera, useScreenShare } from "@/hooks/useMediaStream";
 import { CallControls } from "./CallControls";
@@ -221,6 +222,9 @@ export function LiveInterview() {
   const [releaseHeld, setReleaseHeld] = useState(false);
 
   const camera = useCamera();
+  /** Still frames for the presence reading, only while the camera is on. */
+  const sampler = useFrameSampler(camera.stream);
+  const presenceSent = useRef(false);
   const screen = useScreenShare();
 
   const voice = useVoice({
@@ -492,6 +496,14 @@ export function LiveInterview() {
 
   const showCoaching = mode === "practice";
   const finished = Boolean(turn?.isComplete);
+  // At the end, the frames go once to be read, while the report is written.
+  useEffect(() => {
+    if (!finished || !sessionId || presenceSent.current) return;
+    const frames = sampler.take();
+    if (frames.length < 2) return;
+    presenceSent.current = true;
+    void uploadPresence(sessionId, frames, locale).catch(() => undefined);
+  }, [finished, sessionId, sampler, locale]);
   /**
    * Whether there is enough said to write a report about.
    *
@@ -686,7 +698,7 @@ export function LiveInterview() {
                   withArrow
                   className="self-start"
                   onClick={() =>
-                    navigate("/app/feedback", { state: { sessionId, ...reportLabel() } })
+                    navigate("/app/feedback", { state: { sessionId, presence: presenceSent.current, ...reportLabel() } })
                   }
                 >
                   {t("call.seeFeedback")}

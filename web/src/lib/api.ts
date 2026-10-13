@@ -1620,3 +1620,32 @@ export function unlinkAdvisor() {
 export function prepareStudy() {
   return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/study", { method: "POST" }));
 }
+
+/* ------------------------------------------------------------------------- */
+/* Camera presence                                                           */
+/* ------------------------------------------------------------------------- */
+
+export interface Presence {
+  eye_contact: number;
+  posture: number;
+  expression: number;
+  framing: number;
+  summary: string;
+  tips: string[];
+}
+
+export function uploadPresence(sessionId: string, frames: string[], readerLanguage: string) {
+  return withIdentity(() =>
+    request<{ presence: Presence }>(`/api/sessions/${encodeURIComponent(sessionId)}/presence`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ frames, readerLanguage }),
+    }),
+  );
+}
+
+export function fetchPresence(sessionId: string) {
+  return withIdentity(() =>
+    request<{ presence: Presence | null }>(`/api/sessions/${encodeURIComponent(sessionId)}/presence`, { method: "GET" }),
+  );
+}

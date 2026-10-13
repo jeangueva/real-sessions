@@ -529,3 +529,12 @@ CREATE TABLE IF NOT EXISTS institution_members (
   joined_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS institution_members_code_idx ON institution_members (code, joined_at);
+
+-- Camera presence for a session: the reading of a few still frames. The
+-- frames themselves are never stored.
+CREATE TABLE IF NOT EXISTS session_presence (
+  session_id TEXT PRIMARY KEY,
+  owner_id   TEXT NOT NULL,
+  presence   JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

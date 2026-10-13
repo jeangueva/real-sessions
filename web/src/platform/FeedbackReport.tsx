@@ -9,6 +9,7 @@ import { PageBody, PageHeader } from "./AppShell";
 import { AnswerByAnswer } from "./AnswerByAnswer";
 import { ActaCard } from "./ActaCard";
 import { NervesCard } from "./NervesCard";
+import { PresenceCard } from "./PresenceCard";
 import { FirstLanguageErrors } from "./FirstLanguageErrors";
 import { CorrectionSteps } from "./CorrectionSteps";
 import { LevelUp, levelForXp } from "./LevelUp";
@@ -47,6 +48,8 @@ interface FeedbackState {
   company?: string;
   role?: string;
   stage?: string;
+  /** The session just sent camera frames; wait a moment for the reading. */
+  presence?: boolean;
 }
 
 /**
@@ -198,6 +201,7 @@ export function FeedbackReport() {
       {levelUp && <LevelUp level={levelUp.level} previous={levelUp.previous} onClose={() => setLevelUp(null)} />}
     </AnimatePresence>
     <FeedbackBody
+      presence={(historyId ?? sessionId) ? { sessionId: (historyId ?? sessionId)!, wait: Boolean(state?.presence) } : null}
       evaluation={evaluation}
       meta={meta}
       metrics={metrics}
@@ -487,7 +491,10 @@ function FeedbackBody({
   xp,
   earned,
   share,
+  presence,
 }: {
+  /** Which session's camera reading to show, and whether to wait for it. */
+  presence: { sessionId: string; wait: boolean } | null;
   evaluation: Evaluation;
   meta: string;
   metrics: SessionMetrics | null;
@@ -546,6 +553,11 @@ function FeedbackBody({
         )}
         {/* Not shown when the student asked that fluency not count: a
             reading of their "nerves" from pauses would say the opposite. */}
+        {presence && (
+          <FadeRise delay={0.06}>
+            <PresenceCard sessionId={presence.sessionId} wait={presence.wait} />
+          </FadeRise>
+        )}
         {evaluation.acta && metrics && !evaluation.acta.fluency_neutral && (
           <FadeRise delay={0.05}>
             <NervesCard metrics={metrics} />

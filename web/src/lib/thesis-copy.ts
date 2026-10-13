@@ -10,6 +10,12 @@ import { useLocale } from "@/hooks/useLocale";
  * those formats. Any other interface language reads these screens in English.
  */
 const ES = {
+  presenceTitle: "Tu presencia en cámara",
+  presenceEye: "Contacto visual",
+  presencePosture: "Postura",
+  presenceExpression: "Expresión",
+  presenceFraming: "Encuadre y luz",
+  presenceNote: "Leído de algunas imágenes fijas de tu cámara, que no se guardan.",
   sponsoredBy: "cortesía de {name}",
   advisorCodeOrSchool: "Código del asesor o de tu institución",
   institutionMember: "Perteneces a {name}: tus ensayos están incluidos y tu institución ve tu avance.",
@@ -275,6 +281,12 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  presenceTitle: "Sua presença na câmera",
+  presenceEye: "Contato visual",
+  presencePosture: "Postura",
+  presenceExpression: "Expressão",
+  presenceFraming: "Enquadramento e luz",
+  presenceNote: "Lido de algumas imagens fixas da sua câmera, que não são guardadas.",
   sponsoredBy: "cortesia de {name}",
   advisorCodeOrSchool: "Código do orientador ou da sua instituição",
   institutionMember: "Você faz parte de {name}: seus ensaios estão incluídos e sua instituição vê seu progresso.",
@@ -538,6 +550,12 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  presenceTitle: "Your presence on camera",
+  presenceEye: "Eye contact",
+  presencePosture: "Posture",
+  presenceExpression: "Expression",
+  presenceFraming: "Framing and light",
+  presenceNote: "Read from a few still images from your camera, which are not kept.",
   sponsoredBy: "courtesy of {name}",
   advisorCodeOrSchool: "Advisor or school code",
   institutionMember: "You belong to {name}: your rehearsals are included and your school sees your progress.",

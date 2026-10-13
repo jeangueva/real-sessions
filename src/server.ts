@@ -197,6 +197,7 @@ import {
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
+import { createPresenceStore, MAX_FRAME_CHARS, MAX_FRAMES, readPresence, type PresenceStore } from "./presence.js";
 import { createInstitutionStore, seatHeld, type InstitutionStore } from "./institutions.js";
 import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore } from "./advisors.js";
 import { googleTtsConfigured, googleVoiceFor, synthesizeGoogle } from "./voice/google-tts.js";
@@ -534,6 +535,7 @@ let PACKS: DefensePackStore;
 let REAL_QUESTIONS: DefenseQuestionStore;
 let ADVISORS: AdvisorStore;
 let INSTITUTIONS: InstitutionStore;
+let PRESENCE: PresenceStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
 let LIFECYCLE: LifecycleStore;
@@ -569,6 +571,7 @@ export interface ServerDependencies {
   realQuestions?: DefenseQuestionStore;
   advisors?: AdvisorStore;
   institutions?: InstitutionStore;
+  presence?: PresenceStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
   lifecycle: LifecycleStore;
@@ -605,6 +608,7 @@ export function configure(deps: ServerDependencies): void {
   REAL_QUESTIONS = deps.realQuestions ?? createDefenseQuestionStore(null);
   ADVISORS = deps.advisors ?? createAdvisorStore(null);
   INSTITUTIONS = deps.institutions ?? createInstitutionStore(null);
+  PRESENCE = deps.presence ?? createPresenceStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
   LIFECYCLE = deps.lifecycle;
@@ -2568,6 +2572,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await recordQuietly(PACKS.eraseOwner(identity.id));
     await recordQuietly(ADVISORS.eraseOwner(identity.id));
     await recordQuietly(INSTITUTIONS.eraseOwner(identity.id));
+    await recordQuietly(PRESENCE.eraseOwner(identity.id));
     await recordQuietly(PLANS.eraseOwner(identity.id));
     await recordQuietly(SUBSCRIPTIONS.eraseOwner(identity.id));
     await recordQuietly(USERS.eraseOwner(identity.id));
@@ -3336,6 +3341,33 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await ADVISORS.unlink(identity.id);
     json(res, 200, { link: null });
     return;
+  }
+
+  /**
+   * Camera presence: a few still frames in, a reading out. The frames are
+   * read and dropped; only the reading is kept, against the session.
+   */
+  const presenceMatch = path.match(/^\/api\/sessions\/([^/]+)\/presence$/);
+  if (presenceMatch) {
+    const sessionId = presenceMatch[1]!;
+    if (req.method === "GET") {
+      return json(res, 200, { presence: await readQuietly(PRESENCE.get(identity.id, sessionId), null) });
+    }
+    if (req.method === "POST") {
+      if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+      const owned = await readQuietly(PROGRESS.getSession(identity.id, sessionId), null);
+      if (!owned) return json(res, 404, { error: "That session is not yours." });
+      const body = JSON.parse((await readRaw(req, (MAX_FRAMES + 1) * MAX_FRAME_CHARS)) || "{}") as Record<string, unknown>;
+      const frames = (Array.isArray(body["frames"]) ? body["frames"] : [])
+        .filter((frame): frame is string => typeof frame === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(frame))
+        .filter((frame) => frame.length <= MAX_FRAME_CHARS)
+        .slice(0, MAX_FRAMES);
+      if (frames.length < 2) return json(res, 400, { error: "Not enough frames to judge presence." });
+      const language = typeof body["readerLanguage"] === "string" ? body["readerLanguage"].slice(0, 20) : "English";
+      const presence = await readPresence(frames, language, PROVIDER ? { provider: PROVIDER } : {});
+      await PRESENCE.put(identity.id, sessionId, presence);
+      return json(res, 201, { presence });
+    }
   }
 
   if (req.method === "GET" && path === "/api/context") {
@@ -4493,6 +4525,7 @@ configure({
   realQuestions: createDefenseQuestionStore(db),
   advisors: createAdvisorStore(db),
   institutions: createInstitutionStore(db),
+  presence: createPresenceStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),
   lifecycle: createLifecycleStore(db),
