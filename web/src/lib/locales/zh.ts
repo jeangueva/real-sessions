@@ -132,6 +132,8 @@ const ZH: Record<MessageKey, string> = {
   "feedback.words": "词数",
   "feedback.fillers": "填充词",
   "feedback.fillerUnit": "/ 100 词",
+  "nav.interviews": "面试",
+  "nav.interviewsShort": "面试",
   "nav.advisor": "导师专区",
   "nav.thesis": "我的论文",
   "nav.thesisShort": "论文",

@@ -132,6 +132,8 @@ const KO: Record<MessageKey, string> = {
   "feedback.words": "단어 수",
   "feedback.fillers": "군더더기 말",
   "feedback.fillerUnit": "/ 100단어",
+  "nav.interviews": "면접",
+  "nav.interviewsShort": "면접",
   "nav.advisor": "지도교수용",
   "nav.thesis": "내 논문",
   "nav.thesisShort": "논문",

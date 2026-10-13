@@ -508,6 +508,8 @@ export function startSessionStream(
   material?: string;
   members?: string[];
   fluencyNeutral?: boolean;
+  /** A thesis defence: which one, by degree. */
+  scenario?: "proyecto" | "bachiller" | "titulo" | "suficiencia" | "maestria" | "doctorado";
   },
   handlers: {
     onDelta: (text: string) => void;

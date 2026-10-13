@@ -190,7 +190,7 @@ export function Progress() {
             <p className="text-sm text-cream-dim">
               {t("progress.empty")}
             </p>
-            <Link to="/app" className="self-start">
+            <Link to="/app/practice" className="self-start">
               <Action withArrow>{t("cta.startInterview")}</Action>
             </Link>
           </Panel>

@@ -91,7 +91,7 @@ export function SessionList() {
       {!error && sessions?.length === 0 && (
         <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6">
           <p className="text-sm text-cream-dim">{t("history.emptyBody")}</p>
-          <Link to="/app">
+          <Link to="/app/practice">
             <Action withArrow className="self-start">
               {t("cta.startInterview")}
             </Action>
@@ -166,7 +166,7 @@ export function SessionList() {
                         </Link>
                       )}
                       <Link
-                        to="/app"
+                        to="/app/practice"
                         state={{ repeatId: session.id }}
                         aria-label={`${t("history.repeat")}: ${session.company} · ${session.role}`}
                         className="focus-ring inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-accent-text transition-[background-color,transform] duration-150 ease-press hover:bg-accent-soft active:scale-[0.97]"

@@ -7,6 +7,7 @@ import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis
 import type { DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { SCENARIO_OPTIONS, scenarioForDegree, type DefenseScenario } from "@/lib/defense-scenarios";
 import { ThesisSlides } from "./ThesisSlides";
 import { ThesisStudy } from "./ThesisStudy";
 import { DefenseDate } from "./DefenseDate";
@@ -409,6 +410,12 @@ const DIFFICULTY_LABEL = {
   exigente: "diffExigente",
   hostil: "diffHostil",
 } as const;
+const DIFFICULTY_HINT = {
+  calentamiento: "diffCalentamientoHint",
+  estandar: "diffEstandarHint",
+  exigente: "diffExigenteHint",
+  hostil: "diffHostilHint",
+} as const;
 
 /**
  * Where the rehearsal starts: the university, how hard, and which panel.
@@ -459,6 +466,9 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     }
   });
   const [difficulty, setDifficulty] = useState<Difficulty>("estandar");
+  /** Which defence, by degree: from the cover, then the student's own choice. */
+  const [scenario, setScenario] = useState<DefenseScenario>(() => scenarioForDegree(thesis.analysis.degree));
+  const shape = SCENARIO_OPTIONS[scenario];
   const [full, setFull] = useState(false);
   /** Verified questions from real juries at the university typed above. */
   const [realCount, setRealCount] = useState(0);
@@ -573,6 +583,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         defense: {
           university: place || (language === "pt" ? "a universidade" : "la universidad"),
           difficulty,
+          scenario,
           country,
           ...(format ? { jurors: format.jurors } : {}),
           focus,
@@ -593,6 +604,70 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   return (
     <Panel variant="raised" className="flex flex-col gap-4 p-5 sm:p-6">
       {progress.length > 0 && <ProgressStrip points={progress} />}
+
+      {/* The two choices that shape the jury most, first and in full view:
+          which defence this is, and how hard the panel is. */}
+      <div className="flex flex-col gap-3">
+        <label className={label}>
+          {t("scenario")}
+          <select
+            value={scenario}
+            onChange={(event) => setScenario(event.target.value as DefenseScenario)}
+            className={`${select} text-base font-semibold`}
+          >
+            {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((entry) => (
+              <option key={entry} value={entry}>
+                {t(SCENARIO_OPTIONS[entry].label)}
+              </option>
+            ))}
+          </select>
+          <span className="font-normal text-cream-dim">
+            {t(shape.hint)}{" "}
+            <span className="text-cream-faint">
+              ·{" "}
+              {full || focus !== "completa"
+                ? t("scenarioShape", { minutes: shape.exposition, questions: shape.questions })
+                : t("scenarioShapeExpress")}
+            </span>
+          </span>
+        </label>
+        <div className={label} role="group" aria-label={t("level")}>
+          {t("level")}
+          <div className="grid grid-cols-4 gap-1 rounded-xl bg-surface-lift p-1">
+            {(Object.keys(DIFFICULTY_LABEL) as Difficulty[]).map((entry, index) => (
+              <button
+                key={entry}
+                type="button"
+                aria-pressed={difficulty === entry}
+                onClick={() => setDifficulty(entry)}
+                className={`focus-ring flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+                  difficulty === entry ? "bg-surface-card text-cream-bright shadow-card" : "text-cream-dim hover:text-cream"
+                }`}
+              >
+                {/* Four bars, filled to the level: readable before the word is. */}
+                <span aria-hidden className="flex items-end gap-0.5">
+                  {[0, 1, 2, 3].map((bar) => (
+                    <span
+                      key={bar}
+                      className={`w-1 rounded-sm ${bar <= index ? (index === 3 ? "bg-rose-400" : "bg-grow-text") : "bg-cream-faint/30"}`}
+                      style={{ height: `${6 + bar * 3}px` }}
+                    />
+                  ))}
+                </span>
+                {entry === "calentamiento" ? (
+                  <>
+                    <span className="sm:hidden">{t("diffCalentamientoShort")}</span>
+                    <span className="hidden sm:inline">{t(DIFFICULTY_LABEL[entry])}</span>
+                  </>
+                ) : (
+                  t(DIFFICULTY_LABEL[entry])
+                )}
+              </button>
+            ))}
+          </div>
+          <span className="font-normal text-cream-dim">{t(DIFFICULTY_HINT[difficulty])}</span>
+        </div>
+      </div>
       {/* Where and how — one compact grid instead of a column of chip rows,
           so the whole form and its button fit on one screen. */}
       <div className="grid grid-cols-2 gap-3">
@@ -619,16 +694,6 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             </select>
           </label>
         )}
-        <label className={label}>
-          {t("difficulty")}
-          <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as Difficulty)} className={select}>
-            {(Object.keys(DIFFICULTY_LABEL) as Difficulty[]).map((entry) => (
-              <option key={entry} value={entry}>
-                {t(DIFFICULTY_LABEL[entry])}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className={label}>
           {t("mode")}
           <select value={focus} onChange={(event) => setFocus(event.target.value as Focus)} className={select}>

@@ -55,7 +55,11 @@ export function InterviewDetail() {
   const answers = entry.turns.filter((turn) => turn.speaker === "candidate").length;
   const stillOpen = Date.now() - new Date(entry.startedAt).getTime() < OPEN_FOR_MS;
   const mission = entry.evaluation?.actionable_next_steps[0] ?? entry.evaluation?.areas_for_improvement[0];
-  const repeat = () => navigate("/app", { state: { repeatId: entry.id } });
+  // A defence is repeated from the thesis; an interview from its setup.
+  const repeat = () =>
+    entry.stage.startsWith("Sustentación")
+      ? navigate("/app")
+      : navigate("/app/practice", { state: { repeatId: entry.id } });
 
   return (
     <>

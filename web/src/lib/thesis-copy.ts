@@ -276,9 +276,31 @@ const ES = {
   disclaimer:
     "Mockio es una herramienta de práctica. La IA puede equivocarse: verifica con tu asesor y con el reglamento de tu universidad.",
   error: "Algo salió mal. Inténtalo de nuevo.",
+  scenario: "¿Qué sustentas?",
+  scenProyecto: "Plan o proyecto de tesis",
+  scenBachiller: "Bachiller (trabajo de investigación)",
+  scenTitulo: "Título profesional / licenciatura",
+  scenSuficiencia: "Suficiencia profesional",
+  scenMaestria: "Maestría",
+  scenDoctorado: "Doctorado",
+  scenProyectoHint: "Sin resultados aún: problema, objetivos, diseño y viabilidad.",
+  scenBachillerHint: "Lo esencial: tu problema, tu método y cómo leer tu resultado.",
+  scenTituloHint: "Todos los capítulos, de la justificación a las conclusiones.",
+  scenSuficienciaHint: "Tu experiencia: qué decidiste, qué aplicaste y qué resultado tuvo.",
+  scenMaestriaHint: "Estado del arte, diseño defendido frente a alternativas y tu aporte.",
+  scenDoctoradoHint: "Tu contribución original, frente a pares y sus objeciones más duras.",
+  scenarioShape: "Exposición de {minutes} min · {questions} preguntas del jurado",
+  scenarioShapeExpress: "Ensayo express: resumen de 1 min y 3 preguntas",
+  level: "Nivel del jurado",
+  diffCalentamientoHint: "Paciente: preguntas esperadas y te reformulan si te trabas.",
+  diffEstandarHint: "Un jurado normal: no acepta respuestas vagas.",
+  diffExigenteHint: "Riguroso: contrasta cada respuesta con tu tesis y repregunta.",
+  diffHostilHint: "Escéptico e impaciente: interrumpe, cuestiona y no oculta el desacuerdo.",
+  diffCalentamientoShort: "Inicial",
 };
 
 type Key = keyof typeof ES;
+export type ThesisKey = Key;
 
 const PT: Record<Key, string> = {
   presenceTitle: "Sua presença na câmera",
@@ -547,6 +569,27 @@ const PT: Record<Key, string> = {
   disclaimer:
     "O Mockio é uma ferramenta de prática. A IA pode errar: confirme com seu orientador e com o regulamento da sua universidade.",
   error: "Algo deu errado. Tente de novo.",
+  scenario: "O que você vai defender?",
+  scenProyecto: "Projeto de pesquisa (qualificação)",
+  scenBachiller: "Bacharelado (TCC)",
+  scenTitulo: "Graduação (monografia)",
+  scenSuficiencia: "Relatório de experiência profissional",
+  scenMaestria: "Mestrado",
+  scenDoctorado: "Doutorado",
+  scenProyectoHint: "Sem resultados ainda: problema, objetivos, desenho e viabilidade.",
+  scenBachillerHint: "O essencial: seu problema, seu método e como ler seu resultado.",
+  scenTituloHint: "Todos os capítulos, da justificativa às conclusões.",
+  scenSuficienciaHint: "Sua experiência: o que decidiu, o que aplicou e qual foi o resultado.",
+  scenMaestriaHint: "Estado da arte, desenho defendido frente às alternativas e sua contribuição.",
+  scenDoctoradoHint: "Sua contribuição original, diante de pares e das objeções mais duras.",
+  scenarioShape: "Apresentação de {minutes} min · {questions} perguntas da banca",
+  scenarioShapeExpress: "Ensaio expresso: resumo de 1 min e 3 perguntas",
+  level: "Nível da banca",
+  diffCalentamientoHint: "Paciente: perguntas esperadas e reformula se você travar.",
+  diffEstandarHint: "Uma banca normal: não aceita respostas vagas.",
+  diffExigenteHint: "Rigorosa: confere cada resposta com a tese e insiste.",
+  diffHostilHint: "Cética e impaciente: interrompe, questiona e não esconde a discordância.",
+  diffCalentamientoShort: "Inicial",
 };
 
 const EN: Record<Key, string> = {
@@ -816,6 +859,27 @@ const EN: Record<Key, string> = {
   disclaimer:
     "Mockio is a practice tool. AI can be wrong: check with your advisor and your university's regulations.",
   error: "Something went wrong. Try again.",
+  scenario: "What are you defending?",
+  scenProyecto: "Thesis proposal",
+  scenBachiller: "Bachelor's thesis",
+  scenTitulo: "Undergraduate honours thesis",
+  scenSuficiencia: "Professional practice report",
+  scenMaestria: "Master's thesis",
+  scenDoctorado: "Doctoral thesis (viva)",
+  scenProyectoHint: "No results yet: problem, aims, design and feasibility.",
+  scenBachillerHint: "The essentials: your problem, your method and how to read your result.",
+  scenTituloHint: "Every chapter, from the rationale to the conclusions.",
+  scenSuficienciaHint: "Your work: what you decided, what you applied and what it achieved.",
+  scenMaestriaHint: "State of the art, a design defended against alternatives, and your contribution.",
+  scenDoctoradoHint: "Your original contribution, before peers and their hardest objections.",
+  scenarioShape: "{minutes}-minute presentation · {questions} questions from the panel",
+  scenarioShapeExpress: "Express rehearsal: a 1-minute summary and 3 questions",
+  level: "How tough the panel is",
+  diffCalentamientoHint: "Patient: the expected questions, rephrased if you get stuck.",
+  diffEstandarHint: "A normal panel: vague answers get a follow-up.",
+  diffExigenteHint: "Rigorous: every answer checked against your thesis, with chained follow-ups.",
+  diffHostilHint: "Sceptical and short on patience: interrupts, challenges, and shows disagreement.",
+  diffCalentamientoShort: "Warm-up",
 };
 
 const BY_LOCALE: Record<string, Record<Key, string>> = { es: ES, pt: PT, en: EN };

@@ -45,6 +45,12 @@ const ShareCard = lazy(() => import("@/platform/ShareCard").then((m) => ({ defau
 const Applications = lazy(() => import("@/platform/Applications").then((m) => ({ default: m.Applications })));
 const Advisor = lazy(() => import("@/platform/Advisor").then((m) => ({ default: m.Advisor })));
 const Warmup = lazy(() => import("@/platform/Warmup").then((m) => ({ default: m.Warmup })));
+/** /app/thesis → /app, carrying the query and the tab in the hash. */
+function ThesisMoved() {
+  const { search, hash } = useLocation();
+  return <Navigate to={`/app${search}${hash}`} replace />;
+}
+
 const Thesis = lazy(() => import("@/platform/Thesis").then((m) => ({ default: m.Thesis })));
 const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m) => ({ default: m.InterviewDetail })));
 /**
@@ -158,7 +164,10 @@ export function App() {
             </Suspense>
           }
         >
-          <Route index element={<Suspense fallback={null}><SessionSetup /></Suspense>} />
+          {/* Sustentación is the product: the app opens on the thesis. Interview
+              practice lives one tab over, as what comes after the defence. */}
+          <Route index element={<Suspense fallback={null}><Thesis /></Suspense>} />
+          <Route path="practice" element={<Suspense fallback={null}><SessionSetup /></Suspense>} />
           <Route path="session" element={<Suspense fallback={null}><LiveInterview /></Suspense>} />
           <Route path="feedback" element={<Suspense fallback={null}><FeedbackReport /></Suspense>} />
           {/* History is the bottom half of the path now. Kept as a route so
@@ -170,7 +179,8 @@ export function App() {
           <Route path="settings" element={<Suspense fallback={null}><Settings /></Suspense>} />
           <Route path="share" element={<Suspense fallback={null}><ShareCard /></Suspense>} />
           <Route path="applications" element={<Suspense fallback={null}><Applications /></Suspense>} />
-          <Route path="thesis" element={<Suspense fallback={null}><Thesis /></Suspense>} />
+          {/* The old address, kept for links already sent in emails and payment returns. */}
+          <Route path="thesis" element={<ThesisMoved />} />
           <Route path="thesis/warmup" element={<Suspense fallback={null}><Warmup /></Suspense>} />
           <Route path="advisor" element={<Suspense fallback={null}><Advisor /></Suspense>} />
           <Route path="interviews/:id" element={<Suspense fallback={null}><InterviewDetail /></Suspense>} />

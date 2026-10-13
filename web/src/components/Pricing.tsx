@@ -129,7 +129,7 @@ export function Pricing() {
                   <CheckItem key={item}>{t(item)}</CheckItem>
                 ))}
               </ul>
-              <Link to="/app" className="mt-auto">
+              <Link to="/app/practice" className="mt-auto">
                 <Action tone="glass" className="w-full py-3">
                   {t("land.startPractising")}
                 </Action>

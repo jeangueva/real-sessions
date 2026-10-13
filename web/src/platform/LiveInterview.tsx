@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Lightbulb, Zap } from "lucide-react";
 import { Action, Badge, Panel, Waveform } from "@/design-system";
@@ -58,6 +59,7 @@ interface SetupState {
     material?: string;
     members?: string[];
     fluencyNeutral?: boolean;
+    scenario?: DefenseScenario;
   };
 }
 
@@ -280,6 +282,7 @@ export function LiveInterview() {
               ...(defense.material ? { material: defense.material } : {}),
               ...(defense.members && defense.members.length > 1 ? { members: defense.members } : {}),
               ...(defense.fluencyNeutral ? { fluencyNeutral: true } : {}),
+              ...(defense.scenario ? { scenario: defense.scenario } : {}),
             }
           : {}),
       },
@@ -565,7 +568,7 @@ export function LiveInterview() {
     voice.stopListening();
     camera.stop();
     screen.stop();
-    navigate(reportable && sessionId ? `/app/feedback` : "/app", {
+    navigate(reportable && sessionId ? `/app/feedback` : defense ? "/app" : "/app/practice", {
       state: reportable && sessionId ? { sessionId, ...reportLabel() } : undefined,
     });
   };
@@ -653,7 +656,13 @@ export function LiveInterview() {
               {defense && floorSince !== null && turn && !turn.isComplete && !busy && (
                 <DefenseClock
                   since={floorSince}
-                  limitSeconds={expositionTurn ? (stages[0] === "sustentacion-express" ? 60 : 300) : 90}
+                  limitSeconds={
+                    expositionTurn
+                      ? stages[0] === "sustentacion-express"
+                        ? 60
+                        : SCENARIO_OPTIONS[defense?.scenario ?? "titulo"].exposition * 60
+                      : 90
+                  }
                   label={tt(expositionTurn ? "clockExposition" : "clockAnswer")}
                 />
               )}

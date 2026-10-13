@@ -132,6 +132,8 @@ const DE: Record<MessageKey, string> = {
   "feedback.words": "Wörter",
   "feedback.fillers": "Füllwörter",
   "feedback.fillerUnit": "/ 100 Wörter",
+  "nav.interviews": "Vorstellungsgespräche",
+  "nav.interviewsShort": "Interviews",
   "nav.advisor": "Für Betreuende",
   "nav.thesis": "Meine Abschlussarbeit",
   "nav.thesisShort": "Arbeit",

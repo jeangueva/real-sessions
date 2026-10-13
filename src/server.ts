@@ -197,6 +197,7 @@ import {
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
+import { DEFENSE_SCENARIOS, SCENARIOS, scenarioForDegree, soloJurorFor } from "./prompts/defense.js";
 import { createPresenceStore, MAX_FRAME_CHARS, MAX_FRAMES, readPresence, type PresenceStore } from "./presence.js";
 import { createInstitutionStore, seatHeld, type InstitutionStore } from "./institutions.js";
 import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore } from "./advisors.js";
@@ -1230,7 +1231,7 @@ async function runDefenseCountdown(): Promise<void> {
         language: row.language,
         risks: row.risks,
         // The morning mail opens the warm-up itself.
-        url: `${siteUrl()}/app/thesis${day === 0 ? "/warmup" : ""}`,
+        url: `${siteUrl()}/app${day === 0 ? "/thesis/warmup" : ""}`,
         unsubscribeUrl: unsubscribeUrl(siteUrl(), account.email),
       }),
     );
@@ -3067,7 +3068,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       title: PACK_KINDS[kind].title,
       amount: PACK_KINDS[kind].amount,
       currency: PACK_CURRENCY,
-      backUrl: `${siteUrl()}${PACK_KINDS[kind].advisor ? "/app/advisor" : "/app/thesis"}`,
+      backUrl: `${siteUrl()}${PACK_KINDS[kind].advisor ? "/app/advisor" : "/app"}`,
       notificationUrl: `${siteUrl()}/api/billing/webhook?source_news=webhooks`,
     });
     json(res, 201, { initPoint: created.initPoint });
@@ -3806,7 +3807,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
               : "Pega las observaciones del jurado revisor.",
         });
       }
+      // Which defence, by degree. Defaults to what the diagnosis read on the
+      // cover, so an older client still gets a master's jury for a master's thesis.
+      const scenario =
+        DEFENSE_SCENARIOS.find((entry) => entry === body["scenario"]) ??
+        scenarioForDegree(stored.analysis.degree);
       defense = {
+        scenario,
         // Accessibility, so free on every plan.
         fluencyNeutral: body["fluencyNeutral"] === true,
         focus,
@@ -3847,6 +3854,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       jobPosting,
       knownQuestions,
       defense,
+      // The full panel runs as long as the degree's real defence does: a
+      // doctoral one past the cap a single interview round is held to.
+      ...(defense && rounds[0]?.id === "sustentacion-pe" && soloJurorFor(defense.focus ?? "completa") === null
+        ? { minTurns: SCENARIOS[defense.scenario ?? "titulo"].turns.min, maxTurns: SCENARIOS[defense.scenario ?? "titulo"].turns.max }
+        : {}),
       // Three jurors in one voice is beyond the flash model the interviews
       // run on: it lost track of who had spoken. A defence is fewer, longer
       // turns, so a slower first word costs less than a confused panel.

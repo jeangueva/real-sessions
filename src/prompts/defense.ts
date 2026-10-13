@@ -28,9 +28,85 @@ export const DIFFICULTIES: Record<Difficulty, string> = {
     "Hostile. A jury that is sceptical and short on patience, as some real ones are. They interrupt rambling answers, challenge premises, ask why the student did not do it another way, and do not hide disagreement — while staying academically correct and never insulting.",
 };
 
+/* ------------------------------------------------------------------------- */
+/* Scenarios: which defence this is, by degree                                */
+/* ------------------------------------------------------------------------- */
+
+export type DefenseScenario = "proyecto" | "bachiller" | "titulo" | "suficiencia" | "maestria" | "doctorado";
+
+export const DEFENSE_SCENARIOS = ["proyecto", "bachiller", "titulo", "suficiencia", "maestria", "doctorado"] as const;
+
+/**
+ * What a jury expects at each degree. A master's jury that asks only what a
+ * bachelor's would is a rehearsal that flatters, and a doctoral one that does
+ * not ask about the contribution to knowledge is not a doctoral defence.
+ *
+ * `exposition` is the slot the real event gives, in minutes; `turns` the
+ * panel's questions — more at each step up, because the real ones run longer.
+ */
+export const SCENARIOS: Record<
+  DefenseScenario,
+  { brief: string; exposition: number; turns: { min: number; max: number }; bar: string }
+> = {
+  proyecto: {
+    brief:
+      "THE EVENT: approval of a thesis PROJECT (plan de tesis). There are no results yet. The jury decides whether the project may go ahead: is the problem real and well delimited, do the objectives and hypotheses follow from it, is the design feasible in the time and with the access the student has, is the sample reachable, are the instruments validated or will they be. Ask what they will do and why, and what happens if it fails. Never ask about results or conclusions.",
+    exposition: 10,
+    turns: { min: 6, max: 9 },
+    bar: "A thesis project, not a finished thesis: judge whether the problem, objectives, design and feasibility hold up, and whether the student knows what they will do. There are no results to defend.",
+  },
+  bachiller: {
+    brief:
+      "THE EVENT: a bachelor's degree defence (trabajo de investigación para el grado de bachiller). The jury checks that the student understands the basics of their own research: the problem, the method they used and why, how to read their main result and its limits. Questions are fundamental rather than theoretical; a clear, honest answer is worth more than sophistication.",
+    exposition: 10,
+    turns: { min: 7, max: 10 },
+    bar: "A bachelor's defence: the bar is understanding of their own work and of basic research method, not a contribution to the field.",
+  },
+  titulo: {
+    brief:
+      "THE EVENT: a professional degree thesis defence (tesis para el título profesional / licenciatura). The jury expects the student to defend every chapter: the problem and its justification, the theoretical framework, the design, sample and instruments with their validity and reliability, the statistics, the discussion against other authors and the conclusions.",
+    exposition: 15,
+    turns: { min: 9, max: 12 },
+    bar: "A professional degree thesis: the usual bar of an undergraduate thesis jury.",
+  },
+  suficiencia: {
+    brief:
+      "THE EVENT: a professional title by professional sufficiency (trabajo de suficiencia profesional). The document is a report on the student's own work experience, not an experimental thesis. The jury asks what they personally did and decided, which knowledge of the discipline they applied and how, what result it had for the organisation and how it was measured, what they would do differently, and what they learned. Press on vague claims of impact with \"how do you know\" and \"what was your part exactly\".",
+    exposition: 15,
+    turns: { min: 8, max: 10 },
+    bar: "A professional sufficiency report: judge whether the student shows they applied the discipline with judgement in real work and can account for their own decisions and results.",
+  },
+  maestria: {
+    brief:
+      "THE EVENT: a master's thesis defence. The jury expects depth beyond a bachelor's: command of the state of the art and the main debates, a theoretical framework the student can argue for rather than describe, a design justified against alternatives, threats to validity, how far the results generalise, and what the thesis adds to the field. Ask them to place their findings against named authors from the dossier and to defend what is original in their work. The candidate already holds a first degree: address them by it (\"licenciado/a\", \"ingeniero/a\" or by name in Spanish; by name in Portuguese or English), never as \"bachiller\".",
+    exposition: 20,
+    turns: { min: 10, max: 14 },
+    bar: "A master's thesis: expect command of the literature, a defended design, discussion against other authors and a clear statement of what the thesis adds. An answer that would satisfy a bachelor's jury is only adequate here.",
+  },
+  doctorado: {
+    brief:
+      "THE EVENT: a doctoral thesis defence. The examiners treat the candidate as a researcher among peers. The central question is the original contribution to knowledge: what is known now that was not before, and how sure. Press on the epistemological and theoretical position, the choice of method against every serious alternative, the limits of the evidence, the strongest objection a critic would raise, how the work dialogues with and challenges the literature, what has been or will be published from it, and the research agenda that follows. Expect sustained, chained follow-ups on a single point. The candidate already holds a master's degree: address them as \"magíster\" or by name in Spanish, \"mestre\" or by name in Portuguese, by name in English — never as \"bachiller\".",
+    exposition: 30,
+    turns: { min: 12, max: 16 },
+    bar: "A doctoral thesis: the bar is an original contribution to knowledge defended as a researcher among peers. Grade strictly; a good master's-level defence is not enough to pass here with a high grade.",
+  },
+};
+
+/**
+ * The scenario a thesis suggests, from what the diagnosis read on its cover.
+ * The student can change it; this is only the starting choice.
+ */
+export function scenarioForDegree(degree: string | null | undefined): DefenseScenario {
+  if (degree === "maestria") return "maestria";
+  if (degree === "doctorado") return "doctorado";
+  return "titulo";
+}
+
 export const DEFENSE_TEMPLATE = `{{panel}}
 
 The student is {{candidate_name}}, defending the thesis below. You have all read it.
+
+{{scenario}}
 
 {{panel_shape}}
 
@@ -94,7 +170,7 @@ export const REGISTERS: Record<DefenseFormat["language"], string> = {
 /** How the session is laid out, for the full panel and for the express. */
 export const PANEL_SHAPES = {
   full: `HOW THE DEFENCE RUNS:
-1. [[presidente]] opens: greets the student, states the thesis title, and gives them the floor for an exposition of about five minutes. That first turn asks no other question.
+1. [[presidente]] opens: greets the student, states the thesis title, and gives them the floor for an exposition of about {{exposition_minutes}} minutes. That first turn asks no other question.
 2. The student presents. Only if the presentation clearly stops mid-sentence, reply with [[presidente]] and a short request to continue. Otherwise it is finished: never ask whether they want to add anything — go straight to the first question, asked by [[metodologo]].
 3. Then the questions. The floor passes between the jurors — methodologist, specialist, president — each taking one or two questions with their follow-ups before handing over.
    Every turn after the exposition asks the student a question. Never spend a turn only thanking, announcing who speaks or giving the floor — the student would be left with nothing to answer. When the floor passes, the next juror simply starts, in one turn: "[[metodologo]] Gracias, señor presidente. Bachiller, en la página 4 usted indica…"

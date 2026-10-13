@@ -132,6 +132,8 @@ const HI: Record<MessageKey, string> = {
   "feedback.words": "शब्द",
   "feedback.fillers": "भराव शब्द",
   "feedback.fillerUnit": "/ 100 शब्द",
+  "nav.interviews": "इंटरव्यू",
+  "nav.interviewsShort": "इंटरव्यू",
   "nav.advisor": "सलाहकारों के लिए",
   "nav.thesis": "मेरी थीसिस",
   "nav.thesisShort": "थीसिस",

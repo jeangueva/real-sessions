@@ -214,6 +214,8 @@ const EN = {
   "feedback.words": "Words",
   "feedback.fillers": "Fillers",
   "feedback.fillerUnit": "/ 100 words",
+  "nav.interviews": "Interviews",
+  "nav.interviewsShort": "Interviews",
   "nav.advisor": "For advisors",
   "nav.thesis": "My thesis",
   "nav.thesisShort": "Thesis",

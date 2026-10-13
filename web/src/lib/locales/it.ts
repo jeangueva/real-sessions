@@ -133,6 +133,8 @@ const IT: Record<MessageKey, string> = {
   "feedback.words": "Parole",
   "feedback.fillers": "Intercalari",
   "feedback.fillerUnit": "/ 100 parole",
+  "nav.interviews": "Colloqui",
+  "nav.interviewsShort": "Colloqui",
   "nav.advisor": "Per i relatori",
   "nav.thesis": "La mia tesi",
   "nav.thesisShort": "Tesi",

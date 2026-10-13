@@ -133,6 +133,8 @@ const FR: Record<MessageKey, string> = {
   "feedback.words": "Mots",
   "feedback.fillers": "Tics de langage",
   "feedback.fillerUnit": "/ 100 mots",
+  "nav.interviews": "Entretiens",
+  "nav.interviewsShort": "Entretiens",
   "nav.advisor": "Pour les directeurs de thèse",
   "nav.thesis": "Ma thèse",
   "nav.thesisShort": "Thèse",

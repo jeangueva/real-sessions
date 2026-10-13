@@ -158,7 +158,7 @@ export function ActaCard({ acta }: { acta: Acta }) {
           interview Mockio was built for, one step up the ladder. */}
       {acta.verdict !== "desaprobado" && (
         <Link
-          to="/app"
+          to="/app/practice"
           className="focus-ring flex flex-col gap-0.5 rounded-2xl bg-accent-soft px-5 py-4 text-accent-text transition-transform duration-150 active:scale-[0.99] print:hidden"
         >
           <span className="text-sm font-semibold">{t("ladderTitle")}</span>

@@ -98,6 +98,6 @@ describe("the applications screen", () => {
   it("carries the application into the setup screen", async () => {
     serve({ allowed: true });
     const link = await screen.findByRole("link", { name: /practise for this/i });
-    expect(link.getAttribute("href")).toBe("/app");
+    expect(link.getAttribute("href")).toBe("/app/practice");
   });
 });

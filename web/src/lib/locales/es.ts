@@ -160,6 +160,8 @@ const ES: Record<MessageKey, string> = {
   "feedback.words": "Palabras",
   "feedback.fillers": "Muletillas",
   "feedback.fillerUnit": "/ 100 palabras",
+  "nav.interviews": "Entrevistas",
+  "nav.interviewsShort": "Entrevistas",
   "nav.advisor": "Para asesores",
   "nav.thesis": "Mi tesis",
   "nav.thesisShort": "Tesis",

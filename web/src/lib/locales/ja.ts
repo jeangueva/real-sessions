@@ -132,6 +132,8 @@ const JA: Record<MessageKey, string> = {
   "feedback.words": "語数",
   "feedback.fillers": "つなぎ言葉",
   "feedback.fillerUnit": "/ 100語",
+  "nav.interviews": "面接",
+  "nav.interviewsShort": "面接",
   "nav.advisor": "指導教員の方へ",
   "nav.thesis": "私の論文",
   "nav.thesisShort": "論文",

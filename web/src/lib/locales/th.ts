@@ -132,6 +132,8 @@ const TH: Record<MessageKey, string> = {
   "feedback.words": "คำ",
   "feedback.fillers": "คำเติม",
   "feedback.fillerUnit": "/ 100 คำ",
+  "nav.interviews": "สัมภาษณ์",
+  "nav.interviewsShort": "สัมภาษณ์",
   "nav.advisor": "สำหรับอาจารย์ที่ปรึกษา",
   "nav.thesis": "วิทยานิพนธ์ของฉัน",
   "nav.thesisShort": "วิทยานิพนธ์",

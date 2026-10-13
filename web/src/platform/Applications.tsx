@@ -204,7 +204,7 @@ export function Applications() {
                 {/* The point of the row. Carries the id, so the setup screen
                     can take the company, the role and the posting from it. */}
                 <Link
-                  to="/app"
+                  to="/app/practice"
                   state={{ applicationId: row.id, company: row.company, role: row.role }}
                 >
                   <Action tone="glass">{t("apps.practise")}</Action>

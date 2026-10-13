@@ -3,6 +3,8 @@ import { sectorForCompany } from "../sectors.js";
 import { defaultPersonaFor, findPersona } from "../personas.js";
 import { composeBrief, isAfterTheOffer, isDefense, resolveStages } from "../stages.js";
 import {
+  SCENARIOS,
+  type DefenseScenario,
   DEFENSE_TEMPLATE,
   DIFFICULTIES,
   PANEL_SHAPES,
@@ -259,6 +261,8 @@ export interface DefenseSetup {
   fluencyNeutral?: boolean;
   /** A school's own rubric, when the rehearsal is on its account. */
   rubric?: string | null;
+  /** Which defence, by degree; a professional degree thesis when absent. */
+  scenario?: DefenseScenario;
 }
 
 /**
@@ -318,9 +322,18 @@ export function buildInterviewerPrompt(
       country: format.countryName,
       event_name: format.eventName,
       register: REGISTERS[format.language],
-      address: format.address,
+      // A master's or doctoral candidate already holds a degree; "bachiller"
+      // would be wrong to their face.
+      address:
+        defense.scenario === "maestria" || defense.scenario === "doctorado"
+          ? "the degree they already hold, or by name, as the scenario says"
+          : format.address,
       vocabulary: format.vocabulary,
-      panel_shape: solo ? PANEL_SHAPES.coach : express ? PANEL_SHAPES.express : PANEL_SHAPES.full,
+      panel_shape: (solo ? PANEL_SHAPES.coach : express ? PANEL_SHAPES.express : PANEL_SHAPES.full).replace(
+        "{{exposition_minutes}}",
+        String(SCENARIOS[defense.scenario ?? "titulo"].exposition),
+      ),
+      scenario: SCENARIOS[defense.scenario ?? "titulo"].brief,
       focus: focusBlock({
         focus,
         setting: defense.setting ?? null,

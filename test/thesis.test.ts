@@ -57,6 +57,36 @@ describe("the thesis panel", () => {
     expect(brazil).toContain("banca");
   });
 
+  it("sets the jury by degree: a doctoral panel asks about the contribution and gives a longer exposition", async () => {
+    const { buildInterviewerPrompt } = await import("../src/prompts/interviewer.js");
+    const { SCENARIOS, scenarioForDegree } = await import("../src/prompts/defense.js");
+    const ctx = {
+      candidateName: "Ana",
+      targetRole: "Educación",
+      companyName: "U",
+      companyCulture: "",
+      industry: "",
+      interviewStage: "sustentacion-pe",
+    };
+    const defense = { dossier: "Title: X", difficulty: "exigente" as const, university: "Universidad X", field: "F" };
+    const doctoral = buildInterviewerPrompt(ctx, {
+      stages: ["sustentacion-pe"],
+      defense: { ...defense, scenario: "doctorado" },
+      minTurns: SCENARIOS.doctorado.turns.min,
+      maxTurns: SCENARIOS.doctorado.turns.max,
+    });
+    expect(doctoral).toContain("original contribution to knowledge");
+    expect(doctoral).toContain("about 30 minutes");
+    expect(doctoral).not.toContain("{{");
+    const proposal = buildInterviewerPrompt(ctx, { stages: ["sustentacion-pe"], defense: { ...defense, scenario: "proyecto" }, minTurns: 6, maxTurns: 9 });
+    expect(proposal).toContain("Never ask about results");
+    // Without a scenario: the professional degree thesis, as before.
+    expect(buildInterviewerPrompt(ctx, { stages: ["sustentacion-pe"], defense, minTurns: 9, maxTurns: 12 })).toContain("about 15 minutes");
+    expect(scenarioForDegree("maestria")).toBe("maestria");
+    expect(scenarioForDegree("no-claro")).toBe("titulo");
+    expect(SCENARIOS.doctorado.turns.max).toBeGreaterThan(SCENARIOS.titulo.turns.max);
+  });
+
   it("decides the verdict from the grades, on each country's scale", async () => {
     const { FORMATS, verdictFor } = await import("../src/defense-formats.js");
     expect(verdictFor(FORMATS.PE, [11, 12, 10])).toEqual({ code: "aprobado-mayoria", label: "Aprobado por mayoría" });

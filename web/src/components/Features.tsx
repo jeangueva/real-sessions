@@ -87,7 +87,7 @@ export function Features() {
                     Real voice synthesis & dynamic speech cadence
                   </span>
                   <Link
-                    to="/app"
+                    to="/app/practice"
                     className="flex items-center gap-1 font-medium text-accent-text hover:opacity-80"
                   >
                     Try interactive stage <ArrowRight className="h-3.5 w-3.5" />

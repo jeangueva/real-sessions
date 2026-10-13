@@ -11,7 +11,7 @@ import { DEFENSE_EVALUATOR_TEMPLATE } from "./prompts/defense-evaluator.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { renderTemplate } from "./prompts/template.js";
 import { findFormat, verdictFor } from "./defense-formats.js";
-import { FOCUSES } from "./prompts/defense.js";
+import { FOCUSES, SCENARIOS } from "./prompts/defense.js";
 import { EvaluationSchema, RetryFeedbackSchema, type Evaluation, type RetryFeedback } from "./schema.js";
 import type { InterviewContext, TranscriptTurn } from "./types.js";
 
@@ -194,6 +194,7 @@ async function evaluateDefense(
       scale_line: `The ${format.countryName} scale: \`grade_max\` ${format.scale.max}, \`pass_mark\` ${format.scale.pass}, grades from ${format.scale.min} to ${format.scale.max}.`,
       rounding: format.scale.decimals ? ", to one decimal" : ", rounded to a whole number",
       difficulty: defense.difficulty,
+      scenario_bar: SCENARIOS[defense.scenario ?? "titulo"].bar,
       focus_note:
         (defense.focus ?? "completa") === "completa"
           ? "This was a complete defence."

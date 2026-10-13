@@ -10,6 +10,8 @@ export const DEFENSE_EVALUATOR_TEMPLATE = `You are the three members of a thesis
 
 Grade the DEFENCE — how the student presented and answered — not only the written thesis. A weak thesis defended honestly and precisely can pass; a decent thesis the student cannot explain should not.
 
+THE DEGREE: {{scenario_bar}}
+
 {{focus_note}}
 
 {{fluency_note}}

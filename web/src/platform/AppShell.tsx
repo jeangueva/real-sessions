@@ -42,16 +42,16 @@ import { Mark, PremiumMark, Wordmark } from "@/design-system";
 const NAV = [
   {
     to: "/app",
-    key: "nav.new" as const,
-    short: "nav.newShort" as const,
-    icon: Play,
-    end: true,
-  },
-  {
-    to: "/app/thesis",
     key: "nav.thesis" as const,
     short: "nav.thesisShort" as const,
     icon: GraduationCap,
+    end: true,
+  },
+  {
+    to: "/app/practice",
+    key: "nav.interviews" as const,
+    short: "nav.interviewsShort" as const,
+    icon: Play,
     end: false,
   },
   {

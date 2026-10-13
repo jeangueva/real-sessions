@@ -522,7 +522,7 @@ function FeedbackBody({
           <div className="flex flex-wrap items-center gap-2">
             {/* The way forward is the loudest thing on the page. Going again
                 straight away is what turns a bad answer into a practised one. */}
-            <Link to="/app">
+            <Link to={evaluation.acta ? "/app" : "/app/practice"}>
               <Action>{t("feedback.again")}</Action>
             </Link>
             {share?.historyId ? (

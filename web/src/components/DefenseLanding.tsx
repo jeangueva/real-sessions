@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   BookOpenCheck,
+  Briefcase,
   FileSearch,
   Gavel,
   Grid3x3,
@@ -89,10 +90,35 @@ const ES = {
   privacyTitle: "Tu tesis es tuya.",
   privacyBody:
     "Es inédita y la tratamos así: solo se usa para tus ensayos, nunca para entrenar modelos, y la borras con un clic. Mockio no escribe tu tesis ni te sopla respuestas en la sustentación real: te ayuda a llegar preparado.",
-  ladderTitle: "¿Ya sustentaste?",
-  ladderBody: "Prepara tu primera entrevista de trabajo, en español o en inglés.",
+  ladderTitle: "Después de sustentar",
+  ladderBody: "Mockio también te prepara para lo que sigue: entrevistas de trabajo y tus primeros escenarios laborales — reuniones, presentaciones a clientes, feedback — en español o en inglés.",
   ladderCta: "Practicar entrevistas",
   docTitle: "Mockio — Ensaya tu sustentación de tesis con un jurado de 3",
+  navScenarios: "Escenarios",
+  scenEyebrow: "Escenarios",
+  scenTitle: "Del plan de tesis al doctorado.",
+  scenSub: "Cada grado tiene su jurado. Elige el tuyo y el panel ajusta la profundidad, el tiempo de exposición y la exigencia de la nota.",
+  sc1Title: "Plan de tesis",
+  sc1Body: "¿Es viable? Problema, objetivos, diseño y acceso a la muestra. Sin resultados aún.",
+  sc2Title: "Bachiller",
+  sc2Body: "Lo esencial: tu problema, tu método y cómo leer tu resultado.",
+  sc3Title: "Título profesional",
+  sc3Body: "Todos los capítulos: marco, diseño, instrumentos, estadística y discusión.",
+  sc4Title: "Suficiencia profesional",
+  sc4Body: "Tu experiencia: qué decidiste, qué aplicaste y cómo mediste el resultado.",
+  sc5Title: "Maestría",
+  sc5Body: "Estado del arte, diseño defendido frente a alternativas y tu aporte al campo.",
+  sc6Title: "Doctorado",
+  sc6Body: "Tu contribución original, frente a pares y sus objeciones más duras.",
+  levelsTitle: "Y cuatro niveles de jurado",
+  lv1: "Calentamiento",
+  lv1Body: "Paciente. Te reformula si te trabas.",
+  lv2: "Estándar",
+  lv2Body: "Un jurado normal. No acepta lo vago.",
+  lv3: "Exigente",
+  lv3Body: "Contrasta cada respuesta con tu tesis.",
+  lv4: "Hostil",
+  lv4Body: "Interrumpe, cuestiona y no oculta el desacuerdo.",
 };
 
 type Key = keyof typeof ES;
@@ -159,10 +185,35 @@ const PT: Record<Key, string> = {
   privacyTitle: "Seu trabalho é seu.",
   privacyBody:
     "É inédito e tratamos assim: usado só nos seus ensaios, nunca para treinar modelos, e você apaga com um clique. O Mockio não escreve seu trabalho nem sopra respostas na defesa real: ajuda você a chegar preparado.",
-  ladderTitle: "Já defendeu?",
-  ladderBody: "Prepare sua primeira entrevista de emprego, em português ou em inglês.",
+  ladderTitle: "Depois da defesa",
+  ladderBody: "O Mockio também prepara você para o que vem depois: entrevistas de emprego e suas primeiras situações de trabalho — reuniões, apresentações a clientes, feedback — em português ou em inglês.",
   ladderCta: "Praticar entrevistas",
   docTitle: "Mockio — Ensaie sua defesa com uma banca de 3",
+  navScenarios: "Cenários",
+  scenEyebrow: "Cenários",
+  scenTitle: "Do projeto ao doutorado.",
+  scenSub: "Cada nível tem sua banca. Escolha o seu e a banca ajusta a profundidade, o tempo de apresentação e o rigor da nota.",
+  sc1Title: "Projeto de pesquisa",
+  sc1Body: "É viável? Problema, objetivos, desenho e acesso à amostra. Sem resultados ainda.",
+  sc2Title: "Bacharelado (TCC)",
+  sc2Body: "O essencial: seu problema, seu método e como ler seu resultado.",
+  sc3Title: "Graduação",
+  sc3Body: "Todos os capítulos: referencial, desenho, instrumentos, estatística e discussão.",
+  sc4Title: "Relatório profissional",
+  sc4Body: "Sua experiência: o que decidiu, o que aplicou e como mediu o resultado.",
+  sc5Title: "Mestrado",
+  sc5Body: "Estado da arte, desenho defendido frente às alternativas e sua contribuição.",
+  sc6Title: "Doutorado",
+  sc6Body: "Sua contribuição original, diante de pares e das objeções mais duras.",
+  levelsTitle: "E quatro níveis de banca",
+  lv1: "Aquecimento",
+  lv1Body: "Paciente. Reformula se você travar.",
+  lv2: "Padrão",
+  lv2Body: "Uma banca normal. Não aceita o vago.",
+  lv3: "Exigente",
+  lv3Body: "Confere cada resposta com o trabalho.",
+  lv4: "Hostil",
+  lv4Body: "Interrompe, questiona e discorda abertamente.",
 };
 
 const EN: Record<Key, string> = {
@@ -227,10 +278,35 @@ const EN: Record<Key, string> = {
   privacyTitle: "Your thesis is yours.",
   privacyBody:
     "It is unpublished and we treat it that way: used only for your rehearsals, never to train models, and deleted with one click. Mockio does not write your thesis or feed you answers in the real defence: it helps you arrive prepared.",
-  ladderTitle: "Already defended?",
-  ladderBody: "Prepare for your first job interview, in your language or in English.",
+  ladderTitle: "After the defence",
+  ladderBody: "Mockio also prepares you for what comes next: job interviews and your first workplace scenes — meetings, client presentations, feedback — in your language or in English.",
   ladderCta: "Practise interviews",
   docTitle: "Mockio — Rehearse your thesis defence with a panel of three",
+  navScenarios: "Scenarios",
+  scenEyebrow: "Scenarios",
+  scenTitle: "From the proposal to the doctorate.",
+  scenSub: "Every degree has its own panel. Pick yours and the jury adjusts its depth, the presentation time and how strictly it grades.",
+  sc1Title: "Thesis proposal",
+  sc1Body: "Is it feasible? Problem, aims, design and access to the sample. No results yet.",
+  sc2Title: "Bachelor's",
+  sc2Body: "The essentials: your problem, your method and how to read your result.",
+  sc3Title: "Undergraduate thesis",
+  sc3Body: "Every chapter: framework, design, instruments, statistics and discussion.",
+  sc4Title: "Professional report",
+  sc4Body: "Your work: what you decided, what you applied and how you measured the result.",
+  sc5Title: "Master's",
+  sc5Body: "State of the art, a design defended against alternatives, and what you add.",
+  sc6Title: "Doctorate",
+  sc6Body: "Your original contribution, before peers and their hardest objections.",
+  levelsTitle: "And four levels of panel",
+  lv1: "Warm-up",
+  lv1Body: "Patient. Rephrases if you get stuck.",
+  lv2: "Standard",
+  lv2Body: "A normal panel. Vague gets a follow-up.",
+  lv3: "Demanding",
+  lv3Body: "Checks every answer against your thesis.",
+  lv4: "Hostile",
+  lv4Body: "Interrupts, challenges and disagrees openly.",
 };
 
 const BY_LOCALE: Record<string, Record<Key, string>> = { es: ES, pt: PT, en: EN };
@@ -238,7 +314,7 @@ const BY_LOCALE: Record<string, Record<Key, string>> = { es: ES, pt: PT, en: EN 
 export function DefenseLanding() {
   const { locale } = useLocale();
   const c = BY_LOCALE[locale] ?? EN;
-  const start = "/app/thesis";
+  const start = "/app";
 
   // An advisor's link: remembered until the student is inside the app, where
   // the link is made. Only a well-formed code is kept.
@@ -266,6 +342,20 @@ export function DefenseLanding() {
     { icon: Mic, title: c.step2Title, body: c.step2Body },
     { icon: Gavel, title: c.step3Title, body: c.step3Body },
   ];
+  const scenarios = [
+    { title: c.sc1Title, body: c.sc1Body },
+    { title: c.sc2Title, body: c.sc2Body },
+    { title: c.sc3Title, body: c.sc3Body },
+    { title: c.sc4Title, body: c.sc4Body },
+    { title: c.sc5Title, body: c.sc5Body },
+    { title: c.sc6Title, body: c.sc6Body },
+  ];
+  const levels = [
+    { name: c.lv1, body: c.lv1Body },
+    { name: c.lv2, body: c.lv2Body },
+    { name: c.lv3, body: c.lv3Body },
+    { name: c.lv4, body: c.lv4Body },
+  ];
   const edges = [
     { icon: FileSearch, title: c.edge1Title, body: c.edge1Body },
     { icon: Users, title: c.edge2Title, body: c.edge2Body },
@@ -278,6 +368,7 @@ export function DefenseLanding() {
       <LandingNav
         links={[
           { label: c.navHow, href: "#how" },
+          { label: c.navScenarios, href: "#scenarios" },
           { label: c.navPanel, href: "#panel" },
           { label: c.navPricing, href: "#pricing" },
         ]}
@@ -330,8 +421,51 @@ export function DefenseLanding() {
         </ol>
       </Section>
 
+      {/* Which defence: by degree, then how hard. The choice a student makes
+          first on the rehearsal screen, shown before they get there. */}
+      <Section id="scenarios" className="bg-surface-deep">
+        <FadeRise className="mx-auto max-w-2xl text-center">
+          <Eyebrow>{c.scenEyebrow}</Eyebrow>
+          <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">{c.scenTitle}</h2>
+          <p className="mt-4 text-balance text-base text-cream-dim">{c.scenSub}</p>
+        </FadeRise>
+        <ul className="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 [&>*]:min-w-0">
+          {scenarios.map((scenario, index) => (
+            <li key={scenario.title}>
+              <FadeRise delay={index * 0.05} className="h-full">
+                <div className="flex h-full flex-col gap-1 rounded-2xl bg-surface-card p-3.5 shadow-card sm:gap-1.5 sm:p-5">
+                  <span className="text-xs font-semibold tabular-nums text-accent-text">{String(index + 1).padStart(2, "0")}</span>
+                  <p className="text-sm font-semibold leading-tight text-cream-bright sm:text-base">{scenario.title}</p>
+                  <p className="text-xs leading-snug text-cream-dim sm:text-sm">{scenario.body}</p>
+                </div>
+              </FadeRise>
+            </li>
+          ))}
+        </ul>
+        <FadeRise className="mx-auto mt-10 max-w-5xl">
+          <h3 className="text-center text-title font-semibold text-cream-bright">{c.levelsTitle}</h3>
+          <ol className="mt-6 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4 [&>*]:min-w-0">
+            {levels.map((level, index) => (
+              <li key={level.name} className="flex flex-col gap-1.5 rounded-2xl bg-surface-card p-3.5 shadow-card sm:gap-2 sm:p-5">
+                <span aria-hidden className="flex items-end gap-1">
+                  {[0, 1, 2, 3].map((bar) => (
+                    <span
+                      key={bar}
+                      className={`w-1.5 rounded-sm ${bar <= index ? (index === 3 ? "bg-rose-400" : "bg-grow-text") : "bg-cream-faint/30"}`}
+                      style={{ height: `${8 + bar * 4}px` }}
+                    />
+                  ))}
+                </span>
+                <p className="text-sm font-semibold text-cream-bright sm:text-base">{level.name}</p>
+                <p className="text-xs leading-snug text-cream-dim sm:text-sm">{level.body}</p>
+              </li>
+            ))}
+          </ol>
+        </FadeRise>
+      </Section>
+
       {/* The panel, shown rather than described. */}
-      <Section id="panel" className="bg-surface-deep">
+      <Section id="panel">
         <FadeRise className="mx-auto max-w-2xl text-center">
           <Eyebrow>{c.panelEyebrow}</Eyebrow>
           <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">{c.panelTitle}</h2>
@@ -463,7 +597,10 @@ export function DefenseLanding() {
           </FadeRise>
           <FadeRise delay={0.08}>
             <Panel variant="raised" className="flex h-full flex-col items-start gap-3 p-7 shadow-lift">
-              <h2 className="text-lg font-semibold text-cream-bright">{c.ladderTitle}</h2>
+              <span className="flex items-center gap-2 text-lg font-semibold text-cream-bright">
+                <Briefcase aria-hidden className="h-5 w-5 text-accent-text" />
+                <h2>{c.ladderTitle}</h2>
+              </span>
               <p className="text-sm text-cream-dim">{c.ladderBody}</p>
               <Link
                 to="/entrevistas"
