@@ -11,8 +11,8 @@
  * copied from a template. The subprocessor list is the vendors the server
  * actually calls; the deletion section describes what `DELETE /api/account`
  * actually does, including the one thing it deliberately does not erase; and
- * the line about having no analytics is true because there are none, not
- * because it sounds good.
+ * the analytics line says exactly what PostHog receives (see
+ * lib/analytics.ts), not what would sound better.
  *
  * And nothing here invents a legal fact. The entity, its country, the contact
  * address and the retention period are things only the operator knows, so they
@@ -131,7 +131,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       {
         heading: "What we collect",
         body: [
-          "Only what the product needs to work. There is no analytics, no advertising, and no third-party tracker of any kind on this site — nothing measures you across the web, because nothing is installed that could.",
+          "Only what the product needs to work, plus a minimal measure of how the site is used (see PostHog under Who else processes it). There is no advertising and nothing that follows you across other websites.",
           [
             "Your email address and a hash of your password, if you create an account. We never store the password itself.",
             "Your interviews: the questions asked, your answers as text, the score and written feedback, and measurements taken from your speech such as pace and filler rate.",
@@ -162,7 +162,8 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — speech. It receives your microphone audio to transcribe, and the interviewer's text to speak aloud.",
             "Your browser — speech, when Deepgram is not in use. The browser's own speech recognition then handles your microphone, which in Chrome means Google receives the audio, and some of the voices that read the interviewer aloud are Google's too. Firefox cannot do this at all, and typing always works instead.",
             "Resend — email delivery. It receives your address and the contents of account emails.",
-            "PostHog — product analytics. It receives which screens are opened and a handful of events we name ourselves: an account was created, an interview was started and finished, a subscription began. It never receives your answers, your transcript, your CV or your email address, there is no session recording, and no cookie is set — the identifier it uses is discarded when you close the tab.",
+            "PostHog — product analytics, on servers in the United States. It receives which screens are opened, a handful of events we name ourselves (an account was created, an interview or rehearsal was started and finished, a purchase began), and heatmaps: where on a page people click and how far they scroll, as positions, never the text under them. When you are signed in these are tied to an internal account number, never your email. It never receives your answers, your transcript, your CV or your thesis, there is no session recording, and no cookie is set — the anonymous identifier is discarded when you close the tab. To opt out, turn on \"Do Not Track\" in your browser: PostHog then receives nothing.",
+            "Google Cloud — speech in Brazilian Portuguese. When a rehearsal is in Portuguese, the jury's lines are sent to Google to be read aloud. It receives that text only, never your voice or your thesis.",
             "Mercado Pago — payments, if you subscribe. The card form now sits on our own page, but the card itself is not: Mercado Pago's script sends it straight from your browser to them and returns a single-use token, which is the only thing our servers ever receive. We hold a subscription status and nothing more.",
           ],
           "We do not sell your data, and we do not share it with anyone not on this list.",
@@ -205,7 +206,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "Cookies",
         body: [
           "One cookie, and it is how you stay signed in. It carries a signed identifier and nothing else. There are no advertising or analytics cookies, which is why this site has no cookie banner: there is nothing to consent to.",
-          "Your theme and interface language are stored in your browser and never sent to us.",
+          "Your theme, interface language and a few rehearsal preferences (your university, country format and fluency setting) are stored in your browser and never sent to us on their own.",
         ],
       },
       {
@@ -225,7 +226,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       {
         heading: "Qué recolectamos",
         body: [
-          "Solo lo que el producto necesita para funcionar. No hay analítica, no hay publicidad y no hay ningún rastreador de terceros en este sitio: nada te sigue por la web, porque no hay nada instalado que pueda hacerlo.",
+          "Solo lo que el producto necesita para funcionar, más una medición mínima de cómo se usa el sitio (ver PostHog en Quién más lo procesa). No hay publicidad ni nada que te siga por otros sitios web.",
           [
             "Tu correo y un hash de tu contraseña, si creas una cuenta. Nunca guardamos la contraseña.",
             "Tus entrevistas: las preguntas, tus respuestas en texto, el puntaje y la devolución escrita, y mediciones tomadas de tu habla como el ritmo y las muletillas.",
@@ -256,7 +257,8 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — voz. Recibe el audio de tu micrófono para transcribirlo, y el texto del entrevistador para decirlo en voz alta.",
             "Tu navegador — voz, cuando no se usa Deepgram. En ese caso el reconocimiento de voz del propio navegador procesa tu micrófono: en Chrome eso significa que Google recibe el audio, y algunas de las voces que leen al entrevistador también son de Google. Firefox no puede hacerlo, y escribir siempre funciona.",
             "Resend — envío de correo. Recibe tu dirección y el contenido de los mails de cuenta.",
-            "PostHog — analítica de producto. Recibe qué pantallas se abren y un puñado de eventos que nombramos nosotros: se creó una cuenta, se empezó y se terminó una entrevista, empezó una suscripción. Nunca recibe tus respuestas, tu transcripción, tu CV ni tu dirección de correo, no graba la sesión, y no deja ninguna cookie: el identificador que usa se descarta al cerrar la pestaña.",
+            "PostHog — analítica de producto, en servidores de Estados Unidos. Recibe qué pantallas se abren, un puñado de eventos que nombramos nosotros (se creó una cuenta, se empezó y terminó una entrevista o un ensayo, empezó una compra) y mapas de calor: en qué parte de la página se hace clic y hasta dónde se baja, como posiciones, nunca el texto que hay debajo. Si iniciaste sesión, esto se asocia a un número interno de cuenta, nunca a tu correo. Nunca recibe tus respuestas, tu transcripción, tu CV ni tu tesis, no graba la sesión y no deja ninguna cookie: el identificador anónimo se descarta al cerrar la pestaña. Para excluirte, activa \"No rastrear\" (Do Not Track) en tu navegador: PostHog entonces no recibe nada.",
+            "Google Cloud — voz en portugués de Brasil. Cuando un ensayo es en portugués, las frases del jurado se envían a Google para leerlas en voz alta. Recibe solo ese texto, nunca tu voz ni tu tesis.",
             "Mercado Pago — pagos, si te suscribes. El formulario de tarjeta ahora está en nuestra propia página, pero la tarjeta no: el script de Mercado Pago la manda directo de tu navegador a ellos y devuelve un token de un solo uso, que es lo único que llega a nuestros servidores. Nosotros guardamos un estado de suscripción y nada más.",
           ],
           "No vendemos tus datos, y no los compartimos con nadie fuera de esta lista.",
@@ -299,7 +301,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "Cookies",
         body: [
           "Una cookie, y es la que te mantiene con sesión iniciada. Lleva un identificador firmado y nada más. No hay cookies de publicidad ni de analítica, y por eso este sitio no tiene banner de cookies: no hay nada que consentir.",
-          "Tu tema y tu idioma de interfaz se guardan en tu navegador y nunca nos llegan.",
+          "Tu tema, tu idioma de interfaz y algunas preferencias de ensayo (tu universidad, el formato de país y la opción de fluidez) se guardan en tu navegador y no nos llegan por sí solas.",
         ],
       },
       {
@@ -319,7 +321,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
       {
         heading: "O que coletamos",
         body: [
-          "Só o que o produto precisa para funcionar. Não há analytics, não há publicidade e não há nenhum rastreador de terceiros neste site — nada te segue pela web, porque não há nada instalado que possa fazer isso.",
+          "Só o que o produto precisa para funcionar, mais uma medição mínima de como o site é usado (veja PostHog em Quem mais processa). Não há publicidade nem nada que siga você por outros sites.",
           [
             "Seu e-mail e um hash da sua senha, se você criar uma conta. Nunca guardamos a senha em si.",
             "Suas entrevistas: as perguntas, suas respostas em texto, a nota e a devolutiva escrita, e medições da sua fala como ritmo e vícios de linguagem.",
@@ -350,7 +352,8 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — voz. Recebe o áudio do seu microfone para transcrever, e o texto do entrevistador para falar em voz alta.",
             "Seu navegador — voz, quando o Deepgram não está em uso. Nesse caso o reconhecimento de voz do próprio navegador processa o seu microfone: no Chrome isso significa que o Google recebe o áudio, e algumas das vozes que leem o entrevistador também são do Google. O Firefox não consegue fazer isso, e digitar sempre funciona.",
             "Resend — envio de e-mail. Recebe seu endereço e o conteúdo dos e-mails da conta.",
-            "PostHog — análise de produto. Recebe quais telas são abertas e alguns eventos que nomeamos: uma conta foi criada, uma entrevista começou e terminou, uma assinatura começou. Nunca recebe suas respostas, sua transcrição, seu currículo nem seu e-mail, não grava a sessão, e não deixa nenhum cookie: o identificador que usa é descartado ao fechar a aba.",
+            "PostHog — análise de produto, em servidores nos Estados Unidos. Recebe quais telas são abertas, alguns eventos que nomeamos (uma conta foi criada, uma entrevista ou ensaio começou e terminou, uma compra começou) e mapas de calor: onde na página as pessoas clicam e até onde rolam, como posições, nunca o texto embaixo. Se você entrou na conta, isso fica associado a um número interno, nunca ao seu e-mail. Nunca recebe suas respostas, sua transcrição, seu currículo nem seu trabalho, não grava a sessão e não deixa nenhum cookie: o identificador anônimo é descartado ao fechar a aba. Para sair, ative \"Não rastrear\" (Do Not Track) no seu navegador: o PostHog então não recebe nada.",
+            "Google Cloud — voz em português do Brasil. Quando um ensaio é em português, as falas da banca são enviadas ao Google para serem lidas em voz alta. Ele recebe só esse texto, nunca a sua voz nem o seu trabalho.",
             "Mercado Pago — pagamentos, se você assinar. O formulário de cartão agora fica na nossa própria página, mas o cartão não: o script do Mercado Pago o envia direto do seu navegador para eles e devolve um token de uso único, que é a única coisa que chega aos nossos servidores. Guardamos um status de assinatura e nada mais.",
           ],
           "Não vendemos seus dados, e não os compartilhamos com ninguém fora desta lista.",
@@ -393,7 +396,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         heading: "Cookies",
         body: [
           "Um cookie, e é o que mantém você conectado. Ele carrega um identificador assinado e nada mais. Não há cookies de publicidade nem de analytics, e é por isso que este site não tem banner de cookies: não há o que consentir.",
-          "Seu tema e seu idioma de interface ficam no seu navegador e nunca chegam até nós.",
+          "Seu tema, seu idioma de interface e algumas preferências de ensaio (sua universidade, o formato do país e a opção de fluência) ficam no seu navegador e não chegam até nós por si só.",
         ],
       },
       {

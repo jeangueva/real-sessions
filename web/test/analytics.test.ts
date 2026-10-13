@@ -61,6 +61,9 @@ describe("the privacy notice", () => {
    * the line is what makes the promise false.
    */
   it("names PostHog in English, Spanish and Portuguese", () => {
-    expect(legal.match(/PostHog/g) ?? []).toHaveLength(3);
+    // One entry in each language's list of processors, which is where a
+    // reader looks for who receives their data.
+    expect(legal.match(/"PostHog — /g) ?? []).toHaveLength(3);
+    expect(legal).toContain("Do Not Track");
   });
 });
