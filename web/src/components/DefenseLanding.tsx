@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   BookOpenCheck,
@@ -11,10 +12,15 @@ import {
   Upload,
   Users,
 } from "lucide-react";
-import { Action, Eyebrow, FadeRise, Panel, Section, WordsPullUp } from "@/design-system";
+import { Action, AnimatedCounter, Eyebrow, FadeRise, HeroVideo, Panel, Section, WordsPullUp } from "@/design-system";
+import { EASE_OUT } from "@/design-system/motion";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
+
+/** The same footage as the interview landing; `VITE_HERO_VIDEO` overrides both. */
+const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
+const HERO_POSTER = "/hero-2.jpg";
 
 /**
  * The front page for Sustentación.
@@ -311,6 +317,34 @@ const EN: Record<Key, string> = {
 
 const BY_LOCALE: Record<string, Record<Key, string>> = { es: ES, pt: PT, en: EN };
 
+/**
+ * The three jurors' marks on the sample record, filled as the card arrives.
+ *
+ * `scaleX` from the left edge rather than `width`, so the fill composites
+ * instead of laying the card out again on every frame; a short stagger so the
+ * eye reads them as three marks, not one block. Under reduced motion Motion
+ * skips straight to the end.
+ */
+function ActaBars({ values }: { values: number[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  return (
+    <div ref={ref} className="flex flex-col gap-2">
+      {values.map((value, index) => (
+        <span key={index} className="block h-2 overflow-hidden rounded-full bg-surface-lift">
+          <motion.span
+            className={`block h-full origin-left rounded-full ${value >= 70 ? "bg-grow" : "bg-accent"}`}
+            style={{ width: `${value}%` }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: inView ? 1 : 0 }}
+            transition={{ duration: 0.7, delay: 0.15 + index * 0.06, ease: EASE_OUT }}
+          />
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function DefenseLanding() {
   const { locale } = useLocale();
   const c = BY_LOCALE[locale] ?? EN;
@@ -375,23 +409,35 @@ export function DefenseLanding() {
         cta={{ label: c.cta, to: start }}
       />
 
-      {/* Hero: the promise, the way in, and what it costs to try. */}
-      <section className="px-4 pb-8 pt-[calc(7rem+env(safe-area-inset-top,0px))] sm:px-6 sm:pt-36 lg:px-10">
-        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-          <h1 className="text-balance text-[clamp(2.25rem,5vw,4rem)] font-semibold leading-[1.04] tracking-[-0.035em] text-cream-bright">
-            <WordsPullUp align="center" className="w-full">{c.heroTitle}</WordsPullUp>
-          </h1>
-          <FadeRise delay={0.2} className="mt-5 max-w-2xl">
-            <p className="text-balance text-base text-cream-dim sm:text-lg">{c.heroSub}</p>
-          </FadeRise>
-          <FadeRise delay={0.35} className="mt-8 flex flex-col items-center gap-3">
-            <Link to={start}>
-              <Action withArrow className="px-6 py-3 text-base">
-                {c.cta}
-              </Action>
-            </Link>
-            <span className="text-sm text-cream-dim">{c.heroNote}</span>
-          </FadeRise>
+      {/* Hero: the promise, the way in and what it costs to try, laid over
+          the footage — the same frame as the interview landing, so the two
+          front doors read as one product. The copy sits in the clip's dark
+          upper third; the scrim below only steadies it, never hides her. */}
+      <section className="px-2 pb-2 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:px-3 sm:pb-3">
+        <div className="on-media relative isolate flex h-[min(72svh,36rem)] min-h-[26rem] flex-col items-center overflow-hidden rounded-[1.25rem] bg-surface-base text-center sm:h-[min(calc(100svh-6rem),44rem)] sm:min-h-[30rem] sm:rounded-inset">
+          <HeroVideo bare focus="object-[50%_0%]" src={HERO_VIDEO} poster={HERO_POSTER} />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-[80%] bg-gradient-to-b from-black/85 via-black/50 to-transparent sm:h-2/3 sm:from-black/80 sm:via-black/40"
+          />
+          <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pt-[clamp(2rem,7svh,5.5rem)]">
+            <h1 className="text-balance text-[clamp(2.1rem,5vw,4rem)] font-semibold leading-[1.04] tracking-[-0.035em] text-cream-bright [text-shadow:0_1px_24px_rgb(0_0_0/0.35)]">
+              <WordsPullUp align="center" className="w-full">{c.heroTitle}</WordsPullUp>
+            </h1>
+            <FadeRise delay={0.2} className="mt-4 max-w-2xl">
+              <p className="text-balance text-base text-cream-bright/85 [text-shadow:0_1px_16px_rgb(0_0_0/0.4)] sm:text-lg">
+                {c.heroSub}
+              </p>
+            </FadeRise>
+            <FadeRise delay={0.32} className="mt-6 flex flex-col items-center gap-2.5">
+              <Link to={start}>
+                <Action withArrow className="px-6 py-3 text-base">
+                  {c.cta}
+                </Action>
+              </Link>
+              <span className="text-sm text-cream-bright/75 [text-shadow:0_1px_12px_rgb(0_0_0/0.5)]">{c.heroNote}</span>
+            </FadeRise>
+          </div>
         </div>
       </section>
 
@@ -496,22 +542,13 @@ export function DefenseLanding() {
                 {c.actaLabel}
               </span>
               <p className="flex items-baseline gap-2">
-                <span className="text-[3.5rem] font-bold leading-none tabular-nums text-cream-bright">14</span>
+                <AnimatedCounter value={14} duration={0.9} className="text-[3.5rem] font-bold leading-none tabular-nums text-cream-bright" />
                 <span className="text-xl font-semibold text-cream-faint">/ 20</span>
               </p>
               <span className="self-start rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-text">
                 {c.actaVerdict}
               </span>
-              <div className="flex flex-col gap-2">
-                {[78, 52, 70].map((value, index) => (
-                  <span key={index} className="block h-2 overflow-hidden rounded-full bg-surface-lift">
-                    <span
-                      className={`block h-full rounded-full ${value >= 70 ? "bg-grow" : "bg-accent"}`}
-                      style={{ width: `${value}%` }}
-                    />
-                  </span>
-                ))}
-              </div>
+              <ActaBars values={[78, 52, 70]} />
             </Panel>
           </FadeRise>
         </div>
@@ -604,7 +641,7 @@ export function DefenseLanding() {
               <p className="text-sm text-cream-dim">{c.ladderBody}</p>
               <Link
                 to="/entrevistas"
-                className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline underline-offset-4"
+                className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline decoration-accent-text/40 underline-offset-4 transition-[text-decoration-color] duration-150 ease-press hover:decoration-accent-text"
               >
                 {c.ladderCta}
               </Link>
@@ -632,7 +669,7 @@ export function DefenseLanding() {
               <p className="text-sm text-cream-dim">{c.institutionBody}</p>
               <a
                 href="mailto:hello@getmockio.com?subject=Mockio%20Sustentaci%C3%B3n%20%E2%80%94%20instituci%C3%B3n"
-                className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline underline-offset-4"
+                className="focus-ring mt-auto rounded-full text-sm font-semibold text-accent-text underline decoration-accent-text/40 underline-offset-4 transition-[text-decoration-color] duration-150 ease-press hover:decoration-accent-text"
               >
                 hello@getmockio.com
               </a>

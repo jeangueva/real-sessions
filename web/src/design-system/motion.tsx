@@ -128,18 +128,20 @@ export function FadeRise({
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, transform: "translateY(24px)" }}
+      // 16px over 0.6s: enough travel to read as arrival, short enough that a
+      // block scrolled into view is readable before the reader looks for it.
+      initial={{ opacity: 0, transform: "translateY(16px)" }}
       // Animating to an explicit visible state either way: passing `undefined`
       // leaves the element parked at `initial`, so anything whose entrance
       // never fires stays invisible rather than merely un-animated.
       animate={{
         opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0px)" : "translateY(24px)",
+        transform: inView ? "translateY(0px)" : "translateY(16px)",
         // A resting transform would make this block the containing block for
         // anything `position: fixed` inside it, so it is cleared on arrival.
         ...(inView ? { transitionEnd: { transform: "none" } } : {}),
       }}
-      transition={{ duration: 0.8, delay, ease: CINEMATIC }}
+      transition={{ duration: 0.6, delay, ease: CINEMATIC }}
     >
       {children}
     </motion.div>

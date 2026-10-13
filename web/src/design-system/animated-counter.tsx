@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useInView } from "framer-motion";
+import { useInView, useReducedMotion } from "framer-motion";
 
 interface AnimatedCounterProps {
   value: number;
@@ -23,9 +23,16 @@ export function AnimatedCounter({
 }: AnimatedCounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-20px" });
-  const [displayValue, setDisplayValue] = useState(0);
+  // A number counting up is motion too: a reader who asked for less gets the
+  // final figure from the first frame.
+  const still = useReducedMotion();
+  const [displayValue, setDisplayValue] = useState(still ? value : 0);
 
   useEffect(() => {
+    if (still) {
+      setDisplayValue(value);
+      return;
+    }
     if (!isInView) return;
 
     let startTime: number | null = null;
@@ -54,7 +61,7 @@ export function AnimatedCounter({
     animationFrameId = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isInView, value, duration]);
+  }, [isInView, value, duration, still]);
 
   const formatted =
     decimals > 0

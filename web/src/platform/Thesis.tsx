@@ -97,12 +97,10 @@ export function Thesis() {
           <Panel variant="raised" className="flex flex-col items-start gap-4 p-6 sm:p-8">
             <h2 className="text-title font-semibold text-cream-bright">{t("uploadTitle")}</h2>
             <p className="max-w-prose text-base leading-relaxed text-cream">{t("uploadBody")}</p>
-            <button type="button" onClick={() => fileRef.current?.click()} className="focus-ring rounded-full">
-              <Action>
-                <Upload aria-hidden className="h-4 w-4" />
-                {t("uploadCta")}
-              </Action>
-            </button>
+            <Action type="button" onClick={() => fileRef.current?.click()}>
+              <Upload aria-hidden className="h-4 w-4" />
+              {t("uploadCta")}
+            </Action>
             <Privacy />
           </Panel>
         ) : thesis ? (

@@ -267,7 +267,7 @@ export function Features() {
                           key={role}
                           type="button"
                           onClick={() => setSearchQuery(role)}
-                          className="focus-ring rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-dim transition-colors hover:text-cream-bright"
+                          className="focus-ring rounded-full bg-surface-lift px-3 py-1 text-xs font-medium text-cream-dim transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:text-cream-bright"
                         >
                           {role}
                         </button>

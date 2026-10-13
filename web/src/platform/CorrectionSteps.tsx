@@ -68,7 +68,7 @@ export function CorrectionSteps({ items }: { items: string[] }) {
                   <button
                     type="button"
                     onClick={() => speak(correction.natural)}
-                    className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3 py-1 text-xs font-medium text-cream-bright shadow-card transition-colors hover:text-accent-text"
+                    className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3 py-1 text-xs font-medium text-cream-bright shadow-card transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:text-accent-text"
                   >
                     <Volume2 className="h-3.5 w-3.5" aria-hidden />
                     {t("feedback.listen")}

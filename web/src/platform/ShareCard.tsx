@@ -509,7 +509,7 @@ export function ShareCard() {
                 <button
                   type="button"
                   onClick={() => guard(true, "ground", () => undefined)}
-                  className="focus-ring flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line p-4 text-center text-sm font-medium text-cream-dim transition-colors hover:bg-surface-lift"
+                  className="focus-ring flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line p-4 text-center text-sm font-medium text-cream-dim transition-[background-color,transform] duration-150 ease-press hover:bg-surface-lift active:scale-[0.99]"
                 >
                   {t("share.pick")}
                   <PremiumMark label={t("premium.mark")} />
@@ -628,7 +628,7 @@ export function ShareCard() {
                       <button
                         type="button"
                         onClick={() => guard(true, "ready", () => undefined)}
-                        className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-lift px-3"
+                        className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-lift px-3 transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97]"
                       >
                         <span aria-hidden className="h-4 w-4 rounded-full bg-gradient-to-br from-accent via-grow to-step" />
                         <PremiumMark label={t("premium.mark")} />
@@ -655,7 +655,7 @@ export function ShareCard() {
                     type="button"
                     aria-pressed={backdrop}
                     onClick={() => setBackdrop((h) => !h)}
-                    className={`focus-ring rounded-full border px-3 py-1.5 text-xs ${
+                    className={`focus-ring rounded-full border px-3 py-1.5 text-xs transition-[border-color,color,transform] duration-150 ease-press active:scale-[0.97] ${
                       backdrop ? "border-cream-faint text-cream-bright" : "border-line text-cream-dim"
                     }`}
                   >

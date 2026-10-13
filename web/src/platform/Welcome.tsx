@@ -89,7 +89,7 @@ export function Welcome({ sessions }: { sessions: SessionSummary[] }) {
               type="button"
               onClick={hide}
               aria-label={t("welcome.hide")}
-              className="focus-ring -m-1.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-cream-faint transition-colors hover:bg-surface-lift hover:text-cream-bright"
+              className="focus-ring -m-1.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-cream-faint transition-[background-color,color,transform] duration-150 ease-press hover:bg-surface-lift hover:text-cream-bright active:scale-[0.92]"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
