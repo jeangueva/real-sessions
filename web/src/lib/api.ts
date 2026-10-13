@@ -1661,7 +1661,23 @@ export interface AdvisorDashboard {
     firstScore: number | null;
     lastAt: string | null;
   }[];
-  commissions?: { count: number; pending: number; paid: number; currency: string; rate: number };
+  commissions?: {
+    count: number;
+    /** Everything unpaid, held or not. */
+    pending: number;
+    paid: number;
+    currency: string;
+    rate: number;
+    /** Inside the seven-day refund window. */
+    held?: number;
+    /** Past it: what the next payout covers. */
+    available?: number;
+    /** YYYY-MM-DD: the last day of the next payout window. */
+    nextPayout?: string;
+    payable?: boolean;
+    minimum?: number;
+    holdDays?: number;
+  };
   pro?: { active: boolean; expiresAt: string | null; seats: number; creditsPerStudent: number; used: number; amount: number; currency: string };
   cohort?: {
     name: string;

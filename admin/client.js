@@ -498,9 +498,9 @@
 <td data-label="Vinculados" class="r">${a.linked}</td>
 <td data-label="Comparten" class="r">${a.shared}</td>
 <td data-label="Ventas" class="r">${a.sales}</td>
-<td data-label="Por pagar" class="r">${money(a.pending, a.currency)}</td>
+<td data-label="Por pagar" class="r">${money(a.pending, a.currency)}${a.held > 0 ? `<br><span class="dim small">+ ${money(a.held, a.currency)} en espera</span>` : ""}</td>
 <td data-label="Pagado" class="r">${money(a.paid, a.currency)}</td>
-<td>${a.pending > 0 ? `<button class="btn" type="button" data-paid="${esc(a.code)}" data-amount="${esc(money(a.pending, a.currency))}">Marcar pagado</button>` : ""}</td>
+<td>${a.pending >= 50 ? `<button class="btn" type="button" data-paid="${esc(a.code)}" data-amount="${esc(money(a.pending, a.currency))}">Marcar pagado</button>` : ""}</td>
 </tr>`,
           )
           .join("")
@@ -545,7 +545,7 @@
     const code = button.dataset.paid;
     confirmDialog({
       title: `Pagar a ${code}`,
-      body: `Marca ${button.dataset.amount} como pagado. Hazlo después de enviar el dinero por Yape o transferencia.`,
+      body: `Marca ${button.dataset.amount} como pagado: solo lo que pasó los 7 días de espera. Hazlo después de enviar el dinero por el medio que eligió el afiliado.`,
       confirm: "Marcar pagado",
       run: () => post("/api/advisors/paid", { code }),
     });

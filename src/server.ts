@@ -223,7 +223,7 @@ import {
   type LtiStore,
 } from "./lti.js";
 import { createB2bLeadStore, readLead, type B2bLeadStore } from "./b2b.js";
-import { readPayout } from "./advisors.js";
+import { payoutSummary, readPayout } from "./advisors.js";
 import { createHmac as hmacFor, randomBytes as randomFor, timingSafeEqual as sameBytes } from "node:crypto";
 import { writeStudy } from "./study.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
@@ -3717,9 +3717,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       linked: links.length,
       students,
       commissions: {
-        count: earned.length,
+        ...payoutSummary(earned),
+        // Kept for older clients: everything unpaid, held or not.
         pending: earned.filter((entry) => !entry.paidAt).reduce((sum, entry) => sum + entry.amount, 0),
-        paid: earned.filter((entry) => entry.paidAt).reduce((sum, entry) => sum + entry.amount, 0),
         currency: earned[0]?.currency ?? PACK_CURRENCY,
         rate: COMMISSION_RATE,
       },

@@ -71,7 +71,10 @@ export interface DefenseSummary {
     linked: number;
     shared: number;
     sales: number;
+    /** Past the refund window: what can be paid now. */
     pending: number;
+    /** Inside the window: waits for the next payout. */
+    held: number;
     paid: number;
     currency: string;
     /** How they want to be paid, as one line. */
@@ -116,7 +119,8 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
     quiet(
       pool.query(
         `SELECT advisor_code, count(*)::int AS sales,
-                COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL), 0)::float AS pending,
+                COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL AND created_at <= now() - interval '7 days'), 0)::float AS pending,
+                COALESCE(sum(amount) FILTER (WHERE paid_at IS NULL AND created_at > now() - interval '7 days'), 0)::float AS held,
                 COALESCE(sum(amount) FILTER (WHERE paid_at IS NOT NULL), 0)::float AS paid,
                 max(currency) AS currency
            FROM advisor_commissions GROUP BY advisor_code`,
@@ -141,7 +145,7 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
   const prices: Record<string, number> = { sustentacion: 39, intensivo: 79, grupal: 119 };
   const byCode = <T extends { advisor_code: string }>(rows: T[]) => new Map(rows.map((row) => [row.advisor_code, row]));
   const linkRows = byCode(links.rows as { advisor_code: string; linked: number; shared: number }[]);
-  const moneyRows = byCode(commissions.rows as { advisor_code: string; sales: number; pending: number; paid: number; currency: string }[]);
+  const moneyRows = byCode(commissions.rows as { advisor_code: string; sales: number; pending: number; held: number; paid: number; currency: string }[]);
   const emails = new Map(accounts.map((account) => [account.id, account.email]));
   const first = (rows: { n?: number }[]) => rows[0]?.n ?? 0;
   const d = (defenses.rows[0] ?? {}) as { total?: number; d7?: number; d30?: number; completed?: number };
@@ -189,6 +193,7 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
         shared: linkRows.get(row.code)?.shared ?? 0,
         sales: moneyRows.get(row.code)?.sales ?? 0,
         pending: Number(moneyRows.get(row.code)?.pending ?? 0),
+        held: Number(moneyRows.get(row.code)?.held ?? 0),
         paid: Number(moneyRows.get(row.code)?.paid ?? 0),
         currency: moneyRows.get(row.code)?.currency ?? "PEN",
         payout: row.payout ? `${row.payout.method} · ${row.payout.account} · ${row.payout.holder}` : null,

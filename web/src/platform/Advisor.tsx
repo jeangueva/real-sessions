@@ -6,6 +6,7 @@ import { ApiError, becomeAdvisor, buyDefensePack, fetchAdvisor, saveAffiliatePay
 import type { PayoutMethod } from "@/lib/api";
 import type { AdvisorDashboard } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { useLocale } from "@/hooks/useLocale";
 
 /**
  * The advisor's side: their code, their students' progress, their earnings.
@@ -15,6 +16,7 @@ import { useThesisT } from "@/lib/thesis-copy";
  */
 export function Advisor() {
   const t = useThesisT();
+  const { locale } = useLocale();
   const [data, setData] = useState<AdvisorDashboard | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -174,21 +176,37 @@ export function Advisor() {
                   <Wallet aria-hidden className="h-5 w-5 text-accent-text" />
                   {t("advisorEarnings")}
                 </h2>
-                <dl className="grid grid-cols-3 gap-3">
+                <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div>
+                    <dt className="text-xs text-cream-dim">{t("advisorHeld")}</dt>
+                    <dd className="text-xl font-bold tabular-nums text-cream-dim">
+                      {money(data.commissions.held ?? 0, data.commissions.currency)}
+                    </dd>
+                  </div>
                   <div>
                     <dt className="text-xs text-cream-dim">{t("advisorPending")}</dt>
-                    <dd className="text-xl font-bold text-cream-bright">{money(data.commissions.pending, data.commissions.currency)}</dd>
+                    <dd className={`text-xl font-bold tabular-nums ${data.commissions.payable ? "text-grow-text" : "text-cream-bright"}`}>
+                      {money(data.commissions.available ?? data.commissions.pending, data.commissions.currency)}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-xs text-cream-dim">{t("advisorPaid")}</dt>
-                    <dd className="text-xl font-bold text-cream-bright">{money(data.commissions.paid, data.commissions.currency)}</dd>
+                    <dd className="text-xl font-bold tabular-nums text-cream-bright">{money(data.commissions.paid, data.commissions.currency)}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-cream-dim">{t("advisorSales", { count: data.commissions.count })}</dt>
                     <dd className="text-xl font-bold text-cream-bright">{Math.round(data.commissions.rate * 100)}%</dd>
                   </div>
                 </dl>
-                <p className="text-xs text-cream-dim">{t("advisorPayout")}</p>
+                <p className="text-xs text-cream-dim">
+                  {t("advisorPayout", {
+                    days: data.commissions.holdDays ?? 7,
+                    date: data.commissions.nextPayout
+                      ? new Date(`${data.commissions.nextPayout}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })
+                      : "10",
+                    min: money(data.commissions.minimum ?? 50, data.commissions.currency),
+                  })}
+                </p>
               </Panel>
             )}
 

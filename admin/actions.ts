@@ -247,12 +247,14 @@ export async function markCommissionsPaid(deps: Deps, rawCode: unknown): Promise
   if (!/^[A-Z0-9]{6}$/.test(code)) throw new ActionError("Ese no es un código de asesor.");
   const total = await inTransaction(deps.pool, async (client) => {
     const updated = await client.query(
+      // Only what is past the seven-day refund window: a sale still inside
+      // it may come back, and its commission waits for the next payout.
       `UPDATE advisor_commissions SET paid_at = now()
-        WHERE advisor_code = $1 AND paid_at IS NULL
+        WHERE advisor_code = $1 AND paid_at IS NULL AND created_at <= now() - interval '7 days'
         RETURNING amount, currency`,
       [code],
     );
-    if (updated.rowCount === 0) throw new ActionError(`${code} no tiene comisiones por pagar.`);
+    if (updated.rowCount === 0) throw new ActionError(`${code} no tiene comisiones disponibles (las de los últimos 7 días siguen en espera).`);
     const sum = updated.rows.reduce((acc, row) => acc + Number(row.amount), 0);
     await audit(client, deps.actor, "commission.paid", code, {
       payments: updated.rowCount,

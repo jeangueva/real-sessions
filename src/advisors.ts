@@ -21,6 +21,61 @@ import type { DbPool } from "./db/index.js";
 
 export const COMMISSION_RATE = 0.3;
 
+/**
+ * How commissions are paid out.
+ *
+ * A commission waits HOLD_DAYS before it can be paid — the same seven days a
+ * buyer has to ask for a refund, so nobody is paid for a sale that comes back.
+ * Payouts go out in the first PAYOUT_DAY days of each month, for whatever is
+ * available, once it reaches MIN_PAYOUT; below that it rolls over, because a
+ * transfer for a few soles costs more attention than it is worth.
+ */
+export const HOLD_DAYS = 7;
+export const MIN_PAYOUT = Number(process.env.AFFILIATE_MIN_PAYOUT ?? 50);
+export const PAYOUT_DAY = 10;
+
+export interface PayoutSummary {
+  /** Inside the refund window. */
+  held: number;
+  /** Past it and unpaid: what the next payout covers. */
+  available: number;
+  paid: number;
+  count: number;
+  /** YYYY-MM-DD: the last day of the next payout window. */
+  nextPayout: string;
+  /** Whether `available` reaches the minimum. */
+  payable: boolean;
+  minimum: number;
+  holdDays: number;
+}
+
+export function payoutSummary(commissions: readonly Commission[], now = new Date()): PayoutSummary {
+  const cutoff = now.getTime() - HOLD_DAYS * 86_400_000;
+  const round = (value: number) => Math.round(value * 100) / 100;
+  let held = 0;
+  let available = 0;
+  let paid = 0;
+  for (const entry of commissions) {
+    if (entry.paidAt) paid += entry.amount;
+    else if (Date.parse(entry.createdAt) > cutoff) held += entry.amount;
+    else available += entry.amount;
+  }
+  // This month's window while it is open, otherwise next month's.
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + (now.getUTCDate() <= PAYOUT_DAY ? 0 : 1);
+  const next = new Date(Date.UTC(year, month, PAYOUT_DAY)).toISOString().slice(0, 10);
+  return {
+    held: round(held),
+    available: round(available),
+    paid: round(paid),
+    count: commissions.length,
+    nextPayout: next,
+    payable: available >= MIN_PAYOUT,
+    minimum: MIN_PAYOUT,
+    holdDays: HOLD_DAYS,
+  };
+}
+
 export interface Advisor {
   ownerId: string;
   code: string;
