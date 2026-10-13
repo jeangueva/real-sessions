@@ -1642,7 +1642,14 @@ export interface AdvisorLinkInfo {
 }
 
 export interface AdvisorDashboard {
-  advisor: { ownerId: string; code: string; name: string; createdAt: string } | null;
+  advisor: {
+    ownerId: string;
+    code: string;
+    name: string;
+    createdAt: string;
+    /** How they want their commissions paid; null until they say. */
+    payout?: { method: PayoutMethod; account: string; holder: string } | null;
+  } | null;
   link?: string;
   linked?: number;
   students?: {
@@ -1749,5 +1756,35 @@ export function uploadPresence(sessionId: string, frames: string[], readerLangua
 export function fetchPresence(sessionId: string) {
   return withIdentity(() =>
     request<{ presence: Presence | null }>(`/api/sessions/${encodeURIComponent(sessionId)}/presence`, { method: "GET" }),
+  );
+}
+
+/** The institutions page's form. Public: the person asking has no account. */
+export function sendB2bLead(input: {
+  name: string;
+  email: string;
+  institution: string;
+  role: string;
+  country: string;
+  students: string;
+  platform: string;
+  message: string;
+}) {
+  return request<{ ok: true }>("/api/b2b/lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, students: Number(input.students) || null }),
+  });
+}
+
+export type PayoutMethod = "yape" | "plin" | "transferencia" | "paypal";
+
+export function saveAffiliatePayout(input: { method: PayoutMethod; account: string; holder: string }) {
+  return withIdentity(() =>
+    request<{ payout: { method: PayoutMethod; account: string; holder: string } }>("/api/advisor/payout", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
   );
 }

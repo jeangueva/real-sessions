@@ -463,11 +463,37 @@
           )
           .join("")
       : `<tr><td colspan="6" class="dim">Todavía no hay instituciones.</td></tr>`;
+    $("#platforms-body").innerHTML = (d.platforms ?? []).length
+      ? d.platforms
+          .map(
+            (p) => `<tr>
+<td data-label="Plataforma">${esc(p.issuer)}</td>
+<td data-label="Client ID"><code>${esc(p.clientId)}</code></td>
+<td data-label="Institución">${p.institution ? `<code>${esc(p.institution)}</code>` : "—"}</td>
+<td data-label="Usuarios" class="r">${p.users}</td>
+</tr>`,
+          )
+          .join("")
+      : `<tr><td colspan="4" class="dim">Ninguna plataforma conectada todavía.</td></tr>`;
+    $("#leads-body").innerHTML = (d.leads ?? []).length
+      ? d.leads
+          .map(
+            (l) => `<tr>
+<td data-label="Contacto">${esc(l.name)}${l.role ? `<br><span class="dim small">${esc(l.role)}</span>` : ""}<br><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></td>
+<td data-label="Institución">${esc(l.institution)}${l.country ? `<br><span class="dim small">${esc(l.country)}</span>` : ""}</td>
+<td data-label="Estudiantes" class="r">${l.students ?? "—"}</td>
+<td data-label="Plataforma">${esc(l.platform ?? "—")}</td>
+<td data-label="Mensaje" class="small">${esc(l.message ?? "")}</td>
+<td data-label="Fecha">${esc(new Date(l.at).toLocaleDateString("es"))}</td>
+</tr>`,
+          )
+          .join("")
+      : `<tr><td colspan="6" class="dim">Todavía nadie escribió desde /instituciones.</td></tr>`;
     $("#advisors-body").innerHTML = d.advisors.length
       ? d.advisors
           .map(
             (a) => `<tr>
-<td data-label="Asesor">${esc(a.name)}<br><span class="dim small">${esc(a.email ?? "")}</span></td>
+<td data-label="Asesor">${esc(a.name)}<br><span class="dim small">${esc(a.email ?? "")}</span>${a.payout ? `<br><span class="dim small">Cobra por ${esc(a.payout)}</span>` : ""}</td>
 <td data-label="Código"><code>${esc(a.code)}</code></td>
 <td data-label="Vinculados" class="r">${a.linked}</td>
 <td data-label="Comparten" class="r">${a.shared}</td>
@@ -494,6 +520,23 @@
       ],
       confirm: "Crear",
       run: (v) => post("/api/institutions", v),
+    }),
+  );
+  $("#new-lti").addEventListener("click", () =>
+    formDialog({
+      title: "Conectar plataforma (LTI 1.3)",
+      subtitle: "Primero registra Mockio en la plataforma de la universidad con las tres URLs de /lti/config del sitio (login, lanzamiento y claves). Luego copia aquí lo que la plataforma te muestre.",
+      fields: [
+        { name: "issuer", label: "Emisor / Platform ID (issuer)", type: "url", attrs: 'required placeholder="https://aulavirtual.universidad.edu.pe"' },
+        { name: "clientId", label: "Client ID", type: "text", attrs: 'required maxlength="200"' },
+        { name: "deploymentIds", label: "Deployment ID (uno o varios, separados por coma)", type: "text", help: "Vacío acepta cualquiera." },
+        { name: "authLoginUrl", label: "URL de autenticación (OIDC auth)", type: "url", attrs: "required" },
+        { name: "authTokenUrl", label: "URL del token (OAuth2 access token)", type: "url", attrs: "required" },
+        { name: "jwksUrl", label: "URL de claves públicas (JWKS / keyset)", type: "url", attrs: "required" },
+        { name: "institutionCode", label: "Código de la institución en Mockio", type: "text", help: "Sus alumnos entran a ese grupo. Créala antes en «Nueva institución»." },
+      ],
+      confirm: "Conectar",
+      run: (v) => post("/api/lti", v),
     }),
   );
   $("#advisors-body").addEventListener("click", (event) => {

@@ -211,6 +211,20 @@ import {
   readJury,
   readMentorRequest,
 } from "./defense-extras.js";
+import {
+  authRedirect,
+  createLtiStore,
+  LtiError,
+  ltiJwks,
+  postScore,
+  readState,
+  verifyLaunch,
+  type JwksFetcher,
+  type LtiStore,
+} from "./lti.js";
+import { createB2bLeadStore, readLead, type B2bLeadStore } from "./b2b.js";
+import { readPayout } from "./advisors.js";
+import { createHmac as hmacFor, randomBytes as randomFor, timingSafeEqual as sameBytes } from "node:crypto";
 import { writeStudy } from "./study.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import {
@@ -236,6 +250,68 @@ const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPA
  * What someone may still rehearse: full defences left in their packs, and
  * whether the free express one is spent.
  */
+/** Whether the top pack, with a real teacher, is on sale. Off until there are teachers. */
+const DOCENTE_ENABLED = process.env.DEFENSE_DOCENTE_ENABLED === "1";
+
+/** The kinds a student can buy right now. */
+function studentOffers(): PackKind[] {
+  return (Object.keys(PACK_KINDS) as PackKind[]).filter(
+    (kind) => !PACK_KINDS[kind].advisor && (kind !== "docente" || DOCENTE_ENABLED),
+  );
+}
+
+/**
+ * A rehearsal's grade, to the gradebook of the course it was launched from.
+ * Quiet on failure: the record is in Mockio either way, and a platform that
+ * refuses a score is the university's to look at, not the student's.
+ */
+async function sendGradeToCourse(ownerId: string, acta: { grade: number; grade_max: number; verdict?: string | null }) {
+  try {
+    const link = await LTI.linkOfAccount(ownerId);
+    if (!link?.lineitem) return;
+    const platform = await LTI.platformById(link.platformId);
+    if (!platform) return;
+    await postScore(platform, link, {
+      given: acta.grade,
+      maximum: acta.grade_max,
+      comment: `Ensayo de sustentación en Mockio${acta.verdict ? ` · ${acta.verdict}` : ""}`,
+    });
+  } catch (error) {
+    console.error("[mockio] grade passback failed:", error);
+  }
+}
+
+/**
+ * The one-time pass from an LTI launch to a first-party page: signed, two
+ * minutes long, spent on first use. The launch arrives as a cross-site post
+ * — often inside an iframe, where a cookie cannot be set — so the session is
+ * started on a top-level page of our own instead.
+ */
+const usedPasses = new Map<string, number>();
+
+function ltiPass(accountId: string, to: string): string {
+  const payload = Buffer.from(JSON.stringify({ a: accountId, t: to, e: Date.now() + 120_000, r: randomFor(8).toString("hex") })).toString("base64url");
+  const mac = hmacFor("sha256", process.env.REALSESSIONS_SESSION_SECRET ?? "mockio-lti-dev-state").update(`pass:${payload}`).digest("base64url");
+  return `${payload}.${mac}`;
+}
+
+function readLtiPass(pass: string): { accountId: string; to: string } | null {
+  const [payload, mac] = pass.split(".");
+  if (!payload || !mac) return null;
+  const expected = hmacFor("sha256", process.env.REALSESSIONS_SESSION_SECRET ?? "mockio-lti-dev-state").update(`pass:${payload}`).digest();
+  const given = Buffer.from(mac, "base64url");
+  if (given.length !== expected.length || !sameBytes(given, expected)) return null;
+  const now = Date.now();
+  for (const [key, expires] of usedPasses) if (expires < now) usedPasses.delete(key);
+  if (usedPasses.has(mac)) return null;
+  const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { a: string; t: string; e: number };
+  if (parsed.e < now) return null;
+  usedPasses.set(mac, parsed.e);
+  // Only our own pages: the destination was chosen by the server, but a
+  // pass is a bearer token and must never become an open redirect.
+  return { accountId: parsed.a, to: ["/app", "/app/advisor"].includes(parsed.t) ? parsed.t : "/app" };
+}
+
 async function defenseAllowance(ownerId: string): Promise<{
   credits: number;
   freeLeft: number;
@@ -553,6 +629,10 @@ let PACKS: DefensePackStore;
 let REAL_QUESTIONS: DefenseQuestionStore;
 let ADVISORS: AdvisorStore;
 let INSTITUTIONS: InstitutionStore;
+let LTI: LtiStore;
+let LEADS: B2bLeadStore;
+/** The platforms' key sets are read through this; a test supplies its own. */
+let LTI_JWKS: JwksFetcher | undefined;
 let PRESENCE: PresenceStore;
 let CONTRIBUTIONS: ContributionStore;
 let SUBSCRIPTIONS: SubscriptionStore;
@@ -589,6 +669,10 @@ export interface ServerDependencies {
   realQuestions?: DefenseQuestionStore;
   advisors?: AdvisorStore;
   institutions?: InstitutionStore;
+  /** Universities' platforms connected over LTI 1.3. */
+  lti?: LtiStore;
+  ltiJwks?: JwksFetcher;
+  leads?: B2bLeadStore;
   presence?: PresenceStore;
   contributions: ContributionStore;
   subscriptions: SubscriptionStore;
@@ -626,6 +710,9 @@ export function configure(deps: ServerDependencies): void {
   REAL_QUESTIONS = deps.realQuestions ?? createDefenseQuestionStore(null);
   ADVISORS = deps.advisors ?? createAdvisorStore(null);
   INSTITUTIONS = deps.institutions ?? createInstitutionStore(null);
+  LTI = deps.lti ?? createLtiStore(null);
+  LTI_JWKS = deps.ltiJwks;
+  LEADS = deps.leads ?? createB2bLeadStore(null);
   PRESENCE = deps.presence ?? createPresenceStore(null);
   CONTRIBUTIONS = deps.contributions;
   SUBSCRIPTIONS = deps.subscriptions;
@@ -1656,6 +1743,10 @@ function evaluateOnce(
     await recordQuietly(
       PROGRESS.completeSession({ sessionId, score, evaluation, metrics }),
     );
+    // A defence from a university's course: its grade goes to that course's
+    // gradebook. In the background — the student is waiting on the report,
+    // not on Moodle.
+    if (evaluation.acta) void sendGradeToCourse(ownerId, evaluation.acta);
 
     const today = new Date().toISOString().slice(0, 10);
     const mode = stored.mode ?? "practice";
@@ -2360,6 +2451,147 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   /**
+   * LTI 1.3, the university's platform side. Public: the platform is the
+   * caller, and every claim it makes is checked against the keys it published
+   * before anyone is signed in.
+   */
+  if (req.method === "GET" && path === "/lti/jwks") {
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    return json(res, 200, ltiJwks());
+  }
+
+  /** The URLs a university's IT types into Moodle or Canvas, in one place. */
+  if (req.method === "GET" && path === "/lti/config") {
+    const base = siteUrl();
+    return json(res, 200, {
+      title: "Mockio — Sustentación de tesis",
+      description: "Ensayo de sustentación por voz con un jurado de 3 que leyó la tesis.",
+      target_link_uri: `${base}/lti/launch`,
+      oidc_initiation_url: `${base}/lti/login`,
+      redirect_uris: [`${base}/lti/launch`],
+      jwks_uri: `${base}/lti/jwks`,
+      scopes: ["https://purl.imsglobal.org/spec/lti-ags/scope/score", "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem"],
+      claims: ["iss", "sub", "name", "email"],
+    });
+  }
+
+  if ((req.method === "GET" || req.method === "POST") && path === "/lti/login") {
+    if (await limited(res, `lti-login:${clientIp(req)}`, RULES.ltiLaunch)) return;
+    const params = req.method === "POST" ? new URLSearchParams(await readRaw(req, 8_000)) : url.searchParams;
+    const iss = params.get("iss") ?? "";
+    const loginHint = params.get("login_hint") ?? "";
+    const platform = iss && loginHint ? await LTI.platform(iss, params.get("client_id")) : null;
+    if (!platform) return json(res, 400, { error: "Esta plataforma no está conectada a Mockio." });
+    res.writeHead(302, {
+      Location: authRedirect(platform, {
+        loginHint,
+        messageHint: params.get("lti_message_hint"),
+        redirectUri: `${siteUrl()}/lti/launch`,
+      }),
+    });
+    res.end();
+    return;
+  }
+
+  if (req.method === "POST" && path === "/lti/launch") {
+    if (await limited(res, `lti-launch:${clientIp(req)}`, RULES.ltiLaunch)) return;
+    const form = new URLSearchParams(await readRaw(req, 64_000));
+    const ltiPage = (status: number, body: string) => {
+      // The one page the university's course frames: it holds a link and no
+      // session, so it may sit inside their iframe. Everything else keeps
+      // refusing to be framed.
+      res.removeHeader("X-Frame-Options");
+      res.writeHead(status, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Content-Security-Policy": "frame-ancestors *",
+      });
+      res.end(`<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockio</title><body style="font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:90vh;margin:0;color:#111"><main style="max-width:28rem;padding:1.5rem;text-align:center">${body}</main></body></html>`);
+    };
+    try {
+      const { platformId, nonce } = readState(form.get("state") ?? "");
+      const platform = await LTI.platformById(platformId);
+      if (!platform) throw new LtiError("Esta plataforma ya no está conectada.");
+      const launch = await verifyLaunch(form.get("id_token") ?? "", platform, nonce, LTI_JWKS);
+
+      // Who this is here: the person the platform already sent once, else the
+      // account with their address, else a new one. A platform that hides
+      // emails gets an address of ours that never receives mail.
+      const known = await LTI.userBySub(platform.id, launch.sub);
+      let account = known ? await ACCOUNTS.findById(known.accountId) : null;
+      if (!account) {
+        const email =
+          launch.email ??
+          `lti-${hmacFor("sha256", "mockio-lti-user").update(`${platform.issuer}|${launch.sub}`).digest("hex").slice(0, 20)}@lti.getmockio.com`;
+        account = (await ACCOUNTS.findByEmail(email)) ?? (await ACCOUNTS.create(email, null)) ?? (await ACCOUNTS.findByEmail(email));
+        if (!account) throw new LtiError("No pudimos crear tu cuenta. Inténtalo de nuevo.");
+        // The university vouches for the address it sent.
+        if (launch.email && !account.emailVerifiedAt) await ACCOUNTS.markEmailVerified(account.id);
+        if (launch.name) {
+          const preferences = await readQuietly(USERS.getPreferences(account.id), null);
+          if (preferences && !preferences.candidateName.trim()) {
+            await recordQuietly(USERS.setPreferences(account.id, { ...preferences, candidateName: launch.name }));
+          }
+        }
+      }
+      await LTI.linkUser({ platformId: platform.id, sub: launch.sub, accountId: account.id, lineitem: launch.lineitem });
+      // Students take a seat in the school's cohort; whether one is free is
+      // decided where the seats are counted, as for a typed code.
+      if (platform.institutionCode && !launch.instructor && !(await readQuietly(INSTITUTIONS.membership(account.id), null))) {
+        await recordQuietly(INSTITUTIONS.join(account.id, platform.institutionCode));
+      }
+      const pass = ltiPass(account.id, launch.instructor ? "/app/advisor" : "/app");
+      const next = `/lti/continue?pass=${encodeURIComponent(pass)}`;
+      // Inside an iframe the session cookie would be a third-party one and
+      // dropped, so the page opens Mockio in its own tab instead.
+      return ltiPage(
+        200,
+        `<p style="font-size:1.1rem">Abriendo Mockio…</p><p><a id="go" href="${next}" target="_blank" rel="noopener" style="display:inline-block;margin-top:1rem;padding:.75rem 1.25rem;border-radius:999px;background:#5e5ce6;color:#fff;text-decoration:none;font-weight:600">Abrir Mockio</a></p><script>if(window.top===window.self){location.replace(${JSON.stringify(next)})}</script>`,
+      );
+    } catch (error) {
+      console.error("[mockio] LTI launch refused:", error);
+      const reason = error instanceof LtiError ? error.message : "No pudimos abrir Mockio desde tu curso.";
+      return ltiPage(400, `<p style="font-size:1.1rem">${reason.replace(/[<>&"]/g, "")}</p><p style="color:#666">Vuelve a abrir Mockio desde tu curso. Si se repite, avisa a tu docente.</p>`);
+    }
+  }
+
+  if (req.method === "GET" && path === "/lti/continue") {
+    const pass = readLtiPass(url.searchParams.get("pass") ?? "");
+    if (!pass) {
+      res.writeHead(302, { Location: "/signin" });
+      res.end();
+      return;
+    }
+    const { token } = issueToken({ id: pass.accountId });
+    res.writeHead(302, { "Set-Cookie": cookieHeader(token, secureCookies, "user"), Location: pass.to });
+    res.end();
+    return;
+  }
+
+  /** The institutions' form: a lead, mailed to the team. */
+  if (req.method === "POST" && path === "/api/b2b/lead") {
+    if (await limited(res, `lead:${clientIp(req)}`, RULES.auth)) return;
+    const lead = readLead(await readJson(req));
+    if (typeof lead === "string") return json(res, 400, { error: lead });
+    await recordQuietly(LEADS.add(lead));
+    await mail({
+      to: process.env.B2B_INBOX ?? "hello@getmockio.com",
+      subject: `Institución interesada — ${lead.institution}`,
+      text: [
+        `${lead.name}${lead.role ? `, ${lead.role}` : ""}`,
+        `Correo: ${lead.email}`,
+        `Institución: ${lead.institution}${lead.country ? ` (${lead.country})` : ""}`,
+        lead.students ? `Estudiantes: ${lead.students}` : null,
+        lead.platform ? `Plataforma: ${lead.platform}` : null,
+        lead.message ? `\n${lead.message}` : null,
+      ]
+        .filter((line): line is string => line !== null)
+        .join("\n"),
+    });
+    return json(res, 201, { ok: true });
+  }
+
+  /**
    * The gift page: someone pays for a student's pack.
    *
    * Public, like a shared report, and for the same reason the token is the
@@ -2374,7 +2606,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const token = giftMatch[1]!;
     const owner = isGiftToken(token) ? await THESES.ownerByGift(token) : null;
     if (!owner) return json(res, 404, { error: "Este enlace no está disponible." });
-    const offers = (["sustentacion", "intensivo", "docente"] as const).map((kind) => ({
+    const offers = (["sustentacion", "intensivo", "docente"] as const).filter((kind) => kind !== "docente" || DOCENTE_ENABLED).map((kind) => ({
       kind,
       amount: PACK_KINDS[kind].amount,
       currency: PACK_CURRENCY,
@@ -3116,7 +3348,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       allowance: await defenseAllowance(identity.id),
       pack: { amount: PACK_KINDS.sustentacion.amount, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
       // What a student can buy; the advisor plan is offered on the advisor page.
-      offers: (Object.keys(PACK_KINDS) as PackKind[]).filter((kind) => !PACK_KINDS[kind].advisor).map((kind) => ({
+      offers: studentOffers().map((kind) => ({
         kind,
         amount: PACK_KINDS[kind].amount,
         currency: PACK_CURRENCY,
@@ -3148,6 +3380,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     }
     const requested = (await readJson(req))["kind"];
     const kind: PackKind = isPackKind(requested) ? requested : "sustentacion";
+    if (kind === "docente" && !DOCENTE_ENABLED) {
+      return json(res, 404, { error: "Ese plan no está disponible por ahora." });
+    }
     if (PACK_KINDS[kind].advisor && !(await ADVISORS.get(identity.id))) {
       return json(res, 403, { error: "Crea tu código de asesor antes de activar Asesor Pro." });
     }
@@ -3553,6 +3788,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const advisor = link ? await ADVISORS.byCode(link.code) : null;
     json(res, 200, { link: link && advisor ? { code: link.code, advisorName: advisor.name, share: link.share } : null });
     return;
+  }
+
+  /** How an affiliate wants their commissions paid. */
+  if (req.method === "PUT" && path === "/api/advisor/payout") {
+    const advisor = await ADVISORS.get(identity.id);
+    if (!advisor) return json(res, 404, { error: "Crea tu código de afiliado primero." });
+    const payout = readPayout(await readJson(req));
+    if (!payout) return json(res, 400, { error: "Elige cómo cobrar y escribe la cuenta y el titular." });
+    await ADVISORS.setPayout(identity.id, payout);
+    return json(res, 200, { payout });
   }
 
   if (req.method === "DELETE" && path === "/api/advisor/link") {
@@ -4757,6 +5002,8 @@ configure({
   realQuestions: createDefenseQuestionStore(db),
   advisors: createAdvisorStore(db),
   institutions: createInstitutionStore(db),
+  lti: createLtiStore(db),
+  leads: createB2bLeadStore(db),
   presence: createPresenceStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),

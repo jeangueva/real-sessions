@@ -16,7 +16,7 @@ import type { RedisClientType } from "redis";
 
 export class ActionError extends Error {}
 
-export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create"] as const;
+export const ACTIONS = ["grant", "revoke", "verify", "rename", "coupon.create", "coupon.disable", "coupon.days", "commission.paid", "institution.create", "lti.register"] as const;
 export type ActionName = (typeof ACTIONS)[number];
 
 const accountKey = (id: string) => `rs:account:${id}`;
@@ -302,4 +302,61 @@ export async function createInstitution(
     throw new ActionError("No se pudo crear el código. Inténtalo de nuevo.");
   });
   return `${name}: código ${code}. ${seats} cupos, ${credits} sustentaciones por alumno, ${days} días.`;
+}
+
+/**
+ * A university's own platform, connected over LTI 1.3. The four values come
+ * from the platform's tool registration screen (Moodle: Site administration →
+ * Plugins → External tool → Manage tools); the institution code is the cohort
+ * its students join on their first launch.
+ */
+export async function registerLtiPlatform(
+  deps: Deps,
+  input: {
+    issuer?: unknown;
+    clientId?: unknown;
+    deploymentIds?: unknown;
+    authLoginUrl?: unknown;
+    authTokenUrl?: unknown;
+    jwksUrl?: unknown;
+    institutionCode?: unknown;
+  },
+): Promise<string> {
+  const url = (value: unknown, label: string) => {
+    try {
+      const parsed = new URL(String(value ?? "").trim());
+      if (parsed.protocol !== "https:") throw new Error();
+      return parsed.toString().replace(/\/$/, "");
+    } catch {
+      throw new ActionError(`${label} debe ser una URL https.`);
+    }
+  };
+  const issuer = url(input.issuer, "El emisor (issuer)");
+  const clientId = String(input.clientId ?? "").trim();
+  if (clientId.length < 1 || clientId.length > 200) throw new ActionError("Escribe el Client ID que te dio la plataforma.");
+  const deploymentIds = String(input.deploymentIds ?? "")
+    .split(/[\s,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+  const authLoginUrl = url(input.authLoginUrl, "La URL de autenticación");
+  const authTokenUrl = url(input.authTokenUrl, "La URL del token");
+  const jwksUrl = url(input.jwksUrl, "La URL de las claves (JWKS)");
+  const institutionCode = String(input.institutionCode ?? "").trim().toUpperCase() || null;
+  if (institutionCode) {
+    const found = await deps.pool.query(`SELECT 1 FROM institutions WHERE code = $1`, [institutionCode]);
+    if (!found.rows[0]) throw new ActionError(`No hay una institución con el código ${institutionCode}.`);
+  }
+  await inTransaction(deps.pool, async (client) => {
+    await client.query(
+      `INSERT INTO lti_platforms (issuer, client_id, deployment_ids, auth_login_url, auth_token_url, jwks_url, institution_code)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (issuer, client_id) DO UPDATE SET deployment_ids = EXCLUDED.deployment_ids,
+         auth_login_url = EXCLUDED.auth_login_url, auth_token_url = EXCLUDED.auth_token_url,
+         jwks_url = EXCLUDED.jwks_url, institution_code = EXCLUDED.institution_code`,
+      [issuer, clientId, deploymentIds, authLoginUrl, authTokenUrl, jwksUrl, institutionCode],
+    );
+    await audit(client, deps.actor, "lti.register", issuer, { clientId, deploymentIds, institutionCode });
+  });
+  return `Plataforma conectada: ${issuer}${institutionCode ? ` → ${institutionCode}` : ""}.`;
 }

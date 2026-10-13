@@ -26,6 +26,25 @@ export interface Advisor {
   code: string;
   name: string;
   createdAt: string;
+  /** How they want to be paid; null until they say. */
+  payout?: Payout | null;
+}
+
+/** Where an affiliate's commissions go. Paid by hand from the admin. */
+export interface Payout {
+  method: "yape" | "plin" | "transferencia" | "paypal";
+  /** The phone, account number or PayPal email. */
+  account: string;
+  holder: string;
+}
+
+export function readPayout(body: Record<string, unknown>): Payout | null {
+  const method = (["yape", "plin", "transferencia", "paypal"] as const).find((entry) => entry === body["method"]);
+  const text = (value: unknown, max: number) => (typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "");
+  const account = text(body["account"], 120);
+  const holder = text(body["holder"], 120);
+  if (!method || account.length < 4 || holder.length < 3) return null;
+  return { method, account, holder };
 }
 
 export interface AdvisorLink {
@@ -71,6 +90,7 @@ export interface AdvisorStore {
   recordCommission(code: string, commission: Omit<Commission, "createdAt" | "paidAt">): Promise<boolean>;
   commissions(code: string): Promise<Commission[]>;
   eraseOwner(ownerId: string): Promise<void>;
+  setPayout(ownerId: string, payout: Payout): Promise<void>;
 }
 
 class PostgresAdvisorStore implements AdvisorStore {
@@ -82,6 +102,7 @@ class PostgresAdvisorStore implements AdvisorStore {
       code: row.code as string,
       name: row.name as string,
       createdAt: new Date(row.created_at as string).toISOString(),
+      payout: (row.payout as Payout | null) ?? null,
     };
   }
 
@@ -183,6 +204,10 @@ class PostgresAdvisorStore implements AdvisorStore {
     // books under the code, since they record payments that happened.
     await this.pool.query(`DELETE FROM advisors WHERE owner_id = $1`, [ownerId]);
   }
+
+  async setPayout(ownerId: string, payout: Payout) {
+    await this.pool.query(`UPDATE advisors SET payout = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(payout)]);
+  }
 }
 
 class MemoryAdvisorStore implements AdvisorStore {
@@ -233,6 +258,11 @@ class MemoryAdvisorStore implements AdvisorStore {
   async eraseOwner(ownerId: string) {
     this.links.delete(ownerId);
     this.advisors.delete(ownerId);
+  }
+
+  async setPayout(ownerId: string, payout: Payout) {
+    const advisor = this.advisors.get(ownerId);
+    if (advisor) advisor.payout = payout;
   }
 }
 

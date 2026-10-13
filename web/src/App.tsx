@@ -61,6 +61,9 @@ const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m)
  * bundle, and everyone who only reads the landing page would carry it.
  */
 const SharedReport = lazy(() => import("@/platform/SharedReport").then((m) => ({ default: m.SharedReport })));
+/** The two pages for the people around the student: affiliates and schools. */
+const AffiliatesPage = lazy(() => import("@/components/AffiliatesPage").then((m) => ({ default: m.AffiliatesPage })));
+const InstitutionsPage = lazy(() => import("@/components/InstitutionsPage").then((m) => ({ default: m.InstitutionsPage })));
 /** Public and reached from a link a student sent, like a shared report. */
 const GiftPage = lazy(() => import("@/platform/GiftPage").then((m) => ({ default: m.GiftPage })));
 
@@ -133,6 +136,8 @@ export function App() {
             stays reachable, and is where the defence page sends graduates. */}
         <Route path="/" element={<DefenseLanding />} />
         <Route path="/entrevistas" element={<Landing />} />
+        <Route path="/afiliados" element={<Suspense fallback={null}><AffiliatesPage /></Suspense>} />
+        <Route path="/instituciones" element={<Suspense fallback={null}><InstitutionsPage /></Suspense>} />
         <Route path="/signin" element={<SignIn />} />
         {/* One route for both halves: request a link, or use one. */}
         <Route path="/reset" element={<ResetPassword />} />

@@ -87,6 +87,13 @@ export const RULES = {
    * merchant account.
    */
   checkout: { limit: 6, windowMs: 60 * 60 * 1000 },
+  /**
+   * Launches from a university's platform, per address but generous: a whole
+   * campus leaves through one, and a class of forty opening Mockio at the
+   * start of a lesson is the expected case, not an attack. Every launch is
+   * still a token the platform signed.
+   */
+  ltiLaunch: { limit: 3000, windowMs: 60 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export interface RateLimitResult {

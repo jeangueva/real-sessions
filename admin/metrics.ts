@@ -60,6 +60,10 @@ export interface DefenseSummary {
   packs: { kind: string; count: number; revenue: number }[];
   questionsPending: number;
   institutions: { code: string; name: string; seats: number; members: number; credits: number; expiresAt: string; owner: string | null }[];
+  /** Universities' platforms connected over LTI, and who has launched from each. */
+  platforms: { issuer: string; clientId: string; institution: string | null; users: number }[];
+  /** The latest schools that asked to talk. */
+  leads: { name: string; email: string; institution: string; role: string | null; country: string | null; students: number | null; platform: string | null; message: string | null; at: string }[];
   advisors: {
     code: string;
     name: string;
@@ -70,6 +74,8 @@ export interface DefenseSummary {
     pending: number;
     paid: number;
     currency: string;
+    /** How they want to be paid, as one line. */
+    payout: string | null;
   }[];
 }
 
@@ -79,12 +85,14 @@ const EMPTY_DEFENSE: DefenseSummary = {
   packs: [],
   questionsPending: 0,
   institutions: [],
+  platforms: [],
+  leads: [],
   advisors: [],
 };
 
 async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseSummary> {
   const quiet = <T>(promise: Promise<{ rows: T[] }>) => promise.catch(() => ({ rows: [] as T[] }));
-  const [theses, defenses, packs, questions, advisors, links, commissions, institutions] = await Promise.all([
+  const [theses, defenses, packs, questions, advisors, links, commissions, institutions, platforms, leads] = await Promise.all([
     quiet(pool.query(`SELECT count(*)::int AS n FROM theses`)),
     quiet(
       pool.query(
@@ -98,7 +106,7 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
     // Payment ids from the local tests are not sales: only Mercado Pago's.
     quiet(pool.query(`SELECT kind, count(*)::int AS n FROM defense_packs WHERE payment_id ~ '^[0-9]+$' GROUP BY kind`)),
     quiet(pool.query(`SELECT count(*)::int AS n FROM defense_questions WHERE status = 'pending'`)),
-    quiet(pool.query(`SELECT owner_id, code, name FROM advisors`)),
+    quiet(pool.query(`SELECT owner_id, code, name, payout FROM advisors`)),
     quiet(
       pool.query(
         `SELECT advisor_code, count(*)::int AS linked, count(*) FILTER (WHERE share)::int AS shared
@@ -121,6 +129,14 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
            FROM institutions i ORDER BY i.created_at DESC`,
       ),
     ),
+    quiet(
+      pool.query(
+        `SELECT p.issuer, p.client_id, p.institution_code,
+                (SELECT count(*)::int FROM lti_users u WHERE u.platform_id = p.id) AS users
+           FROM lti_platforms p ORDER BY p.created_at DESC`,
+      ),
+    ),
+    quiet(pool.query(`SELECT * FROM b2b_leads ORDER BY created_at DESC LIMIT 50`)),
   ]);
   const prices: Record<string, number> = { sustentacion: 39, intensivo: 79, grupal: 119 };
   const byCode = <T extends { advisor_code: string }>(rows: T[]) => new Map(rows.map((row) => [row.advisor_code, row]));
@@ -147,7 +163,24 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
       expiresAt: iso(row.expires_at),
       owner: emails.get(row.owner_id as string) ?? null,
     })),
-    advisors: (advisors.rows as { owner_id: string; code: string; name: string }[])
+    platforms: (platforms.rows as Record<string, unknown>[]).map((row) => ({
+      issuer: row.issuer as string,
+      clientId: row.client_id as string,
+      institution: (row.institution_code as string | null) ?? null,
+      users: Number(row.users),
+    })),
+    leads: (leads.rows as Record<string, unknown>[]).map((row) => ({
+      name: row.name as string,
+      email: row.email as string,
+      institution: row.institution as string,
+      role: (row.role as string | null) ?? null,
+      country: (row.country as string | null) ?? null,
+      students: row.students === null ? null : Number(row.students),
+      platform: (row.platform as string | null) ?? null,
+      message: (row.message as string | null) ?? null,
+      at: iso(row.created_at),
+    })),
+    advisors: (advisors.rows as { owner_id: string; code: string; name: string; payout: { method: string; account: string; holder: string } | null }[])
       .map((row) => ({
         code: row.code,
         name: row.name,
@@ -158,6 +191,7 @@ async function loadDefense(pool: Pool, accounts: AccountRow[]): Promise<DefenseS
         pending: Number(moneyRows.get(row.code)?.pending ?? 0),
         paid: Number(moneyRows.get(row.code)?.paid ?? 0),
         currency: moneyRows.get(row.code)?.currency ?? "PEN",
+        payout: row.payout ? `${row.payout.method} · ${row.payout.account} · ${row.payout.holder}` : null,
       }))
       .sort((a, b) => b.pending - a.pending || b.linked - a.linked),
   };

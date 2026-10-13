@@ -7,6 +7,7 @@ import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
+import { Lede, Screen, Title, Wrap } from "./marketing";
 
 /** The same footage as the interview landing; `VITE_HERO_VIDEO` overrides both. */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
@@ -135,21 +136,23 @@ const ES = {
   pack3: "Acta, deliberación y respuestas sugeridas",
   pack4: "Levantar observaciones · 6 meses",
   packCta: "Elegir el Pack",
-  docName: "Con docente",
-  docPrice: "S/ 189",
-  docUnit: "pago único",
-  doc1: "Todo lo del Pase Intensivo: 20 ensayos y todos los modos",
-  doc2: "30 minutos con un docente real sobre tu acta",
-  doc3: "Para el último mes",
-  docCta: "Elegir con docente",
-  passes: "Pase Intensivo S/ 79: 20 sustentaciones y todos los modos en 30 días. Tesis grupal S/ 119 para 2 o 3 integrantes.",
+  intName: "Pase Intensivo",
+  intPrice: "S/ 79",
+  intUnit: "30 días",
+  int1: "20 sustentaciones con el panel de 3",
+  int2: "Todos los modos: autoría, preguntas trampa, coach estadístico",
+  int3: "Presencial o virtual, para el último mes",
+  intCta: "Elegir el Intensivo",
+  passes: "Tesis grupal S/ 119: lo del Intensivo para 2 o 3 integrantes, con el ensayo en grupo.",
   giftLine: "¿Te lo regalan? Desde tu cuenta creas un enlace para que tu familia pague tu plan.",
   legal: "Mockio es una herramienta de práctica: no garantiza la aprobación, que es decisión de tu jurado. La IA puede equivocarse; verifica con tu asesor y el reglamento de tu universidad.",
-  advisorTitle: "Para asesores",
-  advisorBody: "Recomienda Mockio con tu código: ves el avance de tus tesistas, si lo comparten, y ganas el 30% de cada compra.",
-  advisorCta: "Crear mi código",
-  institutionTitle: "Para escuelas de posgrado",
-  institutionBody: "Licencias por cohorte, tu propia rúbrica e informes por alumno.",
+  advisorTitle: "Programa de afiliados",
+  advisorBody: "Asesores, docentes, creadores y academias: comparte tu enlace y gana el 30% de cada compra de los estudiantes que lleguen por ti.",
+  advisorCta: "Conocer el programa",
+  institutionTitle: "Para universidades e institutos",
+  institutionBody: "Mockio dentro de tu Moodle, Canvas o Blackboard: tus alumnos entran con un clic y la nota vuelve al aula virtual.",
+  institutionCta: "Ver la integración",
+  navInstitutions: "Instituciones",
   ladderTitle: "Después de sustentar",
   ladderBody: "Entrevistas de trabajo y tus primeras reuniones, en español o en inglés.",
   ladderCta: "Practicar entrevistas",
@@ -267,21 +270,23 @@ const PT: Record<Key, string> = {
   pack3: "Ata, deliberação e respostas sugeridas",
   pack4: "Responder às observações · 6 meses",
   packCta: "Escolher o Pacote",
-  docName: "Com professor",
-  docPrice: "US$ 55",
-  docUnit: "pagamento único",
-  doc1: "Tudo do Passe Intensivo: 20 ensaios e todos os modos",
-  doc2: "30 minutos com um professor de verdade sobre sua ata",
-  doc3: "Para o último mês",
-  docCta: "Escolher com professor",
-  passes: "Passe Intensivo US$ 23: 20 defesas e todos os modos em 30 dias. Trabalho em grupo US$ 35 para 2 ou 3 integrantes.",
+  intName: "Passe Intensivo",
+  intPrice: "US$ 23",
+  intUnit: "30 dias",
+  int1: "20 defesas com a banca de 3",
+  int2: "Todos os modos: autoria, perguntas armadilha, coach estatístico",
+  int3: "Presencial ou virtual, para o último mês",
+  intCta: "Escolher o Intensivo",
+  passes: "Trabalho em grupo US$ 35: o Intensivo para 2 ou 3 integrantes, com o ensaio em grupo.",
   giftLine: "Alguém vai te dar de presente? Na sua conta você cria um link para a família pagar seu plano.",
   legal: "O Mockio é uma ferramenta de prática: não garante a aprovação, que é decisão da sua banca. A IA pode errar; confirme com seu orientador e o regulamento da sua universidade.",
-  advisorTitle: "Para orientadores",
-  advisorBody: "Recomende o Mockio com seu código: acompanhe seus orientandos, se eles compartilharem, e ganhe 30% de cada compra.",
-  advisorCta: "Criar meu código",
-  institutionTitle: "Para programas de pós-graduação",
-  institutionBody: "Licenças por turma, sua própria rubrica e relatórios por aluno.",
+  advisorTitle: "Programa de afiliados",
+  advisorBody: "Orientadores, professores, criadores e cursinhos: compartilhe seu link e ganhe 30% de cada compra dos estudantes que chegarem por você.",
+  advisorCta: "Conhecer o programa",
+  institutionTitle: "Para universidades e faculdades",
+  institutionBody: "O Mockio dentro do seu Moodle, Canvas ou Blackboard: os alunos entram com um clique e a nota volta ao ambiente virtual.",
+  institutionCta: "Ver a integração",
+  navInstitutions: "Instituições",
   ladderTitle: "Depois da defesa",
   ladderBody: "Entrevistas de emprego e suas primeiras reuniões, em português ou em inglês.",
   ladderCta: "Praticar entrevistas",
@@ -397,21 +402,23 @@ const EN: Record<Key, string> = {
   pack3: "Record, deliberation and suggested answers",
   pack4: "Address observations · 6 months",
   packCta: "Choose the Pack",
-  docName: "With a teacher",
-  docPrice: "US$ 55",
-  docUnit: "one payment",
-  doc1: "Everything in the Intensive Pass: 20 rehearsals, every mode",
-  doc2: "30 minutes with a real teacher over your record",
-  doc3: "For the last month",
-  docCta: "Choose with a teacher",
-  passes: "Intensive Pass US$ 23: 20 defences and every mode in 30 days. Group thesis US$ 35 for 2 or 3 members.",
+  intName: "Intensive Pass",
+  intPrice: "US$ 23",
+  intUnit: "30 days",
+  int1: "20 defences with the panel of three",
+  int2: "Every mode: authorship, trick questions, statistics coach",
+  int3: "In person or online, for the last month",
+  intCta: "Choose the Intensive",
+  passes: "Group thesis US$ 35: the Intensive Pass for 2 or 3 members, with the group rehearsal.",
   giftLine: "Someone paying for you? From your account you make a link so family can pay for your plan.",
   legal: "Mockio is a practice tool: it does not guarantee a pass, which is your panel's decision. AI can be wrong; check with your advisor and your university's regulations.",
-  advisorTitle: "For advisors",
-  advisorBody: "Recommend Mockio with your code: follow your students if they share, and earn 30% of every purchase.",
-  advisorCta: "Create my code",
-  institutionTitle: "For graduate schools",
-  institutionBody: "Licences per cohort, your own rubric and reports per student.",
+  advisorTitle: "Affiliate programme",
+  advisorBody: "Advisors, teachers, creators and tutoring schools: share your link and earn 30% of every purchase by the students who come through you.",
+  advisorCta: "See the programme",
+  institutionTitle: "For universities and colleges",
+  institutionBody: "Mockio inside your Moodle, Canvas or Blackboard: students open it with one click and the grade goes back to the course.",
+  institutionCta: "See the integration",
+  navInstitutions: "Institutions",
   ladderTitle: "After the defence",
   ladderBody: "Job interviews and your first meetings, in your language or in English.",
   ladderCta: "Practise interviews",
@@ -427,53 +434,6 @@ const COUNTRIES = ["PE", "BR", "CO", "CL", "AR", "EC", "BO", "UY", "PA"];
 /* ------------------------------------------------------------------------- */
 /* Layout pieces                                                             */
 /* ------------------------------------------------------------------------- */
-
-/** The page's one column: 1200px of content, the same gutters everywhere. */
-function Wrap({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mx-auto w-full max-w-[75rem] px-5 sm:px-8 ${className}`}>{children}</div>;
-}
-
-/** A section title, Apple's way: big, tight, left-aligned, nothing above it. */
-function Title({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <h2
-      className={`text-balance text-[clamp(2rem,4.4vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.035em] text-cream-bright ${className}`}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function Lede({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <p className={`text-pretty text-lg leading-relaxed text-cream-dim sm:text-xl ${className}`}>{children}</p>;
-}
-
-/**
- * A piece of the product, drawn as the product draws it: a window with a
- * hairline, a soft wide shadow, and the interface inside. Stripe's way of
- * showing what a thing is instead of describing it.
- */
-function Screen({
-  children,
-  className = "",
-  dark = false,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  /** The call is always dark, as a video call is, whatever the theme. */
-  dark?: boolean;
-}) {
-  return (
-    <div
-      aria-hidden
-      className={`overflow-hidden rounded-[1.25rem] shadow-[0_0_0_1px_var(--line),0_24px_60px_-20px_rgb(0_0_0/0.25)] ${
-        dark ? "bg-[#0b0b0f]" : "bg-surface-card"
-      } ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------------- */
 /* The mock screens                                                          */
@@ -725,6 +685,7 @@ export function DefenseLanding() {
           { label: c.navHow, href: "#how" },
           { label: c.navScenarios, href: "#scenarios" },
           { label: c.navPricing, href: "#pricing" },
+          { label: c.navInstitutions, href: "/instituciones" },
         ]}
         cta={{ label: c.cta, to: start }}
       />
@@ -939,7 +900,7 @@ export function DefenseLanding() {
             {[
               { name: c.freeName, price: c.freePrice, unit: c.freeUnit, items: [c.free1, c.free2, c.free3], cta: c.freeCta, featured: false },
               { name: c.packName, price: c.packPrice, unit: c.packUnit, items: [c.pack1, c.pack2, c.pack3, c.pack4], cta: c.packCta, featured: true },
-              { name: c.docName, price: c.docPrice, unit: c.docUnit, items: [c.doc1, c.doc2, c.doc3], cta: c.docCta, featured: false },
+              { name: c.intName, price: c.intPrice, unit: c.intUnit, items: [c.int1, c.int2, c.int3], cta: c.intCta, featured: false },
             ].map((plan, index) => (
               <FadeRise key={plan.name} delay={index * 0.06} className="h-full">
                 <div
@@ -992,7 +953,7 @@ export function DefenseLanding() {
               title: c.advisorTitle,
               body: c.advisorBody,
               link: (
-                <Link to="/app/advisor" className={textLink}>
+                <Link to="/afiliados" className={textLink}>
                   {c.advisorCta}
                   <ArrowRight aria-hidden className={arrow} />
                 </Link>
@@ -1002,13 +963,10 @@ export function DefenseLanding() {
               title: c.institutionTitle,
               body: c.institutionBody,
               link: (
-                <a
-                  href="mailto:hello@getmockio.com?subject=Mockio%20Sustentaci%C3%B3n%20%E2%80%94%20instituci%C3%B3n"
-                  className={textLink}
-                >
-                  hello@getmockio.com
+                <Link to="/instituciones" className={textLink}>
+                  {c.institutionCta}
                   <ArrowRight aria-hidden className={arrow} />
-                </a>
+                </Link>
               ),
             },
             {
