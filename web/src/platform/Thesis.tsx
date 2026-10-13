@@ -127,10 +127,11 @@ export function Thesis() {
           <Panel variant="raised" className="flex flex-col items-start gap-4 p-6 sm:p-8">
             <h2 className="text-title font-semibold text-cream-bright">{t("uploadTitle")}</h2>
             <p className="max-w-prose text-base leading-relaxed text-cream">{t("uploadBody")}</p>
-            <Action type="button" onClick={() => fileRef.current?.click()}>
-              <Upload aria-hidden className="h-4 w-4" />
-              {t("uploadCta")}
-            </Action>
+            <DropZone
+              onFile={(file) => void upload(file)}
+              onPick={() => fileRef.current?.click()}
+              onWrong={() => setError(t("dropWrong"))}
+            />
             <Privacy />
           </Panel>
         ) : thesis ? (
@@ -144,6 +145,90 @@ export function Thesis() {
         ) : null}
       </PageBody>
     </>
+  );
+}
+
+/** Whether a dropped file is one the upload reads, by its name or its type. */
+function readable(file: File): boolean {
+  const name = file.name.toLowerCase();
+  return ACCEPT.split(",").some((extension) => name.endsWith(extension)) || /^image\/(jpeg|png|webp)$/.test(file.type);
+}
+
+/**
+ * The thesis dropped from the desktop, or chosen with the button.
+ *
+ * The whole area takes the file, and while one is dragged over it the area
+ * says what letting go will do — a dashed outline that turns solid in the
+ * accent, on the UI ease-out, nothing bouncing. A counter rather than a flag
+ * tracks the drag, because entering a child fires `dragleave` on the parent
+ * and a flag would flicker. While this screen is open, a file dropped beside
+ * the area is caught too, instead of the browser opening the PDF and leaving.
+ */
+function DropZone({ onFile, onPick, onWrong }: { onFile: (file: File) => void; onPick: () => void; onWrong: () => void }) {
+  const t = useThesisT();
+  const [over, setOver] = useState(false);
+  const depth = useRef(0);
+
+  useEffect(() => {
+    const stop = (event: DragEvent) => {
+      if (event.dataTransfer?.types.includes("Files")) event.preventDefault();
+    };
+    window.addEventListener("dragover", stop);
+    window.addEventListener("drop", stop);
+    return () => {
+      window.removeEventListener("dragover", stop);
+      window.removeEventListener("drop", stop);
+    };
+  }, []);
+
+  const hasFiles = (event: React.DragEvent) => event.dataTransfer.types.includes("Files");
+
+  return (
+    <div
+      onDragEnter={(event) => {
+        if (!hasFiles(event)) return;
+        event.preventDefault();
+        depth.current += 1;
+        setOver(true);
+      }}
+      onDragOver={(event) => {
+        if (!hasFiles(event)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      }}
+      onDragLeave={() => {
+        depth.current = Math.max(0, depth.current - 1);
+        if (depth.current === 0) setOver(false);
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        depth.current = 0;
+        setOver(false);
+        const file = event.dataTransfer.files[0];
+        if (!file) return;
+        if (readable(file)) onFile(file);
+        else onWrong();
+      }}
+      className={`flex w-full flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-[border-color,background-color,transform] duration-200 ease-press ${
+        over ? "scale-[1.01] border-accent bg-accent-soft" : "border-line-strong bg-surface-lift"
+      }`}
+    >
+      <span
+        className={`grid h-12 w-12 place-items-center rounded-2xl transition-colors duration-200 ease-press ${
+          over ? "bg-accent text-accent-ink" : "bg-surface-card text-accent-text shadow-card"
+        }`}
+      >
+        <Upload aria-hidden className="h-5 w-5" />
+      </span>
+      <p className="text-base font-semibold text-cream-bright" aria-live="polite">
+        {over ? t("dropRelease") : t("dropTitle")}
+      </p>
+      <p className="text-sm text-cream-dim">{t("dropOr")}</p>
+      <Action type="button" onClick={onPick}>
+        {t("uploadCta")}
+      </Action>
+      <p className="text-xs text-cream-faint">PDF · Word (.docx) · JPG · PNG</p>
+    </div>
   );
 }
 

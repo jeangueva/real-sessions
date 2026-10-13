@@ -243,6 +243,10 @@ const ES = {
   uploadBody:
     "PDF (también escaneado), Word o una foto, hasta 300 páginas. La leemos página por página y te mostramos por dónde te va a atacar el jurado.",
   uploadCta: "Elegir archivo",
+  dropTitle: "Arrastra tu tesis aquí",
+  dropOr: "o",
+  dropRelease: "Suelta para subirla",
+  dropWrong: "Ese archivo no lo podemos leer. Usa PDF, Word (.docx) o una foto (JPG o PNG).",
   uploading: "Leyendo tu tesis… puede tardar hasta dos minutos.",
   privacy:
     "Tu tesis es confidencial: solo se usa para tus ensayos, nunca para entrenar modelos, y la borras con un clic.",
@@ -670,6 +674,10 @@ const PT: Record<Key, string> = {
   uploadBody:
     "PDF (também escaneado), Word ou uma foto, até 300 páginas. Lemos página por página e mostramos onde a banca vai pressionar.",
   uploadCta: "Escolher arquivo",
+  dropTitle: "Arraste seu trabalho aqui",
+  dropOr: "ou",
+  dropRelease: "Solte para enviar",
+  dropWrong: "Não conseguimos ler esse arquivo. Use PDF, Word (.docx) ou uma foto (JPG ou PNG).",
   uploading: "Lendo seu trabalho… pode levar até dois minutos.",
   privacy:
     "Seu trabalho é confidencial: usado só nos seus ensaios, nunca para treinar modelos, e você apaga com um clique.",
@@ -1094,6 +1102,10 @@ const EN: Record<Key, string> = {
   uploadBody:
     "PDF (scanned is fine), Word or a photo, up to 300 pages. We read it page by page and show you where the panel will press.",
   uploadCta: "Choose file",
+  dropTitle: "Drag your thesis here",
+  dropOr: "or",
+  dropRelease: "Drop to upload it",
+  dropWrong: "We can't read that file. Use a PDF, Word (.docx) or a photo (JPG or PNG).",
   uploading: "Reading your thesis… this can take up to two minutes.",
   privacy:
     "Your thesis is confidential: used only for your rehearsals, never to train models, and deleted with one click.",
