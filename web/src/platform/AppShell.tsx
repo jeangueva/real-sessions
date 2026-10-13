@@ -5,6 +5,7 @@ import { ScreenBoundary } from "./ScreenBoundary";
 import {
   BookOpenCheck,
   Briefcase,
+  ClipboardCheck,
   FileSearch,
   FileUser,
   GraduationCap,
@@ -56,6 +57,8 @@ interface Entry {
   end: boolean;
   /** For the tour, which points at entries by name. */
   tour: string;
+  /** In the rail only: the phone's tab bar has room for five. */
+  wide?: boolean;
 }
 
 /** Each workspace's sections, in the order they are worked through. */
@@ -68,6 +71,7 @@ function useSpaceEntries(space: Space): Entry[] {
       { to: thesisPath("diagnostico"), label: tt("tabDiagnosis"), short: tt("shortDiagnosis"), icon: FileSearch, end: false, tour: "diagnostico" },
       { to: thesisPath("repaso"), label: tt("tabStudy"), short: tt("shortStudy"), icon: BookOpenCheck, end: false, tour: "repaso" },
       { to: thesisPath("diapositivas"), label: tt("tabSlides"), short: tt("shortSlides"), icon: Presentation, end: false, tour: "diapositivas" },
+      { to: thesisPath("observaciones"), label: tt("tabObservations"), short: tt("shortObservations"), icon: ClipboardCheck, end: false, tour: "observaciones", wide: true },
       { to: thesisPath("mas"), label: tt("railMore"), short: tt("shortMore"), icon: Sparkles, end: false, tour: "mas" },
     ];
   }
@@ -449,7 +453,7 @@ function MobileNav({ entries, space }: { entries: Entry[]; space: Space }) {
       className="nav-lifted fixed inset-x-0 bottom-0 z-30 !border-b-0 border-t border-line pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul key={space} className="mx-auto flex max-w-md items-stretch justify-around">
-        {entries.map(({ to, short, icon: EntryIcon, end, tour }) => (
+        {entries.filter((entry) => !entry.wide).map(({ to, short, icon: EntryIcon, end, tour }) => (
           <li key={to} className="min-w-0 flex-1">
             <NavLink
               to={to}

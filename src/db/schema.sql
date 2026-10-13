@@ -538,3 +538,13 @@ CREATE TABLE IF NOT EXISTS session_presence (
   presence   JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- What the paid defence keeps beside the thesis: the real jury the student
+-- named, the reviewers' observations read against the pages, the request for
+-- a session with a real teacher, and the token of the link that lets someone
+-- else pay. All of it goes with the row when the thesis is deleted.
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS jury JSONB;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS observations JSONB;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS mentor JSONB;
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS gift_token TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS theses_gift_token_idx ON theses (gift_token);

@@ -61,6 +61,8 @@ const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m)
  * bundle, and everyone who only reads the landing page would carry it.
  */
 const SharedReport = lazy(() => import("@/platform/SharedReport").then((m) => ({ default: m.SharedReport })));
+/** Public and reached from a link a student sent, like a shared report. */
+const GiftPage = lazy(() => import("@/platform/GiftPage").then((m) => ({ default: m.GiftPage })));
 
 /**
  * One page view per route change.
@@ -143,6 +145,15 @@ export function App() {
           element={
             <Suspense fallback={null}>
               <SharedReport />
+            </Suspense>
+          }
+        />
+        {/* Someone else pays for a student's plan: no account involved. */}
+        <Route
+          path="/regalo/:token"
+          element={
+            <Suspense fallback={null}>
+              <GiftPage />
             </Suspense>
           }
         />

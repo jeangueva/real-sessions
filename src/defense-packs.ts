@@ -21,11 +21,11 @@ export const PACK_MONTHS = 6;
  * for a thesis written by two or three. Prices are in the Mercado Pago
  * account's currency and overridable per deployment.
  */
-export type PackKind = "sustentacion" | "intensivo" | "grupal" | "asesor_pro";
+export type PackKind = "sustentacion" | "intensivo" | "grupal" | "docente" | "asesor_pro";
 
 export const PACK_KINDS: Record<
   PackKind,
-  { credits: number; days: number; amount: number; title: string; modes: boolean; group: boolean; advisor?: boolean }
+  { credits: number; days: number; amount: number; title: string; modes: boolean; group: boolean; advisor?: boolean; mentor?: boolean }
 > = {
   sustentacion: {
     credits: PACK_CREDITS,
@@ -50,6 +50,21 @@ export const PACK_KINDS: Record<
     title: "Mockio — Tesis grupal (20 ensayos, todos los modos y ensayo grupal, 30 días)",
     modes: true,
     group: true,
+  },
+  /**
+   * The intensive pass plus thirty minutes with a real teacher, over the
+   * record the panel left. The answer to "it is only an AI": arranged by
+   * hand from the advisor network, and the anchor that makes the pack look
+   * like what it is.
+   */
+  docente: {
+    credits: 20,
+    days: 30,
+    amount: Number(process.env.DEFENSE_DOCENTE_AMOUNT ?? 189),
+    title: "Mockio — Sustentación con docente (20 ensayos, todos los modos y 30 min con un docente, 30 días)",
+    modes: true,
+    group: false,
+    mentor: true,
   },
   /**
    * For advisors: their students' rehearsals, paid by them. No credits of its
@@ -103,10 +118,11 @@ function addDays(date: Date, days: number): Date {
 }
 
 /** What an owner's packs in date unlock beyond credits. */
-export function unlocks(packs: readonly PackGrant[]): { modes: boolean; group: boolean } {
+export function unlocks(packs: readonly PackGrant[]): { modes: boolean; group: boolean; mentor: boolean } {
   return {
     modes: packs.some((pack) => PACK_KINDS[pack.kind]?.modes),
     group: packs.some((pack) => PACK_KINDS[pack.kind]?.group),
+    mentor: packs.some((pack) => PACK_KINDS[pack.kind]?.mentor === true),
   };
 }
 

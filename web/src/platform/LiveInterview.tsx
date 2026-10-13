@@ -23,6 +23,7 @@ import { useThesisT } from "@/lib/thesis-copy";
 import { useFrameSampler } from "@/hooks/useFrameSampler";
 import { DefenseClock } from "./DefenseClock";
 import { useCamera, useScreenShare } from "@/hooks/useMediaStream";
+import { useRehearsalRecorder } from "@/hooks/useRehearsalRecorder";
 import { CallControls } from "./CallControls";
 import { CallStage } from "./CallStage";
 import { TranscriptPanel, type TranscriptLine } from "./TranscriptPanel";
@@ -60,6 +61,8 @@ interface SetupState {
     members?: string[];
     fluencyNeutral?: boolean;
     scenario?: DefenseScenario;
+    /** Film it, on this device only, for the replay on the report. */
+    record?: boolean;
   };
 }
 
@@ -190,6 +193,11 @@ export function LiveInterview() {
   const addLine = (speaker: TranscriptLine["speaker"], text: string) => {
     const trimmed = (speaker === "interviewer" ? showJurors(text, jurorNames) : text).trim();
     if (trimmed === "") return;
+    // Every juror's turn is a chapter of the replay; the first gives the
+    // floor for the exposition, so it is marked as that rather than a question.
+    if (speaker === "interviewer") {
+      recorder.mark(lineSeq.current === 0 ? null : trimmed);
+    }
     lineSeq.current += 1;
     setLines((current) => [
       ...current,
@@ -226,6 +234,16 @@ export function LiveInterview() {
   const camera = useCamera();
   /** Still frames for the presence reading, only while the camera is on. */
   const sampler = useFrameSampler(camera.stream);
+  const recorder = useRehearsalRecorder(Boolean(setup.defense?.record), camera.stream);
+  const finishRecording = recorder.finish;
+  // Asked to be filmed: the camera opens with the call rather than waiting
+  // for the button, or the exposition would be missing from the replay.
+  const wantsFilm = Boolean(setup.defense?.record);
+  useEffect(() => {
+    if (wantsFilm && camera.supported && !camera.on && !camera.starting) camera.start();
+    // Once, on arrival: turning the camera off later is the student's call.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const presenceSent = useRef(false);
   const screen = useScreenShare();
 
@@ -499,6 +517,11 @@ export function LiveInterview() {
 
   const showCoaching = mode === "practice";
   const finished = Boolean(turn?.isComplete);
+  // The film is kept once the panel closes, under this session's id, so the
+  // report can play it back against the record.
+  useEffect(() => {
+    if (finished && sessionId) void finishRecording(sessionId);
+  }, [finished, sessionId, finishRecording]);
   // At the end, the frames go once to be read, while the report is written.
   useEffect(() => {
     if (!finished || !sessionId || presenceSent.current) return;

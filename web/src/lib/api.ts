@@ -1345,6 +1345,43 @@ export interface StoredThesis {
   /** YYYY-MM-DD, when they told us. */
   defenseDate?: string | null;
   study?: ThesisStudy | null;
+  /** The people who will really sit on the panel. */
+  jury?: RealJuror[] | null;
+  /** The jury's written observations, read against the thesis. */
+  observations?: StoredObservations | null;
+  /** The session with a real teacher, once requested. */
+  mentor?: MentorRequest | null;
+}
+
+export type JurorSeat = "presidente" | "metodologo" | "especialista";
+
+/** Mirrors `RealJuror` in src/defense-extras.ts. */
+export interface RealJuror {
+  seat: JurorSeat;
+  name: string;
+  specialty: string;
+  notes: string;
+}
+
+/** Mirrors `StoredObservations` in src/defense-extras.ts. */
+export interface StoredObservations {
+  items: {
+    observation: string;
+    kind: "forma" | "fondo" | "metodologia" | "redaccion" | "bibliografia";
+    page: number | null;
+    where: string;
+    how: string;
+    effort: "bajo" | "medio" | "alto";
+    done: boolean;
+  }[];
+  createdAt: string;
+}
+
+export interface MentorRequest {
+  availability: string;
+  phone: string | null;
+  note: string;
+  requestedAt: string;
 }
 
 /** Mirrors `StudySchema` in src/study.ts. */
@@ -1372,9 +1409,13 @@ export interface DefenseAllowance {
   group?: boolean;
   /** Who pays for rehearsals beyond the student's own. */
   sponsor?: { kind: "advisor" | "institution"; name: string } | null;
+  /** The top pack: a session with a real teacher is included. */
+  mentor?: boolean;
+  /** Anything paid for: the real jury, the observations, the real questions. */
+  paid?: boolean;
 }
 
-export type PackKind = "sustentacion" | "intensivo" | "grupal" | "asesor_pro";
+export type PackKind = "sustentacion" | "intensivo" | "grupal" | "docente" | "asesor_pro";
 
 export interface PackOfferDetail {
   kind: PackKind;
@@ -1513,7 +1554,66 @@ export function shareRealQuestions(input: { university: string; country: string;
 
 export function countRealQuestions(university: string) {
   return withIdentity(() =>
-    request<{ verified: number }>(`/api/thesis/questions?university=${encodeURIComponent(university)}`, { method: "GET" }),
+    request<{
+      verified: number;
+      sameField: number;
+      locked: boolean;
+      questions: { question: string; sameField: boolean }[];
+    }>(`/api/thesis/questions?university=${encodeURIComponent(university)}`, { method: "GET" }),
+  );
+}
+
+const sendJson = (method: string, body: unknown): RequestInit & { method: string } => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
+export function saveJury(jury: RealJuror[]) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/jury", sendJson("PUT", { jury })));
+}
+
+export function analyzeObservations(text: string) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/observations", sendJson("POST", { text })));
+}
+
+export function markObservation(index: number, done: boolean) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/observations", sendJson("PATCH", { index, done })));
+}
+
+export function clearObservations() {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/observations", { method: "DELETE" }));
+}
+
+export function requestMentor(input: { availability: string; phone: string; note: string }) {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/mentor", sendJson("POST", input)));
+}
+
+export function fetchGiftLink() {
+  return withIdentity(() => request<{ url: string }>("/api/thesis/gift", { method: "GET" }));
+}
+
+/** The gift page, read by whoever holds the link: no identity involved. */
+export interface GiftInfo {
+  name: string | null;
+  thesis: string | null;
+  defenseDate: string | null;
+  available: boolean;
+  offers: { kind: PackKind; amount: number; currency: string; credits: number; days: number }[];
+}
+
+export function fetchGift(token: string) {
+  return request<GiftInfo>(`/api/gift/${encodeURIComponent(token)}`, { method: "GET" });
+}
+
+export function payGift(token: string, kind: PackKind, email: string) {
+  return request<{ initPoint: string }>(`/api/gift/${encodeURIComponent(token)}/checkout`, sendJson("POST", { kind, email }));
+}
+
+export function syncGift(token: string, paymentId: string) {
+  return request<{ outcome: "granted" | "already" | "not-yet" }>(
+    `/api/gift/${encodeURIComponent(token)}/sync`,
+    sendJson("POST", { paymentId }),
   );
 }
 

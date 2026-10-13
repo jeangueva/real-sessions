@@ -12,7 +12,7 @@
 export type Space = "defense" | "career";
 
 /** The thesis workspace's sections, in the order a student needs them. */
-export const THESIS_SECTIONS = ["ensayar", "diagnostico", "repaso", "diapositivas", "mas"] as const;
+export const THESIS_SECTIONS = ["ensayar", "diagnostico", "repaso", "diapositivas", "observaciones", "mas"] as const;
 export type ThesisSection = (typeof THESIS_SECTIONS)[number];
 
 export function isThesisSection(value: string | undefined | null): value is ThesisSection {

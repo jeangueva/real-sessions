@@ -40,6 +40,8 @@ import {
   formatMinutes,
   formatWpm,
 } from "@/lib/format";
+import { FullPanelTeaser, RehearsalReplay } from "./DefenseExtras";
+
 
 interface FeedbackState {
   sessionId?: string;
@@ -551,6 +553,13 @@ function FeedbackBody({
             <ActaCard acta={evaluation.acta} />
           </FadeRise>
         )}
+        {/* The film of it, when the student asked for one: on this device only. */}
+        {evaluation.acta && presence && (
+          <RehearsalReplay sessionId={presence.sessionId} evaluation={evaluation} />
+        )}
+        {/* After a rehearsal without a plan: their own weak points the full
+            panel would have reached. Renders nothing for anyone who paid. */}
+        {evaluation.acta && <FullPanelTeaser evaluation={evaluation} />}
         {/* Not shown when the student asked that fluency not count: a
             reading of their "nerves" from pauses would say the opposite. */}
         {presence && (

@@ -204,6 +204,13 @@ import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore }
 import { googleTtsConfigured, googleVoiceFor, synthesizeGoogle } from "./voice/google-tts.js";
 import { azureConfigured, azureVoiceFor, synthesizeAzure } from "./voice/azure-tts.js";
 import { createDefenseQuestionStore, universityKey, type DefenseQuestionStore } from "./defense-questions.js";
+import {
+  analyzeObservations,
+  isGiftToken,
+  MAX_OBSERVATIONS_TEXT,
+  readJury,
+  readMentorRequest,
+} from "./defense-extras.js";
 import { writeStudy } from "./study.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
 import {
@@ -238,6 +245,14 @@ async function defenseAllowance(ownerId: string): Promise<{
   sponsor: { kind: "advisor" | "institution"; name: string } | null;
   /** The school's rubric, when the student rehearses on its account. */
   rubric: string | null;
+  /** A session with a real teacher is included: the top pack. */
+  mentor: boolean;
+  /**
+   * Anything paid for, by anyone: the real jury, the observations and the
+   * real questions' text open with it. Credits spent do not close them — a
+   * student who used all five still prepares with what they bought.
+   */
+  paid: boolean;
 }> {
   const [packs, past, sponsored] = await Promise.all([
     readQuietly(PACKS.active(ownerId), []),
@@ -257,6 +272,8 @@ async function defenseAllowance(ownerId: string): Promise<{
     group: own.group,
     sponsor: sponsored ? { kind: sponsored.kind, name: sponsored.name } : null,
     rubric: sponsored?.rubric ?? null,
+    mentor: own.mentor,
+    paid: grants.length > 0,
   };
 }
 
@@ -2343,6 +2360,78 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   /**
+   * The gift page: someone pays for a student's pack.
+   *
+   * Public, like a shared report, and for the same reason the token is the
+   * authorisation: 128 random bits made for this thesis. It shows the
+   * student's first name and the thesis title — what a parent needs to
+   * recognise the request — and nothing else. Paying credits the student's
+   * account through the same reference their own purchase uses.
+   */
+  const giftMatch = path.match(/^\/api\/gift\/([\w-]+)(\/checkout|\/sync)?$/);
+  if (giftMatch && (req.method === "GET" || req.method === "POST")) {
+    if (await limited(res, `shared:${clientIp(req)}`, RULES.auth)) return;
+    const token = giftMatch[1]!;
+    const owner = isGiftToken(token) ? await THESES.ownerByGift(token) : null;
+    if (!owner) return json(res, 404, { error: "Este enlace no está disponible." });
+    const offers = (["sustentacion", "intensivo", "docente"] as const).map((kind) => ({
+      kind,
+      amount: PACK_KINDS[kind].amount,
+      currency: PACK_CURRENCY,
+      credits: PACK_KINDS[kind].credits,
+      days: PACK_KINDS[kind].days,
+    }));
+    if (req.method === "GET" && !giftMatch[2]) {
+      const [thesis, preferences] = await Promise.all([
+        readQuietly(THESES.get(owner), null),
+        readQuietly(USERS.getPreferences(owner), null),
+      ]);
+      return json(res, 200, {
+        name: preferences?.candidateName?.trim().split(/\s+/)[0] || null,
+        thesis: thesis?.analysis.title ?? null,
+        defenseDate: thesis?.defenseDate ?? null,
+        offers,
+        available: mercadoPagoConfigured(),
+      });
+    }
+    // Back from Mercado Pago: settled now rather than when the webhook comes,
+    // and only for this student — a payment for anyone else is not ours.
+    if (req.method === "POST" && giftMatch[2] === "/sync") {
+      const paymentId = String((await readJson(req))["paymentId"] ?? "");
+      if (!/^\d{3,20}$/.test(paymentId)) return json(res, 400, { error: "Ese pago no es reconocible." });
+      try {
+        const outcome = await settlePackPayment(paymentId, owner);
+        if (outcome === "not-ours") return json(res, 404, { error: "Ese pago no es reconocible." });
+        return json(res, 200, { outcome });
+      } catch (error) {
+        console.error("[mockio] gift sync failed:", error);
+        return json(res, 502, { error: "No pudimos confirmar el pago ahora. Si se cobró, se acreditará en unos minutos." });
+      }
+    }
+    if (req.method === "POST" && giftMatch[2] === "/checkout") {
+      if (!mercadoPagoConfigured()) return json(res, 503, { error: "Los pagos todavía no están activos.", code: "payOff" });
+      const blocked = checkoutBlockReason();
+      if (blocked) return json(res, 503, { error: blocked });
+      const body = await readJson(req);
+      const kind = offers.find((offer) => offer.kind === body["kind"])?.kind ?? "sustentacion";
+      const email = typeof body["email"] === "string" ? body["email"].trim().toLowerCase() : "";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) {
+        return json(res, 400, { error: "Escribe tu correo para el comprobante." });
+      }
+      const created = await createPackPreference({
+        externalReference: `pack:${kind}:${owner}`,
+        payerEmail: email,
+        title: PACK_KINDS[kind].title,
+        amount: PACK_KINDS[kind].amount,
+        currency: PACK_CURRENCY,
+        backUrl: `${siteUrl()}/regalo/${token}`,
+        notificationUrl: `${siteUrl()}/api/billing/webhook?source_news=webhooks`,
+      });
+      return json(res, 201, { initPoint: created.initPoint });
+    }
+  }
+
+  /**
    * Anything that is not an API call belongs to the web app, when one is
    * deployed alongside.
    *
@@ -3211,7 +3300,135 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   /** How many verified real questions a university has, for the rehearsal screen. */
   if (req.method === "GET" && path === "/api/thesis/questions") {
     const university = url.searchParams.get("university") ?? "";
-    json(res, 200, { verified: universityKey(university) === "" ? 0 : await REAL_QUESTIONS.countVerified(universityKey(university)) });
+    const key = universityKey(university);
+    if (key === "") return json(res, 200, { verified: 0, sameField: 0, questions: [], locked: true });
+    /**
+     * The count for everyone — knowing they exist is what sells them — and
+     * the questions themselves to whoever paid, theirs first: same field
+     * before the rest of the university.
+     */
+    const [verified, found, stored, allowance] = await Promise.all([
+      REAL_QUESTIONS.countVerified(key),
+      readQuietly(REAL_QUESTIONS.verified(key, 40), []),
+      readQuietly(THESES.get(identity.id), null),
+      defenseAllowance(identity.id),
+    ]);
+    const field = stored ? universityKey(stored.analysis.field) : "";
+    const ours = (entry: { field: string | null }) => field !== "" && entry.field !== null && universityKey(entry.field) === field;
+    const sorted = [...found.filter(ours), ...found.filter((entry) => !ours(entry))];
+    json(res, 200, {
+      verified,
+      sameField: found.filter(ours).length,
+      locked: !allowance.paid,
+      questions: allowance.paid ? sorted.map((entry) => ({ question: entry.question, sameField: ours(entry) })) : [],
+    });
+    return;
+  }
+
+  /**
+   * The real jury: who will sit on the panel, by seat. Saved by anyone, so a
+   * free student can fill it in and see what it will do; used on the paid
+   * rehearsals only, which the screen says beside it.
+   */
+  if (req.method === "PUT" && path === "/api/thesis/jury") {
+    const stored = await THESES.get(identity.id);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    const jury = readJury((await readJson(req))["jury"]);
+    if (jury === null) return json(res, 400, { error: "Ese jurado no se pudo leer." });
+    await THESES.putJury(identity.id, jury);
+    json(res, 200, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /**
+   * The jury's written observations, read against the thesis: each one on
+   * its page with what to do about it. Paid — it is a long read of the whole
+   * thesis — and kept, so the student ticks them off as they go.
+   */
+  if (req.method === "POST" && path === "/api/thesis/observations") {
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+    const stored = await THESES.get(identity.id);
+    const pages = stored ? await THESES.pages(identity.id) : null;
+    if (!stored || !pages) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    if (!(await defenseAllowance(identity.id)).paid) {
+      return json(res, 402, { error: "Levantar observaciones es parte de los planes de pago.", code: "observationsLocked" });
+    }
+    const text = String((await readJson(req))["text"] ?? "").trim().slice(0, MAX_OBSERVATIONS_TEXT);
+    if (text.length < 40) return json(res, 400, { error: "Pega las observaciones del jurado tal como te las dieron." });
+    try {
+      const observations = await analyzeObservations(pages, stored.analysis, text, PROVIDER ? { provider: PROVIDER } : {});
+      await THESES.putObservations(identity.id, observations);
+    } catch (error) {
+      console.error("[mockio] observations failed:", error);
+      return json(res, 502, { error: "No pudimos leer las observaciones. Inténtalo de nuevo en un momento." });
+    }
+    json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /** Ticks one observation done, or open again. */
+  if (req.method === "PATCH" && path === "/api/thesis/observations") {
+    const stored = await THESES.get(identity.id);
+    if (!stored?.observations) return json(res, 404, { error: "No hay observaciones guardadas." });
+    const body = await readJson(req);
+    const index = Number(body["index"]);
+    if (!Number.isInteger(index) || index < 0 || index >= stored.observations.items.length) {
+      return json(res, 400, { error: "Esa observación no existe." });
+    }
+    const items = stored.observations.items.map((item, at) => (at === index ? { ...item, done: body["done"] === true } : item));
+    await THESES.putObservations(identity.id, { ...stored.observations, items });
+    json(res, 200, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  if (req.method === "DELETE" && path === "/api/thesis/observations") {
+    await THESES.putObservations(identity.id, null);
+    json(res, 200, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /**
+   * The session with a real teacher, requested. Arranged by hand: the
+   * request goes to the team's inbox with the thesis title and the latest
+   * record, and the student is told to expect a message within a day.
+   */
+  if (req.method === "POST" && path === "/api/thesis/mentor") {
+    if (await limited(res, `contribute:${identity.id}`, RULES.contribute)) return;
+    const stored = await THESES.get(identity.id);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    if (!(await defenseAllowance(identity.id)).mentor) {
+      return json(res, 402, { error: "La sesión con un docente es parte del plan Sustentación con docente.", code: "mentorLocked" });
+    }
+    const request = readMentorRequest(await readJson(req));
+    if (!request) return json(res, 400, { error: "Cuéntanos qué días y horas te acomodan." });
+    const account = await ACCOUNTS.findById(identity.id);
+    const latest = (await defenseProgress(identity.id)).at(-1);
+    await THESES.putMentor(identity.id, request);
+    await mail({
+      to: process.env.MENTOR_INBOX ?? "hello@getmockio.com",
+      subject: `Sesión con docente — ${stored.analysis.title.slice(0, 80)}`,
+      text: [
+        `Estudiante: ${account?.email ?? identity.id}`,
+        request.phone ? `Teléfono: ${request.phone}` : null,
+        `Tesis: ${stored.analysis.title} (${stored.analysis.field})`,
+        stored.defenseDate ? `Sustenta el: ${stored.defenseDate}` : null,
+        latest ? `Último ensayo: ${latest.grade}/${latest.gradeMax}, preparación ${latest.readiness}%` : "Sin ensayos completos todavía.",
+        "",
+        `Disponibilidad: ${request.availability}`,
+        request.note ? `Nota: ${request.note}` : null,
+      ]
+        .filter((line): line is string => line !== null)
+        .join("\n"),
+    });
+    json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /** The link that lets someone else pay, made on first ask. */
+  if (req.method === "GET" && path === "/api/thesis/gift") {
+    const token = await THESES.giftToken(identity.id);
+    if (!token) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    json(res, 200, { url: `${siteUrl()}/regalo/${token}` });
     return;
   }
 
@@ -3829,6 +4046,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // The format they defend in: chosen on the thesis screen, or guessed
         // from the thesis's language when an older client sends none.
         country: findFormat(body["country"], stored.analysis.language).country,
+        // The real people, on a paid rehearsal; the prompt leaves them out
+        // of the express one and the coach.
+        ...(allowance.paid && stored.jury && stored.jury.length > 0 ? { jury: stored.jury } : {}),
       };
     }
     // The conversations after the offer are the paid plan. Checked on the

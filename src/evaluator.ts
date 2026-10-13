@@ -9,6 +9,7 @@ import type {
 import { buildEvaluatorPrompt, formatTranscript } from "./prompts/evaluator.js";
 import { DEFENSE_EVALUATOR_TEMPLATE } from "./prompts/defense-evaluator.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
+import { juryNames } from "./defense-extras.js";
 import { renderTemplate } from "./prompts/template.js";
 import { findFormat, verdictFor } from "./defense-formats.js";
 import { FOCUSES, SCENARIOS } from "./prompts/defense.js";
@@ -190,7 +191,7 @@ async function evaluateDefense(
     system: renderTemplate(DEFENSE_EVALUATOR_TEMPLATE, {
       university: defense.university,
       country: format.countryName,
-      jurors: `${format.jurors.presidente.name}, ${format.jurors.presidente.role}; ${format.jurors.metodologo.name}, ${format.jurors.metodologo.role}; ${format.jurors.especialista.name}, ${format.jurors.especialista.role}`,
+      jurors: juryNames(defense.jury ?? [], format.jurors),
       scale_line: `The ${format.countryName} scale: \`grade_max\` ${format.scale.max}, \`pass_mark\` ${format.scale.pass}, grades from ${format.scale.min} to ${format.scale.max}.`,
       rounding: format.scale.decimals ? ", to one decimal" : ", rounded to a whole number",
       difficulty: defense.difficulty,
