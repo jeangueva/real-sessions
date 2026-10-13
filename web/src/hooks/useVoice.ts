@@ -51,6 +51,7 @@ export function useVoice({
   language = "en",
   bcp47 = "en-US",
   silenceMs = SILENCE_MS,
+  accent = null,
 }: {
   enabled: boolean;
   onFinalAnswer: (text: string) => void;
@@ -75,6 +76,8 @@ export function useVoice({
    * with long pauses between slides; two seconds would cut it into pieces.
    */
   silenceMs?: number;
+  /** A thesis jury's country, so the voices carry its accent. */
+  accent?: string | null;
 }) {
   /**
    * Null until the server has said whether live transcription is configured.
@@ -111,12 +114,13 @@ export function useVoice({
   const output = useMemo(
     () =>
       aura
-        ? createAuraOutput(personaId, voiceProfile, bcp47, language)
+        ? createAuraOutput(personaId, voiceProfile, bcp47, language, accent)
         : createSpeechOutput(bcp47, voiceProfile),
     [
       aura,
       personaId,
       language,
+      accent,
       bcp47,
       voiceProfile.rate,
       voiceProfile.pitch,

@@ -199,6 +199,7 @@ import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
 import { COMMISSION_RATE, createAdvisorStore, normalizeCode, type AdvisorStore } from "./advisors.js";
 import { googleTtsConfigured, googleVoiceFor, synthesizeGoogle } from "./voice/google-tts.js";
+import { azureConfigured, azureVoiceFor, synthesizeAzure } from "./voice/azure-tts.js";
 import { createDefenseQuestionStore, universityKey, type DefenseQuestionStore } from "./defense-questions.js";
 import { writeStudy } from "./study.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
@@ -367,6 +368,7 @@ import {
   LANGUAGES,
   findLanguage,
   voiceFor,
+  juryVoiceFor,
 } from "./languages.js";
 import { findLevel, levelCatalogue, readyToLevelUp } from "./levels.js";
 import { pressureRequested } from "./pressure.js";
@@ -2191,7 +2193,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // Deliberately in front of the authentication gate: it is asked before the
     // microphone is opened, the answer is identical for everyone, and making
     // it authenticated cost a 401 on the first call of every session.
-    json(res, 200, { live: deepgramConfigured(), speech: ttsConfigured() || googleTtsConfigured() });
+    json(res, 200, { live: deepgramConfigured(), speech: ttsConfigured() || googleTtsConfigured() || azureConfigured() });
     return;
   }
 
@@ -2807,7 +2809,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * would leave the interview stuttering into silence.
    */
   if (req.method === "POST" && path === "/api/voice/speak") {
-    if (!ttsConfigured() && !googleTtsConfigured()) return json(res, 503, { error: "Speech is not configured." });
+    if (!ttsConfigured() && !googleTtsConfigured() && !azureConfigured()) {
+      return json(res, 503, { error: "Speech is not configured." });
+    }
     if (await limited(res, `speech:${identity.id}`, RULES.speech)) return;
 
     const body = await readJson(req);
@@ -2825,7 +2829,28 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const spoken = findLanguage(
       typeof body["language"] === "string" ? body["language"] : null,
     );
-    const voice = ttsConfigured() ? voiceFor(persona.id, persona.voice.model, spoken) : null;
+    // A thesis jury names its country, so it can speak with that accent:
+    // Azure's voice for the country when configured, otherwise the closest
+    // Aura has.
+    const country = typeof body["country"] === "string" ? body["country"].toUpperCase().slice(0, 3) : null;
+    const azure = country && spoken.id === "es" && azureConfigured() ? azureVoiceFor(persona.id, country) : null;
+    if (azure) {
+      try {
+        const audio = await synthesizeAzure(text, azure);
+        res.writeHead(200, {
+          "Content-Type": SPEECH_MIME,
+          "Content-Length": String(audio.byteLength),
+          "Cache-Control": "private, max-age=3600",
+        });
+        res.end(Buffer.from(audio));
+        return;
+      } catch (error) {
+        // Fall through to Aura: a voice without the accent beats silence.
+        console.error("[mockio] azure speak failed:", error);
+      }
+    }
+    const jury = country && spoken.id === "es" ? juryVoiceFor(persona.id, country) : null;
+    const voice = ttsConfigured() ? (jury ?? voiceFor(persona.id, persona.voice.model, spoken)) : null;
     // A language the main provider does not speak — Portuguese — goes to
     // Google when it is configured, with a voice cast per persona the same way.
     const google = !voice && googleTtsConfigured() ? googleVoiceFor(persona.id, spoken.id) : null;

@@ -111,6 +111,22 @@ const SPANISH_VOICES: Record<string, string> = {
 };
 
 /**
+ * The thesis jury's voices in Spanish, by country, from the voices Aura has.
+ *
+ * Neutral Latin American men rather than the interviews' Mexican ones — a
+ * Peruvian jury sounding Mexican is the one thing to avoid — and where Aura
+ * has a voice from the country itself (Argentina, Colombia) the methodologist
+ * speaks with it. Azure, when configured, gives every country its own.
+ */
+export function juryVoiceFor(personaId: string, country: string): string | null {
+  const methodologist = country === "AR" ? "aura-2-antonia-es" : country === "CO" ? "aura-2-gloria-es" : "aura-2-selena-es";
+  if (personaId === "measured") return "aura-2-javier-es";
+  if (personaId === "skeptic") return methodologist;
+  if (personaId === "systems") return "aura-2-aquila-es";
+  return null;
+}
+
+/**
  * The voice a persona uses in a given language, or null to fall back.
  *
  * Null is a real answer, not a failure: Portuguese has no Aura voice, and the

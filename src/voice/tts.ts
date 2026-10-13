@@ -57,6 +57,12 @@ export const AURA_VOICES = new Set([
   "aura-2-celeste-es",
   "aura-2-luciano-es",
   "aura-2-olivia-es",
+  // The thesis jury's: neutral Latin American men, and the two regional
+  // women Aura has — Argentine and Colombian.
+  "aura-2-javier-es",
+  "aura-2-aquila-es",
+  "aura-2-antonia-es",
+  "aura-2-gloria-es",
 ]);
 
 /** What Aura returns, and what the route forwards unchanged. */

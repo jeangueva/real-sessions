@@ -237,6 +237,7 @@ export function LiveInterview() {
     // pauses between slides. After that, an academic answer still pauses
     // longer than an interview one.
     silenceMs: defense ? (lines.some((line) => line.speaker === "candidate") ? 3_500 : 20_000) : undefined,
+    accent: defense?.country ?? null,
   });
 
   // The analyser is suspended until something resumes it, and nothing here
