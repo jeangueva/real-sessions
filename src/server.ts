@@ -189,6 +189,7 @@ import {
   analyzeThesis,
   createThesisStore,
   extractPages,
+  extractPhoto,
   MAX_THESIS_BYTES,
   renderDossier,
   ThesisAnalysisError,
@@ -2953,11 +2954,17 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
     const upload = await readUpload(req, MAX_THESIS_BYTES);
     if (!upload) return json(res, 400, { error: "Adjunta tu tesis en PDF o Word (.docx)." });
-    const kind = kindFor(upload.filename, upload.contentType);
-    if (!kind) {
-      return json(res, 415, { error: "Podemos leer PDF y Word (.docx). Exporta tu tesis a uno de esos formatos." });
+    // A photo of a page is accepted too — a printed copy and a phone is
+    // sometimes all a student has.
+    const photo = /^image\/(jpeg|png|webp)$/.test(upload.contentType) || /\.(jpe?g|png|webp)$/i.test(upload.filename);
+    const kind = photo ? null : kindFor(upload.filename, upload.contentType);
+    if (!photo && !kind) {
+      return json(res, 415, { error: "Podemos leer PDF, Word (.docx) y fotos (JPG o PNG)." });
     }
-    const pages = await extractPages(upload.data, kind);
+    const ocr = PROVIDER ? { provider: PROVIDER } : {};
+    const pages = photo
+      ? await extractPhoto(upload.data, upload.contentType.startsWith("image/") ? upload.contentType : "image/jpeg", ocr)
+      : await extractPages(upload.data, kind!, undefined, ocr);
     const analysis = await analyzeThesis(pages, PROVIDER ? { provider: PROVIDER } : {});
     await THESES.put(identity.id, upload.filename, pages, analysis);
     json(res, 201, { thesis: await THESES.get(identity.id) });

@@ -217,7 +217,7 @@ const ES = {
   meta: "Súbela una vez. El jurado la lee antes de cada ensayo.",
   uploadTitle: "Sube tu tesis",
   uploadBody:
-    "PDF o Word, hasta 300 páginas. La leemos página por página y te mostramos por dónde te va a atacar el jurado.",
+    "PDF (también escaneado), Word o una foto, hasta 300 páginas. La leemos página por página y te mostramos por dónde te va a atacar el jurado.",
   uploadCta: "Elegir archivo",
   uploading: "Leyendo tu tesis… puede tardar hasta dos minutos.",
   privacy:
@@ -472,7 +472,7 @@ const PT: Record<Key, string> = {
   meta: "Envie uma vez. A banca lê antes de cada ensaio.",
   uploadTitle: "Envie seu trabalho",
   uploadBody:
-    "PDF ou Word, até 300 páginas. Lemos página por página e mostramos onde a banca vai pressionar.",
+    "PDF (também escaneado), Word ou uma foto, até 300 páginas. Lemos página por página e mostramos onde a banca vai pressionar.",
   uploadCta: "Escolher arquivo",
   uploading: "Lendo seu trabalho… pode levar até dois minutos.",
   privacy:
@@ -725,7 +725,7 @@ const EN: Record<Key, string> = {
   meta: "Upload it once. The panel reads it before every rehearsal.",
   uploadTitle: "Upload your thesis",
   uploadBody:
-    "PDF or Word, up to 300 pages. We read it page by page and show you where the panel will press.",
+    "PDF (scanned is fine), Word or a photo, up to 300 pages. We read it page by page and show you where the panel will press.",
   uploadCta: "Choose file",
   uploading: "Reading your thesis… this can take up to two minutes.",
   privacy:

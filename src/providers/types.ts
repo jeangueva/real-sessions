@@ -4,6 +4,11 @@ import type { ZodType } from "zod";
 export interface ChatTurn {
   role: "user" | "assistant";
   text: string;
+  /**
+   * Images sent with a user turn, as data URLs — scanned thesis pages to
+   * read. Only the OpenAI-compatible provider (OpenRouter) sends them.
+   */
+  images?: string[];
 }
 
 /** Token spend for one call, normalized across providers. */

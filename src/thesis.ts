@@ -19,6 +19,7 @@ import { resolveProvider } from "./providers/index.js";
 import type { ModelProvider } from "./providers/index.js";
 import { ExtractionError, normalize, type UploadKind } from "./extract.js";
 import { THESIS_ANALYSIS_TEMPLATE } from "./prompts/thesis.js";
+import { ocrImage, ocrPdf } from "./ocr.js";
 import type { StoredSlides } from "./slides.js";
 import type { Study } from "./study.js";
 
@@ -60,6 +61,11 @@ export async function extractPages(
   kind: UploadKind,
   /** A slide deck says far less than a thesis, and that is not a scan. */
   minChars = MIN_USEFUL_CHARS,
+  /**
+   * Read a scan with a vision model when the PDF carries no text. Off for
+   * slides, where an image-only deck is better told to export again.
+   */
+  ocr: { provider?: ModelProvider } | null = null,
 ): Promise<ThesisPages> {
   let pages: string[];
   let approximate = false;
@@ -97,14 +103,28 @@ export async function extractPages(
   }
 
   pages = pages.slice(0, MAX_PAGES);
-  const total = pages.reduce((sum, page) => sum + page.length, 0);
+  let total = pages.reduce((sum, page) => sum + page.length, 0);
+  // A PDF with pages but no text is a scan: read the images instead.
+  if (kind === "pdf" && total < minChars && ocr) {
+    pages = await ocrPdf(buffer, ocr);
+    total = pages.reduce((sum, page) => sum + page.length, 0);
+  }
   if (total < minChars) {
     throw new ExtractionError(
-      "Casi no encontramos texto en ese archivo. Si es un PDF escaneado, " +
-        "expórtalo desde Word o Google Docs y vuelve a subirlo.",
+      "Casi no encontramos texto en ese archivo, ni leyéndolo como imagen. " +
+        "Prueba con un PDF exportado desde Word o Google Docs.",
     );
   }
   return { pages, approximate };
+}
+
+/** A photographed page: one image, read as one page. */
+export async function extractPhoto(buffer: Buffer, mime: string, options: { provider?: ModelProvider } = {}): Promise<ThesisPages> {
+  const text = await ocrImage(buffer, mime, options);
+  if (text.trim().length < 200) {
+    throw new ExtractionError("No pudimos leer el texto de esa foto. Tómala de frente, con buena luz y sin sombras.");
+  }
+  return { pages: [text], approximate: true };
 }
 
 /** Cuts running text into page-sized pieces, at paragraph breaks where it can. */

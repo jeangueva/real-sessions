@@ -154,11 +154,18 @@ export class OpenAICompatibleProvider implements ModelProvider {
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       systemMessage(request.model, request.system),
-      ...request.messages.map((turn) => ({
-        role: turn.role,
-        content: turn.text,
-      })),
-    ];
+      ...request.messages.map((turn) =>
+        turn.role === "user" && turn.images && turn.images.length > 0
+          ? {
+              role: "user" as const,
+              content: [
+                ...turn.images.map((url) => ({ type: "image_url" as const, image_url: { url } })),
+                { type: "text" as const, text: turn.text },
+              ],
+            }
+          : { role: turn.role, content: turn.text },
+      ),
+    ] as OpenAI.ChatCompletionMessageParam[];
 
     const started = performance.now();
     let ttftMs: number | null = null;

@@ -13,7 +13,7 @@ import { DefenseDate } from "./DefenseDate";
 import { ShareRealQuestions } from "./ShareRealQuestions";
 import { AdvisorCard } from "./AdvisorCard";
 
-const ACCEPT = ".pdf,.docx";
+const ACCEPT = ".pdf,.docx,.jpg,.jpeg,.png,.webp";
 
 /**
  * The thesis and what a jury will see in it.
