@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MicOff, VideoOff } from "lucide-react";
 import { InterviewerPresence, Waveform } from "@/design-system";
+import { meterFromStream } from "@/lib/audio-level";
 import type { JurorTag } from "@/lib/voice";
 
 /**
@@ -107,6 +108,41 @@ function useLiveVideo(stream: MediaStream | null): boolean {
 }
 
 /**
+ * Whether someone on a tile is talking, from the sound actually arriving.
+ *
+ * Read from the audio, not from who holds the floor: a classmate who jumps
+ * in to finish their partner's answer lights up the moment they speak, the
+ * way a video call does it. Sampled a few times a second rather than every
+ * frame, and with a short hold, so the ring follows sentences, not syllables.
+ */
+function useTalking(stream: MediaStream | null, enabled: boolean): boolean {
+  const [talking, setTalking] = useState(false);
+  const audioIds = stream?.getAudioTracks().map((track) => track.id).join(",") ?? "";
+  useEffect(() => {
+    if (!stream || !enabled || audioIds === "") {
+      setTalking(false);
+      return;
+    }
+    const meter = meterFromStream(new MediaStream(stream.getAudioTracks()));
+    if (!meter.measured) return;
+    let lastLoud = 0;
+    const id = window.setInterval(() => {
+      const now = Date.now();
+      if (meter.level() > 0.06) lastLoud = now;
+      setTalking(now - lastLoud < 700);
+    }, 120);
+    return () => {
+      window.clearInterval(id);
+      meter.stop();
+    };
+    // The track ids are the identity that matters; the stream object is
+    // replaced whenever a track arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioIds, enabled]);
+  return talking;
+}
+
+/**
  * One person defending: their camera, or their initials when it is off.
  *
  * A remote tile plays its sound through the same element — the classmate's
@@ -121,10 +157,17 @@ export function PersonTile({
   muted = false,
   note,
   label,
+  listenFor = true,
 }: {
   name: string;
   stream: MediaStream | null;
   self?: boolean;
+  /**
+   * Whether this tile's sound is theirs alone. Off on the host's tile while
+   * the jury talks: the jury's voice reaches the others on the host's
+   * connection, and it would light the host up as if they were speaking.
+   */
+  listenFor?: boolean;
   /** Holds the floor: the answer being given is theirs. */
   answering?: boolean;
   /** Their microphone is closed. */
@@ -136,6 +179,8 @@ export function PersonTile({
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const live = useLiveVideo(stream);
+  const talking = useTalking(stream, listenFor && !muted);
+  const lit = answering || talking;
 
   useEffect(() => {
     const element = video.current;
@@ -155,7 +200,7 @@ export function PersonTile({
   return (
     <figure
       className={`relative aspect-video w-28 shrink-0 overflow-hidden rounded-2xl bg-white/[0.06] shadow-float ring-1 transition-shadow duration-200 sm:w-44 ${
-        answering ? "ring-2 ring-grow" : "ring-white/15"
+        lit ? "ring-2 ring-grow" : "ring-white/15"
       }`}
     >
       {/* Always mounted: a remote tile's sound comes out of this element

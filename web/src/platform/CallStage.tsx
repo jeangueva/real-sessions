@@ -62,7 +62,7 @@ export function CallStage({
   jury?: JurorSeat[];
   activeJuror?: JurorTag | null;
   /** The classmates defending with you, on their own devices. */
-  people?: { id: string; name: string; stream: MediaStream | null; answering?: boolean; muted?: boolean }[];
+  people?: { id: string; name: string; stream: MediaStream | null; answering?: boolean; muted?: boolean; listenFor?: boolean }[];
   /** Your name on your own tile, in a group call. */
   selfName?: string;
   selfAnswering?: boolean;
@@ -125,6 +125,7 @@ export function CallStage({
                 stream={person.stream}
                 answering={person.answering ?? false}
                 muted={person.muted ?? false}
+                listenFor={person.listenFor ?? true}
               />
             ))}
             <PersonTile

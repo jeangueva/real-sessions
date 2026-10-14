@@ -350,9 +350,26 @@ export function LiveInterview() {
     onSay: (from: CallParticipant, text: string) => {
       setAnswering(from.id);
       if (voice.listening) voice.stopListening();
-      submitRef.current(`${from.name}: ${text}`);
+      waitingSay.current = `${from.name}: ${text}`;
+      setSayArrived((count) => count + 1);
     },
   });
+  /**
+   * A classmate's answer, held until the jury can take it.
+   *
+   * It can land while the panel is still talking or the last turn is still
+   * streaming in, and `submit` refuses then — which silently threw away a
+   * whole spoken answer. It waits here and goes in the moment the floor is
+   * open; a newer answer replaces an older one still waiting.
+   */
+  const waitingSay = useRef<string | null>(null);
+  const [sayArrived, setSayArrived] = useState(0);
+  useEffect(() => {
+    if (!waitingSay.current || busy || !sessionId || turn?.isComplete) return;
+    const text = waitingSay.current;
+    waitingSay.current = null;
+    submitRef.current(text);
+  }, [sayArrived, busy, sessionId, turn?.isComplete]);
 
   // The analyser is suspended until something resumes it, and nothing here
   // will be clicked. Harmless when the browser refuses: the waveform stays
