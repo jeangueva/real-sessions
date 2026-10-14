@@ -8,6 +8,7 @@ import { ArrowUpRight, Check, Image as ImageIcon, Link2, Share2, Sparkles, Targe
 import { PageBody, PageHeader } from "./AppShell";
 import { AnswerByAnswer } from "./AnswerByAnswer";
 import { ActaCard } from "./ActaCard";
+import { MemberShare } from "./MemberShare";
 import { NervesCard } from "./NervesCard";
 import { PresenceCard } from "./PresenceCard";
 import { FirstLanguageErrors } from "./FirstLanguageErrors";
@@ -506,6 +507,10 @@ function FeedbackBody({
   share: { historyId: string | null; allowed: boolean; token: string | null } | null;
 }) {
   const t = useT();
+  /** The public link, once made — by the share button or a member's link. */
+  const [memberToken, setMemberToken] = useState<string | null>(share?.token ?? null);
+  useEffect(() => setMemberToken(share?.token ?? null), [share?.token]);
+  const members = evaluation.acta?.members?.map((member) => member.name) ?? [];
   return (
     <>
       <PageHeader
@@ -550,7 +555,19 @@ function FeedbackBody({
         {/* 1a. A thesis defence opens on the jury's record instead. */}
         {evaluation.acta && (
           <FadeRise>
-            <ActaCard acta={evaluation.acta} />
+            <ActaCard
+              acta={evaluation.acta}
+              belowMembers={
+                members.length > 1 && share?.historyId && share.allowed ? (
+                  <MemberShare
+                    members={members}
+                    historyId={share.historyId}
+                    token={memberToken}
+                    onShared={setMemberToken}
+                  />
+                ) : null
+              }
+            />
           </FadeRise>
         )}
         {/* The film of it, when the student asked for one: on this device only. */}

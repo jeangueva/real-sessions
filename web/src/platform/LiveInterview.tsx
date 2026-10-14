@@ -23,7 +23,7 @@ import { useThesisT } from "@/lib/thesis-copy";
 import { useFrameSampler } from "@/hooks/useFrameSampler";
 import { DefenseClock } from "./DefenseClock";
 import { useCamera, useScreenShare } from "@/hooks/useMediaStream";
-import { useRehearsalRecorder } from "@/hooks/useRehearsalRecorder";
+import { useRehearsalRecorder, type RecordedCall } from "@/hooks/useRehearsalRecorder";
 import { CallControls } from "./CallControls";
 import { CallStage } from "./CallStage";
 import { TranscriptPanel, type TranscriptLine } from "./TranscriptPanel";
@@ -240,7 +240,17 @@ export function LiveInterview() {
   const camera = useCamera();
   /** Still frames for the presence reading, only while the camera is on. */
   const sampler = useFrameSampler(camera.stream);
-  const recorder = useRehearsalRecorder(Boolean(setup.defense?.record), camera.stream);
+  /**
+   * In a group defence the film is the whole call. One object for the whole
+   * session, filled in below once the call knows who is in it: the recorder
+   * reads it on every frame, so a classmate who joins later is in the film.
+   */
+  const [filmedCall] = useState<RecordedCall | null>(() =>
+    (setup.defense?.members?.length ?? 0) > 1
+      ? { selfName: setup.defense!.members![0]!, people: [], extraAudio: [] }
+      : null,
+  );
+  const recorder = useRehearsalRecorder(Boolean(setup.defense?.record), camera.stream, filmedCall);
   const finishRecording = recorder.finish;
   // Asked to be filmed: the camera opens with the call rather than waiting
   // for the button, or the exposition would be missing from the replay.
@@ -354,6 +364,14 @@ export function LiveInterview() {
       setSayArrived((count) => count + 1);
     },
   });
+  if (filmedCall) {
+    filmedCall.people = group.participants.map((person) => ({
+      id: person.id,
+      name: person.name,
+      stream: group.remotes[person.id] ?? null,
+    }));
+    filmedCall.extraAudio = juryTrack ? [juryTrack] : [];
+  }
   /**
    * A classmate's answer, held until the jury can take it.
    *
@@ -739,7 +757,7 @@ export function LiveInterview() {
     camera.stop();
     screen.stop();
     navigate(reportable && sessionId ? `/app/feedback` : defense ? "/app" : "/app/practice", {
-      state: reportable && sessionId ? { sessionId, ...reportLabel() } : undefined,
+      state: reportable && sessionId ? { sessionId, ...reportLabel(), ...(defense ? { defense: true } : {}) } : undefined,
     });
   };
 

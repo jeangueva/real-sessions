@@ -1,3 +1,4 @@
+import type React from "react";
 import { Link } from "react-router-dom";
 import { Gavel } from "lucide-react";
 import { Eyebrow, Panel } from "@/design-system";
@@ -44,7 +45,20 @@ function Bar({ value }: { value: number }) {
  * says what it is not — a chance of passing — because a number next to a
  * verdict is read as a prediction unless told otherwise.
  */
-export function ActaCard({ acta }: { acta: Acta }) {
+export function ActaCard({
+  acta,
+  highlight,
+  belowMembers,
+  publicView = false,
+}: {
+  acta: Acta;
+  /** A member reading their own part, from the link sent to them. */
+  highlight?: string;
+  /** What goes under the per-member grades: on the owner's report, the links to send them. */
+  belowMembers?: React.ReactNode;
+  /** Read from a shared link, by someone without an account: no way into the app. */
+  publicView?: boolean;
+}) {
   const t = useThesisT();
   const verdict = VERDICT[acta.verdict];
   // Chile's 5,8 and Brazil's 7,5 keep their decimal, written the local way.
@@ -112,7 +126,11 @@ export function ActaCard({ acta }: { acta: Acta }) {
           <h2 className="text-base font-semibold text-cream-bright">{t("membersTitle")}</h2>
           <ul className="flex flex-col gap-4">
             {acta.members!.map((member) => (
-              <li key={member.name} className="flex gap-3">
+              <li
+                key={member.name}
+                aria-current={member.name === highlight ? "true" : undefined}
+                className={`flex gap-3 ${member.name === highlight ? "-mx-3 rounded-2xl bg-accent-soft/60 p-3 ring-1 ring-accent/40" : ""}`}
+              >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold tabular-nums text-accent-text">
                   {grade(member.grade)}
                 </span>
@@ -123,6 +141,7 @@ export function ActaCard({ acta }: { acta: Acta }) {
               </li>
             ))}
           </ul>
+          {belowMembers}
         </Panel>
       )}
 
@@ -156,7 +175,7 @@ export function ActaCard({ acta }: { acta: Acta }) {
       </Panel>
       {/* A pass is the moment to show what comes after the thesis: the
           interview Mockio was built for, one step up the ladder. */}
-      {acta.verdict !== "desaprobado" && (
+      {acta.verdict !== "desaprobado" && !publicView && (
         <Link
           to="/app/practice"
           className="focus-ring flex flex-col gap-0.5 rounded-2xl bg-accent-soft px-5 py-4 text-accent-text transition-transform duration-150 active:scale-[0.99] print:hidden"
