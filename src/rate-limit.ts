@@ -94,6 +94,14 @@ export const RULES = {
    * still a token the platform signed.
    */
   ltiLaunch: { limit: 3000, windowMs: 60 * 60 * 1000 },
+  /**
+   * A group call polls about once a second per device, for up to an hour, and
+   * a lab of students can share one address — so this is wide. Every request
+   * still needs a room id and a participant key.
+   */
+  callRoom: { limit: 20000, windowMs: 60 * 60 * 1000 },
+  /** Joining, and opening rooms: a handful per rehearsal. */
+  callJoin: { limit: 60, windowMs: 60 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export interface RateLimitResult {

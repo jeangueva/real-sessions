@@ -223,6 +223,7 @@ import {
   type LtiStore,
 } from "./lti.js";
 import { createB2bLeadStore, readLead, type B2bLeadStore } from "./b2b.js";
+import { CallRoomError, CallRooms, iceServers } from "./call-rooms.js";
 import { payoutSummary, readPayout } from "./advisors.js";
 import { createHmac as hmacFor, randomBytes as randomFor, timingSafeEqual as sameBytes } from "node:crypto";
 import { writeStudy } from "./study.js";
@@ -646,6 +647,8 @@ let SITE: StaticSite | null = null;
 let ACCOUNTS: AccountStore;
 let MAILER: EmailSender;
 let LIMITER: RateLimiter;
+/** Group-defence calls. In memory: see call-rooms.ts. */
+const CALL_ROOMS = new CallRooms();
 /**
  * Model provider override.
  *
@@ -2664,6 +2667,48 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   /**
+   * A group defence's call, for the classmates in it.
+   *
+   * In front of the authentication gate: a classmate presenting with you
+   * joins from the link you sent, without an account. The room id is the
+   * capability to join and the participant key the capability to act — see
+   * call-rooms.ts. Every write is POST, so neither ends up in a log line.
+   */
+  const callRoute = path.match(/^\/api\/call\/([A-Za-z0-9_-]{10,40})(?:\/(join|poll|signal|state|leave))?$/);
+  if (callRoute) {
+    const [, roomId, action] = callRoute as unknown as [string, string, string | undefined];
+    try {
+      if (req.method === "GET" && !action) {
+        if (await limited(res, `call:${clientIp(req)}`, RULES.callRoom)) return;
+        return json(res, 200, CALL_ROOMS.preview(roomId));
+      }
+      if (req.method !== "POST" || !action) return json(res, 405, { error: "Method not allowed." });
+      if (action === "join") {
+        if (await limited(res, `callJoin:${clientIp(req)}`, RULES.callJoin)) return;
+        const body = await readJson(req);
+        const joined = CALL_ROOMS.join(roomId, body["name"]);
+        return json(res, 201, { ...joined, iceServers: iceServers() });
+      }
+      if (await limited(res, `call:${clientIp(req)}`, RULES.callRoom)) return;
+      const body = await readJson(req);
+      const who = body["participantId"];
+      const key = body["key"];
+      if (action === "poll") return json(res, 200, CALL_ROOMS.poll(roomId, who, key, body["since"], body["stateVersion"]));
+      if (action === "signal") {
+        CALL_ROOMS.signal(roomId, who, key, body["to"], body["type"], body["payload"]);
+        return json(res, 202, { ok: true });
+      }
+      if (action === "state") return json(res, 200, { stateVersion: CALL_ROOMS.publish(roomId, who, key, body["state"]) });
+      CALL_ROOMS.leave(roomId, who, key);
+      return json(res, 200, { ok: true });
+    } catch (error) {
+      if (error instanceof CallRoomError) return json(res, error.status, { error: error.message, code: error.code });
+      if (error instanceof SyntaxError) return json(res, 400, { error: "Invalid JSON." });
+      throw error;
+    }
+  }
+
+  /**
    * Anything that is not an API call belongs to the web app, when one is
    * deployed alongside.
    *
@@ -2715,6 +2760,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    */
   const plan = await PLANS.planFor(identity.id);
   const can = capabilitiesFor(plan);
+
+  if (req.method === "POST" && path === "/api/call") {
+    // Opens the room a group defence's classmates join. The rehearsal itself
+    // keeps running here, in this account's session; the room only carries it.
+    if (await limited(res, `callJoin:${identity.id}`, RULES.callJoin)) return;
+    const body = await readJson(req);
+    const opened = CALL_ROOMS.create(identity.id, body["members"], body["name"]);
+    return json(res, 201, { ...opened, iceServers: iceServers() });
+  }
 
   /**
    * The review queue.
