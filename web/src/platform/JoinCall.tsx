@@ -304,6 +304,8 @@ function InCall({
             name: person.name,
             stream: call.remotes[person.id] ?? null,
             answering: room?.answering === person.id,
+            // The host's connection carries the jury's voice too.
+            listenFor: person.role !== "host" || !room?.juryTalking,
           }))}
         />
       </div>
