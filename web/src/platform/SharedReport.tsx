@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Action, Eyebrow, FadeRise, Meter, Panel, PopIn, ScoreRing } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import type { Evaluation } from "@/lib/evaluation";
 import type { SessionMetrics } from "@/lib/api";
+import { useThesisT } from "@/lib/thesis-copy";
+import { ActaCard } from "./ActaCard";
 
 /**
  * A report somebody else shared, read by somebody who may never have been
@@ -92,6 +94,7 @@ export function SharedReport() {
   }
 
   const { evaluation } = report;
+  if (evaluation.acta) return <SharedDefense report={report} acta={evaluation.acta} />;
   const when = report.completedAt
     ? new Date(report.completedAt).toLocaleDateString(undefined, {
         year: "numeric",
@@ -233,6 +236,74 @@ export function SharedReport() {
             </div>
             <Link to="/" className="shrink-0">
               <Action>{t("shared.cta")}</Action>
+            </Link>
+          </Panel>
+        </FadeRise>
+      </div>
+    </main>
+  );
+}
+
+/**
+ * A thesis defence, shared — usually by the student who ran a group's
+ * rehearsal, to a classmate who was in the call.
+ *
+ * The jury's record is the report, so it is what this page shows. Opened
+ * from a member's own link (`?integrante=`), it starts with that member's
+ * grade and what the jury said about them, and their row in the record is
+ * marked: the first thing they look for is their own part.
+ */
+function SharedDefense({
+  report,
+  acta,
+}: {
+  report: SharedReport;
+  acta: NonNullable<Evaluation["acta"]>;
+}) {
+  const tt = useThesisT();
+  const [params] = useSearchParams();
+  const asked = params.get("integrante") ?? "";
+  const member = acta.members?.find((entry) => entry.name === asked) ?? null;
+  const grade = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+
+  return (
+    <main className="min-h-dvh bg-surface-base px-4 py-10 sm:px-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+        <FadeRise>
+          <div className="flex flex-col gap-2">
+            <Eyebrow>{tt("sharedDefenseEyebrow")}</Eyebrow>
+            <h1 className="text-display font-semibold text-cream-bright">
+              {tt("sharedDefenseTitle", { university: report.company })}
+            </h1>
+          </div>
+        </FadeRise>
+
+        {member && (
+          <FadeRise delay={0.05}>
+            <Panel variant="raised" className="flex gap-4 p-6 sm:p-8">
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-accent text-2xl font-bold tabular-nums text-accent-ink">
+                {grade(member.grade)}
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-cream-bright">{tt("sharedYourPart", { name: member.name })}</h2>
+                <p className="mt-1 text-base leading-relaxed text-cream">{member.feedback}</p>
+              </div>
+            </Panel>
+          </FadeRise>
+        )}
+
+        <FadeRise delay={0.1}>
+          <ActaCard acta={acta} publicView {...(member ? { highlight: member.name } : {})} />
+        </FadeRise>
+
+        <FadeRise delay={0.15}>
+          <Panel variant="raised" className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-cream-bright">{tt("sharedCtaTitle")}</p>
+              <p className="text-xs text-cream-faint">{tt("sharedCtaBody")}</p>
+            </div>
+            <Link to="/" className="shrink-0">
+              <Action>{tt("sharedCta")}</Action>
             </Link>
           </Panel>
         </FadeRise>
