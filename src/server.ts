@@ -2674,7 +2674,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * capability to join and the participant key the capability to act — see
    * call-rooms.ts. Every write is POST, so neither ends up in a log line.
    */
-  const callRoute = path.match(/^\/api\/call\/([A-Za-z0-9_-]{10,40})(?:\/(join|poll|signal|state|leave))?$/);
+  const callRoute = path.match(/^\/api\/call\/([A-Za-z0-9_-]{10,40})(?:\/(join|poll|signal|state|leave|report))?$/);
   if (callRoute) {
     const [, roomId, action] = callRoute as unknown as [string, string, string | undefined];
     try {
@@ -2699,6 +2699,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         return json(res, 202, { ok: true });
       }
       if (action === "state") return json(res, 200, { stateVersion: CALL_ROOMS.publish(roomId, who, key, body["state"]) });
+      if (action === "report") {
+        // The jury's record of the defence, for the members who were in it.
+        // Only the record: no transcript, no account, nothing published.
+        const { hostAccount, sessionId } = CALL_ROOMS.reportOf(roomId, who, key);
+        if (!sessionId) return json(res, 404, { error: "This call has no report.", code: "noReport" });
+        const record = await readQuietly(PROGRESS.getSession(hostAccount, sessionId), null);
+        const acta = record?.evaluation?.acta ?? null;
+        if (!acta) return json(res, 202, { ready: false });
+        return json(res, 200, { ready: true, university: record!.company, acta });
+      }
       CALL_ROOMS.leave(roomId, who, key);
       return json(res, 200, { ok: true });
     } catch (error) {
@@ -2766,7 +2776,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // keeps running here, in this account's session; the room only carries it.
     if (await limited(res, `callJoin:${identity.id}`, RULES.callJoin)) return;
     const body = await readJson(req);
-    const opened = CALL_ROOMS.create(identity.id, body["members"], body["name"]);
+    const opened = CALL_ROOMS.create(identity.id, body["members"], body["name"], body["sessionId"]);
     return json(res, 201, { ...opened, iceServers: iceServers() });
   }
 

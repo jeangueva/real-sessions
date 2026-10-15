@@ -50,6 +50,19 @@ describe("call rooms", () => {
     expect(() => calls.preview(host.roomId)).toThrow(/ended/);
   });
 
+  it("keeps the room when the host leaves, so the members can read the report", () => {
+    const calls = rooms();
+    const host = calls.create("acct", ["Ana", "Luis"], "Ana", "session-1");
+    const guest = calls.join(host.roomId, "Luis");
+    calls.leave(host.roomId, host.participantId, host.key);
+    expect(calls.poll(host.roomId, guest.participantId, guest.key, 0, -1).ended).toBe(true);
+    expect(calls.reportOf(host.roomId, guest.participantId, guest.key)).toEqual({ hostAccount: "acct", sessionId: "session-1" });
+    // Waiting on the report is not being offline.
+    clock += OFFLINE_AFTER_MS * 5;
+    expect(() => calls.reportOf(host.roomId, guest.participantId, guest.key)).not.toThrow();
+    expect(() => calls.join(host.roomId, "Rosa")).toThrow(/ended/);
+  });
+
   it("frees the seat of a classmate whose tab closed", () => {
     const calls = rooms();
     const host = calls.create("acct", ["Ana", "Luis", "Rosa"], "Ana");
@@ -68,6 +81,19 @@ describe("call routes", () => {
   });
   afterEach(async () => {
     await api.stop();
+  });
+
+  it("tells a member the report is not ready while the session has none", async () => {
+    await api.authenticate();
+    const opened = await api.json<{ roomId: string; participantId: string; key: string }>(
+      "/api/call",
+      post({ members: ["Ana", "Luis"], name: "Ana", sessionId: "not-finished-yet" }),
+    );
+    api.forget();
+    const joined = await api.json<{ participantId: string; key: string }>(`/api/call/${opened.roomId}/join`, post({ name: "Luis" }));
+    const waiting = await api.call(`/api/call/${opened.roomId}/report`, post(joined));
+    expect(waiting.status).toBe(202);
+    expect((await api.call(`/api/call/${opened.roomId}/report`, post({ ...joined, key: "wrong" }))).status).toBe(403);
   });
 
   it("opens a room for a signed-in host and lets a classmate join without an account", async () => {
@@ -100,5 +126,9 @@ describe("call routes", () => {
 
     const stranger = await api.call(`/api/call/${opened.roomId}/poll`, post({ participantId: joined.participantId, key: "nope" }));
     expect(stranger.status).toBe(403);
+
+    // No session behind this room: nothing to report.
+    const report = await api.call(`/api/call/${opened.roomId}/report`, post(joined));
+    expect(report.status).toBe(404);
   });
 });

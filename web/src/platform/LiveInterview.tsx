@@ -290,12 +290,12 @@ export function LiveInterview() {
   const [opening, setOpening] = useState(false);
   const [openFailed, setOpenFailed] = useState(false);
   const openRoom = () => {
-    if (!groupMembers || opening) return;
+    if (!groupMembers || opening || !sessionId) return;
     setOpening(true);
     setOpenFailed(false);
     // A group call is a video call: the classmates expect to see you.
     if (camera.supported && !camera.on && !camera.starting) camera.start();
-    openCallRoom(groupMembers, hostName)
+    openCallRoom(groupMembers, hostName, sessionId)
       .then(setSeat)
       .catch(() => setOpenFailed(true))
       .finally(() => setOpening(false));
@@ -764,6 +764,7 @@ export function LiveInterview() {
   return (
     <>
       <PageHeader
+        compact
         title={heading}
         meta={
           running?.generic

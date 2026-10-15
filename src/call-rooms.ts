@@ -55,6 +55,10 @@ interface Participant {
 interface Room {
   id: string;
   hostAccount: string;
+  /** The rehearsal this call carries, for the report the members read at the end. */
+  sessionId: string | null;
+  /** The host has left: the call is over, the room stays for the report. */
+  ended: boolean;
   members: string[];
   createdAt: number;
   participants: Map<string, Participant>;
@@ -104,7 +108,7 @@ export class CallRooms {
   constructor(private readonly now: () => number = Date.now) {}
 
   /** Opens a room for a group defence. The host is its first participant. */
-  create(hostAccount: string, members: unknown, hostName: unknown): Joined {
+  create(hostAccount: string, members: unknown, hostName: unknown, sessionId: unknown = null): Joined {
     this.sweep();
     const names = Array.isArray(members) ? members.map(cleanName).filter(Boolean).slice(0, MAX_GUESTS + 1) : [];
     const host: Participant = {
@@ -117,6 +121,8 @@ export class CallRooms {
     const room: Room = {
       id: token(16),
       hostAccount,
+      sessionId: typeof sessionId === "string" && /^[\w-]{1,100}$/.test(sessionId) ? sessionId : null,
+      ended: false,
       members: names,
       createdAt: this.now(),
       participants: new Map([[host.id, host]]),
@@ -138,6 +144,7 @@ export class CallRooms {
 
   join(roomId: string, name: unknown): Joined {
     const room = this.room(roomId);
+    if (room.ended) throw new CallRoomError(404, "roomGone", "This call has ended or the link is wrong.");
     const cleaned = cleanName(name);
     if (!cleaned) throw new CallRoomError(400, "nameRequired", "Say who is joining.");
     if (this.guests(room).length >= MAX_GUESTS) {
@@ -201,6 +208,7 @@ export class CallRooms {
     state: unknown;
     stateVersion: number;
     cursor: number;
+    ended: boolean;
   } {
     const room = this.room(roomId);
     const who = this.authorize(room, participantId, key);
@@ -219,6 +227,7 @@ export class CallRooms {
       state: room.stateVersion > known ? room.state : undefined,
       stateVersion: room.stateVersion,
       cursor: messages.at(-1)?.seq ?? after,
+      ended: room.ended,
     };
   }
 
@@ -227,11 +236,24 @@ export class CallRooms {
     if (!room) return;
     const who = this.authorize(room, participantId, key);
     if (who.role === "host") {
-      this.rooms.delete(room.id);
+      // Not deleted: the members are still on the end screen, waiting for
+      // the jury's report of the defence they were part of.
+      room.ended = true;
       return;
     }
     room.participants.delete(who.id);
     room.mailbox.delete(who.id);
+  }
+
+  /**
+   * Whose report a participant may read: the host's account and the session
+   * the call carried. Any participant, host or member, with their key.
+   */
+  reportOf(roomId: string, participantId: unknown, key: unknown): { hostAccount: string; sessionId: string | null } {
+    const room = this.room(roomId);
+    const who = this.authorize(room, participantId, key);
+    who.lastSeen = this.now();
+    return { hostAccount: room.hostAccount, sessionId: room.sessionId };
   }
 
   /** Rooms past their lifetime. Called on create, so the map cannot only grow. */
@@ -255,6 +277,8 @@ export class CallRooms {
 
   /** A guest whose tab closed frees the seat; the host never times out. */
   private dropOffline(room: Room): void {
+    // After the call, members wait on the report and stop polling the call.
+    if (room.ended) return;
     const cutoff = this.now() - OFFLINE_AFTER_MS;
     for (const [id, entry] of room.participants) {
       if (entry.role === "guest" && entry.lastSeen < cutoff) {
