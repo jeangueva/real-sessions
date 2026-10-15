@@ -1,6 +1,7 @@
 import type React from "react";
 import { Link } from "react-router-dom";
 import { Gavel } from "lucide-react";
+import CountUp from "@/components/bits/CountUp";
 import { Eyebrow, Panel } from "@/design-system";
 import type { Evaluation } from "@/lib/evaluation";
 import { useThesisT } from "@/lib/thesis-copy";
@@ -79,7 +80,17 @@ export function ActaCard({
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <Eyebrow>{t("actaTitle")}</Eyebrow>
             <p className="flex items-baseline gap-2">
-              <span className="text-[2.75rem] font-bold leading-none tabular-nums text-cream-bright">{grade(acta.grade)}</span>
+              {/* The grade arrives rather than sits there: the one number the
+                  student came for, counted up once, quickly. A decimal grade
+                  (Chile's 5,8) is written the local way and not animated —
+                  the counter would print it with a point. */}
+              <span className="text-[2.75rem] font-bold leading-none tabular-nums text-cream-bright">
+                {Number.isInteger(acta.grade) ? (
+                  <CountUp to={acta.grade} duration={0.9} trigger="load" />
+                ) : (
+                  grade(acta.grade)
+                )}
+              </span>
               <span className="text-lg font-semibold text-cream-faint">{t("outOf", { max: acta.grade_max })}</span>
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -94,7 +105,9 @@ export function ActaCard({
         <div className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-sm font-semibold text-cream-bright">{t("readiness")}</p>
-            <p className="text-sm font-semibold tabular-nums text-cream-bright">{acta.readiness}/100</p>
+            <p className="text-sm font-semibold tabular-nums text-cream-bright">
+              <CountUp to={acta.readiness} duration={0.9} trigger="load" />/100
+            </p>
           </div>
           <Bar value={acta.readiness} />
           <p className="text-xs text-cream-dim">{t("readinessNote")}</p>

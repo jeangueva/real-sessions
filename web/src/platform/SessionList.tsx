@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, RotateCcw } from "lucide-react";
-import { Action, Panel } from "@/design-system";
+import { Action, Panel, Segmented } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, fetchHistory } from "@/lib/api";
 import { companyName, formatSessionDate, formatWpm } from "@/lib/format";
@@ -62,21 +62,15 @@ export function SessionList() {
         {/* Most rows are interviews left half-way; a report is what someone
             usually comes here for, so they can be hidden in one tap. */}
         {sessions !== null && sessions.length > scored.length && scored.length > 0 && (
-          <div role="group" aria-label={t("history.title")} className="inline-flex rounded-full bg-surface-lift p-1">
-            {(["all", "scored"] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={filter === value}
-                onClick={() => setFilter(value)}
-                className={`focus-ring rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                  filter === value ? "bg-surface-card text-cream-bright shadow-card" : "text-cream-dim hover:text-cream-bright"
-                }`}
-              >
-                {t(value === "all" ? "history.filterAll" : "history.filterScored")}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            label={t("history.title")}
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "all", label: t("history.filterAll") },
+              { value: "scored", label: t("history.filterScored") },
+            ]}
+          />
         )}
       </div>
 

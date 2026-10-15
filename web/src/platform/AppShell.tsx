@@ -24,6 +24,8 @@ import type { Session } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import { useThesisT } from "@/lib/thesis-copy";
 import { Mark, PremiumMark, Wordmark } from "@/design-system";
+import ShinyText from "@/components/bits/ShinyText";
+import { useTokenColor } from "@/hooks/useTokenColor";
 import {
   SPACE_HOME,
   rememberSpace,
@@ -356,7 +358,9 @@ function TopBar({
         <div className="flex shrink-0 items-center gap-3">
           {isPremium && (
             <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text sm:inline-flex">
-              Premium
+              {/* A slow light across it, every few seconds: the one place the
+                  paid plan says so, without a badge that shouts. */}
+              <PremiumShine />
             </span>
           )}
           <span className="hidden max-w-[12rem] truncate text-sm font-medium text-cream-dim lg:block" title={email ?? undefined}>
@@ -552,4 +556,11 @@ export function PageHeader({
       </div>
     </header>
   );
+}
+
+/** "Premium" with a slow light across it. */
+function PremiumShine() {
+  const ink = useTokenColor("accent-text");
+  const light = useTokenColor("cream-bright");
+  return <ShinyText text="Premium" color={ink} shineColor={light} speed={2.4} delay={4} />;
 }

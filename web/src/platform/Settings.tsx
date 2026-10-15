@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
-import { Eyebrow, Field, Panel, Action, Notice, SegmentThumb } from "@/design-system";
+import { Eyebrow, Field, Panel, Action, Notice, SegmentThumb, Segmented } from "@/design-system";
 import { Profile } from "./Profile";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
@@ -212,33 +212,17 @@ export function Settings() {
                 : t("settings.themeFixed")
             }
           >
-            <div
-              role="radiogroup"
-              aria-label={t("settings.theme")}
-              className="flex flex-wrap gap-2"
-            >
-              {(
-                [
-                  ["system", t("settings.themeSystem")],
-                  ["dark", t("settings.themeDark")],
-                  ["light", t("settings.themeLight")],
-                ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  role="radio"
-                  aria-checked={choice === value}
-                  onClick={() => setChoice(value)}
-                  className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
-                    choice === value
-                      ? "border-cream bg-cream text-surface-base"
-                      : "border-line text-cream-dim hover:text-cream-bright"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              label={t("settings.theme")}
+              value={choice}
+              onChange={setChoice}
+              options={[
+                { value: "system", label: t("settings.themeSystem") },
+                { value: "dark", label: t("settings.themeDark") },
+                { value: "light", label: t("settings.themeLight") },
+              ]}
+              className="self-start"
+            />
           </Field>
 
           {/* The interface language, not the interview's. Free, because

@@ -8,6 +8,7 @@
  * not cost a request per card.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import SpringCheck from "@/components/bits/SpringCheck";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -631,22 +632,24 @@ export function ObservationsSection({
               <li key={index}>
                 <details className="group rounded-2xl bg-surface-card shadow-card">
                   <summary className="focus-ring flex cursor-pointer list-none items-start gap-3 rounded-2xl p-3.5">
-                    <button
-                      type="button"
-                      role="checkbox"
-                      aria-checked={item.done}
-                      aria-label={item.observation}
-                      disabled={busy}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        void run(() => markObservation(index, !item.done));
-                      }}
-                      className={`focus-ring mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-[background-color,border-color,transform] duration-150 ease-press active:scale-[0.9] ${
-                        item.done ? "border-grow bg-grow text-white" : "border-cream-faint/60"
-                      }`}
-                    >
-                      {item.done && <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={3} />}
-                    </button>
+                    {/* The tick springs in: closing an observation is the
+                        progress this screen exists for, so it gets a beat. The
+                        wrapper keeps the click from also opening the row. */}
+                    <span className="mt-0.5 shrink-0" onClick={(event) => event.preventDefault()}>
+                      <SpringCheck
+                        checked={item.done}
+                        onChange={(next) => void run(() => markObservation(index, next))}
+                        disabled={busy}
+                        ariaLabel={item.observation}
+                        boxSize={20}
+                        boxRadius={6}
+                        strike="none"
+                        color="rgb(var(--cream) / 0.65)"
+                        fillColor="rgb(var(--grow))"
+                        checkColor="#ffffff"
+                        className="!min-h-0"
+                      />
+                    </span>
                     <span className="min-w-0 flex-1">
                       <span className={`block text-sm ${item.done ? "text-cream-faint line-through" : "text-cream-bright"}`}>
                         {item.observation}

@@ -41,3 +41,4 @@ export { AnimatedCounter } from "./animated-counter";
 export { DecryptedText } from "./decrypted-text";
 export { Magnetic } from "./magnetic";
 export { DisclosureMark } from "./disclosure";
+export { Segmented } from "./segmented";
