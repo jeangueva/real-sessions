@@ -142,7 +142,12 @@ export function useGroupCall({
 }) {
   const [participants, setParticipants] = useState<CallParticipant[]>([]);
   const [remotes, setRemotes] = useState<Record<string, MediaStream>>({});
-  const [gone, setGone] = useState(false);
+  /**
+   * "room" when the call has ended for everyone; "seat" when only this
+   * device was let go — a phone that went to WhatsApp for a minute stops
+   * asking, the server frees its seat, and it can simply sit down again.
+   */
+  const [gone, setGone] = useState<false | "room" | "seat">(false);
   const peers = useRef(new Map<string, Peer>());
   const tracksRef = useRef(tracks);
   tracksRef.current = tracks;
@@ -337,7 +342,7 @@ export function useGroupCall({
         if (result.state) handlers.current.onState?.(result.state);
       } catch (error) {
         if (error instanceof CallError && (error.status === 404 || error.status === 403)) {
-          setGone(true);
+          setGone(error.status === 404 ? "room" : "seat");
           return;
         }
       }

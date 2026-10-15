@@ -35,7 +35,15 @@ export function JoinCall() {
   const t = useThesisT();
   const { roomId = "" } = useParams();
   const [preview, setPreview] = useState<{ hostName: string; members: string[]; full: boolean } | null | undefined>();
-  const [name, setName] = useState("");
+  /** Remembered for this tab, so a reload does not ask who you are again. */
+  const remembered = `mockio.call.${roomId}`;
+  const [name, setName] = useState(() => {
+    try {
+      return sessionStorage.getItem(remembered) ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [joining, setJoining] = useState(false);
   const [problem, setProblem] = useState<"gone" | "full" | null>(null);
   const [seat, setSeat] = useState<CallSeat | null>(null);
@@ -80,6 +88,11 @@ export function JoinCall() {
     try {
       setSeat(await joinCallRoom(roomId, chosen));
       setLocal(stream);
+      try {
+        sessionStorage.setItem(remembered, chosen);
+      } catch {
+        // Private mode: they type it again after a reload.
+      }
     } catch (error) {
       stream?.getTracks().forEach((track) => track.stop());
       setProblem(error instanceof CallError && error.code === "roomFull" ? "full" : "gone");
@@ -88,7 +101,33 @@ export function JoinCall() {
     }
   };
 
-  if (seat) return <InCall seat={seat} name={name.trim()} local={local} hostName={preview?.hostName ?? ""} />;
+  /**
+   * Sits back down after the server let this device go — the usual cause is
+   * a phone put away mid-call, whose page stopped asking while hidden. Same
+   * name, same camera, a new seat; the others' screens reconnect to it.
+   */
+  const rejoin = async () => {
+    try {
+      setSeat(await joinCallRoom(roomId, name.trim()));
+    } catch (error) {
+      local?.getTracks().forEach((track) => track.stop());
+      setSeat(null);
+      setProblem(error instanceof CallError && error.code === "roomFull" ? "full" : "gone");
+    }
+  };
+
+  if (seat) {
+    return (
+      <InCall
+        key={seat.participantId}
+        seat={seat}
+        name={name.trim()}
+        local={local}
+        hostName={preview?.hostName ?? ""}
+        onDropped={() => void rejoin()}
+      />
+    );
+  }
 
   const others = (preview?.members ?? []).filter((member) => member !== preview?.hostName);
 
@@ -160,11 +199,13 @@ function InCall({
   name,
   local,
   hostName,
+  onDropped,
 }: {
   seat: CallSeat;
   name: string;
   local: MediaStream | null;
   hostName: string;
+  onDropped: () => void;
 }) {
   const t = useThesisT();
   const [room, setRoom] = useState<RoomState | null>(null);
@@ -249,7 +290,14 @@ function InCall({
 
   const answeringName = someoneElse ? call.participants.find((entry) => entry.id === someoneElse)?.name : null;
 
-  if (call.gone || room?.complete) {
+  // Let go, not ended: take a new seat rather than show the end.
+  const dropped = call.gone === "seat";
+  useEffect(() => {
+    if (dropped) onDropped();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dropped]);
+
+  if (call.gone === "room" || room?.complete) {
     return (
       <AuthLayout>
         <p className="text-base text-cream-bright">{room?.complete ? t("callEnded", { host: hostName }) : t("joinGone")}</p>
