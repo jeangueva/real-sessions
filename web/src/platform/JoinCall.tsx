@@ -1,18 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { LogOut, Mic, Send, Users } from "lucide-react";
-import { Action } from "@/design-system";
+import { Action, Panel } from "@/design-system";
 import { AuthLayout } from "./AuthLayout";
 import { CallStage } from "./CallStage";
 import { DefenseClock } from "./DefenseClock";
 import type { JurorSeat } from "./CallPeople";
+import { ActaCard } from "./ActaCard";
 import { resumeAudio } from "@/lib/audio-level";
 import {
   CallError,
+  fetchCallReport,
   initialsOf,
   joinCallRoom,
   previewCallRoom,
   useGroupCall,
+  type CallReport,
   type CallSeat,
   type RoomState,
 } from "@/lib/group-call";
@@ -298,11 +301,7 @@ function InCall({
   }, [dropped]);
 
   if (call.gone === "room" || room?.complete) {
-    return (
-      <AuthLayout>
-        <p className="text-base text-cream-bright">{room?.complete ? t("callEnded", { host: hostName }) : t("joinGone")}</p>
-      </AuthLayout>
-    );
+    return <CallEnded seat={seat} name={name} hostName={hostName} local={local} />;
   }
 
   return (
@@ -413,5 +412,114 @@ function InCall({
         </p>
       )}
     </main>
+  );
+}
+
+/** How long the end screen waits for the jury's report before giving up. */
+const REPORT_WAIT_MS = 10 * 60 * 1000;
+const REPORT_POLL_MS = 4_000;
+
+/**
+ * The end of a group defence, for a member who joined from the link.
+ *
+ * The report is written on the host's device once the call ends, and the
+ * member has no account to find it in later. So this screen waits for it —
+ * the jury "deliberating", which is what is actually happening — and then
+ * shows their own grade and the jury's words about them first, with the
+ * whole record underneath. If it never arrives (the host closed the tab
+ * before the report was written), it says who to ask.
+ */
+function CallEnded({
+  seat,
+  name,
+  hostName,
+  local,
+}: {
+  seat: CallSeat;
+  name: string;
+  hostName: string;
+  local: MediaStream | null;
+}) {
+  const t = useThesisT();
+  const [report, setReport] = useState<CallReport | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
+
+  // The call is over: the camera light goes off.
+  useEffect(() => {
+    local?.getTracks().forEach((track) => track.stop());
+  }, [local]);
+
+  useEffect(() => {
+    let stopped = false;
+    let timer = 0;
+    const started = Date.now();
+    const ask = async () => {
+      try {
+        const found = await fetchCallReport(seat);
+        if (stopped) return;
+        if (found.ready) {
+          setReport(found);
+          return;
+        }
+      } catch (error) {
+        if (stopped) return;
+        if (error instanceof CallError && (error.status === 404 || error.status === 403)) {
+          setUnavailable(true);
+          return;
+        }
+      }
+      if (Date.now() - started > REPORT_WAIT_MS) {
+        setUnavailable(true);
+        return;
+      }
+      timer = window.setTimeout(ask, REPORT_POLL_MS);
+    };
+    void ask();
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+    };
+  }, [seat]);
+
+  if (report?.ready) {
+    const member = report.acta.members?.find((entry) => entry.name === name) ?? null;
+    const grade = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+    return (
+      <main className="min-h-dvh bg-surface-deep px-4 py-8 sm:px-6">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-cream-bright sm:text-3xl">
+            {t("sharedDefenseTitle", { university: report.university })}
+          </h1>
+          {member && (
+            <Panel variant="raised" className="flex gap-4 p-6 sm:p-8">
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-accent text-2xl font-bold tabular-nums text-accent-ink">
+                {grade(member.grade)}
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-cream-bright">{t("sharedYourPart", { name: member.name })}</h2>
+                <p className="mt-1 text-base leading-relaxed text-cream">{member.feedback}</p>
+              </div>
+            </Panel>
+          )}
+          <ActaCard acta={report.acta} publicView {...(member ? { highlight: member.name } : {})} />
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <AuthLayout>
+      <div className="flex flex-col gap-3" aria-live="polite">
+        <p className="text-base font-semibold text-cream-bright">{t("callEnded", { host: hostName })}</p>
+        {unavailable ? (
+          <p className="text-sm text-cream-dim">{t("reportUnavailable", { host: hostName })}</p>
+        ) : (
+          <p className="flex items-center gap-2 text-sm text-cream-dim">
+            <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+            {t("reportWaiting")}
+          </p>
+        )}
+      </div>
+    </AuthLayout>
   );
 }

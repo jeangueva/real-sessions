@@ -127,6 +127,8 @@ export function AppShell() {
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  /** The live call: immersive on a phone, with its own controls at the bottom. */
+  const inCall = location.pathname.replace(/\/+$/, "") === "/app/session";
   const space = useSpace();
   const entries = useSpaceEntries(space);
   /**
@@ -260,7 +262,7 @@ export function AppShell() {
 
         {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is
             fixed and would otherwise sit on top of the last element. */}
-        <div className="flex min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+        <div className={`flex min-w-0 flex-1 flex-col md:pb-0 ${inCall ? "" : "pb-[calc(5rem+env(safe-area-inset-bottom,0px))]"}`}>
           {/* No transition between screens: switching sections happens dozens
               of times a session, and an exit that never finishes (a tab in
               the background, a quick second click) once left the content
@@ -278,7 +280,10 @@ export function AppShell() {
         </div>
       </div>
 
-      <MobileNav entries={entries} space={space} />
+      {/* Not during a call: on a phone the call's own controls are the bar
+          along the bottom, and the sections' tabs sat on top of them and over
+          the defence clock. Leaving goes through the call's red button. */}
+      {!inCall && <MobileNav entries={entries} space={space} />}
     </div>
   );
 }
@@ -514,20 +519,31 @@ export function PageHeader({
   title,
   meta,
   actions,
+  compact = false,
 }: {
   title: string;
   meta?: string;
   actions?: ReactNode;
+  /**
+   * A screen whose content is the point, like a call: on a phone the large
+   * title took a third of the screen above the video. Small there, large
+   * from `sm` up as everywhere else.
+   */
+  compact?: boolean;
 }) {
   return (
     /* Apple's large title: no rule under it — the size and the space after
        it already end the header, and a line would only box it in. */
-    <header className="px-4 pb-2 pt-8 sm:px-6 lg:px-10 lg:pt-10">
+    <header className={`px-4 pb-2 sm:px-6 lg:px-10 lg:pt-10 ${compact ? "pt-4 sm:pt-8" : "pt-8"}`}>
       {/* Same container as PageBody, so the title lines up with the content
           under it at every width. */}
       <div className="mx-auto flex w-full max-w-[110rem] flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
-          <h1 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright sm:text-[2.5rem]">
+          <h1
+            className={`font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright sm:text-[2.5rem] ${
+              compact ? "line-clamp-2 text-xl" : "text-[2rem]"
+            }`}
+          >
             {title}
           </h1>
           {meta && <p className="mt-1.5 text-sm text-cream-dim">{meta}</p>}

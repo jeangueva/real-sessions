@@ -64,6 +64,8 @@ interface PollResult {
   state?: RoomState | null;
   stateVersion: number;
   cursor: number;
+  /** The host has left: the call is over. */
+  ended?: boolean;
 }
 
 export class CallError extends Error {
@@ -91,8 +93,17 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
 }
 
 /** Opens a room for this rehearsal. Signed in: the host is the account running it. */
-export function openCallRoom(members: string[], name: string): Promise<CallSeat> {
-  return call<CallSeat>("/api/call", { members, name });
+export function openCallRoom(members: string[], name: string, sessionId: string): Promise<CallSeat> {
+  return call<CallSeat>("/api/call", { members, name, sessionId });
+}
+
+export type CallReport =
+  | { ready: false }
+  | { ready: true; university: string; acta: NonNullable<import("@/lib/evaluation").Evaluation["acta"]> };
+
+/** The jury's record of the defence the call carried, once it is written. */
+export function fetchCallReport(seat: CallSeat): Promise<CallReport> {
+  return call<CallReport>(`/api/call/${seat.roomId}/report`, { participantId: seat.participantId, key: seat.key });
 }
 
 export function previewCallRoom(roomId: string): Promise<{ hostName: string; members: string[]; full: boolean }> {
@@ -328,6 +339,10 @@ export function useGroupCall({
           stateVersion,
         });
         if (stopped) return;
+        if (result.ended) {
+          setGone("room");
+          return;
+        }
         cursor = result.cursor;
         stateVersion = result.stateVersion;
         const others = result.participants.filter((entry) => entry.id !== seat.participantId);
