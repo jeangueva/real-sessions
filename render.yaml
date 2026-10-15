@@ -113,6 +113,48 @@ services:
       - key: MERCADOPAGO_LIVE
         sync: false
 
+      # Paddle: the paid plan outside Peru, charged in the reader's currency,
+      # with Paddle as the seller of record. All of these or none: unset,
+      # every country is sold through Mercado Pago in soles, as before.
+      # PADDLE_ENV is "sandbox" or "production".
+      - key: PADDLE_ENV
+        sync: false
+      - key: PADDLE_API_KEY
+        sync: false
+      - key: PADDLE_CLIENT_TOKEN
+        sync: false
+      - key: PADDLE_WEBHOOK_SECRET
+        sync: false
+      - key: PADDLE_PRICE_MONTHLY
+        sync: false
+      - key: PADDLE_PRICE_YEARLY
+        sync: false
+
+      # "Continue with Google". Unset, the button is not shown and email
+      # sign-in is the only way in.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # The jury's accent per country (a Peruvian jury that sounds Peruvian).
+      # Both or neither; unset, the jury keeps the default voices.
+      - key: AZURE_SPEECH_KEY
+        sync: false
+      - key: AZURE_SPEECH_REGION
+        sync: false
+      # Brazilian Portuguese voices for rehearsals in Portuguese.
+      - key: GOOGLE_TTS_API_KEY
+        sync: false
+
+      # Group defence calls: a TURN relay for networks where cameras cannot
+      # reach each other directly (strict campus firewalls). Optional; STUN
+      # is built in. Comma-separate several URLs.
+      - key: CALL_TURN_URL
+        sync: false
+      - key: CALL_TURN_USERNAME
+        sync: false
+      - key: CALL_TURN_CREDENTIAL
+        sync: false
+
       # Unset: nobody can verify contributed questions, so none reach an
       # interview. Comma-separated account emails.
       # Addresses that hold the paid plan without paying. Not a superuser:
