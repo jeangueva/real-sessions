@@ -85,7 +85,7 @@ export function isDraft(): boolean {
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
-export const UPDATED = "2026-10-12";
+export const UPDATED = "2026-10-15";
 
 export interface LegalSection {
   heading: string;
@@ -142,7 +142,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "If you turn your camera on during a session, a few small still frames are sent to the AI provider to read your camera presence — eye contact, posture, framing. The frames are not stored; only that reading is kept with the session.",
             "Subscription status, if you pay. Card details never reach us — see Payments.",
           ],
-          "Practising as a guest stores the same interview data against an anonymous identifier in a cookie, with no email attached to it.",
+          "If you ask for a rehearsal to be filmed, the film is saved only in your own browser, on your device. It never reaches us, and clearing the browser's data deletes it.",
         ],
       },
       {
@@ -166,6 +166,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "PostHog — product analytics, on servers in the United States. It receives which screens are opened, a handful of events we name ourselves (an account was created, an interview or rehearsal was started and finished, a purchase began), and heatmaps: where on a page people click and how far they scroll, as positions, never the text under them. When you are signed in these are tied to an internal account number, never your email. It never receives your answers, your transcript, your CV or your thesis, there is no session recording, and no cookie is set — the anonymous identifier is discarded when you close the tab. To opt out, turn on \"Do Not Track\" in your browser: PostHog then receives nothing.",
             "Google Cloud — speech in Brazilian Portuguese. When a rehearsal is in Portuguese, the jury's lines are sent to Google to be read aloud. It receives that text only, never your voice or your thesis.",
             "Mercado Pago — payments, if you subscribe. The card form now sits on our own page, but the card itself is not: Mercado Pago's script sends it straight from your browser to them and returns a single-use token, which is the only thing our servers ever receive. We hold a subscription status and nothing more.",
+            "Paddle — payments outside Peru. Paddle is the seller of record: it receives your card and billing details directly, handles the taxes, and tells us only whether the payment went through.",
           ],
           "We do not sell your data, and we do not share it with anyone not on this list.",
         ],
@@ -204,6 +205,18 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         ],
       },
       {
+        heading: "Group defences",
+        body: [
+          "When you invite classmates to a group defence, this is what happens to their data, and to yours:",
+          [
+            "Each member joins with the name they choose. The call's room — the names, and the state of the rehearsal on screen — lives in our server's memory only, and disappears within three hours.",
+            "Cameras and voices go directly between the participants' devices. To connect, the devices exchange their network (IP) addresses with each other and use Google's STUN servers to find one another; the video and audio never pass through our servers.",
+            "A member's spoken answer is transcribed by their own browser (in Chrome, Google receives that audio) and the text is sent to the host, where it becomes part of the host's rehearsal, under the member's name, like any answer.",
+            "At the end, the members can read the simulated record of that rehearsal, including each member's simulated grade and feedback. They never see the transcript, the thesis or the host's account.",
+          ],
+        ],
+      },
+      {
         heading: "Cookies",
         body: [
           "One cookie, and it is how you stay signed in. It carries a signed identifier and nothing else. There are no advertising or analytics cookies, which is why this site has no cookie banner: there is nothing to consent to.",
@@ -238,7 +251,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Si enciendes la cámara durante una sesión, unas pocas imágenes fijas pequeñas se envían al proveedor de IA para leer tu presencia en cámara: contacto visual, postura, encuadre. Las imágenes no se guardan; solo se guarda esa lectura con la sesión.",
             "El estado de tu suscripción, si pagas. Los datos de tu tarjeta nunca llegan a nosotros: ver Pagos.",
           ],
-          "Practicar como invitado guarda los mismos datos de entrevista contra un identificador anónimo en una cookie, sin ningún correo asociado.",
+          "Si pides grabar un ensayo, la grabación se guarda solo en tu propio navegador, en tu dispositivo. Nunca nos llega, y borrar los datos del navegador la elimina.",
         ],
       },
       {
@@ -262,6 +275,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "PostHog — analítica de producto, en servidores de Estados Unidos. Recibe qué pantallas se abren, un puñado de eventos que nombramos nosotros (se creó una cuenta, se empezó y terminó una entrevista o un ensayo, empezó una compra) y mapas de calor: en qué parte de la página se hace clic y hasta dónde se baja, como posiciones, nunca el texto que hay debajo. Si iniciaste sesión, esto se asocia a un número interno de cuenta, nunca a tu correo. Nunca recibe tus respuestas, tu transcripción, tu CV ni tu tesis, no graba la sesión y no deja ninguna cookie: el identificador anónimo se descarta al cerrar la pestaña. Para excluirte, activa \"No rastrear\" (Do Not Track) en tu navegador: PostHog entonces no recibe nada.",
             "Google Cloud — voz en portugués de Brasil. Cuando un ensayo es en portugués, las frases del jurado se envían a Google para leerlas en voz alta. Recibe solo ese texto, nunca tu voz ni tu tesis.",
             "Mercado Pago — pagos, si te suscribes. El formulario de tarjeta ahora está en nuestra propia página, pero la tarjeta no: el script de Mercado Pago la manda directo de tu navegador a ellos y devuelve un token de un solo uso, que es lo único que llega a nuestros servidores. Nosotros guardamos un estado de suscripción y nada más.",
+            "Paddle — pagos fuera de Perú. Paddle es el vendedor registrado: recibe directamente tu tarjeta y tus datos de facturación, se encarga de los impuestos, y a nosotros solo nos dice si el pago salió bien.",
           ],
           "No vendemos tus datos, y no los compartimos con nadie fuera de esta lista.",
         ],
@@ -300,6 +314,18 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         ],
       },
       {
+        heading: "Sustentaciones grupales",
+        body: [
+          "Cuando invitas a compañeros a una sustentación grupal, esto pasa con sus datos y con los tuyos:",
+          [
+            "Cada integrante entra con el nombre que elige. La sala de la llamada —los nombres y el estado del ensayo en pantalla— vive solo en la memoria de nuestro servidor y desaparece en un máximo de tres horas.",
+            "Las cámaras y las voces van directamente entre los dispositivos de los participantes. Para conectarse, los dispositivos intercambian sus direcciones de red (IP) entre sí y usan los servidores STUN de Google para encontrarse; el video y el audio nunca pasan por nuestros servidores.",
+            "La respuesta hablada de un integrante la transcribe su propio navegador (en Chrome, Google recibe ese audio) y el texto se envía al anfitrión, donde pasa a ser parte del ensayo del anfitrión, con el nombre del integrante, como cualquier respuesta.",
+            "Al terminar, los integrantes pueden leer el acta simulada de ese ensayo, con la nota y la devolución simuladas de cada integrante. Nunca ven la transcripción, la tesis ni la cuenta del anfitrión.",
+          ],
+        ],
+      },
+      {
         heading: "Cookies",
         body: [
           "Una cookie, y es la que te mantiene con sesión iniciada. Lleva un identificador firmado y nada más. No hay cookies de publicidad ni de analítica, y por eso este sitio no tiene banner de cookies: no hay nada que consentir.",
@@ -334,7 +360,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Se você ligar a câmera durante uma sessão, algumas imagens fixas pequenas são enviadas ao provedor de IA para ler sua presença na câmera: contato visual, postura, enquadramento. As imagens não são guardadas; só essa leitura fica com a sessão.",
             "O status da assinatura, se você pagar. Os dados do cartão nunca chegam até nós — ver Pagamentos.",
           ],
-          "Praticar como convidado guarda os mesmos dados de entrevista contra um identificador anônimo em um cookie, sem nenhum e-mail associado.",
+          "Se você pedir para gravar um ensaio, a gravação fica apenas no seu próprio navegador, no seu dispositivo. Ela nunca chega até nós, e apagar os dados do navegador a elimina.",
         ],
       },
       {
@@ -358,6 +384,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "PostHog — análise de produto, em servidores nos Estados Unidos. Recebe quais telas são abertas, alguns eventos que nomeamos (uma conta foi criada, uma entrevista ou ensaio começou e terminou, uma compra começou) e mapas de calor: onde na página as pessoas clicam e até onde rolam, como posições, nunca o texto embaixo. Se você entrou na conta, isso fica associado a um número interno, nunca ao seu e-mail. Nunca recebe suas respostas, sua transcrição, seu currículo nem seu trabalho, não grava a sessão e não deixa nenhum cookie: o identificador anônimo é descartado ao fechar a aba. Para sair, ative \"Não rastrear\" (Do Not Track) no seu navegador: o PostHog então não recebe nada.",
             "Google Cloud — voz em português do Brasil. Quando um ensaio é em português, as falas da banca são enviadas ao Google para serem lidas em voz alta. Ele recebe só esse texto, nunca a sua voz nem o seu trabalho.",
             "Mercado Pago — pagamentos, se você assinar. O formulário de cartão agora fica na nossa própria página, mas o cartão não: o script do Mercado Pago o envia direto do seu navegador para eles e devolve um token de uso único, que é a única coisa que chega aos nossos servidores. Guardamos um status de assinatura e nada mais.",
+            "Paddle — pagamentos fora do Peru. A Paddle é a vendedora registrada: recebe diretamente seu cartão e seus dados de cobrança, cuida dos impostos e só nos diz se o pagamento deu certo.",
           ],
           "Não vendemos seus dados, e não os compartilhamos com ninguém fora desta lista.",
         ],
@@ -396,6 +423,18 @@ const PRIVACY: Record<Locale, LegalDocument> = {
         ],
       },
       {
+        heading: "Defesas em grupo",
+        body: [
+          "Quando você convida colegas para uma defesa em grupo, isto é o que acontece com os dados deles e os seus:",
+          [
+            "Cada integrante entra com o nome que escolher. A sala da chamada — os nomes e o estado do ensaio na tela — fica apenas na memória do nosso servidor e desaparece em no máximo três horas.",
+            "As câmeras e as vozes vão diretamente entre os dispositivos dos participantes. Para se conectar, os dispositivos trocam seus endereços de rede (IP) entre si e usam os servidores STUN do Google para se encontrar; o vídeo e o áudio nunca passam pelos nossos servidores.",
+            "A resposta falada de um integrante é transcrita pelo próprio navegador dele (no Chrome, o Google recebe esse áudio) e o texto é enviado ao anfitrião, onde passa a fazer parte do ensaio do anfitrião, com o nome do integrante, como qualquer resposta.",
+            "No final, os integrantes podem ler a ata simulada desse ensaio, com a nota e o feedback simulados de cada integrante. Eles nunca veem a transcrição, o trabalho nem a conta do anfitrião.",
+          ],
+        ],
+      },
+      {
         heading: "Cookies",
         body: [
           "Um cookie, e é o que mantém você conectado. Ele carrega um identificador assinado e nada mais. Não há cookies de publicidade nem de analytics, e é por isso que este site não tem banner de cookies: não há o que consentir.",
@@ -423,102 +462,146 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "What Mockio is, and what it is not",
         body: [
-          "Mockio is a language-practice tool. Its purpose is to let you rehearse speaking English in a professional setting, out loud and under mild pressure, and to tell you afterwards how the English held up.",
-          "Everything in it is a simulation. The interviewer is a fictional character, the company context is a description rather than a relationship, and the questions are generated by a language model. None of it is a real interview and none of it may be treated as one.",
+          "Mockio is a practice tool. It lets you rehearse, out loud and under some pressure, two moments that are hard to rehearse alone: defending a thesis before a jury, and a job interview. Afterwards it tells you how the rehearsal went.",
+          "Everything in it is a simulation. The jurors and interviewers are fictional characters played by a language model, and their questions, opinions and grades are generated. None of it is a real defence, a real interview or a real evaluation, and none of it may be treated as one.",
           "In particular:",
           [
-            "A session is not comparable to a real interview. It cannot tell you how a real one would go, and a good session predicts nothing about a real outcome.",
-            "The questions are not the questions you will be asked. They are plausible examples, invented to give you something to answer in English. Even the questions reported by other candidates are unverified recollections, reviewed for plausibility rather than confirmed by any employer.",
-            "The score and the feedback measure how you expressed yourself in English. They are not an assessment of your professional ability, your seniority, or your suitability for any role.",
-            "Nothing here is career advice, and nothing here is a recruitment process.",
+            "A rehearsal predicts nothing. A good one does not mean you will pass your defence or get the job, and a bad one does not mean you will not.",
+            "The simulated record (acta), the grade, the readiness index and the per-member grades are estimates of the rehearsal, made by software. They are not an academic grade, they are not issued by any university, and they may not be presented as if they were.",
+            "If you enter the names of your real jurors, or of a real company, the character that answers to that name is still a simulation. It does not know that person, does not speak for them, and its questions and opinions are not theirs.",
+            "The questions are not the questions you will be asked. They are plausible examples. Questions reported by other students or candidates are unverified recollections, reviewed for plausibility, not confirmed by any university or employer.",
           ],
-          "We are not a recruiter, not an employer, and not a route to a job. We are not affiliated with, endorsed by, or acting for any company named in the product. Stripe, Amazon, Airbnb, Mercado Libre and every other employer that appears here are named only to describe the register and subject matter of the practice — no real employer is involved, and none of them sees anything you do here.",
-          "The feedback is produced by a language model. It is often useful and it is sometimes wrong. Treat it as a second opinion on your English, not as a verdict on you.",
+          "We are not a university, a recruiter or an employer, and we are not affiliated with, endorsed by or acting for any university or company named in the product, unless an institution has signed an agreement with us — and then only within that agreement.",
+          "Stripe, Amazon, Airbnb, Mercado Libre, the universities in the product and every other organisation named here are named only to set the context of the practice: none of them takes part, and none of them sees anything you do here.",
+          "The feedback is produced by a language model. It is often useful and it is sometimes wrong, incomplete or biased. Treat it as a second opinion, not as a verdict on you or on your work.",
+        ],
+      },
+      {
+        heading: "It does not replace people",
+        body: [
+          "Mockio is not a coaching, tutoring, academic advising, career guidance or psychological service, and it does not replace any of them. It is software for practising; it is not a professional giving you advice.",
+          [
+            "It does not replace your thesis advisor, your professors, your jury or your university's rules. What they say prevails over anything Mockio says.",
+            "It does not replace a coach, a mentor, a career counsellor or a recruiter.",
+            "The tips about nerves, posture or voice are practice suggestions, not medical or psychological advice. If anxiety is affecting your health, talk to a professional.",
+          ],
+          "Decisions you make about your thesis, your defence, your studies or your career are yours. Check anything important with the people responsible for it.",
         ],
       },
       {
         heading: "Your account",
         body: [
-          "You must be 18 or older. One account per person. Keep your password to yourself — anything done from your account is treated as done by you.",
-          "You can practise as a guest without an account. Guest progress lives in one browser and is lost if you clear its storage; that is a property of not having an account, not a fault.",
+          "You must be 18 or older. One account per person. Keep your password safe: anything done from your account is treated as done by you.",
+          "Rehearsing requires an account. The classmates you invite to a group defence join from your link without one; they are your guests, and the invitation is your responsibility.",
         ],
       },
       {
         heading: "The free plan",
         body: [
-          "Three interviews per calendar month, renewing on the 1st. A full interview each, scored honestly. The limit exists because every interview costs us real money to run, and an unlimited free tier is one we could not keep open.",
+          "The free plan has limits, shown on the pricing page, so that we can keep offering it: each rehearsal costs us real money. We may change those limits; a change never takes away a rehearsal you have already paid for.",
         ],
       },
       {
         heading: "Paying",
         body: [
-          "The paid plan is billed monthly through Mercado Pago. We never see or store your card details; Mercado Pago handles the payment and tells us only whether it succeeded.",
-          "You can cancel any time from Settings. Cancelling stops the next charge and you keep the paid plan until the end of the period you already paid for. We do not refund partial months, because you keep the access you bought.",
-          "If a payment fails, Mercado Pago retries. If it keeps failing, the plan reverts to free — your history stays, but the paid features stop.",
-          "Early-access grants are exactly what they say: a free period on the paid plan, attached to the address you gave us and redeemed when you create an account with it. They are not transferable and carry no cash value.",
+          "In Peru, payments go through Mercado Pago. Elsewhere, through Paddle, which acts as the seller of record and handles taxes. We never see or store your card details.",
+          "Subscriptions renew until you cancel. You can cancel at any time from Settings; you keep the paid plan until the end of the period already paid, and we do not refund partial periods.",
+          "Defence packs and passes are one-off payments, not subscriptions. The rehearsals in a pack expire at the end of the stated period, and unused ones are not refunded after that date.",
+          "If a pack or pass did not help you, ask within 7 days of purchase at hello@getmockio.com and we refund it, no questions asked. This does not limit any right the consumer law of your country gives you.",
+          "Early-access benefits are exactly what they say: a free period of the paid plan, tied to the address you gave us. They are not transferable and have no cash value.",
         ],
       },
       {
         heading: "Prices",
         body: [
-          "We may change the price. If we do, we will tell you by email at least 30 days before it applies to you, and you can cancel before it does. A price change never applies retroactively to a period you already paid for.",
+          "We may change prices. If we do, we email you at least 30 days before it applies to you, and you can cancel before then. A price change never applies retroactively to a period already paid.",
         ],
       },
       {
         heading: "Thesis defence rehearsals",
         body: [
-          "Mockio's defence simulator is a practice tool. It does not guarantee that you pass your defence: that decision belongs to your jury alone. The simulated record, grade and readiness index are a rehearsal's estimate, not a prediction, and the AI can be wrong — check with your advisor and your university's regulations.",
+          "Mockio helps you rehearse; it does not write, correct or approve your thesis. It must never be used during a real defence or exam to receive answers.",
           [
-            "Mockio rehearses; it does not write or correct your thesis for you, and it must never be used during a real defence to receive answers.",
-            "Defence packs and passes are one-time payments, not subscriptions. A pack's rehearsals expire at the end of its stated period; unused ones are not refunded after that.",
-            "If a pack or pass did not help you, ask within 7 days of buying it at hello@getmockio.com and we refund it, no questions asked.",
-            "If you share questions from your real defence, you confirm they contain no personal names or confidential information; they are reviewed before any rehearsal uses them, anonymously.",
-            "Advisors who recommend Mockio earn a commission on purchases by students they referred. It does not change your price, and they see your progress only if you choose to share it.",
+            "The thesis you upload is used to prepare your rehearsals, as described in the privacy policy. You confirm you have the right to upload it.",
+            "If you share questions from your real defence, you confirm they contain no names of people and no confidential information; they are reviewed before any rehearsal uses them, anonymously.",
           ],
+        ],
+      },
+      {
+        heading: "Group defences, calls and recordings",
+        body: [
+          "In a group defence the person who starts the rehearsal hosts it and invites the other members with a link. By sending it, the host confirms those members agreed to take part.",
+          [
+            "Cameras and voices travel directly between the participants' devices: the call's video and audio do not pass through our servers and we do not store them. As in any rehearsal, the spoken answers are transcribed (by the browser or by our voice provider) and a few still frames of the host's camera may be read for the presence feedback, as the privacy policy explains.",
+            "If the host asks to film the rehearsal, the film is saved only on the host's device. The host must have the consent of everyone who appears in it before filming, and is responsible for what they do with it.",
+            "At the end, each member sees the simulated record of that rehearsal, including every member's simulated grade. Joining a group defence means accepting that the group sees it.",
+            "Do not invite anyone under 18, and do not use the call for anything other than rehearsing.",
+          ],
+        ],
+      },
+      {
+        heading: "Affiliates and advisors",
+        body: [
+          "Advisors and affiliates who recommend Mockio earn a commission on purchases by the students they referred. It does not change the student's price, and they only see a student's progress if the student chooses to share it.",
+          [
+            "A commission becomes payable 7 days after the purchase, once it can no longer be refunded.",
+            "Payable commissions are paid monthly, by the 10th, once they reach the minimum shown in your affiliate panel.",
+            "We may void commissions on purchases that were refunded or charged back, that are fraudulent, or that you made yourself or through accounts you control. We tell you when we do.",
+            "Affiliates may not present themselves as Mockio, promise results, or advertise with misleading claims.",
+          ],
+          "Affiliates are independent. Nothing in the programme makes them our employees, agents or partners, and they are responsible for their own taxes.",
+        ],
+      },
+      {
+        heading: "Universities and institutions",
+        body: [
+          "A university or institution can offer Mockio to its students under a separate agreement, including through its learning platform. Where that agreement says something different from these terms, the agreement prevails for that institution's students. What the institution may see is set by that agreement and by the privacy policy.",
         ],
       },
       {
         heading: "Contributed questions",
         body: [
-          "If you report a question you were asked in a real interview, you are telling us it is genuine, that you are free to share it, and that it contains no confidential information and names no individual.",
-          "You give us permission to show it to other candidates and to use it as source material for generated interviews. Contributions are reviewed by a person before they are used, and we can reject or remove any of them.",
-          "Do not submit anything you signed an NDA about. Do not submit anything containing a person's name.",
+          "If you report a question you were asked in a real interview or defence, you are telling us it is genuine, that you are free to share it, and that it contains no confidential information and names no one.",
+          "You give us permission to show it to others and to use it as material for generated rehearsals. Contributions are reviewed by a person before use, and we may reject or remove any of them.",
         ],
       },
       {
         heading: "What you may not do",
         body: [
           [
-            "Resell, redistribute or republish the interviews, questions or feedback as your own product.",
+            "Resell, redistribute or republish the rehearsals, questions or feedback as a product of your own.",
             "Automate access, scrape the service, or work around the free plan's limits.",
-            "Upload someone else's CV, or anything you do not have the right to share.",
-            "Attempt to extract the system's prompts, or use the interviewer for anything other than practising an interview.",
+            "Upload anyone else's thesis or CV, or anything you do not have the right to share.",
+            "Present a simulated record or grade as an official one, or use Mockio to cheat in a real defence, exam or interview.",
+            "Try to extract the system prompts, or use the jury or the interviewer for anything other than practising.",
           ],
-          "We can suspend an account that does any of this. If we do, we will tell you why.",
+          "We may suspend an account that does this. If we do, we tell you why.",
         ],
       },
       {
         heading: "Availability",
         body: [
-          "We will keep the service running and we do not promise it never breaks. It depends on other companies — the hosting, the model provider, the speech vendor — and any of them can have a bad day. We do not owe you compensation for an interview you could not run.",
+          "We will keep the service running and do not promise it will never break. It depends on other companies — hosting, the model provider, the voice provider, the payment providers — and any of them can have a bad day. We owe no compensation for a rehearsal you could not run.",
         ],
       },
       {
         heading: "Liability",
         body: [
-          "To the extent the law allows, our total liability to you is limited to what you paid us in the twelve months before the claim. We are not liable for a job you did not get.",
+          "Mockio is provided as it is. To the extent the law allows, we are not responsible for the result of your defence, your grades, your degree, a job you did not get, or any decision you made relying on a simulation or its feedback.",
+          "To the extent the law allows, our total liability to you is limited to what you paid us in the twelve months before the claim. Nothing in these terms limits a right that the consumer law of your country does not allow to be limited.",
         ],
       },
       {
         heading: "Ending it",
         body: [
-          "You can delete your account at any time from Settings, which erases your data as described in the privacy policy. We can close an account that breaks these terms, and we will refund any unused paid period if we do so for a reason that was not your fault.",
+          "You can delete your account at any time from Settings, which erases your data as described in the privacy policy. We may close an account that breaks these terms, and refund any unused paid period if we close it for a reason that was not your fault.",
         ],
       },
       {
-        heading: "Governing law",
+        heading: "Changes and governing law",
         body: [
-          `These terms are governed by the law of ${COUNTRY.en}, and disputes go to its courts.`,
+          "If we change these terms in a way that matters, we tell you by email or in the product before the change applies. Continuing to use Mockio after that means accepting them.",
+          `These terms are governed by the law of ${COUNTRY.en}, and disputes go to its courts, without prejudice to any consumer protection you have where you live.`,
           `Questions: ${OPERATOR.email}.`,
         ],
       },
@@ -533,39 +616,53 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Qué es Mockio, y qué no es",
         body: [
-          "Mockio es una herramienta de práctica de idioma. Su propósito es que ensayes hablar inglés en un contexto profesional, en voz alta y bajo una presión moderada, y que después te digamos cómo se sostuvo ese inglés.",
-          "Todo lo que hay aquí es una simulación. El entrevistador es un personaje ficticio, el contexto de la empresa es una descripción y no una relación, y las preguntas las genera un modelo de lenguaje. Nada de esto es una entrevista real ni puede tratarse como tal.",
+          "Mockio es una herramienta de práctica. Te permite ensayar, en voz alta y con algo de presión, dos momentos difíciles de ensayar solo: sustentar una tesis ante un jurado y una entrevista de trabajo. Después te dice cómo salió el ensayo.",
+          "Todo lo que hay aquí es una simulación. Los jurados y los entrevistadores son personajes ficticios interpretados por un modelo de lenguaje, y sus preguntas, opiniones y notas son generadas. Nada de esto es una sustentación real, una entrevista real ni una evaluación real, ni puede tratarse como tal.",
           "En particular:",
           [
-            "Una sesión no es comparable con una entrevista real. No puede decirte cómo saldría una de verdad, y una buena sesión no predice ningún resultado real.",
-            "Las preguntas no son las preguntas que te van a hacer. Son ejemplos plausibles, inventados para darte algo que responder en inglés. Incluso las preguntas reportadas por otros candidatos son recuerdos sin verificar, revisados por verosimilitud y no confirmados por ninguna empresa.",
-            "El puntaje y la devolución miden cómo te expresaste en inglés. No son una evaluación de tu capacidad profesional, tu seniority, ni tu idoneidad para ningún puesto.",
-            "Nada de esto es asesoramiento de carrera, y nada de esto es un proceso de selección.",
+            "Un ensayo no predice nada. Que te vaya bien no significa que vayas a aprobar tu sustentación ni a conseguir el puesto, y que te vaya mal no significa lo contrario.",
+            "El acta simulada, la nota, el índice de preparación y las notas por integrante son estimaciones del ensayo hechas por un software. No son una calificación académica, no las emite ninguna universidad y no pueden presentarse como si lo fueran.",
+            "Si escribes los nombres de tu jurado real, o de una empresa real, el personaje que responde con ese nombre sigue siendo una simulación. No conoce a esa persona, no habla por ella, y sus preguntas y opiniones no son las suyas.",
+            "Las preguntas no son las que te van a hacer. Son ejemplos plausibles. Las preguntas reportadas por otros estudiantes o candidatos son recuerdos sin verificar, revisados por verosimilitud y no confirmados por ninguna universidad ni empresa.",
           ],
-          "No somos un reclutador, ni un empleador, ni una vía para conseguir trabajo. No estamos afiliados a ninguna empresa nombrada en el producto, ni respaldados por ellas, ni actuamos en su nombre. Stripe, Amazon, Airbnb, Mercado Libre y cualquier otro empleador que aparezca aquí se nombran solo para describir el registro y los temas de la práctica: ningún empleador real participa, y ninguno ve nada de lo que haces aquí.",
-          "La devolución la produce un modelo de lenguaje. Suele ser útil y a veces se equivoca. Tómala como una segunda opinión sobre tu inglés, no como un veredicto sobre ti.",
+          "No somos una universidad, ni un reclutador, ni un empleador, y no estamos afiliados a ninguna universidad o empresa nombrada en el producto, ni respaldados por ellas, ni actuamos en su nombre, salvo cuando una institución firmó un acuerdo con nosotros, y solo dentro de ese acuerdo.",
+          "Stripe, Amazon, Airbnb, Mercado Libre, las universidades que aparecen en el producto y cualquier otra organización nombrada aquí se nombran solo para dar contexto a la práctica: ninguna participa, y ninguna ve nada de lo que haces aquí.",
+          "La devolución la produce un modelo de lenguaje. Suele ser útil y a veces se equivoca, es incompleta o tiene sesgos. Tómala como una segunda opinión, no como un veredicto sobre ti ni sobre tu trabajo.",
+        ],
+      },
+      {
+        heading: "No reemplaza a personas",
+        body: [
+          "Mockio no es un servicio de coaching, tutoría, asesoría académica, orientación vocacional o profesional, ni de atención psicológica, y no reemplaza a ninguno de ellos. Es un software para practicar, no un profesional que te asesora.",
+          [
+            "No reemplaza a tu asesor de tesis, a tus docentes, a tu jurado ni al reglamento de tu universidad. Lo que ellos digan prevalece sobre lo que diga Mockio.",
+            "No reemplaza a un coach, mentor, orientador de carrera ni reclutador.",
+            "Los consejos sobre nervios, postura o voz son sugerencias de práctica, no consejo médico ni psicológico. Si la ansiedad está afectando tu salud, habla con un profesional.",
+          ],
+          "Las decisiones sobre tu tesis, tu sustentación, tus estudios o tu carrera son tuyas. Verifica lo importante con las personas responsables.",
         ],
       },
       {
         heading: "Tu cuenta",
         body: [
           "Tienes que ser mayor de 18. Una cuenta por persona. Guarda la contraseña: todo lo que se haga desde tu cuenta se considera hecho por ti.",
-          "Puedes practicar como invitado sin cuenta. El progreso de invitado vive en un solo navegador y se pierde si borras su almacenamiento; eso es una consecuencia de no tener cuenta, no una falla.",
+          "Para ensayar necesitas una cuenta. Los compañeros que invitas a una sustentación grupal entran desde tu enlace sin cuenta; son tus invitados, y la invitación es tu responsabilidad.",
         ],
       },
       {
         heading: "El plan gratuito",
         body: [
-          "Tres entrevistas por mes calendario, que se renuevan el día 1. Cada una es una entrevista completa, puntuada con honestidad. El límite existe porque cada entrevista nos cuesta dinero real, y un plan gratuito ilimitado es uno que no podríamos sostener.",
+          "El plan gratuito tiene límites, que se muestran en la página de precios, para poder seguir ofreciéndolo: cada ensayo nos cuesta dinero real. Podemos cambiar esos límites; un cambio nunca te quita un ensayo que ya pagaste.",
         ],
       },
       {
         heading: "Pagar",
         body: [
-          "El plan pago se cobra mensualmente a través de Mercado Pago. Nunca vemos ni guardamos los datos de tu tarjeta; Mercado Pago maneja el pago y solo nos dice si salió bien.",
-          "Puedes cancelar cuando quieras desde Ajustes. Cancelar detiene el próximo cobro y conservas el plan pago hasta el final del período que ya pagaste. No devolvemos meses parciales, porque conservas el acceso que compraste.",
-          "Si un pago falla, Mercado Pago reintenta. Si sigue fallando, el plan vuelve a gratuito: tu historial queda, pero las funciones pagas se detienen.",
-          "Los beneficios de acceso anticipado son exactamente lo que dicen: un período gratis del plan pago, atado a la dirección que nos diste y activado cuando confirmas esa dirección desde el enlace que te enviamos. No son transferibles y no tienen valor en efectivo.",
+          "En Perú, los pagos se hacen con Mercado Pago. Fuera de Perú, con Paddle, que actúa como vendedor registrado y se encarga de los impuestos. Nunca vemos ni guardamos los datos de tu tarjeta.",
+          "Las suscripciones se renuevan hasta que canceles. Puedes cancelar cuando quieras desde Ajustes; conservas el plan pago hasta el final del período ya pagado, y no devolvemos períodos parciales.",
+          "Los packs y pases de sustentación son pagos únicos, no suscripciones. Los ensayos de un pack vencen al final del periodo indicado, y los no usados no se reembolsan después de esa fecha.",
+          "Si un pack o pase no te sirvió, pídelo dentro de los 7 días de la compra a hello@getmockio.com y te devolvemos el dinero, sin preguntas. Esto no limita ningún derecho que te dé la ley de protección al consumidor de tu país.",
+          "Los beneficios de acceso anticipado son exactamente lo que dicen: un período gratis del plan pago, atado a la dirección que nos diste. No son transferibles y no tienen valor en efectivo.",
         ],
       },
       {
@@ -577,32 +674,60 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Ensayos de sustentación",
         body: [
-          "El simulador de sustentación de Mockio es una herramienta de práctica. No garantiza que apruebes tu sustentación: esa decisión es solo de tu jurado. El acta simulada, la nota y el índice de preparación son una estimación del ensayo, no una predicción, y la IA puede equivocarse; verifica con tu asesor y con el reglamento de tu universidad.",
+          "Mockio te ayuda a ensayar; no escribe, corrige ni aprueba tu tesis. Nunca debe usarse durante una sustentación o examen real para recibir respuestas.",
           [
-            "Mockio te ayuda a ensayar; no escribe ni corrige tu tesis por ti, y nunca debe usarse durante una sustentación real para recibir respuestas.",
-            "Los packs y pases de sustentación son pagos únicos, no suscripciones. Los ensayos de un pack vencen al final del periodo indicado; los no usados no se reembolsan después de esa fecha.",
-            "Si un pack o pase no te sirvió, pídelo dentro de los 7 días de la compra a hello@getmockio.com y te devolvemos el dinero, sin preguntas.",
+            "La tesis que subes se usa para preparar tus ensayos, como explica la política de privacidad. Confirmas que tienes derecho a subirla.",
             "Si compartes preguntas de tu sustentación real, confirmas que no contienen nombres de personas ni información confidencial; se revisan antes de que algún ensayo las use, de forma anónima.",
-            "Los asesores que recomiendan Mockio ganan una comisión por las compras de los alumnos que refirieron. No cambia tu precio, y solo ven tu avance si tú eliges compartirlo.",
           ],
+        ],
+      },
+      {
+        heading: "Sustentaciones grupales, llamadas y grabaciones",
+        body: [
+          "En una sustentación grupal, quien inicia el ensayo es el anfitrión e invita a los demás integrantes con un enlace. Al enviarlo, el anfitrión confirma que esos integrantes aceptaron participar.",
+          [
+            "Las cámaras y las voces viajan directamente entre los dispositivos de los participantes: el video y el audio de la llamada no pasan por nuestros servidores y no los guardamos. Como en cualquier ensayo, las respuestas habladas se transcriben (en el navegador o con nuestro proveedor de voz) y algunas imágenes fijas de la cámara del anfitrión pueden analizarse para la lectura de presencia, como explica la política de privacidad.",
+            "Si el anfitrión pide grabar el ensayo, la grabación se guarda solo en su dispositivo. Antes de grabar debe tener el consentimiento de todos los que aparecen, y es responsable de lo que haga con ella.",
+            "Al terminar, cada integrante ve el acta simulada de ese ensayo, con la nota simulada de cada integrante. Unirse a una sustentación grupal significa aceptar que el grupo la vea.",
+            "No invites a menores de 18 años, y no uses la llamada para nada que no sea ensayar.",
+          ],
+        ],
+      },
+      {
+        heading: "Afiliados y asesores",
+        body: [
+          "Los asesores y afiliados que recomiendan Mockio ganan una comisión por las compras de los alumnos que refirieron. No cambia el precio del alumno, y solo ven su avance si el alumno elige compartirlo.",
+          [
+            "Una comisión se vuelve pagable 7 días después de la compra, cuando ya no puede reembolsarse.",
+            "Las comisiones pagables se pagan cada mes, hasta el día 10, cuando alcanzan el mínimo que muestra tu panel de afiliado.",
+            "Podemos anular comisiones de compras reembolsadas o desconocidas, fraudulentas, o hechas por ti mismo o desde cuentas que controlas. Te avisamos cuando lo hacemos.",
+            "Los afiliados no pueden presentarse como Mockio, prometer resultados ni anunciar con afirmaciones engañosas.",
+          ],
+          "Los afiliados son independientes. Nada del programa los convierte en nuestros empleados, agentes ni socios, y son responsables de sus propios impuestos.",
+        ],
+      },
+      {
+        heading: "Universidades e instituciones",
+        body: [
+          "Una universidad o institución puede ofrecer Mockio a sus estudiantes con un acuerdo aparte, incluso a través de su plataforma de cursos. Donde ese acuerdo diga algo distinto a estos términos, el acuerdo prevalece para los estudiantes de esa institución. Lo que la institución puede ver lo definen ese acuerdo y la política de privacidad.",
         ],
       },
       {
         heading: "Preguntas aportadas",
         body: [
-          "Si reportas una pregunta que te hicieron en una entrevista real, nos estás diciendo que es genuina, que eres libre de compartirla, y que no contiene información confidencial ni nombra a ninguna persona.",
-          "Nos das permiso para mostrarla a otros candidatos y usarla como material para entrevistas generadas. Las contribuciones las revisa una persona antes de usarse, y podemos rechazar o eliminar cualquiera.",
-          "No mandes nada sobre lo que firmaste un NDA. No mandes nada que contenga el nombre de una persona.",
+          "Si reportas una pregunta que te hicieron en una entrevista o sustentación real, nos estás diciendo que es genuina, que eres libre de compartirla, y que no contiene información confidencial ni nombra a ninguna persona.",
+          "Nos das permiso para mostrarla a otros y usarla como material para ensayos generados. Las contribuciones las revisa una persona antes de usarse, y podemos rechazar o eliminar cualquiera.",
         ],
       },
       {
         heading: "Qué no puedes hacer",
         body: [
           [
-            "Revender, redistribuir o republicar las entrevistas, preguntas o devoluciones como producto propio.",
+            "Revender, redistribuir o republicar los ensayos, preguntas o devoluciones como producto propio.",
             "Automatizar el acceso, hacer scraping del servicio, o esquivar los límites del plan gratuito.",
-            "Subir el CV de otra persona, o cualquier cosa que no tengas derecho a compartir.",
-            "Intentar extraer los prompts del sistema, o usar al entrevistador para algo que no sea practicar una entrevista.",
+            "Subir la tesis o el CV de otra persona, o cualquier cosa que no tengas derecho a compartir.",
+            "Presentar un acta o una nota simulada como si fuera oficial, o usar Mockio para hacer trampa en una sustentación, examen o entrevista real.",
+            "Intentar extraer los prompts del sistema, o usar al jurado o al entrevistador para algo que no sea practicar.",
           ],
           "Podemos suspender una cuenta que haga esto. Si lo hacemos, te decimos por qué.",
         ],
@@ -610,13 +735,14 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Disponibilidad",
         body: [
-          "Vamos a mantener el servicio funcionando y no prometemos que nunca se rompa. Depende de otras empresas —el hosting, el proveedor de modelos, el de voz— y cualquiera puede tener un mal día. No te debemos compensación por una entrevista que no pudiste correr.",
+          "Vamos a mantener el servicio funcionando y no prometemos que nunca se rompa. Depende de otras empresas —el hosting, el proveedor de modelos, el de voz, los de pago— y cualquiera puede tener un mal día. No te debemos compensación por un ensayo que no pudiste hacer.",
         ],
       },
       {
         heading: "Responsabilidad",
         body: [
-          "En la medida en que la ley lo permita, nuestra responsabilidad total hacia ti se limita a lo que nos pagaste en los doce meses anteriores al reclamo. No somos responsables por un trabajo que no conseguiste.",
+          "Mockio se ofrece tal como está. En la medida en que la ley lo permita, no somos responsables del resultado de tu sustentación, de tus notas, de tu grado, de un trabajo que no conseguiste, ni de decisiones que tomaste confiando en una simulación o en su devolución.",
+          "En la medida en que la ley lo permita, nuestra responsabilidad total hacia ti se limita a lo que nos pagaste en los doce meses anteriores al reclamo. Nada en estos términos limita un derecho que la ley de protección al consumidor de tu país no permita limitar.",
         ],
       },
       {
@@ -626,9 +752,10 @@ const TERMS: Record<Locale, LegalDocument> = {
         ],
       },
       {
-        heading: "Ley aplicable",
+        heading: "Cambios y ley aplicable",
         body: [
-          `Estos términos se rigen por la ley de ${COUNTRY.es}, y las disputas van a sus tribunales.`,
+          "Si cambiamos estos términos de una forma que importe, te avisamos por correo o en el producto antes de que el cambio aplique. Seguir usando Mockio después significa aceptarlos.",
+          `Estos términos se rigen por la ley de ${COUNTRY.es}, y las disputas van a sus tribunales, sin perjuicio de la protección al consumidor que te corresponda donde vives.`,
           `Consultas: ${OPERATOR.email}.`,
         ],
       },
@@ -643,102 +770,146 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "O que é o Mockio, e o que ele não é",
         body: [
-          "O Mockio é uma ferramenta de prática de idioma. O propósito dele é você ensaiar falar inglês em um contexto profissional, em voz alta e sob pressão moderada, e depois receber uma leitura de como esse inglês se sustentou.",
-          "Tudo aqui é uma simulação. O entrevistador é um personagem fictício, o contexto da empresa é uma descrição e não uma relação, e as perguntas são geradas por um modelo de linguagem. Nada disso é uma entrevista real nem pode ser tratado como tal.",
-          "Em particular:",
+          "O Mockio é uma ferramenta de prática. Ele permite ensaiar, em voz alta e com alguma pressão, dois momentos difíceis de ensaiar sozinho: defender um trabalho diante de uma banca e uma entrevista de emprego. Depois, ele diz como foi o ensaio.",
+          "Tudo aqui é uma simulação. Os membros da banca e os entrevistadores são personagens fictícios interpretados por um modelo de linguagem, e suas perguntas, opiniões e notas são geradas. Nada disso é uma defesa real, uma entrevista real ou uma avaliação real, nem pode ser tratado como tal.",
+          "Em especial:",
           [
-            "Uma sessão não é comparável a uma entrevista real. Ela não pode dizer como uma de verdade seria, e uma boa sessão não prevê nenhum resultado real.",
-            "As perguntas não são as perguntas que vão te fazer. São exemplos plausíveis, inventados para te dar algo a responder em inglês. Mesmo as perguntas relatadas por outros candidatos são lembranças não verificadas, revisadas por verossimilhança e não confirmadas por nenhuma empresa.",
-            "A nota e a devolutiva medem como você se expressou em inglês. Não são uma avaliação da sua capacidade profissional, da sua senioridade, nem da sua adequação a qualquer vaga.",
-            "Nada aqui é orientação de carreira, e nada aqui é um processo seletivo.",
+            "Um ensaio não prevê nada. Ir bem não significa que você será aprovado na defesa nem que conseguirá a vaga, e ir mal não significa o contrário.",
+            "A ata simulada, a nota, o índice de preparo e as notas por integrante são estimativas do ensaio feitas por um software. Não são uma nota acadêmica, não são emitidas por nenhuma universidade e não podem ser apresentadas como se fossem.",
+            "Se você escrever os nomes da sua banca real, ou de uma empresa real, o personagem que responde com esse nome continua sendo uma simulação. Ele não conhece essa pessoa, não fala por ela, e as perguntas e opiniões não são dela.",
+            "As perguntas não são as que vão fazer a você. São exemplos plausíveis. As perguntas relatadas por outros estudantes ou candidatos são lembranças não verificadas, revisadas por plausibilidade e não confirmadas por nenhuma universidade ou empresa.",
           ],
-          "Não somos um recrutador, nem um empregador, nem um caminho para uma vaga. Não somos afiliados a nenhuma empresa citada no produto, nem endossados por elas, nem agimos em nome delas. Stripe, Amazon, Airbnb, Mercado Libre e qualquer outro empregador que apareça aqui são citados apenas para descrever o registro e os temas da prática — nenhum empregador real participa, e nenhum deles vê o que você faz aqui.",
-          "A devolutiva é produzida por um modelo de linguagem. Costuma ser útil e às vezes erra. Trate-a como uma segunda opinião sobre seu inglês, não como um veredicto sobre você.",
+          "Não somos uma universidade, um recrutador ou um empregador, e não somos afiliados, endossados nem agimos em nome de nenhuma universidade ou empresa citada no produto, exceto quando uma instituição assinou um acordo conosco, e apenas dentro desse acordo.",
+          "Stripe, Amazon, Airbnb, Mercado Libre, as universidades que aparecem no produto e qualquer outra organização citada aqui são citadas só para dar contexto à prática: nenhuma participa, e nenhuma vê nada do que você faz aqui.",
+          "O feedback é produzido por um modelo de linguagem. Costuma ser útil e às vezes erra, é incompleto ou tem vieses. Trate-o como uma segunda opinião, não como um veredito sobre você ou seu trabalho.",
+        ],
+      },
+      {
+        heading: "Não substitui pessoas",
+        body: [
+          "O Mockio não é um serviço de coaching, tutoria, orientação acadêmica, orientação de carreira ou atendimento psicológico, e não substitui nenhum deles. É um software para praticar, não um profissional que orienta você.",
+          [
+            "Não substitui seu orientador, seus professores, sua banca nem o regulamento da sua universidade. O que eles disserem prevalece sobre o que o Mockio disser.",
+            "Não substitui um coach, mentor, orientador de carreira ou recrutador.",
+            "As dicas sobre nervosismo, postura ou voz são sugestões de prática, não conselho médico ou psicológico. Se a ansiedade estiver afetando sua saúde, procure um profissional.",
+          ],
+          "As decisões sobre seu trabalho, sua defesa, seus estudos ou sua carreira são suas. Confirme o que for importante com as pessoas responsáveis.",
         ],
       },
       {
         heading: "Sua conta",
         body: [
-          "Você precisa ter 18 anos ou mais. Uma conta por pessoa. Guarde sua senha — tudo feito a partir da sua conta é tratado como feito por você.",
-          "Você pode praticar como convidado, sem conta. O progresso de convidado vive em um único navegador e se perde se você limpar o armazenamento dele; isso é uma consequência de não ter conta, não uma falha.",
+          "Você precisa ter 18 anos ou mais. Uma conta por pessoa. Guarde sua senha: tudo o que for feito na sua conta é considerado feito por você.",
+          "Para ensaiar é preciso ter uma conta. Os colegas que você convida para uma defesa em grupo entram pelo seu link sem conta; são seus convidados, e o convite é sua responsabilidade.",
         ],
       },
       {
         heading: "O plano gratuito",
         body: [
-          "Três entrevistas por mês calendário, renovando no dia 1º. Cada uma é uma entrevista completa, avaliada com honestidade. O limite existe porque cada entrevista nos custa dinheiro real, e um plano gratuito ilimitado é um que não conseguiríamos manter.",
+          "O plano gratuito tem limites, mostrados na página de preços, para que possamos continuar oferecendo-o: cada ensaio nos custa dinheiro de verdade. Podemos mudar esses limites; uma mudança nunca tira um ensaio que você já pagou.",
         ],
       },
       {
-        heading: "Pagamentos",
+        heading: "Pagamento",
         body: [
-          "O plano pago é cobrado mensalmente pelo Mercado Pago. Nunca vemos nem guardamos os dados do seu cartão; o Mercado Pago cuida do pagamento e só nos informa se deu certo.",
-          "Você pode cancelar quando quiser nas Configurações. Cancelar interrompe a próxima cobrança e você mantém o plano pago até o fim do período já pago. Não devolvemos meses parciais, porque você mantém o acesso que comprou.",
-          "Se um pagamento falhar, o Mercado Pago tenta de novo. Se continuar falhando, o plano volta ao gratuito — seu histórico fica, mas os recursos pagos param.",
-          "Os benefícios de acesso antecipado são exatamente o que dizem: um período gratuito do plano pago, vinculado ao endereço que você nos deu e liberado quando você cria uma conta com ele. Não são transferíveis e não têm valor em dinheiro.",
+          "No Peru, os pagamentos são feitos pelo Mercado Pago. Fora do Peru, pela Paddle, que atua como vendedora registrada e cuida dos impostos. Nunca vemos nem guardamos os dados do seu cartão.",
+          "As assinaturas se renovam até você cancelar. Você pode cancelar quando quiser em Ajustes; mantém o plano pago até o fim do período já pago, e não reembolsamos períodos parciais.",
+          "Os pacotes e passes de defesa são pagamentos únicos, não assinaturas. Os ensaios de um pacote vencem no fim do período indicado, e os não usados não são reembolsados depois dessa data.",
+          "Se um pacote ou passe não serviu para você, peça em até 7 dias da compra em hello@getmockio.com e devolvemos o dinheiro, sem perguntas. Isso não limita nenhum direito que a lei de defesa do consumidor do seu país lhe dá.",
+          "Os benefícios de acesso antecipado são exatamente o que dizem: um período grátis do plano pago, vinculado ao endereço que você nos deu. Não são transferíveis e não têm valor em dinheiro.",
         ],
       },
       {
         heading: "Preços",
         body: [
-          "Podemos mudar o preço. Se mudarmos, avisamos por e-mail pelo menos 30 dias antes de valer para você, e você pode cancelar antes disso. Uma mudança de preço nunca se aplica retroativamente a um período já pago.",
+          "Podemos mudar o preço. Se mudarmos, avisamos por e-mail pelo menos 30 dias antes de ele se aplicar a você, e você pode cancelar antes. Uma mudança de preço nunca se aplica retroativamente a um período já pago.",
         ],
       },
       {
         heading: "Ensaios de defesa",
         body: [
-          "O simulador de defesa do Mockio é uma ferramenta de prática. Ele não garante a aprovação da sua defesa: essa decisão é só da sua banca. A ata simulada, a nota e o índice de preparação são uma estimativa do ensaio, não uma previsão, e a IA pode errar; confirme com seu orientador e com o regulamento da sua universidade.",
+          "O Mockio ajuda você a ensaiar; ele não escreve, corrige nem aprova seu trabalho. Nunca deve ser usado durante uma defesa ou prova real para receber respostas.",
           [
-            "O Mockio ajuda você a ensaiar; ele não escreve nem corrige seu trabalho por você, e nunca deve ser usado durante uma defesa real para receber respostas.",
-            "Os pacotes e passes de defesa são pagamentos únicos, não assinaturas. Os ensaios de um pacote vencem ao fim do período indicado; os não usados não são reembolsados depois dessa data.",
-            "Se um pacote ou passe não ajudou, peça em até 7 dias da compra para hello@getmockio.com e devolvemos o dinheiro, sem perguntas.",
-            "Se você compartilhar perguntas da sua defesa real, confirma que elas não contêm nomes de pessoas nem informação confidencial; elas são revisadas antes de qualquer ensaio usá-las, de forma anônima.",
-            "Orientadores que recomendam o Mockio ganham uma comissão sobre as compras dos alunos que indicaram. Isso não muda o seu preço, e eles só veem seu progresso se você escolher compartilhar.",
+            "O trabalho que você envia é usado para preparar seus ensaios, como explica a política de privacidade. Você confirma que tem o direito de enviá-lo.",
+            "Se você compartilhar perguntas da sua defesa real, confirma que não contêm nomes de pessoas nem informação confidencial; elas são revisadas antes de qualquer ensaio usá-las, de forma anônima.",
           ],
         ],
       },
       {
-        heading: "Perguntas contribuídas",
+        heading: "Defesas em grupo, chamadas e gravações",
         body: [
-          "Se você reportar uma pergunta que te fizeram em uma entrevista real, está nos dizendo que ela é genuína, que você é livre para compartilhá-la, e que ela não contém informação confidencial nem nomeia nenhuma pessoa.",
-          "Você nos dá permissão para mostrá-la a outros candidatos e usá-la como material para entrevistas geradas. As contribuições são revisadas por uma pessoa antes de serem usadas, e podemos rejeitar ou remover qualquer uma.",
-          "Não envie nada sobre o que você assinou um NDA. Não envie nada que contenha o nome de uma pessoa.",
+          "Numa defesa em grupo, quem inicia o ensaio é o anfitrião e convida os outros integrantes com um link. Ao enviá-lo, o anfitrião confirma que esses integrantes aceitaram participar.",
+          [
+            "As câmeras e as vozes vão diretamente entre os dispositivos dos participantes: o vídeo e o áudio da chamada não passam pelos nossos servidores e não os guardamos. Como em qualquer ensaio, as respostas faladas são transcritas (no navegador ou pelo nosso provedor de voz) e algumas imagens fixas da câmera do anfitrião podem ser analisadas para a leitura de presença, como explica a política de privacidade.",
+            "Se o anfitrião pedir para gravar o ensaio, a gravação fica apenas no dispositivo dele. Antes de gravar, ele precisa do consentimento de todos que aparecem, e é responsável pelo que fizer com ela.",
+            "No final, cada integrante vê a ata simulada desse ensaio, com a nota simulada de cada integrante. Entrar numa defesa em grupo significa aceitar que o grupo a veja.",
+            "Não convide menores de 18 anos, e não use a chamada para nada além de ensaiar.",
+          ],
+        ],
+      },
+      {
+        heading: "Afiliados e orientadores",
+        body: [
+          "Orientadores e afiliados que recomendam o Mockio ganham uma comissão pelas compras dos alunos que indicaram. Isso não muda o preço do aluno, e eles só veem o progresso dele se o aluno escolher compartilhar.",
+          [
+            "Uma comissão se torna pagável 7 dias depois da compra, quando já não pode ser reembolsada.",
+            "As comissões pagáveis são pagas todo mês, até o dia 10, quando atingem o mínimo mostrado no seu painel de afiliado.",
+            "Podemos anular comissões de compras reembolsadas ou contestadas, fraudulentas, ou feitas por você mesmo ou por contas que você controla. Avisamos quando fizermos isso.",
+            "Afiliados não podem se apresentar como o Mockio, prometer resultados nem anunciar com afirmações enganosas.",
+          ],
+          "Os afiliados são independentes. Nada no programa os torna nossos empregados, agentes ou sócios, e eles são responsáveis pelos próprios impostos.",
+        ],
+      },
+      {
+        heading: "Universidades e instituições",
+        body: [
+          "Uma universidade ou instituição pode oferecer o Mockio aos seus estudantes com um acordo à parte, inclusive pela sua plataforma de cursos. Onde esse acordo disser algo diferente destes termos, o acordo prevalece para os estudantes dessa instituição. O que a instituição pode ver é definido por esse acordo e pela política de privacidade.",
+        ],
+      },
+      {
+        heading: "Perguntas enviadas",
+        body: [
+          "Se você relatar uma pergunta que fizeram a você numa entrevista ou defesa real, está nos dizendo que ela é genuína, que você pode compartilhá-la, e que não contém informação confidencial nem cita ninguém.",
+          "Você nos dá permissão para mostrá-la a outras pessoas e usá-la como material para ensaios gerados. As contribuições são revisadas por uma pessoa antes do uso, e podemos recusar ou remover qualquer uma.",
         ],
       },
       {
         heading: "O que você não pode fazer",
         body: [
           [
-            "Revender, redistribuir ou republicar as entrevistas, perguntas ou devolutivas como produto próprio.",
-            "Automatizar o acesso, fazer scraping do serviço, ou contornar os limites do plano gratuito.",
-            "Enviar o CV de outra pessoa, ou qualquer coisa que você não tenha o direito de compartilhar.",
-            "Tentar extrair os prompts do sistema, ou usar o entrevistador para algo que não seja praticar uma entrevista.",
+            "Revender, redistribuir ou republicar os ensaios, perguntas ou feedback como produto próprio.",
+            "Automatizar o acesso, fazer scraping do serviço ou contornar os limites do plano gratuito.",
+            "Enviar o trabalho ou o currículo de outra pessoa, ou qualquer coisa que você não tenha direito de compartilhar.",
+            "Apresentar uma ata ou nota simulada como se fosse oficial, ou usar o Mockio para colar numa defesa, prova ou entrevista real.",
+            "Tentar extrair os prompts do sistema, ou usar a banca ou o entrevistador para algo que não seja praticar.",
           ],
-          "Podemos suspender uma conta que faça isso. Se fizermos, dizemos o motivo.",
+          "Podemos suspender uma conta que faça isso. Se fizermos, dizemos por quê.",
         ],
       },
       {
         heading: "Disponibilidade",
         body: [
-          "Vamos manter o serviço no ar e não prometemos que ele nunca quebre. Ele depende de outras empresas — a hospedagem, o provedor de modelos, o de voz — e qualquer uma pode ter um dia ruim. Não devemos compensação por uma entrevista que você não conseguiu fazer.",
+          "Vamos manter o serviço funcionando e não prometemos que ele nunca falhe. Ele depende de outras empresas — hospedagem, o provedor de modelos, o de voz, os de pagamento — e qualquer uma pode ter um dia ruim. Não devemos compensação por um ensaio que você não conseguiu fazer.",
         ],
       },
       {
         heading: "Responsabilidade",
         body: [
-          "Na medida em que a lei permitir, nossa responsabilidade total com você se limita ao que você nos pagou nos doze meses anteriores à reclamação. Não somos responsáveis por uma vaga que você não conseguiu.",
+          "O Mockio é oferecido como está. Na medida em que a lei permitir, não somos responsáveis pelo resultado da sua defesa, pelas suas notas, pelo seu diploma, por um emprego que você não conseguiu, nem por decisões que você tomou confiando numa simulação ou no seu feedback.",
+          "Na medida em que a lei permitir, nossa responsabilidade total com você se limita ao que você nos pagou nos doze meses anteriores à reclamação. Nada nestes termos limita um direito que a lei de defesa do consumidor do seu país não permita limitar.",
         ],
       },
       {
         heading: "Encerrar",
         body: [
-          "Você pode excluir sua conta a qualquer momento nas Configurações, o que apaga seus dados como descrito na política de privacidade. Podemos encerrar uma conta que descumpra estes termos, e devolvemos o período pago não usado se fizermos isso por um motivo que não foi culpa sua.",
+          "Você pode excluir sua conta quando quiser em Ajustes, o que apaga seus dados como descrito na política de privacidade. Podemos encerrar uma conta que descumpra estes termos, e reembolsamos o período pago não usado se fizermos isso por um motivo que não foi culpa sua.",
         ],
       },
       {
-        heading: "Lei aplicável",
+        heading: "Mudanças e lei aplicável",
         body: [
-          `Estes termos são regidos pela lei de ${COUNTRY.pt}, e as disputas vão aos seus tribunais.`,
+          "Se mudarmos estes termos de um jeito que importe, avisamos por e-mail ou no produto antes de a mudança valer. Continuar usando o Mockio depois disso significa aceitá-los.",
+          `Estes termos são regidos pela lei do ${COUNTRY.pt}, e as disputas vão aos seus tribunais, sem prejuízo da proteção ao consumidor que você tenha onde mora.`,
           `Dúvidas: ${OPERATOR.email}.`,
         ],
       },

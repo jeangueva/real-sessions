@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { privacyFor, termsFor, legalLocale } from "@/legal/content";
+import { useLocale } from "@/hooks/useLocale";
 import { LogOut, Mic, Send, Users } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { AuthLayout } from "./AuthLayout";
@@ -36,6 +38,7 @@ const SILENCE_MS = 3_500;
  */
 export function JoinCall() {
   const t = useThesisT();
+  const { locale } = useLocale();
   const { roomId = "" } = useParams();
   const [preview, setPreview] = useState<{ hostName: string; members: string[]; full: boolean } | null | undefined>();
   /** Remembered for this tab, so a reload does not ask who you are again. */
@@ -190,6 +193,19 @@ export function JoinCall() {
               {t("joinCta")}
             </Action>
             <p className="text-sm text-cream-faint">{t("joinPermission")}</p>
+            {/* They join without an account, so this is where they meet the
+                terms — the account holder's sign-up screen never reached them. */}
+            <p className="text-xs leading-relaxed text-cream-faint">
+              {t("joinAccept")}{" "}
+              <Link to="/terms" className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright">
+                {termsFor(legalLocale(locale)).title}
+              </Link>{" "}
+              {t("joinAnd")}{" "}
+              <Link to="/privacy" className="focus-ring rounded underline underline-offset-4 hover:text-cream-bright">
+                {privacyFor(legalLocale(locale)).title}
+              </Link>
+              .
+            </p>
           </div>
         </div>
       )}
