@@ -1,4 +1,6 @@
 import { useEffect, useMemo } from "react";
+import BlurText from "@/components/bits/BlurText";
+import Magnet from "@/components/bits/Magnet";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import { Action, FadeRise, HeroVideo } from "@/design-system";
@@ -699,15 +701,23 @@ export function DefenseLanding() {
           <FadeRise className="max-w-2xl">
             <p className="text-sm font-semibold text-white/70">{c.heroKicker}</p>
             <h1 className="mt-4 text-balance text-[clamp(2.75rem,7vw,5.75rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white">
-              {c.heroTitle}
+              {/* Word by word, out of a blur, once: the headline is the one
+                  sentence worth a moment of motion. Screen readers get the
+                  sentence whole. */}
+              <span className="sr-only">{c.heroTitle}</span>
+              <span aria-hidden>
+                <BlurText text={c.heroTitle} animateBy="words" direction="bottom" delay={70} stepDuration={0.32} trigger="load" />
+              </span>
             </h1>
             <p className="mt-6 max-w-lg text-pretty text-lg leading-relaxed text-white/80 sm:text-xl">{c.heroSub}</p>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
-              <Link to={start}>
-                <Action withArrow className="px-6 py-3 text-base">
-                  {c.cta}
-                </Action>
-              </Link>
+              <Magnet padding={60} magnetStrength={4}>
+                <Link to={start}>
+                  <Action withArrow className="px-6 py-3 text-base">
+                    {c.cta}
+                  </Action>
+                </Link>
+              </Magnet>
               <a
                 href="#how"
                 onClick={(event) => {
@@ -999,11 +1009,13 @@ export function DefenseLanding() {
               </h2>
               <Lede className="mt-5 max-w-xl">{c.finalSub}</Lede>
             </div>
-            <Link to={start} className="shrink-0">
-              <Action withArrow className="px-7 py-3.5 text-base">
-                {c.cta}
-              </Action>
-            </Link>
+            <Magnet padding={70} magnetStrength={4} wrapperClassName="shrink-0">
+              <Link to={start}>
+                <Action withArrow className="px-7 py-3.5 text-base">
+                  {c.cta}
+                </Action>
+              </Link>
+            </Magnet>
           </FadeRise>
         </Wrap>
       </section>

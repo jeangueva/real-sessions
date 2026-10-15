@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Loader2, Presentation, Trash2, Upload } from "lucide-react";
-import { Eyebrow, Panel, DisclosureMark } from "@/design-system";
+import { Eyebrow, Panel, DisclosureMark, Segmented } from "@/design-system";
 import { ApiError, deleteSlides, uploadSlides } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
@@ -84,21 +84,13 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
 
       <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1.5 text-xs font-semibold text-cream-dim">{t("slidesSlot")}</legend>
-        <div className="flex flex-wrap gap-2">
-          {SLOTS.map((entry) => (
-            <button
-              key={entry}
-              type="button"
-              aria-pressed={minutes === entry}
-              onClick={() => setMinutes(entry)}
-              className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
-                minutes === entry ? "bg-cream-bright text-surface-base" : "bg-surface-lift text-cream-dim hover:text-cream-bright"
-              }`}
-            >
-              {t("slidesMinutes", { count: entry })}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          label={t("slidesSlot")}
+          value={String(minutes)}
+          onChange={(next) => setMinutes(Number(next) as typeof minutes)}
+          options={SLOTS.map((entry) => ({ value: String(entry), label: t("slidesMinutes", { count: entry }) }))}
+          className="self-start"
+        />
       </fieldset>
 
       {error && (

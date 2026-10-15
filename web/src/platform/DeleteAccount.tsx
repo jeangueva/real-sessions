@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { Action, Eyebrow, Field, Panel } from "@/design-system";
+import { Eyebrow, Field, Panel } from "@/design-system";
+import HoldButton from "@/components/bits/HoldButton";
 import { ApiError, deleteAccount } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
+import { useThesisT } from "@/lib/thesis-copy";
 
 /**
  * Erasing an account.
@@ -18,6 +20,7 @@ import { useT } from "@/hooks/useLocale";
  */
 export function DeleteAccount({ email }: { email: string }) {
   const t = useT();
+  const tt = useThesisT();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,14 +97,25 @@ export function DeleteAccount({ email }: { email: string }) {
           )}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Action
-              onClick={() => void confirm()}
+            {/* Held, not clicked: two seconds of pressing is a decision, and a
+                stray tap on the one action with no undo does nothing. Space
+                and Enter hold it too. */}
+            <HoldButton
+              onHold={() => void confirm()}
               // Compared here only to keep the button honest; the server does
               // the check that matters.
               disabled={busy || typed.trim().toLowerCase() !== email.toLowerCase()}
+              holdTime={1800}
+              resetAfter={0}
+              backgroundColor="rgb(var(--surface-lift) / 0.9)"
+              fillColor="rgb(225 29 72)"
+              textColor="rgb(var(--cream-bright))"
+              fillTextColor="#ffffff"
+              doneLabel={t("delete.deleting")}
             >
-              {busy ? t("delete.deleting") : t("delete.confirm")}
-            </Action>
+              {t("delete.confirm")}
+            </HoldButton>
+            <span className="text-xs text-cream-dim">{tt("holdToConfirm")}</span>
             <button
               onClick={() => {
                 setOpen(false);
