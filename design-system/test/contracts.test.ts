@@ -9,7 +9,8 @@ import { catalog, filesOf, folders } from "../src/catalog";
  */
 
 const ROOT = path.resolve(__dirname, "..");
-const LEVELS = ["atom", "molecule", "organism", "template"];
+const LEVELS = ["atom", "molecule", "organism", "template", "utility"];
+const WEB_SRC = path.resolve(ROOT, "../web/src");
 
 describe("every component folder is complete", () => {
   it.each(folders)("%s has code, contract, previews and docs", (name) => {
@@ -103,9 +104,39 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
     for (const rel of contract.related) expect(folders, `${name} related ${rel.name}`).toContain(rel.name);
   });
 
+  it("covers i18n, responsive behaviour, the design tool and its version", () => {
+    for (const field of ["rtl", "textExpansion", "formatting"] as const) {
+      expect(contract.i18n[field].length, `${name}.i18n.${field}`).toBeGreaterThan(3);
+    }
+    for (const s of contract.i18n.strings) expect(Object.keys(contract.props), `${name} string "${s.text}" is overridden by ${s.prop}`).toContain(s.prop);
+    expect(contract.responsive.behaviour.length, `${name}.responsive.behaviour`).toBeGreaterThan(0);
+    expect(contract.responsive.minWidth).toMatch(/^\d+px$/);
+    expect(contract.designTool.registryItem).toBe(name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase());
+    expect(contract.designTool.importStatement).toContain(`{ ${name} }`);
+    for (const prop of contract.designTool.canvasProps) expect(Object.keys(contract.props), `${name} canvas prop ${prop}`).toContain(prop);
+    expect(contract.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(contract.changelog[0]?.version, `${name}: the newest changelog entry is the current version`).toBe(contract.version);
+  });
+
+  // The drift guard: the product keeps its own copy of most components (it
+  // cannot import across the web/ boundary), so the contract names that copy
+  // and this test fails the day it is renamed, moved or deleted.
+  it.runIf(existsSync(WEB_SRC))("points at a product counterpart that still exists", () => {
+    const counterpart = contract.appCounterpart;
+    if (!counterpart) return;
+    const file = path.join(WEB_SRC, counterpart.file);
+    expect(existsSync(file), `${name}: ${counterpart.file} is gone`).toBe(true);
+    const text = readFileSync(file, "utf8");
+    const exported =
+      counterpart.exportName === "default"
+        ? /export default/.test(text)
+        : new RegExp(`export (?:function|const|class) ${counterpart.exportName}\\b`).test(text);
+    expect(exported, `${name}: ${counterpart.file} no longer exports ${counterpart.exportName}`).toBe(true);
+  });
+
   it("has Markdown guidance with the required sections", () => {
     expect(docs).toMatch(new RegExp(`^---[\\s\\S]*?name: ${name}`));
-    for (const heading of ["## Anatomy", "## Interaction", "## Accessibility", "## When not to use it", "## Do and don't"]) {
+    for (const heading of ["## Anatomy", "## When to use it", "## When not to use it", "## Interaction", "## Writing", "## Accessibility", "## Do and don't"]) {
       expect(docs, `${name}.md is missing "${heading}"`).toContain(heading);
     }
   });

@@ -109,7 +109,7 @@ export const ActionContract = defineContract({
       { situation: "Navigating to another page as plain navigation", instead: "A link (<a> / router Link) styled as a link; wrap an Action in a Link only when the destination is a step forward." },
       { situation: "Choosing one option among several", instead: "Segmented (2–5 options) or a radio group." },
       { situation: "A destructive action with no undo", instead: "HoldButton, so a stray tap does nothing." },
-      { situation: "Toggling a setting on and off", instead: "A switch or a SpringCheck." },
+      { situation: "Toggling a setting on and off", instead: "Checkbox." },
     ],
     do: [
       "One solid Action per view; demote the rest to neutral or ghost.",
@@ -125,6 +125,33 @@ export const ActionContract = defineContract({
   tokens: ["--accent", "--accent-ink", "--accent-depth", "--cream-bright", "--surface-base", "--surface-lift", "--line", "--line-strong", "ease-press"],
   related: [
     { name: "HoldButton", difference: "For irreversible actions: must be held, not tapped." },
+    { name: "Checkbox", difference: "Turns a setting on or off; Action does something once." },
     { name: "Segmented", difference: "Chooses a value; Action performs an action." },
   ],
+  i18n: {
+    rtl: "The trailing arrow mirrors (rtl:-scale-x-100) and its hover nudge reverses; the label aligns by the document direction.",
+    textExpansion: "The pill grows with its label and wraps only inside a w-full container; keep labels short enough to stay on one line in Portuguese and German.",
+    formatting: "None: the label is the caller's text.",
+    strings: [],
+  },
+  responsive: {
+    behaviour: [
+      "Same size at every width; on phones the primary action usually takes w-full via className.",
+      "Pairs stack vertically below 360px, primary first.",
+    ],
+    minWidth: "120px",
+  },
+  designTool: {
+    registryItem: "action",
+    importStatement: 'import { Action } from "@mockio/design-system";',
+    canvasProps: ["children", "tone", "withArrow", "disabled"],
+    placement: "Anywhere an action is taken: forms, cards, toolbars, page headers. Never more than one solid per view.",
+  },
+  appCounterpart: {
+    file: "design-system/primitives.tsx",
+    exportName: "Action",
+    differences: ["Defaults type to \"button\" so it never submits a form by accident; the app's copy relies on the native default (submit)."],
+  },
+  version: "1.0.0",
+  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
 });

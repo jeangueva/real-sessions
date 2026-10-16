@@ -18,8 +18,11 @@
  * Nothing here is decoration. A field that is not true is a bug.
  */
 
-/** Where a component sits in Atomic Design. */
-export type AtomicLevel = "atom" | "molecule" | "organism" | "template";
+/**
+ * Where a component sits in Atomic Design. `utility` is for behaviours —
+ * motion wrappers that add no visual of their own and wrap any level.
+ */
+export type AtomicLevel = "atom" | "molecule" | "organism" | "template" | "utility";
 
 /** How far a consumer can lean on it. */
 export type Status = "stable" | "beta" | "deprecated";
@@ -92,6 +95,51 @@ export interface UsageContract {
   dont: string[];
 }
 
+export interface I18nContract {
+  /** Right-to-left: what mirrors (arrows, alignment, slide direction) and what must not (numbers, logos). */
+  rtl: string;
+  /** How the layout copes with text 30–40% longer than Spanish (German, Portuguese) — wraps, truncates or grows. */
+  textExpansion: string;
+  /** Numbers, dates and plurals: who formats them (the component or the caller) and with which locale. */
+  formatting: string;
+  /** Every user-facing string the component renders itself, and the prop that overrides it. Empty when all copy comes from props. */
+  strings: { text: string; prop: string }[];
+}
+
+export interface ResponsiveContract {
+  /** How it changes from 320px phones to wide desktops. */
+  behaviour: string[];
+  /** The narrowest container it is designed for, e.g. "280px". */
+  minWidth: string;
+}
+
+/** How a design tool (Lunagraph, a shadcn-style canvas) should present it. */
+export interface DesignToolContract {
+  /** The item's name in registry.json. */
+  registryItem: string;
+  /** The import line a canvas or an assistant writes. */
+  importStatement: string;
+  /** Props a designer edits from a properties panel, in order of importance. */
+  canvasProps: string[];
+  /** Where it can be dropped, and what it needs around it. */
+  placement: string;
+}
+
+/** Where the product's own copy lives, so the two can be compared. Null when the system is the only home. */
+export interface AppCounterpart {
+  /** Path under web/src, e.g. "design-system/primitives.tsx". */
+  file: string;
+  /** The export name there (or "default"). */
+  exportName: string;
+  /** Deliberate differences between the system's version and the app's. */
+  differences: string[];
+}
+
+export interface ChangelogEntry {
+  version: string;
+  changes: string[];
+}
+
 export interface ComponentContract {
   /** The exported component name. */
   name: string;
@@ -120,6 +168,14 @@ export interface ComponentContract {
   tokens: string[];
   /** Related components, by name, and how they differ. */
   related: { name: string; difference: string }[];
+  i18n: I18nContract;
+  responsive: ResponsiveContract;
+  designTool: DesignToolContract;
+  /** The product's copy of this component, for the drift test; null if none. */
+  appCounterpart: AppCounterpart | null;
+  /** Semver of the contract. A breaking change to a prop or state bumps the major. */
+  version: string;
+  changelog: ChangelogEntry[];
 }
 
 /**

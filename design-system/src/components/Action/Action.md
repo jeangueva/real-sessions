@@ -29,6 +29,14 @@ the next step without reading every label.
 | `glass` | Actions over video or photography | Plain surfaces — it disappears |
 | `ghost` | Cancel, skip, "Ahora no" | The only action on a screen |
 
+## When to use it
+
+- Any action a person takes on purpose: start, save, send, confirm, open a
+  flow.
+- The single most important next step of a screen — `solid`, often with
+  `withArrow`: _Sube tu tesis gratis_, _Empezar ensayo_.
+- A quiet way out of a flow — `ghost`: _Ahora no_, _Cancelar_.
+
 ## Interaction
 
 - **Press, not release.** The press state lands in 75ms: the face moves down
@@ -38,7 +46,7 @@ the next step without reading every label.
 - **Keyboard**: Tab to focus (accent ring), Enter or Space to activate.
 - **Inside a form** an Action does not submit unless you pass `type="submit"`.
 
-## Writing the label
+## Writing
 
 - A verb first, in the imperative and the tú form: _Ensayar_, _Sube tu tesis_,
   _Ver mi acta_.
@@ -61,7 +69,7 @@ the next step without reading every label.
   is a step forward (e.g. the landing CTA to sign up).
 - **Choosing a value** → `Segmented`.
 - **Irreversible** → `HoldButton`.
-- **On/off** → a switch or `SpringCheck`.
+- **On/off** → `Checkbox`.
 
 ## Do and don't
 
