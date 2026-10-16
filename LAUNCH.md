@@ -38,6 +38,15 @@ Sin esto, el producto no funciona o no cobra.
     `Mockio <hola@getmockio.com>`.
   - Comprobar: al crear una cuenta llega el correo de verificación (revisa
     también spam).
+- [ ] **`REALSESSIONS_LIFECYCLE_EMAIL=1`** — los correos programados: la
+  cuenta regresiva a la fecha de sustentación, el calentamiento del día D y
+  el recordatorio por inactividad.
+  - Viene en `render.yaml`. Si ya creaste el servicio, agrégala a mano en
+    Environment: sin ella esos correos nunca salen.
+  - Ponla solo en `real-sessions`, nunca en tu `.env` local: tu laptop
+    apunta a la misma base y le escribiría a clientes reales.
+  - Comprobar: con una fecha de sustentación guardada, a las 07:00 (hora de
+    Lima) llega el correo de la cuenta regresiva.
 - [ ] **Mercado Pago** — los cobros en Perú.
   - Dónde: [Mercado Pago Developers](https://www.mercadopago.com.pe/developers)
     → Tus integraciones → tu aplicación → **Credenciales de producción**.

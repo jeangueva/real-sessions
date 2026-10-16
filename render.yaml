@@ -75,6 +75,12 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      # The mail that goes out on a timer: the countdown to the defence date,
+      # the D-day warm-up and the inactivity nudge (src/lifecycle.ts). Off
+      # unless exactly "1", so a laptop pointed at production never mails
+      # customers; set it here, on the one service that should send them.
+      - key: REALSESSIONS_LIFECYCLE_EMAIL
+        value: "1"
 
       # At least one model provider. OpenRouter covers every default model.
       - key: OPENROUTER_API_KEY
