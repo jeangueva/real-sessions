@@ -596,3 +596,8 @@ ALTER TABLE advisors ADD COLUMN IF NOT EXISTS payout JSONB;
 -- the record, and left out of every balance.
 ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ;
 ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS void_reason TEXT;
+
+-- The career the student picked over the one read off the cover: a career or
+-- family id from src/careers-pe.ts, which seats the discipline's jury. Null
+-- follows the cover.
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS career_override TEXT;

@@ -197,6 +197,7 @@ import {
 } from "./thesis.js";
 import type { DefenseSetup } from "./prompts/interviewer.js";
 import { findFormat, publicFormats } from "./defense-formats.js";
+import { defenseCareer, findCareer, isFamilyId, publicCareerCatalogue, resolveCareer } from "./careers-pe.js";
 import { DEFENSE_SCENARIOS, SCENARIOS, scenarioForDegree, soloJurorFor } from "./prompts/defense.js";
 import { createPresenceStore, MAX_FRAME_CHARS, MAX_FRAMES, readPresence, type PresenceStore } from "./presence.js";
 import { createInstitutionStore, seatHeld, type InstitutionStore } from "./institutions.js";
@@ -3421,8 +3422,12 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
    * "ready" later, and the person is waiting on this screen either way.
    */
   if (req.method === "GET" && path === "/api/thesis") {
+    const thesis = await THESES.get(identity.id);
     json(res, 200, {
-      thesis: await THESES.get(identity.id),
+      thesis,
+      // The career the jury is seated for — read off the cover, or the
+      // student's own choice — so the screen can show it and offer another.
+      career: thesis ? resolveCareer(thesis.analysis, thesis.careerOverride) : null,
       allowance: await defenseAllowance(identity.id),
       pack: { amount: PACK_KINDS.sustentacion.amount, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
       // What a student can buy; the advisor plan is offered on the advisor page.
@@ -3635,6 +3640,29 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       locked: !allowance.paid,
       questions: allowance.paid ? sorted.map((entry) => ({ question: entry.question, sameField: ours(entry) })) : [],
     });
+    return;
+  }
+
+  /** The careers and families a student can pick from, with each seat's role. */
+  if (req.method === "GET" && path === "/api/thesis/careers") {
+    json(res, 200, publicCareerCatalogue());
+    return;
+  }
+
+  /**
+   * Another career than the one read off the cover: a career id or a family
+   * id from the catalogue, or null to follow the cover again.
+   */
+  if (req.method === "PUT" && path === "/api/thesis/career") {
+    const stored = await THESES.get(identity.id);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    const raw = (await readJson(req))["career"];
+    if (raw !== null && !findCareer(raw) && !isFamilyId(raw)) {
+      return json(res, 400, { error: "Esa carrera no está en la lista." });
+    }
+    await THESES.putCareerOverride(identity.id, raw as string | null);
+    const thesis = await THESES.get(identity.id);
+    json(res, 200, { thesis, career: thesis ? resolveCareer(thesis.analysis, thesis.careerOverride) : null });
     return;
   }
 
@@ -4372,6 +4400,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // The real people, on a paid rehearsal; the prompt leaves them out
         // of the express one and the coach.
         ...(allowance.paid && stored.jury && stored.jury.length > 0 ? { jury: stored.jury } : {}),
+        // The discipline's jury, with no setup: the career on the cover, or
+        // the one the student picked. The generic panel when we cannot tell.
+        career: defenseCareer(resolveCareer(stored.analysis, stored.careerOverride)),
       };
     }
     // The conversations after the offer are the paid plan. Checked on the

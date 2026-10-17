@@ -172,6 +172,12 @@ export const ThesisAnalysisSchema = z.object({
   title: z.string(),
   degree: z.enum(["pregrado", "maestria", "doctorado", "no-claro"]),
   field: z.string(),
+  /**
+   * The school, program or career as the cover prints it ("Escuela
+   * Profesional de Ingeniería Civil"); null when the cover does not say. Read
+   * by careers-pe.ts to seat the discipline's jury.
+   */
+  career: z.string().nullable().default(null),
   language: z.enum(["es", "pt", "en"]),
   summary: z.string(),
   ficha: z.object({
@@ -220,7 +226,8 @@ export const ThesisAnalysisSchema = z.object({
   chapters: z.array(z.object({ name: z.string(), page: z.number().int().nullable() })),
 });
 
-export type ThesisAnalysis = z.infer<typeof ThesisAnalysisSchema>;
+/** Optional on the type: analyses stored before it existed have no career. */
+export type ThesisAnalysis = Omit<z.infer<typeof ThesisAnalysisSchema>, "career"> & { career?: string | null };
 
 export class ThesisAnalysisError extends Error {
   constructor(message: string) {
@@ -300,6 +307,11 @@ export interface StoredThesis {
   observations?: StoredObservations | null;
   /** The session with a real teacher, once requested. */
   mentor?: MentorRequest | null;
+  /**
+   * The career or family the student picked over the one read off the cover
+   * (an id from careers-pe.ts); null or absent to follow the cover.
+   */
+  careerOverride?: string | null;
 }
 
 /** A thesis whose defence is close enough for the countdown mails. */
@@ -331,6 +343,8 @@ export interface ThesisStore {
   putJury(ownerId: string, jury: RealJuror[]): Promise<void>;
   putObservations(ownerId: string, observations: StoredObservations | null): Promise<void>;
   putMentor(ownerId: string, mentor: MentorRequest): Promise<void>;
+  /** Sets or clears the student's choice of career. */
+  putCareerOverride(ownerId: string, career: string | null): Promise<void>;
   /** The gift link's token, made on first ask; null without a thesis. */
   giftToken(ownerId: string): Promise<string | null>;
   ownerByGift(token: string): Promise<string | null>;
@@ -341,7 +355,7 @@ class PostgresThesisStore implements ThesisStore {
 
   async get(ownerId: string): Promise<StoredThesis | null> {
     const { rows } = await this.pool.query(
-      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study, jury, observations, mentor,
+      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study, jury, observations, mentor, career_override,
               to_char(defense_date, 'YYYY-MM-DD') AS defense_date
          FROM theses WHERE owner_id = $1`,
       [ownerId],
@@ -360,6 +374,7 @@ class PostgresThesisStore implements ThesisStore {
       jury: (row.jury as RealJuror[] | null) ?? null,
       observations: (row.observations as StoredObservations | null) ?? null,
       mentor: (row.mentor as MentorRequest | null) ?? null,
+      careerOverride: (row.career_override as string | null) ?? null,
     };
   }
 
@@ -442,6 +457,10 @@ class PostgresThesisStore implements ThesisStore {
     await this.pool.query(`UPDATE theses SET mentor = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(mentor)]);
   }
 
+  async putCareerOverride(ownerId: string, career: string | null) {
+    await this.pool.query(`UPDATE theses SET career_override = $2 WHERE owner_id = $1`, [ownerId, career]);
+  }
+
   async giftToken(ownerId: string) {
     // Set once and kept: a link already sent to a parent keeps working.
     const { rows } = await this.pool.query(
@@ -481,6 +500,7 @@ class MemoryThesisStore implements ThesisStore {
       jury: kept?.jury ?? null,
       observations: kept?.observations ?? null,
       mentor: kept?.mentor ?? null,
+      careerOverride: kept?.careerOverride ?? null,
       fileName,
       pageCount: thesis.pages.length,
       approximate: thesis.approximate,
@@ -508,6 +528,11 @@ class MemoryThesisStore implements ThesisStore {
   async putMentor(ownerId: string, mentor: MentorRequest) {
     const row = this.rows.get(ownerId);
     if (row) row.mentor = mentor;
+  }
+
+  async putCareerOverride(ownerId: string, career: string | null) {
+    const row = this.rows.get(ownerId);
+    if (row) row.careerOverride = career;
   }
 
   async giftToken(ownerId: string) {
@@ -600,7 +625,7 @@ export function renderDossier(thesis: StoredThesis, pages: readonly string[]): s
 
   const lines = [
     `Title: ${a.title}`,
-    `Degree: ${a.degree}. Field: ${a.field}. ${thesis.pageCount} pages${thesis.approximate ? " (page numbers approximate)" : ""}.`,
+    `Degree: ${a.degree}. Field: ${a.field}.${a.career ? ` Career on the cover: ${a.career}.` : ""} ${thesis.pageCount} pages${thesis.approximate ? " (page numbers approximate)" : ""}.`,
     `Summary: ${a.summary}`,
     "",
     `Problem: ${cited(f.problem)}`,

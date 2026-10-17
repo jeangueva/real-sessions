@@ -1298,6 +1298,8 @@ export interface ThesisAnalysis {
   title: string;
   degree: "pregrado" | "maestria" | "doctorado" | "no-claro";
   field: string;
+  /** The school or career as the cover prints it; absent on older analyses. */
+  career?: string | null;
   language: "es" | "pt" | "en";
   summary: string;
   ficha: {
@@ -1364,6 +1366,28 @@ export interface StoredThesis {
   observations?: StoredObservations | null;
   /** The session with a real teacher, once requested. */
   mentor?: MentorRequest | null;
+  /** A career or family id the student picked over the cover's; null follows the cover. */
+  careerOverride?: string | null;
+}
+
+/** Mirrors `CareerResolution` in src/careers-pe.ts: the career the jury is seated for. */
+export interface CareerResolution {
+  careerId: string | null;
+  careerName: string | null;
+  family: string;
+  familyName: string;
+  confidence: number;
+  source: "override" | "cover" | "field" | "title";
+}
+
+/** Mirrors `publicCareerCatalogue()` in src/careers-pe.ts. */
+export interface CareerCatalogue {
+  families: {
+    id: string;
+    name: string;
+    roles: Record<JurorSeat, { m: string; f: string }>;
+  }[];
+  careers: { id: string; name: string; family: string }[];
 }
 
 export type JurorSeat = "presidente" | "metodologo" | "especialista";
@@ -1474,6 +1498,8 @@ export function fetchThesis() {
       offers?: PackOfferDetail[];
       formats?: DefenseFormatInfo[];
       progress?: DefenseProgressPoint[];
+      /** The career the jury is seated for; null when unknown (the generic panel). */
+      career?: CareerResolution | null;
     }>("/api/thesis", {
       method: "GET",
     }),
@@ -1581,6 +1607,17 @@ const sendJson = (method: string, body: unknown): RequestInit & { method: string
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(body),
 });
+
+export function fetchCareers() {
+  return withIdentity(() => request<CareerCatalogue>("/api/thesis/careers", { method: "GET" }));
+}
+
+/** Another career (or family) than the cover's; null follows the cover again. */
+export function saveCareer(career: string | null) {
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis; career: CareerResolution | null }>("/api/thesis/career", sendJson("PUT", { career })),
+  );
+}
 
 export function saveJury(jury: RealJuror[]) {
   return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/jury", sendJson("PUT", { jury })));
