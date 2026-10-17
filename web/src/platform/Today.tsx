@@ -157,7 +157,7 @@ export function Today({ sessions }: { sessions: SessionSummary[] }) {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className={`truncate text-sm font-medium ${mission.done ? "text-cream-dim" : "text-cream-bright"}`}>
+                      <p className={`min-w-0 text-sm font-medium leading-snug ${mission.done ? "text-cream-dim" : "text-cream-bright"}`}>
                         {t(MISSION_LABEL[mission.id])}
                       </p>
                       <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-cream-dim">
