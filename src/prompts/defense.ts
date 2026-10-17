@@ -221,8 +221,11 @@ export function focusBlock(input: {
   members: readonly string[];
   fluencyNeutral?: boolean;
   jury?: readonly RealJuror[];
+  /** How the thesis's discipline does research (careers-pe.ts); absent for an unknown career. */
+  discipline?: string | null;
 }): string {
   const parts = [`WHAT THIS REHEARSAL TRAINS: ${FOCUSES[input.focus]}`];
+  if (input.discipline) parts.push(input.discipline);
   if (input.jury && input.jury.length > 0) parts.push(juryBlock(input.jury));
   if (input.fluencyNeutral) {
     parts.push(

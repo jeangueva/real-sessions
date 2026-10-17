@@ -18,6 +18,7 @@ import {
 } from "./defense.js";
 import type { RealJuror } from "../defense-extras.js";
 import { findFormat, type CountryCode } from "../defense-formats.js";
+import { disciplineBlock, withFamily, type DefenseCareer } from "../careers-pe.js";
 import { findLanguage } from "../languages.js";
 import { findLevel } from "../levels.js";
 import { interviewerTitle } from "../roles.js";
@@ -266,6 +267,11 @@ export interface DefenseSetup {
   scenario?: DefenseScenario;
   /** The people who will really sit on the panel, when the student named them. */
   jury?: RealJuror[];
+  /**
+   * The thesis's career, read off the cover or picked by the student: its
+   * family seats the discipline's jury. The generic panel when absent.
+   */
+  career?: DefenseCareer | null;
 }
 
 /**
@@ -314,7 +320,9 @@ export function buildInterviewerPrompt(
     const defense = options.defense;
     if (!defense) throw new Error("A thesis defence needs the thesis dossier.");
     const express = stages[0]?.id === "sustentacion-express";
-    const format = findFormat(defense.country);
+    // The discipline's team in the country's seats; the format as it was
+    // for a career we do not know.
+    const format = withFamily(findFormat(defense.country), defense.career?.family);
     const focus = defense.focus ?? "completa";
     const solo = soloJurorFor(focus);
     return renderTemplate(DEFENSE_TEMPLATE, {
@@ -346,6 +354,7 @@ export function buildInterviewerPrompt(
         // The real people only on the full panel: the express rehearsal and
         // the statistics coach are one juror by design.
         jury: express || solo ? [] : (defense.jury ?? []),
+        discipline: defense.career ? disciplineBlock(defense.career) : null,
       }),
       language: findLanguage(options.language).promptLabel,
       difficulty: DIFFICULTIES[defense.difficulty],

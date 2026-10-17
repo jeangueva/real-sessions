@@ -12,6 +12,7 @@ import type { DefenseSetup } from "./prompts/interviewer.js";
 import { juryNames } from "./defense-extras.js";
 import { renderTemplate } from "./prompts/template.js";
 import { findFormat, verdictFor } from "./defense-formats.js";
+import { disciplineBar, withFamily } from "./careers-pe.js";
 import { FOCUSES, SCENARIOS } from "./prompts/defense.js";
 import { EvaluationSchema, RetryFeedbackSchema, type Evaluation, type RetryFeedback } from "./schema.js";
 import type { InterviewContext, TranscriptTurn } from "./types.js";
@@ -185,7 +186,8 @@ async function evaluateDefense(
   const chosen = options.model ? model : DEFENSE_EVALUATOR_MODEL;
   const runner = options.provider ?? (options.model ? provider : resolveProvider(chosen));
   const report = options.reportLanguage ?? "Spanish";
-  const format = findFormat(defense.country);
+  // The record names the seats as the panel had them: the discipline's team.
+  const format = withFamily(findFormat(defense.country), defense.career?.family);
   const response = await runner.json({
     model: chosen,
     system: renderTemplate(DEFENSE_EVALUATOR_TEMPLATE, {
@@ -195,7 +197,7 @@ async function evaluateDefense(
       scale_line: `The ${format.countryName} scale: \`grade_max\` ${format.scale.max}, \`pass_mark\` ${format.scale.pass}, grades from ${format.scale.min} to ${format.scale.max}.`,
       rounding: format.scale.decimals ? ", to one decimal" : ", rounded to a whole number",
       difficulty: defense.difficulty,
-      scenario_bar: SCENARIOS[defense.scenario ?? "titulo"].bar,
+      scenario_bar: SCENARIOS[defense.scenario ?? "titulo"].bar + disciplineBar(defense.career),
       focus_note:
         (defense.focus ?? "completa") === "completa"
           ? "This was a complete defence."
