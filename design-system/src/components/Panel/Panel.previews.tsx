@@ -168,7 +168,7 @@ export const PanelPreviews = definePreviews([
     title: "Report: a screen that failed",
     kind: "in-context",
     description:
-      "When the feedback report cannot load, the whole screen is this glass panel: the error as an alert, what is safe, and the way back. Glass, so it reads as a notice and not as the report.",
+      "When the feedback report cannot load, the whole screen is this glass panel: the error as an alert, what is safe, and the way back. Glass, so it reads as a notice and not as the report. The way back is an Action that navigates; the product wraps the button in a link, which nests two interactive elements.",
     render: () => (
       <Panel variant="glass" className="flex max-w-2xl flex-col gap-4 p-6 sm:p-8">
         <p role="alert" className="text-sm text-cream-bright">
@@ -186,7 +186,7 @@ export const PanelPreviews = definePreviews([
     code: `<Panel variant="glass" className="flex max-w-2xl flex-col gap-4 p-6 sm:p-8">
   <p role="alert" className="text-sm text-cream-bright">{error}</p>
   <p className="text-xs text-cream-dim">Tu transcripción no se perdió — …</p>
-  <Link to="/app"><Action tone="glass">Volver a las sesiones</Action></Link>
+  <Action tone="glass" className="self-start" onClick={() => navigate("/app")}>Volver a las sesiones</Action>
 </Panel>`,
   },
   {

@@ -23,7 +23,7 @@ export const PanelContract = defineContract({
         card: "bg-surface-card + shadow-card. The lighter fill on the dark theme (#1C1C1E); white on the light one. For panels side by side in a grid: pricing tiers, settings sections, list rows.",
         raised: "bg-surface-raised + shadow-card. A step darker than card on the dark theme (#161618), identical to card on the light one. For one block on the page ground: an upload step, an empty state, a wait.",
         glass:
-          ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for a screen that failed to load, so the error does not read as content.",
+          ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on six screens) and for two tabbed sheets (the Settings account tab, the Billing plan).",
       },
     },
     className: {
@@ -122,7 +122,7 @@ export const PanelContract = defineContract({
       "Don't put hover:shadow-lift on a panel nothing happens on — it promises a press.",
       "Don't nest a Panel in a Panel.",
       "Don't recolour it with bg-* or border-*; pick the variant.",
-      "Don't use glass on a plain page for ordinary content; it reads as empty.",
+      "Don't reach for glass on a plain page for a grid of ordinary cards: on the dark theme it is near-transparent and reads as empty; use card.",
     ],
   },
   tokens: ["--surface-card", "--surface-raised", "--shadow-card", "rounded-card", ".liquid-glass", ".on-media"],
