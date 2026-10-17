@@ -199,7 +199,15 @@ services:
     region: virginia
     plan: free
     # tsx is a dev dependency, and NODE_ENV=production would skip it.
-    buildCommand: npm ci --include=dev
+    #
+    # The design system's documentation site is built here too and served at
+    # /ds/ behind the admin sign-in (admin/ds.ts): it shows the product's
+    # components and copy, so it is internal, and this is the one service that
+    # already has a login. It has its own lockfile, so its own `ci`, and
+    # --include=dev for the same reason as above: Vite and Tailwind are dev
+    # dependencies. A failed build fails the deploy; a server started without
+    # one (a local run) answers "Design system not built" at /ds/.
+    buildCommand: npm ci --include=dev && npm --prefix design-system ci --include=dev && npm --prefix design-system run build
     startCommand: npm run admin
     healthCheckPath: /healthz
     envVars:

@@ -43,11 +43,13 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             web/package-lock.json
+            design-system/package-lock.json
 
       - name: Install
         run: |
           npm ci
           npm --prefix web ci
+          npm --prefix design-system ci
 
       - name: Typecheck
         run: |
@@ -62,8 +64,15 @@ jobs:
           npm test
           npm --prefix web test
 
+      - name: Design system
+        # Tokens and registry up to date, types, and the system's own tests
+        # (contracts, previews, accessibility, the drift guard against web/).
+        run: npm --prefix design-system run check
+
       - name: Build
-        run: npm --prefix web run build
+        run: |
+          npm --prefix web run build
+          npm --prefix design-system run build
 
   image:
     # Only on main: a pull request has already been proven by `test`, and
