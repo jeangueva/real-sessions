@@ -77,7 +77,15 @@ export function Action({
   );
 }
 
-/** The line above a headline, Apple's way: the accent, in weight, not spaced caps. */
+/**
+ * A panel's own label: "General", "Qué funcionó", "Tu cuenta".
+ *
+ * Ink, in weight, never spaced caps. It used to be the accent, which put the
+ * colour that means "the way forward" on every label of every panel — a
+ * report with six of them had six violet words and no way to tell which one
+ * was the action. Not a kicker above a heading either: a heading carries its
+ * own weight, so where one follows, this is left out.
+ */
 export function Eyebrow({
   children,
   className = "",
@@ -86,7 +94,7 @@ export function Eyebrow({
   className?: string;
 }) {
   return (
-    <p className={`text-sm font-semibold text-accent-text ${className}`}>
+    <p className={`text-sm font-semibold text-cream-bright ${className}`}>
       {children}
     </p>
   );

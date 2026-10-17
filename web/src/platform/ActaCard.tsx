@@ -191,10 +191,12 @@ export function ActaCard({
       {acta.verdict !== "desaprobado" && !publicView && (
         <Link
           to="/app/practice"
-          className="focus-ring flex flex-col gap-0.5 rounded-2xl bg-accent-soft px-5 py-4 text-accent-text transition-transform duration-150 active:scale-[0.99] print:hidden"
+          /* A quiet row, not a violet banner: it is an aside to the acta, and
+             the report's next step already wears the accent wash below. */
+          className="focus-ring flex flex-col gap-0.5 rounded-2xl px-5 py-4 ring-1 ring-[color:var(--line)] transition-[background-color,transform] duration-150 ease-press hover:bg-surface-lift active:scale-[0.99] print:hidden"
         >
-          <span className="text-sm font-semibold">{t("ladderTitle")}</span>
-          <span className="text-sm">{t("ladderBody")}</span>
+          <span className="text-sm font-semibold text-cream-bright">{t("ladderTitle")}</span>
+          <span className="text-sm text-accent-text">{t("ladderBody")}</span>
         </Link>
       )}
       <p className="px-1 text-xs text-cream-dim">{t("actaDisclaimer")}</p>

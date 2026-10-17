@@ -23,7 +23,6 @@ const ES = {
   navBack: "Sustentación",
   navInstitutions: "Instituciones",
   cta: "Crear mi enlace",
-  kicker: "Programa de afiliados",
   title: "Gana el 30% de cada tesis que ayudas a preparar.",
   sub: "Comparte tu enlace con tus tesistas, tus seguidores o tus alumnos. Cada vez que uno compra un plan de sustentación, el 30% es tuyo.",
   how: "Cómo funciona",
@@ -80,7 +79,6 @@ const PT: Record<Key, string> = {
   navBack: "Defesa",
   navInstitutions: "Instituições",
   cta: "Criar meu link",
-  kicker: "Programa de afiliados",
   title: "Ganhe 30% de cada trabalho que você ajuda a preparar.",
   sub: "Compartilhe seu link com seus orientandos, seguidores ou alunos. Cada vez que um deles compra um plano de defesa, 30% são seus.",
   how: "Como funciona",
@@ -136,7 +134,6 @@ const EN: Record<Key, string> = {
   navBack: "Thesis defence",
   navInstitutions: "Institutions",
   cta: "Get my link",
-  kicker: "Affiliate programme",
   title: "Earn 30% of every thesis you help prepare.",
   sub: "Share your link with your students, your followers or your class. Every time one of them buys a defence plan, 30% is yours.",
   how: "How it works",
@@ -256,8 +253,7 @@ export function AffiliatesPage() {
       <section className="pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
         <Wrap className="grid items-center gap-14 py-16 md:py-24 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-20">
           <FadeRise>
-            <p className="text-sm font-semibold text-accent-text">{c.kicker}</p>
-            <h1 className="mt-4 text-balance text-[clamp(2.5rem,6vw,4.75rem)] font-semibold leading-[1] tracking-[-0.045em] text-cream-bright">
+            <h1 className="text-balance text-headline font-semibold text-cream-bright">
               {c.title}
             </h1>
             <Lede className="mt-6 max-w-xl">{c.sub}</Lede>

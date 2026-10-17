@@ -75,7 +75,7 @@ export function SessionList() {
       </div>
 
       {error && (
-        <Panel variant="glass" className="max-w-2xl p-6">
+        <Panel variant="raised" className="max-w-2xl p-6">
           <p role="alert" className="text-sm text-cream-bright">
             {error}
           </p>

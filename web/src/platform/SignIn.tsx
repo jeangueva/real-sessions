@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { GoogleButton } from "./GoogleButton";
-import { Action, Eyebrow, Field, Notice } from "@/design-system";
+import { Action, Field, Notice } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { privacyFor, termsFor, legalLocale } from "@/legal/content";
@@ -42,8 +42,7 @@ export function SignIn() {
 
   return (
     <AuthLayout>
-    <Eyebrow>{mode === "in" ? t("auth.welcomeBack") : t("auth.createAccount")}</Eyebrow>
-    <h1 className="mt-3 text-title font-semibold text-cream-bright">
+    <h1 className="text-title font-semibold text-cream-bright">
       {mode === "in"
         ? t("auth.signInTitle")
         : t("auth.signUpTitle")}

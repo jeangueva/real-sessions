@@ -40,7 +40,7 @@ export function Features() {
           </WordsPullUp>
         </h2>
 
-        {/* 5-Card Bento Grid Mosaic */}
+        {/* Five cards: the live turn leads, the four things it measures follow. */}
         <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {/* CARD 1: Hero Simulation Stage (Col Span 2) */}
           <FadeRise className="md:col-span-2">
@@ -51,9 +51,9 @@ export function Features() {
 
                 <div className="relative flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 rounded-full bg-surface-lift px-3 py-1.5">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-grow" />
+                    <span aria-hidden className="h-2 w-2 rounded-full bg-grow" />
                     <span className="text-xs font-medium text-cream-bright">
-                      Live Turn Simulation
+                      {t("land.featLive")}
                     </span>
                   </div>
                 </div>
@@ -83,14 +83,14 @@ export function Features() {
 
                 <div className="relative flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4 text-xs text-cream-dim">
                   <span className="flex items-center gap-1.5">
-                    <Zap className="h-4 w-4 text-accent" />
-                    Real voice synthesis & dynamic speech cadence
+                    <Zap aria-hidden className="h-4 w-4 text-accent-text" />
+                    {t("land.featLiveFoot")}
                   </span>
                   <Link
                     to="/app/practice"
                     className="flex items-center gap-1 font-medium text-accent-text hover:opacity-80"
                   >
-                    Try interactive stage <ArrowRight className="h-3.5 w-3.5" />
+                    {t("land.featLiveTry")} <ArrowRight aria-hidden className="h-3.5 w-3.5 rtl:-scale-x-100" />
                   </Link>
                 </div>
               </Panel>
@@ -101,7 +101,7 @@ export function Features() {
               <Panel className="flex h-full min-h-[22rem] flex-col justify-between p-6 sm:p-7">
                 <div className="flex items-baseline justify-between">
                   <div className="flex items-center gap-2">
-                    <ShieldAlert className="h-4 w-4 text-step" />
+                    <ShieldAlert aria-hidden className="h-4 w-4 text-step-text" />
                     <h3 className="text-base font-semibold text-cream-bright sm:text-lg">
                       {t("land.card1Title")}
                     </h3>
@@ -109,17 +109,17 @@ export function Features() {
                 </div>
 
                 <div className="my-auto flex flex-col gap-3">
-                  <div className="rounded-2xl bg-surface-card p-4 shadow-card">
-                    <div className="flex items-center justify-between text-xs text-cream-faint">
-                      <span>Detected mistake</span>
-                      <span className="tabular-nums font-semibold text-step">Grammar & Syntax</span>
+                  <div className="rounded-2xl bg-surface-lift p-4">
+                    <div className="flex items-center justify-between text-xs text-cream-dim">
+                      <span>{t("land.featMistake")}</span>
+                      <span className="font-semibold text-step-text">{t("land.featMistakeKind")}</span>
                     </div>
                     <p className="mt-2 text-sm text-cream-bright line-through opacity-70">
                       “It depends of the traffic volume...”
                     </p>
                     <div className="mt-2.5 flex items-start gap-2 rounded-xl bg-grow-soft p-2.5 text-xs text-grow-text">
                       <CheckCircle2 className="h-4 w-4 shrink-0" />
-                      <span>Natural: “It depends <strong>on</strong> the traffic volume”</span>
+                      <span>{t("land.featNatural")} “It depends <strong>on</strong> the traffic volume”</span>
                     </div>
                   </div>
                 </div>
@@ -142,9 +142,9 @@ export function Features() {
               <Panel className="flex h-full min-h-[20rem] flex-col justify-between p-6 sm:p-7">
                 <div className="flex items-baseline justify-between">
                   <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-accent" />
+                    <Bot aria-hidden className="h-4 w-4 text-accent-text" />
                     <h3 className="text-base font-semibold text-cream-bright sm:text-lg">
-                      Culture DNA Matching
+                      {t("land.featCultureTitle")}
                     </h3>
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export function Features() {
                 </div>
 
                 <p className="text-xs text-cream-faint">
-                  Adapts questioning style to real engineering bar.
+                  {t("land.featCultureFoot")}
                 </p>
               </Panel>
           </FadeRise>
@@ -191,7 +191,7 @@ export function Features() {
               <Panel className="flex h-full min-h-[20rem] flex-col justify-between p-6 sm:p-7">
                 <div className="flex items-baseline justify-between">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-grow" />
+                    <TrendingUp aria-hidden className="h-4 w-4 text-grow-text" />
                     <h3 className="text-base font-semibold text-cream-bright sm:text-lg">
                       {t("land.card3Title")}
                     </h3>
@@ -201,8 +201,8 @@ export function Features() {
                 <div className="my-auto flex flex-col gap-3">
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
-                      <span className="text-cream-dim">STAR Answer Structure</span>
-                      <span className="tabular-nums font-semibold text-grow">92%</span>
+                      <span className="text-cream-dim">{t("land.featStructure")}</span>
+                      <span className="tabular-nums font-semibold text-grow-text">92%</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift">
                       <div className="h-full w-[92%] rounded-full bg-grow" />
@@ -211,8 +211,8 @@ export function Features() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
-                      <span className="text-cream-dim">Pace & Speaking Cadence</span>
-                      <span className="tabular-nums font-semibold text-accent">138 wpm</span>
+                      <span className="text-cream-dim">{t("land.featPace")}</span>
+                      <span className="tabular-nums font-semibold text-accent-text">138 wpm</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift">
                       <div className="h-full w-[85%] rounded-full bg-accent" />
@@ -221,7 +221,7 @@ export function Features() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
-                      <span className="text-cream-dim">Filler Words Rate</span>
+                      <span className="text-cream-dim">{t("land.featFiller")}</span>
                       <span className="tabular-nums font-semibold text-cream-bright">1.2%</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift">
@@ -241,7 +241,7 @@ export function Features() {
               <Panel className="flex h-full min-h-[20rem] flex-col justify-between p-6 sm:p-7">
                 <div className="flex items-baseline justify-between">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-accent" />
+                    <Sparkles aria-hidden className="h-4 w-4 text-accent-text" />
                     <h3 className="text-base font-semibold text-cream-bright sm:text-lg">
                       {t("land.card2Title")}
                     </h3>
@@ -255,7 +255,8 @@ export function Features() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Role or target company..."
+                      placeholder={t("land.featRolePlaceholder")}
+                      aria-label={t("land.featRolePlaceholder")}
                       className="w-full rounded-full border border-line-strong bg-surface-card py-2.5 pl-10 pr-4 text-sm text-cream-bright placeholder:text-cream-faint focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15"
                     />
                   </div>

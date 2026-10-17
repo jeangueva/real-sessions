@@ -137,7 +137,7 @@ export function GiftPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="focus-ring w-full rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream-bright"
+                  className="field-control text-sm font-normal text-cream-bright"
                 />
               </label>
               {error && (

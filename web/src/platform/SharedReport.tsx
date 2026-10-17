@@ -108,8 +108,7 @@ export function SharedReport() {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
         <FadeRise>
           <div className="flex flex-col gap-2">
-            <Eyebrow>{t("shared.eyebrow")}</Eyebrow>
-            <h1 className="text-display font-semibold text-cream-bright">
+            <h1 className="text-balance text-headline font-semibold text-cream-bright">
               {t("shared.title", { role: report.role, company: report.company })}
             </h1>
             <p className="text-sm text-cream-dim">
@@ -271,8 +270,7 @@ function SharedDefense({
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <FadeRise>
           <div className="flex flex-col gap-2">
-            <Eyebrow>{tt("sharedDefenseEyebrow")}</Eyebrow>
-            <h1 className="text-display font-semibold text-cream-bright">
+            <h1 className="text-balance text-headline font-semibold text-cream-bright">
               {tt("sharedDefenseTitle", { university: report.company })}
             </h1>
           </div>

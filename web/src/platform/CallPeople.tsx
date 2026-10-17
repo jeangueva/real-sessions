@@ -48,7 +48,7 @@ export function JuryRow({
             key={juror.tag}
             aria-current={holds ? "true" : undefined}
             className={`flex flex-col items-center gap-2 rounded-2xl px-1.5 py-3 text-center ring-1 transition-[background-color,box-shadow,opacity] duration-300 ease-out sm:gap-3 sm:px-3 sm:py-5 ${
-              holds ? "bg-white/[0.08] ring-2 ring-accent" : "bg-white/[0.03] opacity-50 ring-white/10"
+              holds ? "bg-white/[0.08] ring-2 ring-accent" : "bg-white/[0.03] ring-white/10"
             }`}
           >
             <InterviewerPresence
@@ -56,11 +56,14 @@ export function JuryRow({
               speaking={talking}
               level={talking && measured() ? level : undefined}
               size={compact ? 56 : 88}
-              className={compact ? "" : "scale-75 sm:scale-100"}
+              className={`transition-opacity duration-300 ${holds ? "" : "opacity-50"} ${compact ? "" : "scale-75 sm:scale-100"}`}
             />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-cream-bright sm:text-base">{juror.name}</p>
-              <p className="line-clamp-2 text-xs text-cream-dim">{juror.title}</p>
+            <div className="w-full min-w-0">
+              {/* Only the face dims when someone else holds the floor. Dimming the
+                  whole tile took the names below 4.5:1, and the names are how
+                  you know who is about to ask. */}
+              <p className={`truncate text-sm font-semibold sm:text-base ${holds ? "text-cream-bright" : "text-cream-dim"}`}>{juror.name}</p>
+              <p className={`line-clamp-2 text-xs ${holds ? "text-cream-dim" : "text-cream-faint"}`}>{juror.title}</p>
             </div>
             <Waveform
               active={talking}

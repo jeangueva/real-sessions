@@ -91,14 +91,14 @@ export function LevelUp({
               />
             ))}
           <motion.div
-            initial={still ? false : { transform: "scale(0.5) rotate(-8deg)" }}
-            animate={{ transform: "scale(1) rotate(0deg)" }}
-            transition={{ type: "spring", duration: 0.7, bounce: 0.45, delay: 0.1 }}
+            initial={still ? false : { transform: "scale(0.85)" }}
+            animate={{ transform: "scale(1)" }}
+            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
           >
             <Avatar level={level} size={120} />
           </motion.div>
         </div>
-        <p className="mt-5 text-sm font-semibold uppercase tracking-wide text-accent-text">
+        <p className="mt-5 text-base font-medium text-cream-dim">
           {t("levelup.eyebrow")}
         </p>
         <h2 id="levelup-title" className="mt-1 text-headline font-bold text-cream-bright">

@@ -43,8 +43,8 @@ export function Screen({
   return (
     <div
       aria-hidden
-      className={`overflow-hidden rounded-[1.25rem] shadow-[0_0_0_1px_var(--line),0_24px_60px_-20px_rgb(0_0_0/0.25)] ${
-        dark ? "bg-[#0b0b0f]" : "bg-surface-card"
+      className={`overflow-hidden rounded-card shadow-float ${
+        dark ? "on-media bg-surface-base" : "bg-surface-card"
       } ${className}`}
     >
       {children}

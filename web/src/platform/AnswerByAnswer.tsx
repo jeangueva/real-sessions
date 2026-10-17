@@ -36,9 +36,11 @@ export function AnswerByAnswer({ items, historyId }: { items: Item[]; historyId:
   return (
     <Panel className="p-6 sm:p-8">
       <h2 className="text-base font-semibold text-cream-bright">{t("answers.title")}</h2>
-      <ol className="mt-4 flex flex-col gap-3">
+      {/* Rows on a rule, not tiles in the panel: the suggested answer is the
+          one well inside each, so it is the thing the eye lands on. */}
+      <ol className="mt-2 flex flex-col divide-y divide-[color:var(--line)]">
         {items.map((item, index) => (
-          <li key={index} className="rounded-2xl bg-surface-lift p-4 [overflow-wrap:anywhere]">
+          <li key={index} className="py-5 last:pb-0 [overflow-wrap:anywhere]">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm font-semibold text-cream-bright">{item.question}</p>
               <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${VERDICT[item.verdict].className}`}>
@@ -46,7 +48,7 @@ export function AnswerByAnswer({ items, historyId }: { items: Item[]; historyId:
               </span>
             </div>
             <p className="mt-1.5 text-sm text-cream-dim">{item.feedback}</p>
-            <p className="mt-3 rounded-xl bg-surface-card px-3 py-2 text-sm text-cream-bright">
+            <p className="mt-3 rounded-xl bg-surface-lift px-4 py-3 text-sm text-cream-bright">
               <span className="block text-xs font-semibold text-accent-text">{t("answers.better")}</span>
               “{unquote(item.better)}”
             </p>
@@ -99,7 +101,7 @@ function Retry({ historyId, index, onClose }: { historyId: string; index: number
   };
 
   return (
-    <div className="mt-3 flex flex-col gap-3 rounded-xl bg-surface-card p-3">
+    <div className="mt-3 flex flex-col gap-3 rounded-xl bg-surface-lift p-4">
       <div className="relative">
         <textarea
           value={voice.listening && voice.transcript ? `${answer} ${voice.transcript}`.trim() : answer}
@@ -126,7 +128,7 @@ function Retry({ historyId, index, onClose }: { historyId: string; index: number
       {error && <p role="alert" className="text-sm text-step-text">{error}</p>}
       {result && (
         <PopIn>
-          <div className="rounded-xl bg-surface-lift p-3" role="status">
+          <div className="border-t border-[color:var(--line)] pt-3" role="status">
             <p className={`text-sm font-semibold ${result.improved ? "text-grow-text" : "text-cream-bright"}`}>
               {t(result.improved ? "answers.improved" : "answers.notYet")}
             </p>

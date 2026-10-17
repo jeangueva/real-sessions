@@ -153,7 +153,7 @@ export function Progress() {
       <>
         <PageHeader title={t("progress.title")} />
         <PageBody>
-          <Panel variant="glass" className="max-w-2xl p-6 sm:p-8">
+          <Panel variant="raised" className="max-w-2xl p-6 sm:p-8">
             <p role="alert" className="text-sm text-cream-bright">
               {error}
             </p>

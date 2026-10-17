@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, CheckItem, Eyebrow, FadeRise, Panel, Section, SegmentThumb } from "@/design-system";
+import { Action, CheckItem, FadeRise, Panel, Section, SegmentThumb } from "@/design-system";
 import { fetchPricing, type BillingCycle, type PlanOffer, type Region } from "@/lib/api";
 import { useLocalPrice } from "@/hooks/useLocalPrice";
 import type { Rates } from "@/lib/local-price";
@@ -72,8 +72,7 @@ export function Pricing() {
   return (
     <Section id="pricing" className="bg-surface-base">
       <div className="mx-auto max-w-3xl text-center">
-        <Eyebrow>{t("land.pricingEyebrow")}</Eyebrow>
-        <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">
+        <h2 className="text-balance text-headline font-semibold text-cream-bright">
           {t("land.pricingTitle")}
         </h2>
       </div>

@@ -256,7 +256,7 @@ export function Billing() {
 
   return (
     <div ref={panel} id="plan">
-    <Panel variant="glass" className="mt-4 max-w-2xl p-6">
+    <Panel className="mt-4 max-w-2xl p-6 sm:p-8">
       <Eyebrow>{t("billing.plan")}</Eyebrow>
 
       <p className="mt-3 text-sm text-cream-dim">

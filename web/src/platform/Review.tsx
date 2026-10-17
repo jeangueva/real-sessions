@@ -82,7 +82,7 @@ export function Review() {
       <>
         <PageHeader title={t("review.title")} />
         <PageBody>
-          <Panel variant="glass" className="max-w-2xl p-6">
+          <Panel variant="raised" className="max-w-2xl p-6">
             <p role="alert" className="text-sm text-cream-bright">
               {error}
             </p>

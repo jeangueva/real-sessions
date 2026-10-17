@@ -28,7 +28,6 @@ const ES = {
   navTech: "Integración",
   navAffiliates: "Afiliados",
   cta: "Agendar una conversación",
-  kicker: "Para universidades e institutos",
   title: "Ensayos de sustentación para toda tu facultad, dentro de tu aula virtual.",
   sub: "Tus estudiantes entran a Mockio con un clic desde su curso, ensayan frente a un jurado de 3 que leyó su tesis, con tu rúbrica, y la nota vuelve a tu libro de calificaciones.",
   tech: "Ver la integración",
@@ -97,7 +96,6 @@ const PT: Record<Key, string> = {
   navTech: "Integração",
   navAffiliates: "Afiliados",
   cta: "Agendar uma conversa",
-  kicker: "Para universidades e faculdades",
   title: "Ensaios de defesa para todo o seu curso, dentro do seu ambiente virtual.",
   sub: "Os estudantes entram no Mockio com um clique a partir da disciplina, ensaiam diante de uma banca de 3 que leu o trabalho, com a sua rubrica, e a nota volta ao livro de notas.",
   tech: "Ver a integração",
@@ -165,7 +163,6 @@ const EN: Record<Key, string> = {
   navTech: "Integration",
   navAffiliates: "Affiliates",
   cta: "Book a conversation",
-  kicker: "For universities and colleges",
   title: "Defence rehearsals for your whole faculty, inside your learning platform.",
   sub: "Students open Mockio with one click from their course, rehearse before a panel of three that read their thesis, against your rubric, and the grade goes back to your gradebook.",
   tech: "See the integration",
@@ -357,7 +354,7 @@ function Feature({ title, body, screen, flip = false }: { title: string; body: s
   return (
     <div className="grid items-center gap-10 py-16 md:grid-cols-2 md:gap-16 md:py-24 [&>*]:min-w-0">
       <FadeRise className={flip ? "md:order-2" : ""}>
-        <h3 className="text-balance text-[clamp(1.75rem,3.2vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-cream-bright">{title}</h3>
+        <h2 className="text-balance text-[clamp(1.75rem,3.2vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-cream-bright">{title}</h2>
         <p className="mt-4 max-w-md text-pretty text-lg leading-relaxed text-cream-dim">{body}</p>
       </FadeRise>
       <FadeRise delay={0.08} className={flip ? "md:order-1" : ""}>
@@ -384,7 +381,7 @@ function LeadForm({ c }: { c: Record<Key, string> }) {
   });
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState<string | null>(null);
-  const field = "focus-ring w-full rounded-xl bg-surface-lift px-3 py-3 text-base text-cream-bright placeholder:text-cream-faint";
+  const field = "field-control text-base text-cream-bright placeholder:text-cream-faint";
   const label = "flex min-w-0 flex-col gap-1.5 text-sm font-semibold text-cream-dim";
   const set = (key: keyof typeof values) => (event: { target: { value: string } }) =>
     setValues((current) => ({ ...current, [key]: event.target.value }));
@@ -503,8 +500,7 @@ export function InstitutionsPage() {
       <section className="pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
         <Wrap className="py-16 md:py-28">
           <FadeRise className="max-w-4xl">
-            <p className="text-sm font-semibold text-accent-text">{c.kicker}</p>
-            <h1 className="mt-4 text-balance text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1] tracking-[-0.045em] text-cream-bright">
+            <h1 className="text-balance text-headline font-semibold text-cream-bright">
               {c.title}
             </h1>
             <Lede className="mt-6 max-w-2xl">{c.sub}</Lede>

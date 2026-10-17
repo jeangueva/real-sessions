@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Action,
   Section,
-  Eyebrow,
   Panel,
   FadeRise,
   InterviewerPresence,
@@ -31,8 +30,7 @@ export function InterviewPreview() {
        subject" without a rule or a heading colour. */
     <Section id="how-it-works" className="bg-surface-deep">
       <FadeRise className="mx-auto max-w-3xl text-center">
-        <Eyebrow>{t("land.previewEyebrow")}</Eyebrow>
-        <h2 className="mt-3 text-balance text-headline">
+        <h2 className="text-balance text-headline">
           <span className="text-cream-bright">
             {t("land.previewAsks")}
           </span>{" "}
@@ -103,7 +101,7 @@ function SpokenTurn({ text }: { text: string }) {
           className="text-accent"
         />
       </div>
-      <p className="min-h-[7rem] text-title font-medium text-cream-bright" aria-label={text}>
+      <p className="min-h-[7rem] text-title font-medium leading-snug text-cream-bright" aria-label={text}>
         <span aria-hidden>{displayed}</span>
         {!done && (
           <span

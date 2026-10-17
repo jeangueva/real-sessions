@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
-import { Action, Eyebrow, Field, Notice } from "@/design-system";
+import { Action, Field, Notice } from "@/design-system";
 import { ApiError, requestPasswordReset, resetPassword } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -19,8 +19,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
   const t = useT();
   return (
     <AuthLayout>
-    <Eyebrow>{t("auth.password")}</Eyebrow>
-    <h1 className="mt-3 text-title font-semibold text-cream-bright">{title}</h1>
+    <h1 className="text-title font-semibold text-cream-bright">{title}</h1>
     {children}
     <Link
       to="/signin"
