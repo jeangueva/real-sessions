@@ -9,6 +9,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens/tokens.css",
+    "./theme.css": "./src/tokens/theme.css",
+    "./styles.css": "./src/styles.css",
     "./tailwind-preset": "./src/tokens/tailwind-preset.js",
     "./tokens.json": "./src/tokens/tokens.json",
     "./registry.json": "./registry.json"
@@ -17,11 +19,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "tokens": "node scripts/build-tokens.mjs",
     "registry": "tsx scripts/build-registry.ts",
-    "check": "node scripts/build-tokens.mjs --check && tsx scripts/build-registry.ts --check && tsc --noEmit && vitest run",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "tokens": "node scripts/build-tokens.mjs"
+    "check": "node scripts/build-tokens.mjs --check && tsx scripts/build-registry.ts --check && tsc --noEmit && vitest run"
   },
   "peerDependencies": {
     "framer-motion": "^11.15.0",
