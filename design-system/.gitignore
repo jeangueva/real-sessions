@@ -1,0 +1,7 @@
+# The monorepo's root .gitignore already covers the first two; they are
+# repeated so the folder stays correct once split into its own repository
+# (docs/guides/separate-repo.md).
+node_modules
+dist
+# Per-item registry files from `npx shadcn build`, regenerated from registry.json.
+public/r

@@ -1,0 +1,562 @@
+/* The product stylesheet: Tailwind layers, tokens, base rules and the few
+   component classes the system relies on (focus-ring, field-control,
+   on-media, disclosure). Kept identical to web/src/index.css. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * The palette, as variables, so a theme is a swap rather than a rewrite.
+   *
+   * Every colour in the app already goes through a named token — `cream`,
+   * `surface-*`, `line` — so nothing needed renaming to get a second theme.
+   * What changed is that those tokens now read from here.
+   *
+   * `--cream` is the ink, not the colour. In light mode it becomes near-black,
+   * and `cream-dim`, `cream-faint` and `line` follow automatically because
+   * they are alpha steps of the same variable. That is the whole reason the
+   * light theme is nine lines and not nine hundred.
+   *
+   * Channels rather than colours because Tailwind's `/50` opacity modifiers
+   * compile to `rgb(var(--x) / 0.5)`, which needs the raw numbers.
+   */
+  :root {
+    /* The UI ease-out, as a variable for the hand-written rules below. The
+       same curve as Tailwind's `ease-press` and motion.tsx's EASE_OUT. */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+    /**
+     * Dark — Apple's, not a cinema's.
+     *
+     * True black for the page, the way iOS draws its own dark mode: on an
+     * OLED phone it is the pixel switched off, and the grouped greys above it
+     * (#1C1C1E, #2C2C2E) read as surfaces rather than as fog. The ink is a
+     * cool off-white so nothing on the page looks yellowed next to the accent.
+     */
+    --cream: 245 245 247;
+    --cream-bright: 250 250 252;
+    --surface-base: 0 0 0;
+    --surface-raised: 22 22 24;
+    --surface-card: 28 28 30;
+    /* The signed-in ground: a step off black, so cards on it still lift. */
+    --surface-deep: 12 12 13;
+    /* Recessed panels inside a surface — transcript, call stage. */
+    --surface-sunken: 0 0 0;
+    --surface-sunken-alpha: 0.32;
+    /* A barely-there lift, for a row that is hovered or selected. */
+    --surface-lift: 255 255 255;
+    --surface-lift-alpha: 0.07;
+    --line: rgba(245, 245, 247, 0.12);
+    /* 0.42 is the lowest that clears 3:1 against every dark surface. */
+    --line-strong: rgba(245, 245, 247, 0.42);
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    /* Shadows barely register on black; the hairline does the separating. */
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-lift: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.5);
+    --shadow-float: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 64px rgba(0, 0, 0, 0.6);
+
+    /**
+     * The colours that mean something — three roles, never decoration:
+     *
+     *   accent  The way forward. Apple's indigo: confident, nowhere near the
+     *           red of a mistake, and continuous with the violet the brand
+     *           already wore.
+     *   grow    Something that got better.
+     *   step    Something to work on. Orange, not red: what you said is the
+     *           step before the better version, not a wrong answer.
+     *
+     * Each has an ink for text on its fill (`-ink`), a text shade that clears
+     * 4.5:1 on every surface (`-text`), and a soft wash for chips and rows.
+     * On dark the fill and the text part ways: #5E5CE6 carries white at 5:1
+     * but is only 3.4:1 as text on a card, so text takes the lighter step.
+     */
+    --accent: 94 92 230;
+    --accent-ink: 255 255 255;
+    --accent-text: 125 122 255;
+    --accent-soft: 30 30 62;
+    /* The darker edge under a primary button — the key's side, Duolingo-style. */
+    --accent-depth: 58 56 168;
+    --grow: 48 209 88;
+    --grow-text: 48 209 88;
+    --grow-soft: 16 44 26;
+    --step: 255 159 10;
+    --step-text: 255 159 10;
+    --step-soft: 56 38 8;
+    --premium: 255 204 0;
+    --premium-soft: 58 46 8;
+  }
+
+  /**
+   * Light — the product's own theme.
+   *
+   * White, the way both references draw their ground: the content is the
+   * colour, the page is not. Ink is Apple's #1D1D1F rather than black, which
+   * keeps large type from vibrating on a bright screen. The signed-in shell
+   * sits on #F5F5F7 so white cards on it read as cards without a border.
+   */
+  :root[data-theme="light"] {
+    --cream: 29 29 31;
+    --cream-bright: 17 17 19;
+    --surface-base: 255 255 255;
+    --surface-raised: 255 255 255;
+    --surface-card: 255 255 255;
+    --surface-deep: 245 245 247;
+    --surface-sunken: 29 29 31;
+    --surface-sunken-alpha: 0.04;
+    --surface-lift: 29 29 31;
+    --surface-lift-alpha: 0.05;
+    --line: rgba(29, 29, 31, 0.11);
+    /* The light surfaces are brighter, so the same rule costs more alpha. */
+    --line-strong: rgba(29, 29, 31, 0.49);
+    --scrim: rgba(29, 29, 31, 0.32);
+
+    /* Airbnb's card: a hairline you barely see and a wide, soft fall-off. */
+    --shadow-card: 0 0 0 1px rgba(29, 29, 31, 0.06), 0 2px 4px rgba(29, 29, 31, 0.04),
+      0 8px 24px rgba(29, 29, 31, 0.06);
+    --shadow-lift: 0 0 0 1px rgba(29, 29, 31, 0.06), 0 6px 12px rgba(29, 29, 31, 0.06),
+      0 18px 40px rgba(29, 29, 31, 0.1);
+    --shadow-float: 0 0 0 1px rgba(29, 29, 31, 0.05), 0 12px 24px rgba(29, 29, 31, 0.08),
+      0 32px 72px rgba(29, 29, 31, 0.14);
+
+    /* #5856D6 carries white at 5.6:1, reads as text on white at 5.6:1 and on
+       #F5F5F7 at 5.2:1. */
+    --accent: 88 86 214;
+    --accent-ink: 255 255 255;
+    --accent-text: 88 86 214;
+    --accent-soft: 238 238 252;
+    --accent-depth: 62 60 170;
+    --grow: 52 199 89;
+    --grow-text: 30 123 52;
+    --grow-soft: 226 246 231;
+    --step: 255 159 10;
+    --step-text: 178 80 0;
+    --step-soft: 255 243 224;
+    /* #A16A00 clears 4.5:1 on white; the crown sits on its own soft wash. */
+    --premium: 161 106 0;
+    --premium-soft: 255 244 204;
+  }
+
+  html {
+    @apply font-sans;
+    /* The grey flash iOS and Android paint over anything tapped. Every
+       control has its own :active state instead. */
+    -webkit-tap-highlight-color: transparent;
+    /* SF and Inter both ship an optical-size axis; let the browser pick the
+       cut that matches the size instead of one drawing for every size. */
+    font-optical-sizing: auto;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-surface-base text-cream-bright antialiased;
+    /* Inter's single-storey a and open digits — closer to SF's shapes. */
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  /* Headings carry weight, not size alone: hierarchy is weight, size and
+     leading as a set. Screens that need a lighter heading say so. */
+  h1, h2, h3 {
+    font-weight: 600;
+  }
+
+  /* Form controls do not inherit type by default. */
+  button, input, select, textarea {
+    font-family: inherit;
+  }
+
+  /* A control answers the tap at once (no double-tap-zoom wait) and a long
+     press does not select its label or pop the link callout. Text that is
+     content stays selectable — this is only on things you press. */
+  button, a, [role="button"], [role="tab"], [role="option"], summary, label[for] {
+    touch-action: manipulation;
+  }
+
+  button, [role="button"], [role="tab"], [role="option"], summary {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* iOS zooms into any field under 16px and never zooms back out. */
+  @media (pointer: coarse) {
+    input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select {
+      font-size: max(16px, 1em);
+    }
+  }
+
+  /* The landing nav scrolls the page rather than routing, so smooth it —
+     the reduced-motion block below puts it back to an instant jump. */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /**
+   * Reduced motion is fewer, gentler animations — not none.
+   *
+   * Loops and keyframes stop. Transitions keep running, but only on the
+   * properties that carry meaning without moving anything: opacity and
+   * colour. Position and scale change instantly. The first version zeroed
+   * every transition, which also took away the fade that tells you a popover
+   * opened and the tint that tells you a button was pressed.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-property: opacity, color, background-color, border-color, box-shadow,
+        fill, stroke !important;
+    }
+
+    html {
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /**
+   * The landing nav, which follows the reader down the page.
+   *
+   * Over the hero it is transparent — the footage is the background and a bar
+   * on top of it would cover the thing it is sitting on. Past the hero there
+   * is no footage to sit on, so it takes a surface and a blur, because text
+   * scrolling underneath a transparent bar is unreadable.
+   */
+  /**
+   * The floating nav's own ground.
+   *
+   * `on-media` sets cream ink on the assumption that footage is behind it, and
+   * the top of the bar overhangs the hero frame onto the page's margin — cream
+   * on a light page, which made the labels 1.32:1 and invisible. This is the
+   * ground the ink assumes, carried by the bar instead of borrowed from
+   * whatever it happens to overlap, so the geometry of the frame below cannot
+   * make it wrong again.
+   *
+   * A pill around the labels rather than a band across the viewport. Full
+   * width was the first shape and it overhung the hero frame on both sides,
+   * laying a grey strip on the page margin and cutting the frame's rounded
+   * corners. The pill is only as wide as the labels, so it never reaches an
+   * edge it has to agree with, and it stays clear of the frame's geometry
+   * entirely — which is the property the fix needed in the first place.
+   *
+   * A flat ground, not a gradient. The first version eased top to bottom and
+   * left the underside of the text on a quarter-strength ground at 1.33:1 —
+   * the same failure it was written to fix, moved down a few pixels.
+   *
+   * Opaque enough to stand on the page's own paper, not just on the footage.
+   * At 0.55 it measured 10.8:1 over the frame and 3.0:1 over cream, which
+   * would have made the fix depend on the pill never overhanging the frame —
+   * the same coupling that caused the bug. 0.72 clears 4.5:1 against either.
+   */
+  .nav-floating {
+    background: rgb(0 0 0 / 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Apple's toolbar material: translucent, saturated, content scrolling
+     underneath rather than a fixed opaque strip. */
+  .nav-lifted {
+    background: rgb(var(--surface-raised) / 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .nav-lifted {
+      background: rgb(var(--surface-raised));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    /* The floating pill carries light ink in both themes, so its solid
+       fallback is the dark it was standing in for. */
+    .nav-floating {
+      background: rgb(0 0 0);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
+  /**
+   * Atmosphere, dimmed for a light page.
+   *
+   * The drifting blobs are a dark-ground effect: cream light lifting off
+   * black. There is no light-ground equivalent at the same strength — the
+   * warm half disappears into the paper and the cool half reads as dirt — so
+   * on the light theme the whole field drops to a hint of itself rather than
+   * being redrawn in colours that would not mean the same thing.
+   */
+  /* Full strength is the default, so only the light cases are declared. */
+  :root[data-theme="light"] .backdrop-field { opacity: 0.28; }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .backdrop-field { opacity: 0.28; }
+  }
+
+  /**
+   * The light across the top of the recommended plan.
+   *
+   * Cream at low opacity over a dark card reads as a light source. On the
+   * light theme the same token is near-black, so the identical rule paints a
+   * grey smear down the top edge of a white card — the failure `glow-card.tsx`
+   * documents, arriving here by the same route.
+   *
+   * It is a light effect, so it belongs to the dark themes and is simply
+   * absent on the light one. Dimming it would leave a faint smudge, which is
+   * worse than nothing: nobody reads a faint smudge as light.
+   */
+  :root[data-theme="light"] .plan-glow { display: none; }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .plan-glow { display: none; }
+  }
+
+  /**
+   * A dark island inside a light page.
+   *
+   * The hero's ground is not a surface token. It is video, under scrims that
+   * are black in both themes because the footage is graded dark — so the ink
+   * over it has to follow the ground it actually sits on rather than the
+   * page's. Without this the light theme flipped the headline, the nav and
+   * the blurb to near-black over near-black footage: the one place in the
+   * product where the theme could make text disappear entirely.
+   *
+   * Pinning the variables rather than overriding each class is the same trick
+   * the theme itself uses, so every child — including primitives that know
+   * nothing about the hero — comes out right.
+   */
+  .on-media {
+    --cream: 245 245 247;
+    --cream-bright: 250 250 252;
+    --surface-base: 0 0 0;
+    --line: rgba(245, 245, 247, 0.14);
+    --line-strong: rgba(245, 245, 247, 0.42);
+    --accent: 94 92 230;
+    --accent-ink: 255 255 255;
+    --accent-text: 125 122 255;
+    /* The idle avatar on a dark stage: a dark indigo disc rather than the
+       light theme's near-white wash, which glared off black. */
+    --accent-soft: 30 30 62;
+  }
+
+  /* Liquid glass. The only surface treatment allowed to float over video. */
+  /* Highlights are white on a dark ground and near-black on a light one, so
+     the glass reads as glass either way rather than as haze. */
+  /* On paper there is nothing behind the glass to refract, so it becomes
+     what glass on a desk looks like: a white sheet with an edge. Nearly
+     transparent here read as plain text with no control around it. */
+  :root[data-theme="light"] .liquid-glass {
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow:
+      inset 0 0 0 1px rgba(31, 27, 22, 0.12),
+      0 1px 2px rgba(31, 27, 22, 0.04);
+  }
+
+  :root[data-theme="light"] .liquid-glass::before {
+    display: none;
+  }
+
+  /* Over footage the light theme still needs real glass. */
+  :root[data-theme="light"] .on-media .liquid-glass {
+    background: rgba(255, 255, 255, 0.01);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  :root[data-theme="light"] .on-media .liquid-glass::before {
+    display: block;
+  }
+
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0) 60%,
+      rgba(255, 255, 255, 0.15) 80%,
+      rgba(255, 255, 255, 0.45) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Film grain. Keeps flat black from banding on large surfaces. */
+  .noise-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /**
+   * A text field, Apple's way: a white well with a border you can see, and on
+   * focus the border takes the accent and a soft halo spreads around it — the
+   * field answers the click instead of a ring appearing a few pixels away.
+   * The border stays `line-strong` at rest because on white it is the only
+   * thing saying "this is a field" (WCAG 1.4.11).
+   */
+  .field-control {
+    /* `w-full min-w-0`: a select is as wide as its longest option by
+       default, and the question form's sector list pushed the landing page
+       to 366px on a 320px phone. A width utility on the field still wins. */
+    @apply w-full min-w-0 rounded-xl border border-line-strong bg-surface-card px-4 py-3 outline-none;
+    transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  }
+
+  .field-control:focus-visible {
+    border-color: rgb(var(--accent));
+    box-shadow: 0 0 0 4px rgb(var(--accent) / 0.18);
+  }
+
+  /**
+   * A popover arriving: from 97% and transparent, never from nothing, over
+   * 160ms on a strong ease-out. `transform-origin` is set per popover to
+   * the edge facing its trigger, so it grows out of the thing you pressed.
+   * `@starting-style` needs no JavaScript and a browser without it simply
+   * shows the popover at once, which is the right fallback.
+   */
+  .pop-in {
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+
+  @starting-style {
+    .pop-in {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
+  /**
+   * The call's transcript on a phone: a sheet rising from the bottom edge on
+   * iOS's own curve, so it reads as coming from where the controls are. On a
+   * desktop it is a column beside the call and simply appears.
+   */
+  @media (max-width: 1023px) {
+    .sheet-in {
+      transition:
+        transform 320ms var(--ease-drawer),
+        opacity 200ms var(--ease-out);
+    }
+
+    @starting-style {
+      .sheet-in {
+        opacity: 0;
+        transform: translateY(100%);
+      }
+    }
+  }
+
+  /* Focus is never removed, only restyled — this is an accessibility product. */
+  .focus-ring {
+    @apply outline-none ring-offset-2 ring-offset-surface-base focus-visible:ring-2 focus-visible:ring-accent;
+  }
+}
+
+/*
+ * Printing a report — the PDF a student takes to their advisor.
+ *
+ * The app's chrome goes (the rail, the tab bar, every button), entrances are
+ * settled where they would have ended up — an element that animates in on
+ * scroll is still invisible to a printer that never scrolled to it — and the
+ * page is printed on the light theme whatever the screen uses; the print
+ * button switches to it for the moment of printing.
+ */
+/* The readiness report prints alone: everything else on the page steps out
+   while it is on paper. */
+/* Disclosures: the mark at a summary's edge turns over when its own
+   <details> opens, and its words swap. Direct-child selectors, so a closed
+   disclosure inside an open one is not turned with it. The summary lights on
+   hover like any other control, which is what tells it from a card. */
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details > summary .disclosure-mark {
+  transition: transform 200ms var(--ease-out);
+}
+details[open] > summary .disclosure-mark {
+  transform: rotate(180deg);
+}
+details > summary .disclosure-when-open,
+details[open] > summary .disclosure-when-closed {
+  display: none;
+}
+details[open] > summary .disclosure-when-open {
+  display: inline;
+}
+@media (hover: hover) and (pointer: fine) {
+  details > summary:hover .disclosure-pill {
+    background-color: rgb(var(--cream) / 0.14);
+  }
+}
+
+@media print {
+  html.print-report body > *:not(.print-report-root) {
+    display: none !important;
+  }
+  html.print-report .print-report-root {
+    display: block !important;
+  }
+}
+
+@media print {
+  aside,
+  nav,
+  button,
+  [data-print="hide"] {
+    display: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  html,
+  body,
+  main {
+    background: #fff !important;
+  }
+  details > :not(summary) {
+    display: block !important;
+  }
+  section,
+  li {
+    break-inside: avoid;
+  }
+}
