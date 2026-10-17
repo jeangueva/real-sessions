@@ -1026,6 +1026,19 @@ export function signInWithGoogle(credential: string) {
   });
 }
 
+/**
+ * Exchanges the access token from Google's sign-in popup for our own session
+ * cookie. The server asks Google whom it was minted for and whose it is; the
+ * browser's word for either counts for nothing.
+ */
+export function signInWithGoogleAccessToken(accessToken: string) {
+  return request<{ email: string }>("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+  });
+}
+
 export function fetchPlan() {
   return withIdentity(() =>
     request<{ plan: Plan; capabilities: Capabilities; reviewer: boolean }>(

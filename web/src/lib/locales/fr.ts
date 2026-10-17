@@ -647,6 +647,7 @@ const FR: Record<MessageKey, string> = {
   "setup.quotaLeft": "{left} sur {limit} gratuits cette semaine",
   "setup.quotaFree": "Formule gratuite",
   "auth.googleFailed": "Cela n'a pas fonctionné. Réessayez, ou utilisez votre e-mail et mot de passe.",
+  "auth.continueWithGoogle": "Continuer avec Google",
   "setup.fromApplication": "Entraînement pour votre candidature chez {company}",
   "setup.fromApplicationHint": "L'entretien s'appuie sur l'offre enregistrée avec ce poste.",
   "nav.applications": "Candidatures",
