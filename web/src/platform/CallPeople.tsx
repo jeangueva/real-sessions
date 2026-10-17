@@ -58,7 +58,7 @@ export function JuryRow({
               size={compact ? 56 : 88}
               className={`transition-opacity duration-300 ${holds ? "" : "opacity-50"} ${compact ? "" : "scale-75 sm:scale-100"}`}
             />
-            <div className="min-w-0">
+            <div className="w-full min-w-0">
               {/* Only the face dims when someone else holds the floor. Dimming the
                   whole tile took the names below 4.5:1, and the names are how
                   you know who is about to ask. */}
