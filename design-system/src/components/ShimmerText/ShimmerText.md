@@ -48,13 +48,14 @@ be selected and copied like any other, and selected text is drawn in
 
 ## Motion
 
-- The light crosses in `speed` seconds (2.4 by default) at a constant rate,
-  then the word is still for `pause` seconds (4 by default). The cycle repeats
+- Each cycle: the word is still for `pause` seconds (4 by default), then the
+  light crosses it in `speed` seconds (2.4 by default) at a constant rate. So
+  the first sweep comes `pause` seconds after mount, and the cycle repeats
   while the component is mounted.
 - Only `background-position` animates. Each frame repaints the word's own box
   and never the layout, but it is still work every frame: one per view.
 - Right-to-left, the animation runs in reverse so the light travels in
-  reading order; there the sweep comes first and the pause after.
+  reading order; there each cycle opens with the sweep and the pause follows.
 - On the light theme `cream-bright` is the near-black ink, so the band
   darkens the word instead of lightening it. That is the direction that raises
   contrast in both themes, and it matches the product.

@@ -9,7 +9,7 @@ export const ShimmerTextPreviews = definePreviews([
     id: "premium-chip",
     title: "In the Premium chip",
     kind: "default",
-    description: "The product's only use: the plan's name, a slow light across it, then four seconds of stillness.",
+    description: "The product's only use: the plan's name, still for four seconds, then a slow light across it, over and over.",
     render: () => (
       <span className={CHIP}>
         <ShimmerText>Premium</ShimmerText>
@@ -80,13 +80,13 @@ export const ShimmerTextPreviews = definePreviews([
         <span className={CHIP}>
           <ShimmerText>Premium</ShimmerText>
         </span>
-        <span className="max-w-[12rem] truncate text-sm font-medium text-cream-dim">Lucía Quispe</span>
+        <span className="max-w-[12rem] truncate text-sm font-medium text-cream-dim">María T.</span>
         <a
           href="#ajustes"
           aria-label="Ajustes"
           className="focus-ring grid h-9 w-9 place-items-center rounded-full bg-surface-card text-sm font-semibold text-cream-bright shadow-card"
         >
-          L
+          M
         </a>
       </div>
     ),

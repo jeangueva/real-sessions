@@ -75,12 +75,12 @@ export const EyebrowPreviews = definePreviews([
       <div className="flex flex-col gap-2">
         <Eyebrow lang="pt-BR">Relatório de uma entrevista de treino</Eyebrow>
         <h2 lang="pt-BR" className="text-title font-semibold text-cream-bright">
-          Analista de dados na Rappi
+          Senior Product Designer na Stripe
         </h2>
       </div>
     ),
     code: `<Eyebrow lang="pt-BR">Relatório de uma entrevista de treino</Eyebrow>
-<h2 lang="pt-BR">Analista de dados na Rappi</h2>`,
+<h2 lang="pt-BR">Senior Product Designer na Stripe</h2>`,
   },
   {
     id: "instead-of-heading",

@@ -77,8 +77,8 @@ export const BadgePreviews = definePreviews([
     render: () => (
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 bg-surface-deep p-4">
         <div className="min-w-0">
-          <h2 className="line-clamp-2 text-xl font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright">Rappi · Primera entrevista</h2>
-          <p className="mt-1.5 text-sm text-cream-dim">Analista de datos</p>
+          <h2 className="line-clamp-2 text-xl font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright">Stripe · Behavioral</h2>
+          <p className="mt-1.5 text-sm text-cream-dim">Senior Product Designer</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Badge>Práctica</Badge>

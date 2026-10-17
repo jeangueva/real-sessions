@@ -43,7 +43,8 @@ export const ShimmerTextContract = defineContract({
   states: [
     {
       name: "default",
-      description: "The text in accent-text with a band of cream-bright crossing it in reading order, then still for `pause` seconds; repeats while mounted.",
+      description:
+        "The text in accent-text; once every speed + pause seconds a band of cream-bright crosses it in reading order. Left to right, each cycle opens with the pause, so the first sweep comes `pause` seconds after mount.",
       trigger: "Initial render, motion allowed.",
     },
     {
@@ -54,9 +55,9 @@ export const ShimmerTextContract = defineContract({
   ],
   events: [],
   motion: [
-    "The light crosses the text in `speed` seconds (2.4 by default) at a constant rate (linear), then the text stays still for `pause` seconds (4 by default). One cycle is speed + pause; it repeats for as long as the component is mounted.",
+    "One cycle lasts speed + pause seconds and repeats for as long as the component is mounted: the text stays still for `pause` seconds (4 by default), then the light crosses it in `speed` seconds (2.4 by default) at a constant rate (linear). The first sweep therefore comes `pause` seconds after mount.",
     "Only background-position animates, from one keyframe; per-instance timing comes from an inline background-size and animation-duration. It repaints the text's own box each frame and never triggers layout — keep it to one instance per view.",
-    "Right-to-left: under :dir(rtl) the animation runs in reverse, so the light travels right to left, in reading order. There the sweep comes first in each cycle and the pause after.",
+    "Right-to-left: under :dir(rtl) the animation runs in reverse, so the light travels right to left, in reading order. There each cycle opens with the sweep and the pause follows.",
     "Reduced motion: no sweep and no gradient; the text is drawn in the base colour.",
   ],
   accessibility: {
@@ -72,11 +73,11 @@ export const ShimmerTextContract = defineContract({
     reducedMotion:
       "Under prefers-reduced-motion: reduce the sweep never runs and the text is plain accent-text. useReducedMotion() from framer-motion chooses the static branch when the component mounts; a prefers-reduced-motion media query in its own <style> covers a server render and a setting changed while the page is open. No MotionConfig provider is needed.",
     contrast:
-      "Every pixel is a mix of accent-text (the base) and cream-bright (the light), and in both themes the mix is never lower in contrast than the base. On the product's chip (accent-soft) that is ≥ 4.65:1 dark and ≥ 4.92:1 light at every frame; on page and card surfaces ≥ 4.94:1 dark and ≥ 5.19:1 light. Not for a surface-lift row in a dark card (4.05:1) or an accent fill (1.47:1). Selected text is drawn in accent-ink on accent (≥ 5:1).",
+      "Every pixel is a mix of accent-text (the base) and cream-bright (the light), and in both themes the mix is never lower in contrast than the base. On the product's chip (accent-soft) that is ≥ 4.65:1 dark and ≥ 4.92:1 light at every frame; on page and card surfaces ≥ 4.94:1 dark and ≥ 5.19:1 light. Not for a surface-lift row in a dark card (4.05:1) or an accent fill (1.47:1). Selected text is drawn in accent-ink on accent (≥ 5:1). Forced-colours mode drops the gradient and draws CanvasText; print, and a browser that cannot clip a background to text, draw plain accent-text, so it never renders or prints blank.",
     focus: "Not focusable.",
     targetSize: "not interactive",
     screenReader:
-      "Read as its text; the light is not announced. In forced-colours mode the gradient is dropped and the text is drawn in CanvasText; when printed it is plain accent-text, so it never prints blank.",
+      "Read as its text, exactly as written; the light is not announced, and nothing is hidden or relabelled. A sighted reader sees the sweep; a screen-reader user loses nothing by not hearing it.",
   },
   content: {
     voice: [

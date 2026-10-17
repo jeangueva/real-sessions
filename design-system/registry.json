@@ -7,29 +7,266 @@
       "name": "mockio-theme",
       "type": "registry:theme",
       "title": "Mockio tokens",
-      "description": "CSS variables for both themes, the Tailwind preset and the base stylesheet.",
+      "description": "Both themes as CSS variables, the Tailwind v4 theme (theme.css), the Tailwind v3 preset, tokens.json and the base stylesheet with the component classes.",
       "dependencies": [],
       "files": [
         {
-          "path": "src/tokens/tokens.css",
+          "path": "src/styles.css",
           "type": "registry:style",
-          "target": "styles/mockio-tokens.css"
+          "target": "mockio/styles.css"
         },
         {
           "path": "src/tokens/tailwind-preset.js",
           "type": "registry:lib",
-          "target": "lib/mockio-tailwind-preset.js"
+          "target": "mockio/tokens/tailwind-preset.js"
+        },
+        {
+          "path": "src/tokens/theme.css",
+          "type": "registry:style",
+          "target": "mockio/tokens/theme.css"
+        },
+        {
+          "path": "src/tokens/tokens.css",
+          "type": "registry:style",
+          "target": "mockio/tokens/tokens.css"
         },
         {
           "path": "src/tokens/tokens.json",
           "type": "registry:file",
-          "target": "styles/mockio-tokens.json"
+          "target": "mockio/tokens/tokens.json"
+        }
+      ],
+      "cssVars": {
+        "theme": {
+          "font-sans": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Almarai\", system-ui, sans-serif",
+          "font-serif": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Almarai\", system-ui, sans-serif",
+          "font-mark": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Almarai\", system-ui, sans-serif",
+          "text-xs": "0.875rem",
+          "text-xs--line-height": "1.5",
+          "text-sm": "1rem",
+          "text-sm--line-height": "1.55",
+          "text-base": "1.0625rem",
+          "text-base--line-height": "1.6",
+          "text-display": "clamp(3rem, 9vw, 8rem)",
+          "text-display--line-height": "0.95",
+          "text-display--letter-spacing": "-0.045em",
+          "text-headline": "clamp(2rem, 4.6vw, 4rem)",
+          "text-headline--line-height": "1.04",
+          "text-headline--letter-spacing": "-0.032em",
+          "text-title": "clamp(1.25rem, 2vw, 1.75rem)",
+          "text-title--line-height": "1.18",
+          "text-title--letter-spacing": "-0.018em",
+          "color-cream": "rgb(var(--cream))",
+          "color-cream-bright": "rgb(var(--cream-bright))",
+          "color-cream-dim": "rgb(var(--cream) / 0.85)",
+          "color-cream-faint": "rgb(var(--cream) / 0.65)",
+          "color-surface-base": "rgb(var(--surface-base))",
+          "color-surface-raised": "rgb(var(--surface-raised))",
+          "color-surface-card": "rgb(var(--surface-card))",
+          "color-surface-deep": "rgb(var(--surface-deep))",
+          "color-surface-sunken": "rgb(var(--surface-sunken) / var(--surface-sunken-alpha))",
+          "color-surface-lift": "rgb(var(--surface-lift) / var(--surface-lift-alpha))",
+          "color-line": "var(--line)",
+          "color-line-strong": "var(--line-strong)",
+          "color-scrim": "var(--scrim)",
+          "color-accent": "rgb(var(--accent))",
+          "color-accent-ink": "rgb(var(--accent-ink))",
+          "color-accent-text": "rgb(var(--accent-text))",
+          "color-accent-soft": "rgb(var(--accent-soft))",
+          "color-grow": "rgb(var(--grow))",
+          "color-grow-text": "rgb(var(--grow-text))",
+          "color-grow-soft": "rgb(var(--grow-soft))",
+          "color-step": "rgb(var(--step))",
+          "color-step-text": "rgb(var(--step-text))",
+          "color-step-soft": "rgb(var(--step-soft))",
+          "color-premium": "rgb(var(--premium))",
+          "color-premium-soft": "rgb(var(--premium-soft))",
+          "radius-inset": "1.75rem",
+          "radius-card": "1.25rem",
+          "shadow-card": "var(--shadow-card)",
+          "shadow-lift": "var(--shadow-lift)",
+          "shadow-float": "var(--shadow-float)",
+          "ease-cinematic": "cubic-bezier(0.16, 1, 0.3, 1)",
+          "ease-settle": "cubic-bezier(0.22, 1, 0.36, 1)",
+          "ease-press": "cubic-bezier(0.23, 1, 0.32, 1)",
+          "ease-drawer": "cubic-bezier(0.32, 0.72, 0, 1)",
+          "ease-out": "cubic-bezier(0, 0, 0.2, 1)",
+          "animate-fade-rise": "fadeRise 0.8s cubic-bezier(0.16,1,0.3,1) both",
+          "animate-fade-in": "fadeIn 0.5s ease both",
+          "animate-blink": "blink 1s step-end infinite",
+          "animate-live": "livePulse 2s cubic-bezier(0.45, 0, 0.55, 1) infinite",
+          "animate-drift-slow": "driftSlow 34s cubic-bezier(0.45,0,0.55,1) infinite",
+          "animate-drift-wide": "driftWide 46s cubic-bezier(0.45,0,0.55,1) infinite",
+          "animate-drift-counter": "driftCounter 58s cubic-bezier(0.45,0,0.55,1) infinite"
+        },
+        "light": {
+          "ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
+          "ease-drawer": "cubic-bezier(0.32, 0.72, 0, 1)",
+          "cream": "29 29 31",
+          "cream-bright": "17 17 19",
+          "surface-base": "255 255 255",
+          "surface-raised": "255 255 255",
+          "surface-card": "255 255 255",
+          "surface-deep": "245 245 247",
+          "surface-sunken": "29 29 31",
+          "surface-sunken-alpha": "0.04",
+          "surface-lift": "29 29 31",
+          "surface-lift-alpha": "0.05",
+          "line": "rgba(29, 29, 31, 0.11)",
+          "line-strong": "rgba(29, 29, 31, 0.49)",
+          "scrim": "rgba(29, 29, 31, 0.32)",
+          "shadow-card": "0 0 0 1px rgba(29, 29, 31, 0.06), 0 2px 4px rgba(29, 29, 31, 0.04), 0 8px 24px rgba(29, 29, 31, 0.06)",
+          "shadow-lift": "0 0 0 1px rgba(29, 29, 31, 0.06), 0 6px 12px rgba(29, 29, 31, 0.06), 0 18px 40px rgba(29, 29, 31, 0.1)",
+          "shadow-float": "0 0 0 1px rgba(29, 29, 31, 0.05), 0 12px 24px rgba(29, 29, 31, 0.08), 0 32px 72px rgba(29, 29, 31, 0.14)",
+          "accent": "88 86 214",
+          "accent-ink": "255 255 255",
+          "accent-text": "88 86 214",
+          "accent-soft": "238 238 252",
+          "accent-depth": "62 60 170",
+          "grow": "52 199 89",
+          "grow-text": "30 123 52",
+          "grow-soft": "226 246 231",
+          "step": "255 159 10",
+          "step-text": "178 80 0",
+          "step-soft": "255 243 224",
+          "premium": "161 106 0",
+          "premium-soft": "255 244 204"
+        },
+        "dark": {
+          "ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
+          "ease-drawer": "cubic-bezier(0.32, 0.72, 0, 1)",
+          "cream": "245 245 247",
+          "cream-bright": "250 250 252",
+          "surface-base": "0 0 0",
+          "surface-raised": "22 22 24",
+          "surface-card": "28 28 30",
+          "surface-deep": "12 12 13",
+          "surface-sunken": "0 0 0",
+          "surface-sunken-alpha": "0.32",
+          "surface-lift": "255 255 255",
+          "surface-lift-alpha": "0.07",
+          "line": "rgba(245, 245, 247, 0.12)",
+          "line-strong": "rgba(245, 245, 247, 0.42)",
+          "scrim": "rgba(0, 0, 0, 0.6)",
+          "shadow-card": "0 0 0 1px rgba(255, 255, 255, 0.06)",
+          "shadow-lift": "0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.5)",
+          "shadow-float": "0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 64px rgba(0, 0, 0, 0.6)",
+          "accent": "94 92 230",
+          "accent-ink": "255 255 255",
+          "accent-text": "125 122 255",
+          "accent-soft": "30 30 62",
+          "accent-depth": "58 56 168",
+          "grow": "48 209 88",
+          "grow-text": "48 209 88",
+          "grow-soft": "16 44 26",
+          "step": "255 159 10",
+          "step-text": "255 159 10",
+          "step-soft": "56 38 8",
+          "premium": "255 204 0",
+          "premium-soft": "58 46 8"
+        }
+      },
+      "css": {
+        "@keyframes fadeRise": {
+          "from": {
+            "opacity": "0",
+            "transform": "translateY(24px)"
+          },
+          "to": {
+            "opacity": "1",
+            "transform": "translateY(0)"
+          }
+        },
+        "@keyframes fadeIn": {
+          "from": {
+            "opacity": "0",
+            "transform": "translateY(4px)"
+          },
+          "to": {
+            "opacity": "1",
+            "transform": "translateY(0)"
+          }
+        },
+        "@keyframes blink": {
+          "0%, 100%": {
+            "opacity": "1"
+          },
+          "50%": {
+            "opacity": "0"
+          }
+        },
+        "@keyframes livePulse": {
+          "0%, 100%": {
+            "opacity": "1"
+          },
+          "50%": {
+            "opacity": "0.35"
+          }
+        },
+        "@keyframes driftSlow": {
+          "0%, 100%": {
+            "transform": "translate(-50%, 0) scale(1)",
+            "opacity": "1"
+          },
+          "50%": {
+            "transform": "translate(-46%, -4vmax) scale(1.08)",
+            "opacity": "0.85"
+          }
+        },
+        "@keyframes driftWide": {
+          "0%, 100%": {
+            "transform": "translate(0, 0) scale(1)"
+          },
+          "50%": {
+            "transform": "translate(8vmax, 5vmax) scale(1.12)"
+          }
+        },
+        "@keyframes driftCounter": {
+          "0%, 100%": {
+            "transform": "translate(0, 0) scale(1.05)",
+            "opacity": "0.9"
+          },
+          "50%": {
+            "transform": "translate(-6vmax, 4vmax) scale(1)",
+            "opacity": "0.6"
+          }
+        }
+      },
+      "docs": "Mockio is dark by default. With shadcn's cssVars, light is :root and dark is .dark, so add class=\"dark\" to <html> for Mockio's default look. Or skip the cssVars and import mockio/tokens/theme.css (Tailwind v4) or the preset in mockio/tokens/tailwind-preset.js (Tailwind v3).",
+      "categories": [
+        "foundations"
+      ]
+    },
+    {
+      "name": "mockio-contract",
+      "type": "registry:lib",
+      "title": "Mockio contracts",
+      "description": "The contract and preview types that every component's .contract.ts and .previews.tsx import.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "src/contract.ts",
+          "type": "registry:lib",
+          "target": "mockio/contract.ts"
         },
         {
-          "path": "src/styles.css",
-          "type": "registry:style",
-          "target": "styles/mockio.css"
+          "path": "src/preview.ts",
+          "type": "registry:lib",
+          "target": "mockio/preview.ts"
         }
+      ],
+      "categories": [
+        "foundations"
+      ]
+    },
+    {
+      "name": "mockio-guidelines",
+      "type": "registry:file",
+      "title": "Mockio guidelines",
+      "description": "The system's guidance as Markdown — foundations (colour, type, motion, voice) and guides — so a tool that installs the components also has the rules for using them.",
+      "files": [],
+      "categories": [
+        "guidelines"
       ]
     },
     {
@@ -40,37 +277,44 @@
       "dependencies": [
         "lucide-react"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
       "files": [
         {
           "path": "src/components/Action/Action.tsx",
           "type": "registry:ui",
-          "target": "components/mockio/Action/Action.tsx"
+          "target": "mockio/components/Action/Action.tsx"
         },
         {
           "path": "src/components/Action/Action.contract.ts",
           "type": "registry:file",
-          "target": "components/mockio/Action/Action.contract.ts"
-        },
-        {
-          "path": "src/components/Action/Action.previews.tsx",
-          "type": "registry:file",
-          "target": "components/mockio/Action/Action.previews.tsx"
+          "target": "mockio/components/Action/Action.contract.ts"
         },
         {
           "path": "src/components/Action/Action.md",
           "type": "registry:file",
-          "target": "components/mockio/Action/Action.md"
+          "target": "mockio/components/Action/Action.md"
+        },
+        {
+          "path": "src/components/Action/Action.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Action/Action.previews.tsx"
         },
         {
           "path": "src/components/Action/index.ts",
           "type": "registry:file",
-          "target": "components/mockio/Action/index.ts"
+          "target": "mockio/components/Action/index.ts"
         }
+      ],
+      "categories": [
+        "atom"
       ],
       "meta": {
         "level": "atom",
         "status": "stable",
+        "version": "1.0.0",
         "contract": {
           "name": "Action",
           "level": "atom",
@@ -251,7 +495,7 @@
               },
               {
                 "situation": "Toggling a setting on and off",
-                "instead": "A switch or a SpringCheck."
+                "instead": "Checkbox."
               }
             ],
             "do": [
@@ -282,8 +526,2103 @@
               "difference": "For irreversible actions: must be held, not tapped."
             },
             {
+              "name": "Checkbox",
+              "difference": "Turns a setting on or off; Action does something once."
+            },
+            {
               "name": "Segmented",
               "difference": "Chooses a value; Action performs an action."
+            }
+          ],
+          "i18n": {
+            "rtl": "The trailing arrow mirrors (rtl:-scale-x-100) and its hover nudge reverses; the label aligns by the document direction.",
+            "textExpansion": "The pill grows with its label and wraps only inside a w-full container; keep labels short enough to stay on one line in Portuguese and German.",
+            "formatting": "None: the label is the caller's text.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Same size at every width; on phones the primary action usually takes w-full via className.",
+              "Pairs stack vertically below 360px, primary first."
+            ],
+            "minWidth": "120px"
+          },
+          "designTool": {
+            "registryItem": "action",
+            "importStatement": "import { Action } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children",
+              "tone",
+              "withArrow",
+              "disabled"
+            ],
+            "placement": "Anywhere an action is taken: forms, cards, toolbars, page headers. Never more than one solid per view."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Action",
+            "differences": [
+              "Defaults type to \"button\" so it never submits a form by accident; the app's copy relies on the native default (submit)."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "backdrop",
+      "type": "registry:ui",
+      "title": "Backdrop",
+      "description": "The decorative field behind marketing heroes: slow drifting light, grain and a scrim, all CSS, and the stand-in for footage when there is none.",
+      "dependencies": [
+        "framer-motion"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Backdrop/Backdrop.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Backdrop/Backdrop.tsx"
+        },
+        {
+          "path": "src/components/Backdrop/Backdrop.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Backdrop/Backdrop.contract.ts"
+        },
+        {
+          "path": "src/components/Backdrop/Backdrop.md",
+          "type": "registry:file",
+          "target": "mockio/components/Backdrop/Backdrop.md"
+        },
+        {
+          "path": "src/components/Backdrop/Backdrop.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Backdrop/Backdrop.previews.tsx"
+        },
+        {
+          "path": "src/components/Backdrop/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Backdrop/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Backdrop",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The decorative field behind marketing heroes: slow drifting light, grain and a scrim, all CSS, and the stand-in for footage when there is none.",
+          "source": "src/components/Backdrop/Backdrop.tsx",
+          "composes": [],
+          "dependencies": [
+            "framer-motion"
+          ],
+          "props": {
+            "variant": {
+              "type": "\"hero\" | \"section\"",
+              "required": false,
+              "default": "\"hero\"",
+              "description": "How much light. Picks the number of lights and how far they sit from the frame.",
+              "values": {
+                "hero": "The full field: the pale lift from below, the navy across the top-left and a third, fainter light on the right.",
+                "section": "A quieter field for mid-page: the lift and the navy pushed further out of frame, no third light."
+              }
+            },
+            "still": {
+              "type": "boolean",
+              "required": false,
+              "default": "false",
+              "description": "Renders the same composition with no drift. For contexts that must not move — a video's poster frame, a print, a screenshot. Reduced motion stills it without this prop."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes on the layer, appended: a z-index, or a rounded corner when the parent does not clip. Not for colour."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "The lights drift on 34s, 46s and 58s loops (the section variant runs the first two). Nothing on top of it appears to move.",
+              "trigger": "Initial render, still={false}, no reduced-motion preference."
+            },
+            {
+              "name": "still",
+              "description": "The same composition with no drift class: each light at rest in its place, at scale 1 and full opacity.",
+              "trigger": "still={true}, or prefers-reduced-motion: reduce at mount."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "Three CSS loops from the preset: drift-slow (34s, translate + scale + opacity), drift-wide (46s, translate + scale) and drift-counter (58s, translate + scale + opacity), all cubic-bezier(0.45, 0, 0.55, 1), infinite.",
+            "Only transform and opacity animate, on blurred layers the GPU composites, so the drift never triggers layout or paint.",
+            "The periods are long on purpose: a minute is slow enough that text on top never seems to move.",
+            "Reduced motion: no animation class is applied at all (see accessibility.reducedMotion)."
+          ],
+          "accessibility": {
+            "role": "none — a presentational layer, aria-hidden",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden",
+                "managedBy": "component",
+                "note": "Always set. The field carries no information."
+              },
+              {
+                "attribute": "pointer-events: none",
+                "managedBy": "component",
+                "note": "Not ARIA, but the same promise for the pointer: clicks and taps go through to the content above."
+              }
+            ],
+            "reducedMotion": "The component calls framer-motion's useReducedMotion() and, when the user asks for reduced motion, applies no drift class — it renders exactly as still={true}, with no app-level MotionConfig needed. The preference is read when the component mounts; a change mid-visit is caught by the package stylesheet's reduced-motion block (src/styles.css), which ends every animation after 0.01ms.",
+            "contrast": "Decorative, so it has no contrast requirement of its own; it is built so that light ink over it holds AA anywhere. At its brightest point — both pale lights at full strength under the 10% middle of the scrim, about rgb(69 69 69) before grain — cream-bright text is 9.2:1 and cream-dim 6.9:1. Dark ink never goes on it. On the light theme .backdrop-field dims the whole layer to 28%.",
+            "focus": "Never focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "Nothing. Assistive technology skips the whole layer; whatever sits on top is read normally."
+          },
+          "content": {
+            "voice": [
+              "The field has no copy. What sits on it is a hero: a short line in the product's voice, not marketing fluff — \"Sustenta antes de sustentar.\"",
+              "The field is atmosphere, not a picture of the product. When there is footage, show the footage (HeroVideo)."
+            ],
+            "limits": [
+              "Copy on top: a headline and one supporting sentence; long reading text belongs on a plain surface."
+            ],
+            "examples": [
+              "Sustenta antes de sustentar.",
+              "Un jurado de 3 que leyó tu tesis te pregunta por voz, repregunta como el de verdad y te deja un acta de 0 a 20."
+            ]
+          },
+          "usage": {
+            "when": [
+              "Behind a marketing hero when there is no footage, or underneath footage while it loads (HeroVideo does both).",
+              "A mid-page marketing section that needs light rather than a flat ground (variant section)."
+            ],
+            "whenNot": [
+              {
+                "situation": "Any signed-in screen: the thesis workspace, a rehearsal, an acta, settings",
+                "instead": "The surface tokens (surface-deep, a Panel). Nothing decorative competes with the sentence someone is reading while nervous."
+              },
+              {
+                "situation": "There is real footage for the hero",
+                "instead": "HeroVideo, which composes Backdrop underneath as its fallback."
+              },
+              {
+                "situation": "Behind long reading text, a form or a pricing table",
+                "instead": "A plain surface (Section on surface-deep). The drift and the grain cost legibility exactly where it is needed."
+              },
+              {
+                "situation": "A section on the light theme that wants a soft tint",
+                "instead": "surface-deep or accent-soft. On a light page the field dims to a hint of itself, by design."
+              }
+            ],
+            "do": [
+              "Give it a positioned parent that clips: relative isolate overflow-hidden.",
+              "Give the parent a dark ground (bg-black, or on-media with bg-surface-base); the field paints light, not a ground.",
+              "Put the copy above it with relative z-10.",
+              "Pass still when the field is under something that is not moving either (a paused video, a print)."
+            ],
+            "dont": [
+              "Don't put dark ink on it, or drop it on a light section to make a grey wash.",
+              "Don't stack two Backdrops, or add your own grain: it already has some.",
+              "Don't use it inside the app."
+            ]
+          },
+          "tokens": [
+            "--cream",
+            ".on-media",
+            ".backdrop-field",
+            ".noise-overlay",
+            "animate-drift-slow",
+            "animate-drift-wide",
+            "animate-drift-counter"
+          ],
+          "related": [
+            {
+              "name": "HeroVideo",
+              "difference": "The hero's footage. It composes Backdrop underneath and falls back to it when there is no video."
+            },
+            {
+              "name": "Section",
+              "difference": "Owns a marketing section's rhythm and ground; Backdrop is the light inside one."
+            },
+            {
+              "name": "Panel",
+              "difference": "A surface that holds content; Backdrop holds nothing and sits behind."
+            }
+          ],
+          "i18n": {
+            "rtl": "Does not mirror. The lights are placed physically (navy top-left, third light right) because they are a composition, not a reading direction.",
+            "textExpansion": "No text of its own. It fills its parent, so longer copy on top makes the parent taller and the field follows.",
+            "formatting": "None: the component renders no text, numbers or dates.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Fills its positioned parent (absolute inset-0) at every width and clips to it.",
+              "The lights are sized in vmax, the viewport and not the parent, so the field keeps its proportions from a 320px phone to a wide desktop; a narrow frame on a wide screen shows a crop of it."
+            ],
+            "minWidth": "280px"
+          },
+          "designTool": {
+            "registryItem": "backdrop",
+            "importStatement": "import { Backdrop } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "variant",
+              "still"
+            ],
+            "placement": "As the first child of a marketing hero or section that is relative, isolate, overflow-hidden and dark. Content goes above it with relative z-10. Never inside the app shell."
+          },
+          "appCounterpart": {
+            "file": "design-system/backdrop.tsx",
+            "exportName": "Backdrop",
+            "differences": [
+              "The pale lights read rgb(var(--cream) / α) instead of the literal rgba(222,219,200,α) — the first palette's warm cream. They are now the current ink, #F5F5F7, a touch cooler.",
+              "The layer carries on-media, so --cream resolves to the dark ink inside it in both themes and the lights stay light on the light theme.",
+              "The navy (4 33 46), which has no token, is one named constant instead of two literals; the stale \"Velorah\" name is gone.",
+              "Calls useReducedMotion() itself and applies no drift under reduced motion; the app's copy relies on index.css and on HeroVideo passing still.",
+              "Adds className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product.",
+                "Cream literals moved to the --cream token; the navy kept as a documented constant.",
+                "Reduced motion handled in the component."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Badge/Badge.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Badge/Badge.tsx"
+        },
+        {
+          "path": "src/components/Badge/Badge.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Badge/Badge.contract.ts"
+        },
+        {
+          "path": "src/components/Badge/Badge.md",
+          "type": "registry:file",
+          "target": "mockio/components/Badge/Badge.md"
+        },
+        {
+          "path": "src/components/Badge/Badge.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Badge/Badge.previews.tsx"
+        },
+        {
+          "path": "src/components/Badge/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Badge/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Badge",
+          "level": "atom",
+          "status": "stable",
+          "summary": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.",
+          "source": "src/components/Badge/Badge.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The status in 1–3 words, optionally led by a 12px icon with aria-hidden. The words carry the meaning; nothing else does."
+            },
+            "tone": {
+              "type": "\"neutral\" | \"live\"",
+              "required": false,
+              "default": "\"neutral\"",
+              "description": "Whether the status is a standing fact or something happening right now.",
+              "values": {
+                "neutral": "A fact about the screen: the mode (\"Práctica\"), a setting in force (\"Modo estrés\").",
+                "live": "Something in progress at this moment (\"Conectando\", the interviewer's turn). Prepends an accent dot that breathes."
+              }
+            },
+            "role": {
+              "type": "string",
+              "required": false,
+              "description": "Native role, spread onto the span. Pass \"status\" when the text changes in place and the change should be announced politely."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For layout (margin, self-alignment) — not for recolouring the pill."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "Text, optionally preceded by a 12px (h-3 w-3) lucide icon with aria-hidden."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The lifted surface pill with cream-dim text; the live tone adds the accent dot before the text.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "Live dot: opacity breathes 1 → 0.35 → 1 over 2s on an in-out curve (cubic-bezier(0.45, 0, 0.55, 1)), for as long as the tone is live. A breath rather than a blink, so it can sit beside text someone is reading.",
+            "Reduced motion: the dot does not animate and stays at full opacity. The animation class is behind Tailwind's motion-safe: variant, so the component carries its own prefers-reduced-motion check.",
+            "Nothing else moves; switching tone swaps the dot in and out without a transition."
+          ],
+          "accessibility": {
+            "role": "generic (native <span>); status when the consumer passes role=\"status\"",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden (dot)",
+                "managedBy": "component",
+                "note": "The live dot is decoration and is hidden from assistive technology; the words say what is happening."
+              },
+              {
+                "attribute": "role=\"status\"",
+                "managedBy": "consumer",
+                "note": "Add it when the text changes in place and the change matters, like the call's turn counter. Leave it off fixed labels such as \"Práctica\", or every render is announced."
+              },
+              {
+                "attribute": "aria-hidden (icon)",
+                "managedBy": "consumer",
+                "note": "A leading icon passed in children must carry aria-hidden; the text names the status."
+              }
+            ],
+            "reducedMotion": "The live dot stays still at full opacity: its animation only applies under prefers-reduced-motion: no-preference (motion-safe:). No provider is needed, and a change of the setting applies at once.",
+            "contrast": "Text: cream-dim on surface-lift is ≥ 9.2:1 in both themes over any surface (tightest: the light theme on surface-deep, 9.21:1). The dot is decorative (accent on the lifted pill, 2.8–5.1:1) and is never the only signal.",
+            "focus": "Not focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as its text, inline. The dot is not announced, so \"live\" reaches a screen reader only through the words — write a status (\"Conectando\"), not just a name."
+          },
+          "content": {
+            "voice": [
+              "A noun or a short status, sentence case, no period: \"Práctica\", \"Modo estrés\", \"Turno 3 de 8\".",
+              "Something in progress may be a gerund: \"Conectando\". No ellipsis — the live dot already says it is ongoing.",
+              "Numbers as digits: \"Turno 3 de 8\"."
+            ],
+            "limits": [
+              "1–3 words, ≤ 20 characters. A badge that wraps is a sentence that wants to be body text."
+            ],
+            "examples": [
+              "Práctica",
+              "Real",
+              "Modo estrés",
+              "Conectando",
+              "Turno 3 de 8"
+            ]
+          },
+          "usage": {
+            "when": [
+              "A short fact about the current screen that the user is not changing right now: the mode of a call, a setting in force.",
+              "A status happening at this moment, with tone live: the call connecting, the interviewer's turn."
+            ],
+            "whenNot": [
+              {
+                "situation": "Something the user can press or toggle",
+                "instead": "Action (ghost) or Segmented. A Badge is not focusable and has no press."
+              },
+              {
+                "situation": "Marking an option as part of the paid plan",
+                "instead": "PremiumMark."
+              },
+              {
+                "situation": "A message about what just happened",
+                "instead": "Notice."
+              },
+              {
+                "situation": "A score or how far along something is",
+                "instead": "Meter or ScoreRing."
+              },
+              {
+                "situation": "Something loading, with nothing to say yet",
+                "instead": "DotMatrix, or a sentence that names what is loading."
+              }
+            ],
+            "do": [
+              "Say the state in words; let the dot only add \"right now\".",
+              "One live badge per view at most.",
+              "Add role=\"status\" when the text changes in place."
+            ],
+            "dont": [
+              "Don't use a Badge as a button or a filter chip.",
+              "Don't make every badge live.",
+              "Don't recolour it to mean error or success."
+            ]
+          },
+          "tokens": [
+            "--surface-lift",
+            "--surface-lift-alpha",
+            "--cream",
+            "--accent",
+            "animate-live"
+          ],
+          "related": [
+            {
+              "name": "PremiumMark",
+              "difference": "Marks one option as paid, with a crown; Badge states a status in words."
+            },
+            {
+              "name": "Eyebrow",
+              "difference": "Places a whole block above its heading; Badge describes one item or the current screen."
+            }
+          ],
+          "i18n": {
+            "rtl": "The dot leads the text in reading order, so it sits on the right in Arabic and Hebrew. A leading icon follows the same order; nothing is mirrored.",
+            "textExpansion": "The pill grows with its text. Portuguese and German statuses run about as long (\"Modo estresse\", \"Stressmodus\"); a label too long for its row wraps inside the pill, which is the sign to shorten it.",
+            "formatting": "None inside the component: a counter such as \"Turno 3 de 8\" arrives already formatted by the caller.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "The same size at every width.",
+              "A row of badges is the caller's flex row; give it flex-wrap so the badges drop to a second line on a 320px phone instead of overflowing."
+            ],
+            "minWidth": "80px"
+          },
+          "designTool": {
+            "registryItem": "badge",
+            "importStatement": "import { Badge } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children",
+              "tone"
+            ],
+            "placement": "In a page header's actions, beside a title, or at the top of a card. Several sit in a flex row with gap-2 or gap-3."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Badge",
+            "differences": [
+              "Accepts className and native span attributes (role, id, data-*); the app's copy takes children and tone only.",
+              "The live dot animates only under motion-safe:; the app's copy relies on the global reduced-motion stylesheet to stop it.",
+              "The live dot is shrink-0, so it keeps its size when the label wraps."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "check-item",
+      "type": "registry:ui",
+      "title": "CheckItem",
+      "description": "One row of a checklist of what a plan or an offer includes: a check in the accent, then the words.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/CheckItem/CheckItem.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/CheckItem/CheckItem.tsx"
+        },
+        {
+          "path": "src/components/CheckItem/CheckItem.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/CheckItem/CheckItem.contract.ts"
+        },
+        {
+          "path": "src/components/CheckItem/CheckItem.md",
+          "type": "registry:file",
+          "target": "mockio/components/CheckItem/CheckItem.md"
+        },
+        {
+          "path": "src/components/CheckItem/CheckItem.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/CheckItem/CheckItem.previews.tsx"
+        },
+        {
+          "path": "src/components/CheckItem/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/CheckItem/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "CheckItem",
+          "level": "atom",
+          "status": "stable",
+          "summary": "One row of a checklist of what a plan or an offer includes: a check in the accent, then the words.",
+          "source": "src/components/CheckItem/CheckItem.tsx",
+          "composes": [],
+          "dependencies": [
+            "lucide-react"
+          ],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "What is included, as a short phrase. Wrapped in one span, so inline emphasis or a link stays part of the sentence."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For spacing or a grid span — not for the ink or the check's colour."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "A phrase of text; inline elements (<strong>, a link) are fine. No block content and no second icon."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "A 16px check in accent-text aligned to the first line, then the text in cream-dim.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. A checklist enters with the card around it (the caller's FadeRise); rows do not stagger on their own."
+          ],
+          "accessibility": {
+            "role": "listitem (native <li>) — the consumer supplies the <ul> or <ol>",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden (check)",
+                "managedBy": "component",
+                "note": "The check is decoration and is not announced on every row."
+              },
+              {
+                "attribute": "list label",
+                "managedBy": "consumer",
+                "note": "Say what the checks mean in text before the list — a <dt>, a heading or a paragraph such as \"Qué incluye\" — or name the <ul> with aria-labelledby."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "Text: cream-dim ≥ 9.8:1 on every page and card surface in both themes (tightest: the light theme on surface-deep, 9.89:1). Check: accent-text ≥ 4.94:1 dark, ≥ 5.19:1 light — above the 3:1 asked of a graphic, though it carries no meaning on its own.",
+            "focus": "Not focusable. A link inside the text takes its own focus ring.",
+            "targetSize": "not interactive",
+            "screenReader": "Announced as a list item inside \"list, N items\", then its text. The check is not announced, so the list's label must say what the rows have in common."
+          },
+          "content": {
+            "voice": [
+              "A noun phrase that names what you get: \"Entrevistas ilimitadas\", \"Historial y progreso completos\".",
+              "Concrete over abstract: \"Tu CV en manos del entrevistador\" rather than \"Personalización\".",
+              "Sentence case, no final period, no exclamation mark.",
+              "Rows of one list share a grammatical shape, so they scan as one list."
+            ],
+            "limits": [
+              "One line where possible: ≤ 48 characters. Two lines are the most; a row longer than that is a paragraph."
+            ],
+            "examples": [
+              "La empresa a la que de verdad te postulas",
+              "Tu CV en manos del entrevistador",
+              "Entrevistadores en español y portugués",
+              "Historial y progreso completos",
+              "Entrevistas ilimitadas",
+              "Todo lo del plan gratis"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Listing what a plan or an offer includes: the pricing cards, the early-access offer.",
+              "A short list of things the reader gets, where every row is a yes."
+            ],
+            "whenNot": [
+              {
+                "situation": "Something the user ticks or unticks",
+                "instead": "Checkbox."
+              },
+              {
+                "situation": "Steps to follow in order",
+                "instead": "An ordered list (<ol>) with numbers; a check says done or included, not next."
+              },
+              {
+                "situation": "Comparing what one plan has and another lacks",
+                "instead": "A table with a column per plan, so a missing feature is stated rather than implied by a missing row."
+              },
+              {
+                "situation": "Plain bullets with no sense of included",
+                "instead": "A <ul> with a small dot, as the journey cards use."
+              }
+            ],
+            "do": [
+              "Put it inside a <ul> with a label before it, such as \"Qué incluye\".",
+              "Keep rows of one list to the same shape and length.",
+              "Lay rows out with flex-col gap-3 on the list."
+            ],
+            "dont": [
+              "Don't render a CheckItem outside a list.",
+              "Don't use a check for something that is not included.",
+              "Don't recolour the check to rank rows."
+            ]
+          },
+          "tokens": [
+            "--cream",
+            "--accent-text",
+            "text-sm"
+          ],
+          "related": [
+            {
+              "name": "Badge",
+              "difference": "A single status in a pill; CheckItem is one row of a list of what is included."
+            }
+          ],
+          "i18n": {
+            "rtl": "The check stays at the start of the row, which is the right edge in Arabic and Hebrew. The glyph itself is not mirrored.",
+            "textExpansion": "Wraps under itself with the check aligned to the first line (items-start). Portuguese \"A empresa para a qual você realmente se candidata\" takes two lines at 320px.",
+            "formatting": "None: any number in the text (\"5 sustentaciones\") is written by the caller.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "The same size at every width; long rows wrap and the check stays on the first line.",
+              "Spacing between rows belongs to the list (gap-3), not to the item."
+            ],
+            "minWidth": "200px"
+          },
+          "designTool": {
+            "registryItem": "check-item",
+            "importStatement": "import { CheckItem } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children"
+            ],
+            "placement": "Only inside a <ul> (flex flex-col gap-3), usually in a pricing or offer card, below a label that says what the checks mean."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "CheckItem",
+            "differences": [
+              "Accepts className and native <li> attributes; the app's copy takes children only.",
+              "Wraps children in a single span, so mixed inline content stays one flex item; the app's copy lays each child out as its own flex item."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "eyebrow",
+      "type": "registry:ui",
+      "title": "Eyebrow",
+      "description": "The short line in the accent above a heading or a value: it says where the reader is, the heading says what it means.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Eyebrow/Eyebrow.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Eyebrow/Eyebrow.tsx"
+        },
+        {
+          "path": "src/components/Eyebrow/Eyebrow.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Eyebrow/Eyebrow.contract.ts"
+        },
+        {
+          "path": "src/components/Eyebrow/Eyebrow.md",
+          "type": "registry:file",
+          "target": "mockio/components/Eyebrow/Eyebrow.md"
+        },
+        {
+          "path": "src/components/Eyebrow/Eyebrow.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Eyebrow/Eyebrow.previews.tsx"
+        },
+        {
+          "path": "src/components/Eyebrow/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Eyebrow/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Eyebrow",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The short line in the accent above a heading or a value: it says where the reader is, the heading says what it means.",
+          "source": "src/components/Eyebrow/Eyebrow.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The kicker: a noun phrase of one to four words. Plain text; it is read as a paragraph just before the heading."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For spacing and grid placement (lg:col-span-2) — not for colour, case or tracking."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "Text only. No icons, no links: the eyebrow is a label, and anything you can press belongs elsewhere."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "16px semibold (text-sm in this scale) in accent-text, on its own line.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None of its own. An eyebrow enters with the block around it (the caller's FadeRise), never separately."
+          ],
+          "accessibility": {
+            "role": "paragraph (native <p>) — deliberately not a heading",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "role=\"heading\" / aria-level",
+                "managedBy": "consumer",
+                "note": "Do not add them. The heading that follows names the section; an eyebrow promoted to a heading gives the section two entries in the headings list."
+              },
+              {
+                "attribute": "lang",
+                "managedBy": "consumer",
+                "note": "Native attributes are spread onto the <p>; pass lang when the eyebrow is in a different language from the page, so it is pronounced correctly."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "accent-text on every page and card surface: ≥ 4.94:1 on the dark theme (tightest: surface-card) and ≥ 5.19:1 on the light one (surface-deep). On a surface-lift row inside a dark card it falls to 4.05:1 — keep it off lifted rows.",
+            "focus": "Not focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as a plain paragraph just before the heading. Someone moving by headings skips it, so the heading must make sense without it."
+          },
+          "content": {
+            "voice": [
+              "A noun phrase, not a sentence: \"Precios\", \"Acta simulada\", \"Qué esperar\".",
+              "It places; the heading says something. \"Precios\" over \"Gratis para conseguir el trabajo. Después, al precio de tu país.\"",
+              "Sentence case, no final period, no colon, no exclamation mark.",
+              "If it needs a verb, it is the heading, not the eyebrow."
+            ],
+            "limits": [
+              "1–4 words; about 32 characters, so it stays on one line in a 320px phone's column. Longer translations wrap, and that is fine."
+            ],
+            "examples": [
+              "Precios",
+              "Acceso anticipado",
+              "Acta simulada",
+              "Ensayo de sustentación",
+              "Diapositiva por diapositiva",
+              "Esta semana"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Above a landing section's heading, to place it: \"Precios\", \"Acceso anticipado\".",
+              "Above a value in a platform card: \"Nivel\" over the level, \"Acta simulada\" over the grade.",
+              "As the label of a group of controls inside a card that already sits under a page heading: \"Apariencia\", \"Cuenta\"."
+            ],
+            "whenNot": [
+              {
+                "situation": "The name of a section or a page",
+                "instead": "A heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it."
+              },
+              {
+                "situation": "A status or a mode on an item",
+                "instead": "Badge."
+              },
+              {
+                "situation": "The label of a form field",
+                "instead": "Field, whose label is tied to its input."
+              },
+              {
+                "situation": "A sentence of explanation",
+                "instead": "Body text in cream-dim under the heading."
+              }
+            ],
+            "do": [
+              "Pair it with a heading that says something.",
+              "One eyebrow per block.",
+              "Use className for spacing and grid placement only."
+            ],
+            "dont": [
+              "Don't make it the only title of a section.",
+              "Don't set it in spaced capitals or another colour.",
+              "Don't end it with a period or a colon."
+            ]
+          },
+          "tokens": [
+            "--accent-text",
+            "text-sm"
+          ],
+          "related": [
+            {
+              "name": "Badge",
+              "difference": "A status on one item, in a pill; Eyebrow places a whole block."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors. It aligns with the text around it, so it starts at the right edge in Arabic and Hebrew and stays centred in a centred landing header.",
+            "textExpansion": "Wraps like any paragraph and never truncates. German \"Vom Vorstellungsgespräch zur Gehaltserhöhung\" takes two lines at 320px.",
+            "formatting": "None: the text is the caller's.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "The same size at every width (16px semibold).",
+              "Wraps onto a second line in a narrow column instead of truncating."
+            ],
+            "minWidth": "160px"
+          },
+          "designTool": {
+            "registryItem": "eyebrow",
+            "importStatement": "import { Eyebrow } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children"
+            ],
+            "placement": "Directly above a heading (landing sections) or above a value or a group inside a card (platform). Something must follow it: a heading, a number or the group it labels."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Eyebrow",
+            "differences": [
+              "Spreads native paragraph attributes (id, lang, data-*) onto the <p>; the app's copy accepts children and className only."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "mark",
+      "type": "registry:ui",
+      "title": "Mark",
+      "description": "The isologo: Mocki the parrot as three shapes on the indigo tile, in the brand's fixed colours, legible down to 16px.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract",
+        "@mockio/wordmark"
+      ],
+      "files": [
+        {
+          "path": "src/components/Mark/Mark.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Mark/Mark.tsx"
+        },
+        {
+          "path": "src/components/Mark/Mark.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Mark/Mark.contract.ts"
+        },
+        {
+          "path": "src/components/Mark/Mark.md",
+          "type": "registry:file",
+          "target": "mockio/components/Mark/Mark.md"
+        },
+        {
+          "path": "src/components/Mark/Mark.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Mark/Mark.previews.tsx"
+        },
+        {
+          "path": "src/components/Mark/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Mark/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Mark",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The isologo: Mocki the parrot as three shapes on the indigo tile, in the brand's fixed colours, legible down to 16px.",
+          "source": "src/components/Mark/Mark.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "size": {
+              "type": "number",
+              "required": false,
+              "default": "32",
+              "description": "Width and height in px, written as the SVG's width and height attributes. A className with h-/w- (for example h-[1.3em] w-[1.3em]) overrides it."
+            },
+            "label": {
+              "type": "string",
+              "required": false,
+              "description": "The accessible name. With a non-empty label the SVG becomes role=\"img\" with that aria-label; without one (or with an empty or whitespace-only one) it is aria-hidden. Pass it only when the mark stands alone and nothing next to it already says the name. No default: decorative is the default."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes on the <svg>, appended after shrink-0. For sizing in em, a rounded corner that matches a shadow (rounded-[0.55rem] shadow-card), or margin — never for colour."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "Decorative: aria-hidden, no role, not announced. The tile, crest, head, eye and beak in the brand colours.",
+              "trigger": "Initial render, label omitted or empty."
+            },
+            {
+              "name": "named",
+              "description": "Looks identical. Carries role=\"img\" and the label as aria-label, so a screen reader announces it as an image with that name.",
+              "trigger": "label=\"Mockio\" (any non-empty string)."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The mark never animates: it is the one thing on the screen that stays put."
+          ],
+          "accessibility": {
+            "role": "none while decorative (aria-hidden); img when label is set",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden",
+                "managedBy": "component",
+                "note": "Set to true when there is no label, so a mark beside the written name is not announced twice."
+              },
+              {
+                "attribute": "role=\"img\" + aria-label",
+                "managedBy": "component",
+                "note": "Set from label when it is non-empty. The text itself is the consumer's: \"Mockio\" is the brand name and is not translated."
+              },
+              {
+                "attribute": "focusable=\"false\"",
+                "managedBy": "component",
+                "note": "Always set, so legacy Edge and IE do not put the SVG in the tab order."
+              },
+              {
+                "attribute": "aria-label (on the wrapping link)",
+                "managedBy": "consumer",
+                "note": "A mark used as the home link keeps label empty and names the link instead: <a aria-label=\"Mockio\">."
+              }
+            ],
+            "reducedMotion": "Nothing to reduce: the mark has no motion.",
+            "contrast": "Brand colours, not tokens, so the figures are the same in both themes. The tile is ≥ 3:1 against every surface token (tightest: surface-card on dark, 3.0:1; 5.6:1 on the light page). The white head is 5.6:1 on the tile and the eye 14.4:1 on the head. The orange beak is 2.6:1 on the tile — it is a detail of the drawing, not what identifies it.",
+            "focus": "Never focusable. When the mark is a link, the link carries .focus-ring.",
+            "targetSize": "not interactive",
+            "screenReader": "Silent by default. With label=\"Mockio\" it is announced as \"Mockio, image\" (wording varies by reader)."
+          },
+          "content": {
+            "voice": [
+              "The label, when there is one, is the brand name and nothing else: \"Mockio\". Not \"Logo de Mockio\" — the role already says it is an image.",
+              "The name is never translated: \"Mockio\" in every locale, so the label is not a dictionary string."
+            ],
+            "limits": [
+              "label: the brand name only, one word."
+            ],
+            "examples": [
+              "Mockio"
+            ]
+          },
+          "usage": {
+            "when": [
+              "The product's corner of the app shell, beside or instead of the written name (the top bar at 30px).",
+              "Any place the brand must be recognisable in a square: an icon tile, a compact header.",
+              "Inside Wordmark, which composes it at the height of the name."
+            ],
+            "whenNot": [
+              {
+                "situation": "The brand needs to be read, not only recognised (landing nav, footer, sign-in)",
+                "instead": "Wordmark — the mark and the name as one lockup."
+              },
+              {
+                "situation": "Showing the user's progress or a friendly face in an empty state, an error or a level-up",
+                "instead": "Mascot — the full illustrated Mocki, in one of its six stages."
+              },
+              {
+                "situation": "A decorative background behind marketing copy",
+                "instead": "Backdrop. The mark is an identifier, not a pattern; never tile or repeat it."
+              }
+            ],
+            "do": [
+              "Leave it decorative when the name is written next to it, and name the link instead.",
+              "Give the tile's corner to the shadow with a matching rounded class when you add shadow-card.",
+              "Keep it at 16px or larger: it is drawn to read at favicon size and no smaller."
+            ],
+            "dont": [
+              "Don't recolour it with className, filters or currentColor: the colours are the brand.",
+              "Don't rotate, stretch, outline or mirror it, in any direction or locale.",
+              "Don't put text on top of it or crop the tile."
+            ]
+          },
+          "tokens": [],
+          "related": [
+            {
+              "name": "Wordmark",
+              "difference": "The mark and the lowercase name together; Mark alone is the square."
+            },
+            {
+              "name": "Mascot",
+              "difference": "The full illustrated character with six growth stages; Mark is the reduced, fixed logo."
+            }
+          ],
+          "i18n": {
+            "rtl": "Never mirrors. A logo is the same drawing in every direction; nothing in the SVG reads the document direction.",
+            "textExpansion": "No text, so nothing expands.",
+            "formatting": "None. The only string is label, which is the caller's and, by the brand rule, always \"Mockio\".",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "A fixed square at size px at every width; it does not scale with the viewport unless the caller sizes it in em or with a responsive class.",
+              "shrink-0, so a flex row never squeezes it into an oval."
+            ],
+            "minWidth": "16px"
+          },
+          "designTool": {
+            "registryItem": "mark",
+            "importStatement": "import { Mark } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "size",
+              "label"
+            ],
+            "placement": "Top-left of an app shell or a small header, on any surface. Give it at least a quarter of its size of clear space on every side."
+          },
+          "appCounterpart": {
+            "file": "design-system/mark.tsx",
+            "exportName": "Mark",
+            "differences": [
+              "Adds label: with it the SVG is role=\"img\" with an aria-label. The app's copy is always aria-hidden and relies on the wrapping link's name.",
+              "The colours are named constants (BRAND.tile, BRAND.beak, BRAND.head, BRAND.eye) instead of inline literals; the values are identical (#fff is written #FFFFFF)."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product.",
+                "Added the optional label for a mark that stands alone."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "mascot",
+      "type": "registry:ui",
+      "title": "Mascot",
+      "description": "Mocki, the parrot of the interview product, in one of six illustrated growth stages — from egg to crowned.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/mockio-contract",
+        "@mockio/wordmark"
+      ],
+      "files": [
+        {
+          "path": "src/components/Mascot/Mascot.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Mascot/Mascot.tsx"
+        },
+        {
+          "path": "src/components/Mascot/Mascot.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/Mascot.contract.ts"
+        },
+        {
+          "path": "src/components/Mascot/Mascot.md",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/Mascot.md"
+        },
+        {
+          "path": "src/components/Mascot/Mascot.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/Mascot.previews.tsx"
+        },
+        {
+          "path": "src/components/Mascot/assets/level-1.png",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/assets/level-1.png"
+        },
+        {
+          "path": "src/components/Mascot/assets/level-2.png",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/assets/level-2.png"
+        },
+        {
+          "path": "src/components/Mascot/assets/level-3.png",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/assets/level-3.png"
+        },
+        {
+          "path": "src/components/Mascot/assets/level-4.png",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/assets/level-4.png"
+        },
+        {
+          "path": "src/components/Mascot/assets/level-5.png",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/assets/level-5.png"
+        },
+        {
+          "path": "src/components/Mascot/assets/level-6.png",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/assets/level-6.png"
+        },
+        {
+          "path": "src/components/Mascot/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Mascot/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "beta",
+        "version": "0.1.0",
+        "contract": {
+          "name": "Mascot",
+          "level": "atom",
+          "status": "beta",
+          "summary": "Mocki, the parrot of the interview product, in one of six illustrated growth stages — from egg to crowned.",
+          "source": "src/components/Mascot/Mascot.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "level": {
+              "type": "1 | 2 | 3 | 4 | 5 | 6",
+              "required": true,
+              "description": "The growth stage to draw. It is the stage, not the XP level: the product maps XP to a stage (lib/avatar.ts tierForLevel) before it reaches this component. Untyped input outside 1–6 is rounded and clamped to the nearest stage; anything that is not a finite number becomes 1.",
+              "values": {
+                "1": "Egg. A brand-new account.",
+                "2": "Hatchling, cracking out of the shell.",
+                "3": "Young parrot. The everyday face: sign-in, errors.",
+                "4": "Headset on: practising interviews in earnest.",
+                "5": "On a stage with a microphone and a speech bubble.",
+                "6": "Crowned, with a medal. The end of a long curve most accounts do not finish."
+              }
+            },
+            "size": {
+              "type": "number",
+              "required": false,
+              "default": "64",
+              "description": "Width and height in px, as the <img> attributes. The masters are 200px, so up to 100px stays sharp on a 2x screen."
+            },
+            "alt": {
+              "type": "string",
+              "required": false,
+              "default": "\"Mocki, nivel {level}\"",
+              "description": "The text alternative when the image is not decorative. The default is Spanish, with the stage number in it; pass the whole translated sentence for any other locale. An explicit empty string is respected."
+            },
+            "decorative": {
+              "type": "boolean",
+              "required": false,
+              "default": "false",
+              "description": "Renders alt=\"\" so assistive technology skips the image; it wins over alt. For a Mocki beside a heading or a message that already carries the meaning."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes on the <img>, appended: shrink-0 in a flex row, a negative margin to tuck it over a name. Not for recolouring."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "The stage's illustration with a soft drop shadow, and a text alternative (\"Mocki, nivel 3\" or the alt passed in).",
+              "trigger": "Initial render."
+            },
+            {
+              "name": "decorative",
+              "description": "Looks identical. alt=\"\", so screen readers skip it.",
+              "trigger": "decorative={true}"
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None of its own. An entrance belongs to the caller (PopIn on sign-in, a spring on level-up), and that caller handles reduced motion."
+          ],
+          "accessibility": {
+            "role": "img (native <img>); presentation when decorative",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "alt",
+                "managedBy": "component",
+                "note": "Set from alt, or \"Mocki, nivel {level}\" by default, or \"\" when decorative."
+              },
+              {
+                "attribute": "alt (translation)",
+                "managedBy": "consumer",
+                "note": "The default alt is Spanish. Any other locale must pass its own alt."
+              }
+            ],
+            "reducedMotion": "Nothing to reduce: the component does not move. Wrappers that animate it (PopIn, the level-up spring) check prefers-reduced-motion themselves.",
+            "contrast": "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated indigo body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
+            "focus": "Never focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "Announced as its alt (\"Mocki, nivel 3\", image) unless decorative. Sighted users see which form it is; the default alt gives the stage as a number, not the form's description."
+          },
+          "content": {
+            "voice": [
+              "The alt names the character and the stage, nothing more: \"Mocki, nivel 3\". No adjectives, no celebration.",
+              "Mocki is a name: not translated, never with an article in Spanish (\"Mocki crece contigo\", not \"el Mocki\").",
+              "Copy around Mocki follows the product voice: no exclamation marks, even at a level-up.",
+              "Beside an XP level (\"Nivel 7\"), pass the form wording as alt (\"Mocki, forma 4 de 6\") so the stage and the level are not two different numbers both called nivel."
+            ],
+            "limits": [
+              "alt: under 60 characters, one phrase, no full stop."
+            ],
+            "examples": [
+              "Mocki, nivel 3",
+              "Mocki, forma 3 de 6",
+              "Y Mocki crece contigo."
+            ]
+          },
+          "usage": {
+            "when": [
+              "The interview product's gamified layer: progress, a level-up, the habit section of the landing.",
+              "A first-run moment in the interview space, where a face lowers the stakes (the welcome checklist).",
+              "Showing which form a level earns, where the change itself is the reward."
+            ],
+            "whenNot": [
+              {
+                "situation": "Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan",
+                "instead": "No character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states."
+              },
+              {
+                "situation": "The brand logo, in a header, a favicon or a footer",
+                "instead": "Mark (the reduced isologo) or Wordmark (the lockup with the name)."
+              },
+              {
+                "situation": "A number the user needs to read: XP, a score, a level",
+                "instead": "The number as text, or Counter; Mocki shows the stage, not the value."
+              },
+              {
+                "situation": "Waiting while something loads or the jury deliberates",
+                "instead": "DotMatrix with a sentence that says what is happening."
+              }
+            ],
+            "do": [
+              "Pass decorative when a heading or a message beside it already says what is happening.",
+              "Pass a translated alt for every locale other than Spanish.",
+              "Keep it at 100px or less where it must look sharp; it is a 200px master."
+            ],
+            "dont": [
+              "Don't use Mocki in Sustentación, or as the logo.",
+              "Don't recolour, crop or flip it; it carries its own colour.",
+              "Don't pair it with exclamation marks or anglicisms (\"¡Mocki evolucionó! Mira su nuevo look.\" is the product string to fix, not to copy)."
+            ]
+          },
+          "tokens": [],
+          "related": [
+            {
+              "name": "Mark",
+              "difference": "The reduced, fixed logo; Mascot is the full character and changes with progress."
+            },
+            {
+              "name": "InterviewerPresence",
+              "difference": "The interviewer during a call; Mascot is the candidate's own character outside it."
+            },
+            {
+              "name": "PopIn",
+              "difference": "The entrance to wrap Mocki in when it appears as a reward; Mascot itself does not move."
+            }
+          ],
+          "i18n": {
+            "rtl": "Does not mirror. The six illustrations are drawn once and are never flipped in Arabic or Hebrew: a character is not a direction, and a flipped Mocki is a different drawing.",
+            "textExpansion": "No visible text. The alt can be any length in any language without changing the layout.",
+            "formatting": "The only number is the stage, an integer from 1 to 6 written as a plain digit in the default Spanish alt; there is nothing to group or localise, so no Intl. A translated alt is passed whole, numbers included.",
+            "strings": [
+              {
+                "text": "Mocki, nivel {level}",
+                "prop": "alt"
+              }
+            ]
+          },
+          "responsive": {
+            "behaviour": [
+              "A fixed square at size px at every width. In a flex row give it shrink-0 so long copy beside it does not squeeze it.",
+              "At phone widths keep it at 56px or less beside text; above a heading it can stay at its full size."
+            ],
+            "minWidth": "40px"
+          },
+          "designTool": {
+            "registryItem": "mascot",
+            "importStatement": "import { Mascot } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "level",
+              "size",
+              "decorative",
+              "alt"
+            ],
+            "placement": "On a card or the page ground in the interview space: beside a checklist title, above a level-up heading, at the start of an empty state. Never in the thesis space, never in a header."
+          },
+          "appCounterpart": {
+            "file": "design-system/avatar.tsx",
+            "exportName": "Avatar",
+            "differences": [
+              "Renamed Mascot, and takes the stage (1–6) instead of the XP level: the level-to-stage curve stays in the product's lib/avatar.ts, so the system knows nothing about XP.",
+              "The six PNGs ship inside the component (imported as modules) instead of loading from the app's /avatars/ folder.",
+              "The alt is a prop with a Spanish default, \"Mocki, nivel {level}\"; the app's is a hard-coded English \"Level {level} avatar, form {n} of 6\".",
+              "Adds decorative, so the ten raw <img> copies of the PNGs in the product (most of them alt=\"\", beside Avatar rather than through it) can use the component.",
+              "Drops the axis prop, which the app's copy accepted and ignored."
+            ]
+          },
+          "version": "0.1.0",
+          "changelog": [
+            {
+              "version": "0.1.0",
+              "changes": [
+                "First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "premium-mark",
+      "type": "registry:ui",
+      "title": "PremiumMark",
+      "description": "The gold crown on an option that belongs to the paid plan, named for screen readers; the option itself stays usable.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/PremiumMark/PremiumMark.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/PremiumMark/PremiumMark.tsx"
+        },
+        {
+          "path": "src/components/PremiumMark/PremiumMark.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/PremiumMark/PremiumMark.contract.ts"
+        },
+        {
+          "path": "src/components/PremiumMark/PremiumMark.md",
+          "type": "registry:file",
+          "target": "mockio/components/PremiumMark/PremiumMark.md"
+        },
+        {
+          "path": "src/components/PremiumMark/PremiumMark.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/PremiumMark/PremiumMark.previews.tsx"
+        },
+        {
+          "path": "src/components/PremiumMark/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/PremiumMark/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "PremiumMark",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The gold crown on an option that belongs to the paid plan, named for screen readers; the option itself stays usable.",
+          "source": "src/components/PremiumMark/PremiumMark.tsx",
+          "composes": [],
+          "dependencies": [
+            "lucide-react"
+          ],
+          "props": {
+            "label": {
+              "type": "string",
+              "required": false,
+              "default": "\"Premium\"",
+              "description": "The mark's accessible name and its tooltip, read instead of the crown. A blank string falls back to the default, so the mark is never an unnamed image."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For placement (ms-auto at the end of a row, an absolute corner on a thumbnail) — not for size or colour."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "A 20px circle in premium-soft with a 12px filled crown in premium.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The mark is static wherever it appears; the paid plan's one moving flourish is ShimmerText in the top bar."
+          ],
+          "accessibility": {
+            "role": "img (role=\"img\" on a <span>), named by label",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "role=\"img\" + aria-label",
+                "managedBy": "component",
+                "note": "Set from label, so the crown is announced as a word, never as \"image\"."
+              },
+              {
+                "attribute": "aria-hidden (crown)",
+                "managedBy": "component",
+                "note": "The SVG inside is hidden; the span carries the name."
+              },
+              {
+                "attribute": "title",
+                "managedBy": "component",
+                "note": "The same text as a tooltip for mouse users. Touch and keyboard users do not get it, so the name must not be the only place an important condition is explained."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The crown is a graphic: premium on premium-soft is 8.82:1 on the dark theme and 4.17:1 on the light one, above the 3:1 asked of non-text. The soft circle itself is a wash, not a boundary, and needs no contrast.",
+            "focus": "Not focusable. Inside a link, tab or button it adds to that control's accessible name and takes no focus of its own.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as its label. Inside a control the label joins the control's name: a tab is named \"En el trabajo Premium\" and a rail link \"Tu contexto Del plan pago\"."
+          },
+          "content": {
+            "voice": [
+              "The plan's name or where the option lives: \"Premium\", \"Del plan pago\".",
+              "A name, not a refusal: never \"Bloqueado\" or \"No disponible\".",
+              "Sentence case, no period."
+            ],
+            "limits": [
+              "1–4 words. It is heard, and seen only as a tooltip, so brevity is for the ear."
+            ],
+            "examples": [
+              "Premium",
+              "Del plan pago"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Next to any option the free plan cannot use: a rail entry, a practice tab, a share template, a section of the report.",
+              "Wherever the option appears, the same mark — so it is learnt once."
+            ],
+            "whenNot": [
+              {
+                "situation": "Saying the paid plan is active for this person",
+                "instead": "ShimmerText in the top bar's \"Premium\" chip."
+              },
+              {
+                "situation": "A status of the current screen",
+                "instead": "Badge."
+              },
+              {
+                "situation": "Explaining what the paid plan adds",
+                "instead": "A sentence beside the option with a link to the plans (\"Ver los planes\")."
+              }
+            ],
+            "do": [
+              "Keep the marked option visible and pressable; let the press explain or open the plans.",
+              "Put it at the end of the option's label (ms-auto in a full-width row).",
+              "Use the default label unless the place needs \"Del plan pago\"."
+            ],
+            "dont": [
+              "Don't disable an option because it carries the mark.",
+              "Don't use the crown or the gold for anything else.",
+              "Don't resize or recolour it through className."
+            ]
+          },
+          "tokens": [
+            "--premium",
+            "--premium-soft"
+          ],
+          "related": [
+            {
+              "name": "ShimmerText",
+              "difference": "Says the paid plan is on, once, in the top bar; PremiumMark marks each option that needs it."
+            },
+            {
+              "name": "Badge",
+              "difference": "States a status in visible words; PremiumMark is a crown with a spoken name."
+            }
+          ],
+          "i18n": {
+            "rtl": "The crown is not mirrored. Place it with logical utilities (ms-auto, not ml-auto) so it sits at the end of the row in both directions.",
+            "textExpansion": "Fixed 20px whatever the language; only the spoken label and the tooltip grow.",
+            "formatting": "None.",
+            "strings": [
+              {
+                "text": "Premium",
+                "prop": "label"
+              }
+            ]
+          },
+          "responsive": {
+            "behaviour": [
+              "The same 20px at every width; shrink-0, so a wrapping label never squeezes it.",
+              "Where a label is hidden at small widths (the collapsed rail), hide the mark with it, as the product does with hidden lg:inline-grid."
+            ],
+            "minWidth": "20px"
+          },
+          "designTool": {
+            "registryItem": "premium-mark",
+            "importStatement": "import { PremiumMark } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label"
+            ],
+            "placement": "At the end of an option's label — inside a rail link, a tab, a card header or the corner of a template thumbnail."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "PremiumMark",
+            "differences": [
+              "label is optional and defaults to \"Premium\" (the product's es copy of premium.mark); the app's copy requires it.",
+              "A blank label falls back to the default instead of rendering an image with no name."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "shimmer-text",
+      "type": "registry:ui",
+      "title": "ShimmerText",
+      "description": "A word with a slow, soft light crossing it every few seconds — the one quiet flourish that says the paid plan is on.",
+      "dependencies": [
+        "framer-motion"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/ShimmerText/ShimmerText.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/ShimmerText/ShimmerText.tsx"
+        },
+        {
+          "path": "src/components/ShimmerText/ShimmerText.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/ShimmerText/ShimmerText.contract.ts"
+        },
+        {
+          "path": "src/components/ShimmerText/ShimmerText.md",
+          "type": "registry:file",
+          "target": "mockio/components/ShimmerText/ShimmerText.md"
+        },
+        {
+          "path": "src/components/ShimmerText/ShimmerText.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/ShimmerText/ShimmerText.previews.tsx"
+        },
+        {
+          "path": "src/components/ShimmerText/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/ShimmerText/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "beta",
+        "version": "0.1.0",
+        "contract": {
+          "name": "ShimmerText",
+          "level": "atom",
+          "status": "beta",
+          "summary": "A word with a slow, soft light crossing it every few seconds — the one quiet flourish that says the paid plan is on.",
+          "source": "src/components/ShimmerText/ShimmerText.tsx",
+          "composes": [],
+          "dependencies": [
+            "framer-motion"
+          ],
+          "props": {
+            "children": {
+              "type": "string",
+              "required": true,
+              "description": "The text the light crosses, as a plain string: one to three words, usually the plan's name."
+            },
+            "speed": {
+              "type": "number",
+              "required": false,
+              "default": "2.4",
+              "description": "Seconds the light takes to cross the text once. Higher is slower. Zero, negative or non-finite values fall back to 2.4."
+            },
+            "pause": {
+              "type": "number",
+              "required": false,
+              "default": "4",
+              "description": "Seconds the text stays still between two sweeps. 0 runs them back to back; negative or non-finite values count as 0."
+            },
+            "disabled": {
+              "type": "boolean",
+              "required": false,
+              "default": "false",
+              "description": "Stops the sweep and draws the text in the base colour, in the same box, so nothing shifts when it switches."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For type size, weight and layout (text-xs font-semibold) — not for colour, which the tokens set."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "A plain string, no elements, so the light crosses one run of text and a screen reader reads it as written."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The text in accent-text; once every speed + pause seconds a band of cream-bright crosses it in reading order. Left to right, each cycle opens with the pause, so the first sweep comes `pause` seconds after mount.",
+              "trigger": "Initial render, motion allowed."
+            },
+            {
+              "name": "disabled",
+              "description": "No sweep and no gradient: plain accent-text in the same inline-block box.",
+              "trigger": "disabled={true}"
+            }
+          ],
+          "events": [],
+          "motion": [
+            "One cycle lasts speed + pause seconds and repeats for as long as the component is mounted: the text stays still for `pause` seconds (4 by default), then the light crosses it in `speed` seconds (2.4 by default) at a constant rate (linear). The first sweep therefore comes `pause` seconds after mount.",
+            "Only background-position animates, from one keyframe; per-instance timing comes from an inline background-size and animation-duration. It repaints the text's own box each frame and never triggers layout — keep it to one instance per view.",
+            "Right-to-left: under :dir(rtl) the animation runs in reverse, so the light travels right to left, in reading order. There each cycle opens with the sweep and the pause follows.",
+            "Reduced motion: no sweep and no gradient; the text is drawn in the base colour."
+          ],
+          "accessibility": {
+            "role": "generic (native <span>) holding real text",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-label / aria-hidden",
+                "managedBy": "component",
+                "note": "Deliberately absent. The visible text is the DOM text, so it is read, translated, found and selected as written."
+              }
+            ],
+            "reducedMotion": "Under prefers-reduced-motion: reduce the sweep never runs and the text is plain accent-text. useReducedMotion() from framer-motion chooses the static branch when the component mounts; a prefers-reduced-motion media query in its own <style> covers a server render and a setting changed while the page is open. No MotionConfig provider is needed.",
+            "contrast": "Every pixel is a mix of accent-text (the base) and cream-bright (the light), and in both themes the mix is never lower in contrast than the base. On the product's chip (accent-soft) that is ≥ 4.65:1 dark and ≥ 4.92:1 light at every frame; on page and card surfaces ≥ 4.94:1 dark and ≥ 5.19:1 light. Not for a surface-lift row in a dark card (4.05:1) or an accent fill (1.47:1). Selected text is drawn in accent-ink on accent (≥ 5:1). Forced-colours mode drops the gradient and draws CanvasText; print, and a browser that cannot clip a background to text, draw plain accent-text, so it never renders or prints blank.",
+            "focus": "Not focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as its text, exactly as written; the light is not announced, and nothing is hidden or relabelled. A sighted reader sees the sweep; a screen-reader user loses nothing by not hearing it."
+          },
+          "content": {
+            "voice": [
+              "A name, not a message: the plan's name as the product writes it, \"Premium\".",
+              "Written exactly as the name is cased; no punctuation.",
+              "Never a call to action and never a claim about the plan: the light already draws the eye."
+            ],
+            "limits": [
+              "1–3 words. The crossing takes `speed` seconds whatever the length, so on a long line the light moves faster and reads as a flicker."
+            ],
+            "examples": [
+              "Premium",
+              "Pack Sustentación",
+              "Asesor Pro"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Saying, once and quietly, that the paid plan is on for this person: the \"Premium\" chip in the app's top bar."
+            ],
+            "whenNot": [
+              {
+                "situation": "A call to action",
+                "instead": "Action with tone solid. Emphasis comes from tone, not from motion."
+              },
+              {
+                "situation": "Marking an option as part of the paid plan",
+                "instead": "PremiumMark."
+              },
+              {
+                "situation": "Headlines, body copy or numbers",
+                "instead": "Plain text; WordsPullUp or FadeRise for an entrance that happens once."
+              },
+              {
+                "situation": "Showing that something is loading",
+                "instead": "DotMatrix, or a sentence that names what is loading."
+              }
+            ],
+            "do": [
+              "One per view, in the chrome, on accent-soft or a page or card surface.",
+              "Pass disabled where the screen already moves (a live call, a video).",
+              "Size it with className (text-xs font-semibold), never colour it."
+            ],
+            "dont": [
+              "Don't put it on an Action or any accent fill.",
+              "Don't shimmer several things at once.",
+              "Don't pass elements as children."
+            ]
+          },
+          "tokens": [
+            "--accent-text",
+            "--cream-bright",
+            "--accent",
+            "--accent-ink"
+          ],
+          "related": [
+            {
+              "name": "PremiumMark",
+              "difference": "Marks each option that needs the paid plan; ShimmerText says once that the plan is on."
+            },
+            {
+              "name": "Badge",
+              "difference": "A status in a still pill, with a breathing dot when live; ShimmerText moves the light across the word itself."
+            }
+          ],
+          "i18n": {
+            "rtl": "The sweep reverses under :dir(rtl) so the light travels in reading order. Nothing else mirrors: the gradient and the glyphs are drawn as usual.",
+            "textExpansion": "An inline-block that grows with its text. A translation too long for its box wraps inside it and the light crosses every line at once; the crossing still takes `speed` seconds, so keep translations as short as the original.",
+            "formatting": "None: the text is the caller's.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "The same at every width; size comes from the caller's text classes.",
+              "Where it appears is the caller's call: the product hides the top-bar chip below 640px (hidden sm:inline-flex)."
+            ],
+            "minWidth": "64px"
+          },
+          "designTool": {
+            "registryItem": "shimmer-text",
+            "importStatement": "import { ShimmerText } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children",
+              "speed",
+              "pause",
+              "disabled"
+            ],
+            "placement": "Inside the small chip in the app's top bar (rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold). One per view."
+          },
+          "appCounterpart": null,
+          "version": "0.1.0",
+          "changelog": [
+            {
+              "version": "0.1.0",
+              "changes": [
+                "First version. A clean-room replacement for the vendored text shine behind the product's top-bar \"Premium\" chip (PremiumShine in platform/AppShell.tsx): CSS only, colours from tokens instead of resolved props, reduced motion checked by the component itself."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "wordmark",
+      "type": "registry:ui",
+      "title": "Wordmark",
+      "description": "The brand lockup: the Mark and the lowercase name \"mockio\", sized together by font-size so the logo never drifts between places.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mark",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Wordmark/Wordmark.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Wordmark/Wordmark.tsx"
+        },
+        {
+          "path": "src/components/Wordmark/Wordmark.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Wordmark/Wordmark.contract.ts"
+        },
+        {
+          "path": "src/components/Wordmark/Wordmark.md",
+          "type": "registry:file",
+          "target": "mockio/components/Wordmark/Wordmark.md"
+        },
+        {
+          "path": "src/components/Wordmark/Wordmark.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Wordmark/Wordmark.previews.tsx"
+        },
+        {
+          "path": "src/components/Wordmark/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Wordmark/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Wordmark",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "The brand lockup: the Mark and the lowercase name \"mockio\", sized together by font-size so the logo never drifts between places.",
+          "source": "src/components/Wordmark/Wordmark.tsx",
+          "composes": [
+            "Mark"
+          ],
+          "dependencies": [],
+          "props": {
+            "mark": {
+              "type": "boolean",
+              "required": false,
+              "default": "true",
+              "description": "Shows the Mark before the name, at 1.3em square. Turn it off where the mark is already on screen (the app's top bar) or a character sits right above the name (sign-in)."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Size and ink, appended to the lockup's own classes: a text-* size, a weight and a colour, e.g. \"text-xl font-semibold text-cream-bright\". The mark scales with the font-size."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "The Mark, a 0.35em gap and \"mockio\" in the mark face, lowercase, tracked -0.03em. Inherits colour and size from className or the parent.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The wordmark is static; an entrance, if any, belongs to the container (FadeRise, PopIn)."
+          ],
+          "accessibility": {
+            "role": "none (a plain <span>; the text is its content)",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden (on the Mark)",
+                "managedBy": "component",
+                "note": "The composed Mark has no label, so it is hidden; the visible name is what gets read."
+              },
+              {
+                "attribute": "translate=\"no\"",
+                "managedBy": "component",
+                "note": "Always set, so browser translation leaves the brand name alone."
+              },
+              {
+                "attribute": "dir=\"ltr\"",
+                "managedBy": "component",
+                "note": "Always set: the lockup keeps the mark before the name in right-to-left documents."
+              },
+              {
+                "attribute": "aria-label (on the wrapping link)",
+                "managedBy": "consumer",
+                "note": "When the wordmark is the home link, the link may carry aria-label=\"mockio\"; the visible text already gives it the same name."
+              }
+            ],
+            "reducedMotion": "Nothing to reduce: the wordmark has no motion.",
+            "contrast": "The name takes the caller's ink. With text-cream-bright, the product's choice everywhere, it is ≥ 16:1 on every surface in both themes. The mark keeps its brand colours (see Mark).",
+            "focus": "Never focusable. As a home link, the link carries .focus-ring and a rounded corner.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as the word \"mockio\". The mark is not announced."
+          },
+          "content": {
+            "voice": [
+              "The component writes the name itself: \"mockio\", lowercase, in every locale. There is no prop to change it.",
+              "In running text the brand is written \"Mockio\" with a capital, as a word in the sentence — not with this component.",
+              "In Portuguese the brand takes the article in running text (\"O Mockio é uma ferramenta de prática\"); the wordmark itself never does."
+            ],
+            "limits": [
+              "One word, fixed. Nothing is ever appended to the lockup (no tagline, no product name after it)."
+            ],
+            "examples": [
+              "mockio"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Where the brand is read, not only recognised: the landing nav, the site footer, the sign-in and unsubscribe pages.",
+              "Beside the Mark in the app's top bar on wide screens, with mark={false}."
+            ],
+            "whenNot": [
+              {
+                "situation": "A square place or a tight space where the name will not fit (phone top bar, icon tile)",
+                "instead": "Mark alone, inside a link named \"Mockio\"."
+              },
+              {
+                "situation": "The brand inside a sentence",
+                "instead": "Plain text \"Mockio\", capitalised, in the sentence's own font."
+              },
+              {
+                "situation": "A friendly presence above the name on an entry screen",
+                "instead": "Mascot above a Wordmark with mark={false}; never the character and the mark together."
+              }
+            ],
+            "do": [
+              "Size it with a text-* class and let the mark follow.",
+              "Use mark={false} when a Mark or a Mascot is already next to it.",
+              "Name the home link once (aria-label on the link) and keep the lockup inside it."
+            ],
+            "dont": [
+              "Don't build the lockup by hand with a Mark and a text node: the size relation and the lowercase drift.",
+              "Don't capitalise it, translate it or route it through a translation function.",
+              "Don't add a tagline or a second word inside the lockup."
+            ]
+          },
+          "tokens": [
+            "font-mark"
+          ],
+          "related": [
+            {
+              "name": "Mark",
+              "difference": "The square alone, for icons and tight spaces; Wordmark adds the name."
+            },
+            {
+              "name": "Mascot",
+              "difference": "The illustrated character. On sign-in it sits above a Wordmark with mark={false}."
+            }
+          ],
+          "i18n": {
+            "rtl": "Does not mirror. dir=\"ltr\" on the lockup keeps the mark before the name in Arabic and Hebrew; the lockup as a whole is still placed by the page's direction (it sits at the start of an RTL nav).",
+            "textExpansion": "Nothing expands: the name is the literal \"mockio\" in every locale, so the lockup is the same width everywhere. Neighbouring labels expand around it.",
+            "formatting": "None. The only string is the brand name \"mockio\", which is deliberately not a prop and not translated; that is why strings is empty although the component renders text.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Scales with font-size only; responsive sizing is the caller's (text-lg lg:text-xl).",
+              "Never wraps: one word and a square, kept on one line by inline-flex. Hide it below a breakpoint and keep the Mark instead when the row is too narrow."
+            ],
+            "minWidth": "80px"
+          },
+          "designTool": {
+            "registryItem": "wordmark",
+            "importStatement": "import { Wordmark } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "mark",
+              "className"
+            ],
+            "placement": "Start of a nav bar, a footer row or above a sign-in card. Usually inside a link home. Give it clear space of at least the mark's width."
+          },
+          "appCounterpart": {
+            "file": "design-system/wordmark.tsx",
+            "exportName": "Wordmark",
+            "differences": [
+              "Sets dir=\"ltr\" on the lockup, so the mark stays before the name in right-to-left locales; the app's copy flips the mark to the right of the name in Arabic and Hebrew.",
+              "Exports WordmarkProps as an interface; the app's props are an inline type."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product.",
+                "The lockup no longer mirrors in right-to-left documents."
+              ]
             }
           ]
         }
