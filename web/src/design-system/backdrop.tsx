@@ -50,8 +50,11 @@ export function Backdrop({
         }}
       />
 
-      {/* Velorah's navy, drifting across the top-left. Cool against the warm
-          lift, which is what stops the field reading as one flat wash. */}
+      {/* A deeper pool drifting across the top-left, against the warm lift,
+          which is what stops the field reading as one flat wash. Neutral
+          rather than the navy it used to be: a saturated hue fading to
+          nothing behind the headline is a decorative glow, and it was the
+          one colour on the page that came from no token. */}
       <div
         className={`absolute h-[80vmax] w-[80vmax] rounded-full blur-3xl ${
           still ? "" : "animate-drift-wide"
@@ -60,7 +63,7 @@ export function Backdrop({
           top: hero ? "-30vmax" : "-45vmax",
           left: "-20vmax",
           background:
-            "radial-gradient(circle, rgba(4,33,46,0.95) 0%, rgba(4,33,46,0.35) 45%, transparent 70%)",
+            "radial-gradient(circle, rgb(var(--surface-base) / 0.9) 0%, rgb(var(--surface-base) / 0.35) 45%, transparent 70%)",
         }}
       />
 

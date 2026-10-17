@@ -13,7 +13,7 @@ colors:
   page-light: "#FFFFFF"
   deep-light: "#F5F5F7"
   accent-dark: "#5E5CE6"
-  accent-text-dark: "#7D7AFF"
+  accent-text-dark: "#8C89FF"
   accent-soft-dark: "#1E1E3E"
   accent-light: "#5856D6"
   accent-soft-light: "#EEEEFC"

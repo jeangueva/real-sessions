@@ -69,10 +69,13 @@
      * 4.5:1 on every surface (`-text`), and a soft wash for chips and rows.
      * On dark the fill and the text part ways: #5E5CE6 carries white at 5:1
      * but is only 3.4:1 as text on a card, so text takes the lighter step.
+     * That step is #8C89FF rather than #7D7AFF: the older value measured
+     * 4.0:1 on a `surface-lift` row inside a card (#2C2C2E), the one dark
+     * surface it failed on. This one clears 4.7:1 there and 5.7:1 on a card.
      */
     --accent: 94 92 230;
     --accent-ink: 255 255 255;
-    --accent-text: 125 122 255;
+    --accent-text: 140 137 255;
     --accent-soft: 30 30 62;
     /* The darker edge under a primary button — the key's side, Duolingo-style. */
     --accent-depth: 58 56 168;
@@ -340,7 +343,7 @@
     --line-strong: rgba(245, 245, 247, 0.42);
     --accent: 94 92 230;
     --accent-ink: 255 255 255;
-    --accent-text: 125 122 255;
+    --accent-text: 140 137 255;
     /* The idle avatar on a dark stage: a dark indigo disc rather than the
        light theme's near-white wash, which glared off black. */
     --accent-soft: 30 30 62;
