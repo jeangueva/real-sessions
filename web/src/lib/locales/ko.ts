@@ -646,6 +646,7 @@ const KO: Record<MessageKey, string> = {
   "setup.quotaLeft": "이번 주 무료 {limit}회 중 {left}회",
   "setup.quotaFree": "무료 플랜",
   "auth.googleFailed": "되지 않았습니다. 다시 시도하거나 이메일과 비밀번호로 로그인하세요.",
+  "auth.continueWithGoogle": "Google 계정으로 계속하기",
   "setup.fromApplication": "{company} 지원을 위한 연습",
   "setup.fromApplicationHint": "면접관이 해당 공고와 함께 저장한 내용을 사용합니다.",
   "nav.applications": "지원",

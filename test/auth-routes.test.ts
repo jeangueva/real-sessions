@@ -419,6 +419,48 @@ describe("signing in with Google", () => {
   });
 });
 
+describe("signing in with a Google access token", () => {
+  const GOOGLE = "bea@example.com";
+
+  beforeEach(() => {
+    process.env.GOOGLE_CLIENT_ID = "test-client.apps.googleusercontent.com";
+  });
+  afterEach(() => {
+    delete process.env.GOOGLE_CLIENT_ID;
+  });
+
+  const access = (claims: Record<string, unknown>) => `access:${JSON.stringify(claims)}`;
+
+  it("accepts the token the sign-in button's popup returns", async () => {
+    const response = await api.call("/api/auth/google", post({ accessToken: access({ email: GOOGLE }) }));
+    expect(response.status).toBe(200);
+    const me = await api.json<{ email: string }>("/api/auth/me");
+    expect(me.email).toBe(GOOGLE);
+    expect((await api.accounts.findByEmail(GOOGLE))?.emailVerifiedAt).toBeTruthy();
+  });
+
+  it("joins an existing account on that address, like the ID-token path", async () => {
+    await signUp(GOOGLE);
+    const before = await api.accounts.findByEmail(GOOGLE);
+    api.forget();
+    await api.call("/api/auth/google", post({ accessToken: access({ email: "Bea@Example.com" }) }));
+    expect((await api.accounts.findByEmail(GOOGLE))?.id).toBe(before?.id);
+  });
+
+  it("refuses one it cannot verify, with the same single message", async () => {
+    const response = await api.call("/api/auth/google", post({ accessToken: "ya29.forged" }));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: "That Google sign-in could not be verified.",
+    });
+  });
+
+  it("refuses a request carrying neither credential", async () => {
+    const response = await api.call("/api/auth/google", post({}));
+    expect(response.status).toBe(401);
+  });
+});
+
 describe("what the sign-in screen is told", () => {
   it("answers before anybody has an identity", async () => {
     // The page that draws the Google button is served to someone with no

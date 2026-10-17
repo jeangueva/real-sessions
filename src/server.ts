@@ -54,7 +54,7 @@
  *   POST /api/auth/verify               → confirm an email address
  *   POST /api/auth/verify/resend        → send another confirmation
  *   GET  /api/auth/config               → { google }  (public, no identity)
- *   POST /api/auth/google               → signs in with a Google ID token
+ *   POST /api/auth/google               → signs in with a Google ID or access token
  *   DELETE /api/account                 → erases the account and its data
  *
  * Every route but /api/auth requires that identity, and every interview is
@@ -530,6 +530,7 @@ import { FOREVER_SOURCE, holdsForeverPremium } from "./forever.js";
 import {
   googleClientId,
   verifyGoogleIdToken,
+  verifyGoogleAccessToken,
   type GoogleIdentity,
 } from "./google.js";
 import {
@@ -659,6 +660,7 @@ const CALL_ROOMS = new CallRooms();
  */
 let PROVIDER: ModelProvider | undefined;
 let VERIFY_GOOGLE: typeof verifyGoogleIdToken = verifyGoogleIdToken;
+let VERIFY_GOOGLE_ACCESS: typeof verifyGoogleAccessToken = verifyGoogleAccessToken;
 
 export interface ServerDependencies {
   sessions: SessionStore;
@@ -693,6 +695,8 @@ export interface ServerDependencies {
    * part worth testing is what happens to an account afterwards.
    */
   verifyGoogle?: typeof verifyGoogleIdToken;
+  /** The same seam for the access-token path the sign-in button uses. */
+  verifyGoogleAccess?: typeof verifyGoogleAccessToken;
 }
 
 /**
@@ -725,6 +729,7 @@ export function configure(deps: ServerDependencies): void {
   LIMITER = deps.limiter;
   PROVIDER = deps.provider;
   VERIFY_GOOGLE = deps.verifyGoogle ?? verifyGoogleIdToken;
+  VERIFY_GOOGLE_ACCESS = deps.verifyGoogleAccess ?? verifyGoogleAccessToken;
 }
 
 setInterval(() => {
@@ -1971,10 +1976,13 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   /**
    * Signing in with Google.
    *
-   * The browser posts the token Google signed and this exchanges it for our
-   * own session cookie. Everything that makes it safe happens in
-   * `verifyGoogleIdToken` — audience, issuer, signature, expiry, and that
-   * Google itself verified the address.
+   * The browser posts what Google gave it and this exchanges it for our own
+   * session cookie. Two shapes are accepted: `credential`, an ID token Google
+   * signed (the original iframe button's), and `accessToken`, from the token
+   * popup the sign-in screen's own button opens. Everything that makes either
+   * safe happens in `google.ts` — audience, expiry, and that Google itself
+   * verified the address; for the ID token also issuer and signature, for the
+   * access token Google's own answer about whom it was minted for.
    *
    * Linking by email is the decision worth stating. Somebody who signed up
    * with a password and later clicks the Google button lands on their own
@@ -1992,10 +2000,16 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     const body = await readJson(req);
     const credential = typeof body["credential"] === "string" ? body["credential"] : "";
+    const accessToken = typeof body["accessToken"] === "string" ? body["accessToken"] : "";
 
     let identity: GoogleIdentity;
     try {
-      identity = await VERIFY_GOOGLE(credential, { clientId });
+      // An access token only when no ID token was sent, so a request carrying
+      // both is judged by the stricter, offline check.
+      identity =
+        !credential && accessToken
+          ? await VERIFY_GOOGLE_ACCESS(accessToken, { clientId })
+          : await VERIFY_GOOGLE(credential, { clientId });
     } catch (error) {
       /**
        * One message for every reason, and the detail only in the log.

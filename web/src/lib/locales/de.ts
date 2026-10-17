@@ -646,6 +646,7 @@ const DE: Record<MessageKey, string> = {
   "setup.quotaLeft": "{left} von {limit} diese Woche frei",
   "setup.quotaFree": "Gratistarif",
   "auth.googleFailed": "Das hat nicht geklappt. Versuch es noch einmal, oder nimm E-Mail und Passwort.",
+  "auth.continueWithGoogle": "Weiter mit Google",
   "setup.fromApplication": "Übung für deine Bewerbung bei {company}",
   "setup.fromApplicationHint": "Der Interviewer nutzt die Anzeige, die du zu dieser Stelle gespeichert hast.",
   "nav.applications": "Bewerbungen",

@@ -646,6 +646,7 @@ const ZH: Record<MessageKey, string> = {
   "setup.quotaLeft": "本周免费 {limit} 次，剩 {left} 次",
   "setup.quotaFree": "免费方案",
   "auth.googleFailed": "没有成功。再试一次，或用邮箱和密码登录。",
+  "auth.continueWithGoogle": "使用 Google 账号继续",
   "setup.fromApplication": "正在为你投递 {company} 的职位练习",
   "setup.fromApplicationHint": "面试官正在使用你随该职位保存的招聘信息。",
   "nav.applications": "投递",
