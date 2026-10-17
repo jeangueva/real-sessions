@@ -677,8 +677,11 @@ export function LiveInterview() {
    * what there is.
    */
   const reportable = finished || (turn?.turnNumber ?? 0) >= 2;
+  // A defence is titled by what it is; the university goes underneath. Both
+  // in one line ran to two lines on a desktop and three on a phone, above
+  // the call it was meant to introduce.
   const heading = defense
-    ? `${defense.university} · ${tt("sessionTitle")}`
+    ? tt("sessionTitle")
     : running?.generic
       ? `${running.targetRole} · ${running.interviewStage}`
       : `${running?.companyName ?? company} · ${running?.interviewStage ?? stage}`;
@@ -767,9 +770,11 @@ export function LiveInterview() {
         compact
         title={heading}
         meta={
-          running?.generic
-            ? t("field.generalRole")
-            : (running?.targetRole ?? role)
+          defense
+            ? defense.university
+            : running?.generic
+              ? t("field.generalRole")
+              : (running?.targetRole ?? role)
         }
         actions={
           <div className="flex items-center gap-3">
