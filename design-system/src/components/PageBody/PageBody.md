@@ -64,7 +64,8 @@ decides which of two conflicting classes wins.
   `max-w-[110rem]`, which comes later in the CSS. Four product screens pass
   one today and get no narrower column.
 - **Vertical padding** — use `pt-*` and `pb-*`. Longhands come after `py-*`
-  and always win: the call screen trims its padding with
+  and win at the same breakpoint (a base `pb-4` still yields to the built-in
+  `lg:py-10` from 1024px): the call screen trims its padding with
   `pb-4 pt-3 sm:py-6 lg:py-10`.
 - **Same utility, smaller value** — `py-4` or `px-0` lose: Tailwind orders a
   utility's values ascending, so the built-in `py-8` and `px-4` come later.
@@ -79,8 +80,9 @@ _Todavía no hay nada que graficar_.
 
 ## Accessibility
 
-- A plain `<div>`: nothing is announced. The app shell's `<main>` is the
-  landmark around it.
+- A plain `<div>`: nothing is announced and it is not a landmark. The app
+  shell wraps `PageHeader` and `PageBody` in one `<main>`. (The product's
+  shell does not render a `<main>` yet.)
 - Headings inside start at `h2`: the `PageHeader`'s `h1` is the page's only
   `h1`.
 - Every other `<div>` attribute is passed through. A loading screen marks its

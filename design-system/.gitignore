@@ -5,3 +5,7 @@ node_modules
 dist
 # Per-item registry files from `npx shadcn build`, regenerated from registry.json.
 public/r
+# The monorepo's root .gitignore ignores every folder named assets/ (for the
+# hero footage master). Component assets are source: re-include them, or a
+# clean checkout cannot build Mascot and registry.json --check fails.
+!src/components/*/assets/

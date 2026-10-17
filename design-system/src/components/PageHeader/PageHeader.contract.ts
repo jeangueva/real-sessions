@@ -62,10 +62,11 @@ export const PageHeaderContract = defineContract({
   events: [],
   motion: ["None. The header is the fixed point a screen changes under; it never animates in."],
   accessibility: {
-    role: "generic (<header> inside the shell's <main> is not a banner landmark), containing heading level 1",
+    role: "<header> containing heading level 1. Inside a <main> it is generic; outside any <main>, <article>, <aside>, <nav> or <section> it is a banner landmark",
     keyboard: [],
     aria: [
       { attribute: "h1", managedBy: "component", note: "The title is the page's only h1. One PageHeader per screen; headings below start at h2." },
+      { attribute: "<main> around the screen", managedBy: "consumer", note: "The app shell wraps PageHeader and PageBody in one <main>, so the header is not a second banner next to the shell's and the screen is a main landmark. The product's shell renders screens without a <main> today." },
       { attribute: "title (meta)", managedBy: "component", note: "The meta's full text, for the hover tooltip when it is clamped. Same text as the content, so screen readers that read both announce it once." },
       { attribute: "aria-label (icon-only actions)", managedBy: "consumer", note: "Whatever is passed in actions brings its own name and role." },
     ],
@@ -126,7 +127,7 @@ export const PageHeaderContract = defineContract({
   },
   responsive: {
     behaviour: [
-      "Phones: 16px gutters; 32px above (16px when compact); title 32px (20px when compact); actions wrap onto their own line under the title.",
+      "Phones: 16px gutters; 32px above (16px when compact); title 32px (20px when compact); actions wrap onto their own line under the title when the row runs out of room.",
       "From sm (640px): 24px gutters, title 40px, 32px above in both modes.",
       "From lg (1024px): 40px gutters, 40px above. The row stops at the width's ceiling and centres.",
     ],
@@ -136,7 +137,7 @@ export const PageHeaderContract = defineContract({
     registryItem: "page-header",
     importStatement: 'import { PageHeader } from "@mockio/design-system";',
     canvasProps: ["title", "meta", "actions", "compact", "width"],
-    placement: "The first child of the app shell's <main>, directly above PageBody. One per screen.",
+    placement: "The first child of the screen's <main> (provided by the app shell), directly above PageBody. One per screen.",
   },
   appCounterpart: {
     file: "platform/AppShell.tsx",

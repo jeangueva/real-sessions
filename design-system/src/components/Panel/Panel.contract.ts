@@ -23,7 +23,7 @@ export const PanelContract = defineContract({
         card: "bg-surface-card + shadow-card. The lighter fill on the dark theme (#1C1C1E); white on the light one. For panels side by side in a grid: pricing tiers, settings sections, list rows.",
         raised: "bg-surface-raised + shadow-card. A step darker than card on the dark theme (#161618), identical to card on the light one. For one block on the page ground: an upload step, an empty state, a wait.",
         glass:
-          ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on six screens) and for two tabbed sheets (the Settings account tab, the Billing plan).",
+          ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on five screens) and for two tabbed sheets (the Settings account tab, the Billing plan).",
       },
     },
     className: {
