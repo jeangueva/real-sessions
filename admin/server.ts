@@ -9,6 +9,8 @@
  *   Reading      its own pool, forced read-only on every connection.
  *   Writing      a second pool used only by actions.ts, and every change is
  *                written to admin_audit with who made it.
+ *   /ds/         the design system's documentation site (design-system/dist),
+ *                behind the same session; see ds.ts.
  *
  *   npm run admin        local; codes are printed to the console when no
  *                        email provider is configured
@@ -20,6 +22,7 @@
  */
 import "../src/env.js";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import pg from "pg";
 import { createClient, type RedisClientType } from "redis";
@@ -52,6 +55,7 @@ import {
   verifyEmail,
 } from "./actions.js";
 import { aiInsights, ruleInsights } from "./insights.js";
+import { designSystemResponse } from "./ds.js";
 import { MARK, renderApp, renderLogin } from "./page.js";
 
 const production = process.env.NODE_ENV === "production";
@@ -92,6 +96,9 @@ const ASSETS: Record<string, { type: string; body: string }> = {
   "/styles.css": { type: "text/css; charset=utf-8", body: readFileSync(new URL("styles.css", here), "utf8") },
   "/favicon.svg": { type: "image/svg+xml", body: MARK.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ') },
 };
+
+/** The design system's documentation site, built by the deploy (render.yaml) and served at /ds/. */
+const DS_ROOT = fileURLToPath(new URL("../design-system/dist", here));
 
 const redis: RedisClientType = createClient({ url: redisUrl });
 redis.on("error", (error) => console.error("[admin] redis:", error.message));
@@ -317,6 +324,13 @@ const server = createServer(async (req, res) => {
     }
 
     const viewer = readSession(cookieValue(req.headers.cookie, COOKIE), secret, allowed);
+    // /ds and everything under it: the same session as every page here, then
+    // static files from design-system/dist (see ds.ts for the path rules).
+    const ds = designSystemResponse({ url: req.url ?? "/", method: req.method, viewer, root: DS_ROOT, baseHeaders: SECURITY_HEADERS });
+    if (ds) {
+      res.writeHead(ds.status, ds.headers).end(ds.body);
+      return;
+    }
     if (req.method === "GET" && path === "/") {
       if (!viewer) return html(res, 200, renderLogin({ step: "email" }));
       return html(res, 200, renderApp(await currentPayload(), viewer));

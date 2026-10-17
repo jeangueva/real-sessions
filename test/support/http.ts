@@ -244,6 +244,26 @@ export async function startHarness(): Promise<Harness> {
         name: claimed.name ?? null,
       };
     },
+    /**
+     * Stands in for Google on the access-token path.
+     *
+     * The token is `access:` followed by the same JSON, so a test can tell
+     * which verifier the route chose: the ID-token stand-in above cannot parse
+     * it, and this one refuses anything without the prefix.
+     */
+    verifyGoogleAccess: async (accessToken: string) => {
+      if (!accessToken.startsWith("access:")) throw new Error("not an access token");
+      const claimed = JSON.parse(accessToken.slice("access:".length)) as {
+        email: string;
+        subject?: string;
+        name?: string;
+      };
+      return {
+        email: claimed.email.trim().toLowerCase(),
+        subject: claimed.subject ?? "google-subject",
+        name: claimed.name ?? null,
+      };
+    },
   });
 
   // Port 0 lets the OS choose, so the suite does not collide with a developer's

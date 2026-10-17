@@ -37,6 +37,7 @@ const ICONS = `<svg width="0" height="0" style="position:absolute" aria-hidden="
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
 <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-swatch" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><circle cx="17" cy="17" r="4"/></symbol>
 <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
 </svg>`;
 
@@ -69,11 +70,13 @@ export function renderApp(payload: unknown, viewer: string): string {
         id === "recomendaciones" ? `<span class="badge" id="insights-badge" hidden></span>` : ""
       }</a>`,
   ).join("");
+  // The design system's documentation site is a page of its own (served by
+  // ds.ts at /ds/), not a hash section, so it is a plain link after the rest.
   return `${head()}<body>${ICONS}
 <div class="app">
   <aside class="side" aria-label="Secciones">
     <div class="brand">${MARK}<span class="brand-name">Mockio Admin</span></div>
-    <nav class="nav">${nav}</nav>
+    <nav class="nav">${nav}<a href="/ds/">${icon("swatch")}<span class="label">Design system</span></a></nav>
     <div class="side-foot">
       <span class="who" title="${escape(viewer)}">${escape(viewer)}</span>
       <button class="btn collapse-btn" type="button" aria-label="Contraer menú">${icon("panel").replace('class="i"', 'class="i collapse-icon"')}<span class="label">Contraer</span></button>

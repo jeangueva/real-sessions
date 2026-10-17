@@ -117,7 +117,7 @@ export const PageBodyPreviews = definePreviews([
     title: "Live interview: trimmed padding",
     kind: "in-context",
     description:
-      "The call screen gives every pixel to the video on a phone: pt-3 and pb-4 override the built-in py-8 (longhands always win over py-*), and flex-1 lets the call fill the height under a compact PageHeader.",
+      "The call screen gives every pixel to the video on a phone: pt-3 and pb-4 override the built-in py-8 (a longhand wins over py-* at the same breakpoint), and flex-1 lets the call fill the height under a compact PageHeader.",
     render: () => (
       <div className="flex min-h-[20rem] flex-col bg-surface-deep">
         <PageBody className="flex flex-1 flex-col pb-4 pt-3 sm:py-6 lg:py-10">

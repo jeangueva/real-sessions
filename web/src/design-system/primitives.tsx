@@ -5,13 +5,15 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { AlertCircle, ArrowRight, Check, CheckCircle2, Crown, Info } from "lucide-react";
 
-type Tone = "solid" | "neutral" | "glass" | "ghost";
+type Tone = "solid" | "neutral" | "quiet" | "glass" | "ghost";
 
 interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   /**
    * solid = the one primary action per view, in the accent.
    * neutral = a confident secondary — ink on paper, the Apple "Buy" pill.
+   * quiet = a secondary that sits beside the primary on a panel without
+   * competing with it — a hairline and the same pressed edge, no fill colour.
    * glass = over video. ghost = tertiary.
    */
   tone?: Tone;
@@ -29,6 +31,12 @@ const TONE: Record<Tone, string> = {
     "bg-accent text-accent-ink shadow-[0_4px_0_rgb(var(--accent-depth))] hover:brightness-110 active:translate-y-[4px] active:shadow-[0_0_0_rgb(var(--accent-depth))] disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100 disabled:shadow-none",
   neutral:
     "bg-cream-bright text-surface-base shadow-[0_4px_0_rgb(0_0_0/0.35)] hover:bg-cream-bright/90 active:translate-y-[4px] active:shadow-none",
+  // The pressed edge of `solid`, drawn in the hairline colour instead of the
+  // accent, so it reads as the same family of control at a lower volume. A
+  // busy quiet button (a sign-in popup open) dims less than the default 40%:
+  // it is waiting, not unavailable.
+  quiet:
+    "bg-surface-card text-cream-bright shadow-[inset_0_0_0_1px_var(--line-strong),0_4px_0_var(--line-strong)] hover:bg-surface-lift active:translate-y-[4px] active:shadow-[inset_0_0_0_1px_var(--line-strong)] disabled:opacity-70",
   glass:
     "liquid-glass text-cream-bright shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)] hover:bg-surface-lift active:translate-y-[3px] active:shadow-[inset_0_0_0_1px_var(--line)]",
   ghost: "text-cream-dim hover:bg-surface-lift hover:text-cream-bright",

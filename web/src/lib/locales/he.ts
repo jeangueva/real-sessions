@@ -646,6 +646,7 @@ const HE: Record<MessageKey, string> = {
   "setup.quotaLeft": "{left} מתוך {limit} חינם השבוע",
   "setup.quotaFree": "תוכנית חינמית",
   "auth.googleFailed": "זה לא עבד. נסו שוב, או היכנסו עם האימייל והסיסמה.",
+  "auth.continueWithGoogle": "המשך עם Google",
   "setup.fromApplication": "מתרגלים לקראת ההגשה ל{company}",
   "setup.fromApplicationHint": "המראיין משתמש במודעה ששמרתם עם המשרה הזאת.",
   "nav.applications": "משרות",

@@ -646,6 +646,7 @@ const HI: Record<MessageKey, string> = {
   "setup.quotaLeft": "इस हफ़्ते {limit} में से {left} मुफ़्त",
   "setup.quotaFree": "मुफ़्त प्लान",
   "auth.googleFailed": "यह काम नहीं आया। फिर कोशिश करें, या अपने ईमेल और पासवर्ड से लॉगिन करें।",
+  "auth.continueWithGoogle": "Google के साथ जारी रखें",
   "setup.fromApplication": "{company} में आपके आवेदन के लिए अभ्यास",
   "setup.fromApplicationHint": "इंटरव्यूअर उस नौकरी के साथ सेव किए विज्ञापन का उपयोग कर रहा है।",
   "nav.applications": "आवेदन",

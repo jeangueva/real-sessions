@@ -264,7 +264,33 @@
       "type": "registry:file",
       "title": "Mockio guidelines",
       "description": "The system's guidance as Markdown — foundations (colour, type, motion, voice) and guides — so a tool that installs the components also has the rules for using them.",
-      "files": [],
+      "files": [
+        {
+          "path": "docs/guides/contributing.md",
+          "type": "registry:file",
+          "target": "mockio/docs/guides/contributing.md"
+        },
+        {
+          "path": "docs/guides/getting-started.md",
+          "type": "registry:file",
+          "target": "mockio/docs/guides/getting-started.md"
+        },
+        {
+          "path": "docs/guides/lunagraph.md",
+          "type": "registry:file",
+          "target": "mockio/docs/guides/lunagraph.md"
+        },
+        {
+          "path": "docs/guides/registry.md",
+          "type": "registry:file",
+          "target": "mockio/docs/guides/registry.md"
+        },
+        {
+          "path": "docs/guides/separate-repo.md",
+          "type": "registry:file",
+          "target": "mockio/docs/guides/separate-repo.md"
+        }
+      ],
       "categories": [
         "guidelines"
       ]
@@ -1976,6 +2002,494 @@
       }
     },
     {
+      "name": "page-body",
+      "type": "registry:ui",
+      "title": "PageBody",
+      "description": "The one container every signed-in app screen sits in: gutters, vertical padding and a single ceiling, on the same element as the screen's layout.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/mockio-contract",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/PageBody/PageBody.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/PageBody/PageBody.tsx"
+        },
+        {
+          "path": "src/components/PageBody/PageBody.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/PageBody/PageBody.contract.ts"
+        },
+        {
+          "path": "src/components/PageBody/PageBody.md",
+          "type": "registry:file",
+          "target": "mockio/components/PageBody/PageBody.md"
+        },
+        {
+          "path": "src/components/PageBody/PageBody.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/PageBody/PageBody.previews.tsx"
+        },
+        {
+          "path": "src/components/PageBody/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/PageBody/index.ts"
+        }
+      ],
+      "categories": [
+        "template"
+      ],
+      "meta": {
+        "level": "template",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "PageBody",
+          "level": "template",
+          "status": "stable",
+          "summary": "The one container every signed-in app screen sits in: gutters, vertical padding and a single ceiling, on the same element as the screen's layout.",
+          "source": "src/components/PageBody/PageBody.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The screen's content, below the PageHeader: Panels, a list, a grid, a call."
+            },
+            "width": {
+              "type": "\"wide\" | \"reading\"",
+              "required": false,
+              "default": "\"wide\"",
+              "description": "The ceiling the content stops growing at. Pass the same value to the screen's PageHeader so the title lines up with the content.",
+              "values": {
+                "wide": "max-w-[110rem] (1760px). Every screen whose content is a grid, a table, a list of sessions or a call: it fills a desktop window instead of pinning to the left.",
+                "reading": "max-w-3xl (48rem, 768px), centred. A screen read top to bottom as one column: a feedback report, a session's detail, the day-of warm-up, the affiliate page."
+              }
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes on the element that holds the children: the screen's layout (flex flex-col gap-4, grid lg:grid-cols-2, flex-1) and vertical padding overrides with pt-* / pb-*, which always win over the built-in py-*. Not a max-w-* — use width."
+            },
+            "id": {
+              "type": "string",
+              "required": false,
+              "description": "Native id, passed through, like every other <div> attribute. The target of a skip link (\"#contenido\")."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The screen's content. Section headings inside are h2 (the PageHeader's h1 is the page's only h1). Blocks are Panels; a screen with one block puts one raised Panel here."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "mx-auto w-full, the width's ceiling, px-4 py-8 on phones, sm:px-6, lg:px-10 lg:py-10. PageBody has no other state: loading, empty and error are content the screen puts inside.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None of its own. Blocks inside enter with FadeRise; the app keeps motion restrained, so the container never animates between screens."
+          ],
+          "accessibility": {
+            "role": "generic (a plain <div>); the app shell's <main> is the landmark around it",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-busy / aria-live / id / data-*",
+                "managedBy": "consumer",
+                "note": "Every other <div> attribute is spread onto the container. A loading screen marks its own status Panel with role=\"status\" rather than the whole body."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "PageBody draws no ink or fill: it sits on the app shell's ground (surface-deep), where the faintest ink, cream-faint, is 7.8:1 on dark and 5.1:1 on light.",
+            "focus": "Not focusable. With an id it can be the target of a skip link.",
+            "targetSize": "not interactive",
+            "screenReader": "Nothing is announced for the container; its content is read in source order inside the shell's main landmark."
+          },
+          "content": {
+            "voice": [
+              "PageBody renders no words. What the screen says first lives in the PageHeader; the body starts with the task, not a restatement of the title.",
+              "An empty or loading screen says what is happening in the tú form, in a raised Panel inside: \"Leyendo tu tesis… puede tardar hasta dos minutos.\""
+            ],
+            "limits": [
+              "Body text inside a wide PageBody stays at max-w-prose; the ceiling is for grids, not for lines of text."
+            ],
+            "examples": [
+              "Leyendo tu tesis… puede tardar hasta dos minutos.",
+              "Agrega el puesto para el que te estás preparando.",
+              "Todavía no hay nada que graficar"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Every screen inside the signed-in app, directly under its PageHeader.",
+              "width=\"reading\" for a screen that is one column read top to bottom."
+            ],
+            "whenNot": [
+              {
+                "situation": "A band of a marketing page",
+                "instead": "Section: marketing rhythm (py-20–36), two elements, max-w-7xl."
+              },
+              {
+                "situation": "A surface for a block of content",
+                "instead": "Panel, inside the PageBody."
+              },
+              {
+                "situation": "Narrowing one block inside a wide screen",
+                "instead": "max-w-2xl on that block (as the error Panels do), not width=\"reading\" for the whole screen."
+              }
+            ],
+            "do": [
+              "Put the screen's layout on PageBody itself: <PageBody className=\"flex flex-col gap-4\">.",
+              "Pass the same width to PageHeader and PageBody.",
+              "Override vertical padding with pt-* / pb-* (a call trims it: pb-4 pt-3 sm:py-6 lg:py-10)."
+            ],
+            "dont": [
+              "Don't wrap the content in another <div> for layout — the grid then lays out the wrapper.",
+              "Don't pass max-w-* in className: max-w-[110rem] comes later in the generated CSS and wins.",
+              "Don't override py-* or px-* with a smaller value of the same utility (py-4): Tailwind orders those by value, so the built-in py-8 wins. Use pt-* and pb-*."
+            ]
+          },
+          "tokens": [
+            "max-w-[110rem]",
+            "max-w-3xl",
+            "--surface-deep"
+          ],
+          "related": [
+            {
+              "name": "PageHeader",
+              "difference": "The title block above it, on the same container so the two line up."
+            },
+            {
+              "name": "Section",
+              "difference": "The marketing page's band: larger rhythm, a 7xl column, a full-bleed background."
+            },
+            {
+              "name": "Panel",
+              "difference": "The surface a block sits on, inside the PageBody."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing to mirror: gutters are symmetric and the column centres. Grids and flex rows inside follow the document direction.",
+            "textExpansion": "Height grows with the content; width comes from the ceiling and the window, so longer Portuguese or German copy wraps inside the blocks.",
+            "formatting": "None: the container renders no text of its own.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 16px gutters, 32px above and below.",
+              "From sm (640px): 24px gutters.",
+              "From lg (1024px): 40px gutters, 40px above and below.",
+              "wide stops at 110rem and centres; reading stops at 48rem and centres. The layout in className (lg:grid-cols-2, lg:flex-row) is the screen's own."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "page-body",
+            "importStatement": "import { PageBody } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children",
+              "width",
+              "className"
+            ],
+            "placement": "Directly below a PageHeader, inside the app shell's <main>. One per screen; never inside a Section or a Panel."
+          },
+          "appCounterpart": {
+            "file": "platform/AppShell.tsx",
+            "exportName": "PageBody",
+            "differences": [
+              "Adds width (\"wide\" | \"reading\"). The app's copy has only className, and its screens that pass max-w-3xl or max-w-2xl there (FeedbackReport, InterviewDetail, Advisor, Warmup) get no narrower column, because max-w-[110rem] comes later in the generated CSS.",
+              "Spreads every other <div> attribute (id, aria-*, data-*). The app's copy accepts only children and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product's app shell.",
+                "width prop for the reading column, replacing a max-w-* in className that never took effect.",
+                "Native <div> attributes are passed through."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "page-header",
+      "type": "registry:ui",
+      "title": "PageHeader",
+      "description": "The title block of every app screen: the page's only h1, one line of meta and the screen's actions, on the same container as PageBody.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/badge",
+        "@mockio/mockio-contract",
+        "@mockio/page-body"
+      ],
+      "files": [
+        {
+          "path": "src/components/PageHeader/PageHeader.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/PageHeader/PageHeader.tsx"
+        },
+        {
+          "path": "src/components/PageHeader/PageHeader.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/PageHeader/PageHeader.contract.ts"
+        },
+        {
+          "path": "src/components/PageHeader/PageHeader.md",
+          "type": "registry:file",
+          "target": "mockio/components/PageHeader/PageHeader.md"
+        },
+        {
+          "path": "src/components/PageHeader/PageHeader.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/PageHeader/PageHeader.previews.tsx"
+        },
+        {
+          "path": "src/components/PageHeader/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/PageHeader/index.ts"
+        }
+      ],
+      "categories": [
+        "template"
+      ],
+      "meta": {
+        "level": "template",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "PageHeader",
+          "level": "template",
+          "status": "stable",
+          "summary": "The title block of every app screen: the page's only h1, one line of meta and the screen's actions, on the same container as PageBody.",
+          "source": "src/components/PageHeader/PageHeader.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "title": {
+              "type": "string",
+              "required": true,
+              "description": "The screen's name, rendered as the page's only h1. Short and specific: \"Mi tesis\", \"Tu camino\", \"Ajustes\"."
+            },
+            "meta": {
+              "type": "string",
+              "required": false,
+              "description": "One line under the title: what the screen is for, or the one fact that places it (a count, the thesis it is about). Clamped to one line with an ellipsis; the full text stays in the DOM and in a title tooltip. Omitted or empty, nothing renders."
+            },
+            "actions": {
+              "type": "ReactNode",
+              "required": false,
+              "description": "Controls at the end of the title row: one Action, or a few Badges that state the screen's mode. On a phone they wrap under the title."
+            },
+            "compact": {
+              "type": "boolean",
+              "required": false,
+              "default": "false",
+              "description": "For a screen whose content is the point, like a call: on phones the title drops from 32px to 20px and the space above from 32px to 16px. From sm up the size and spacing match every other screen. The title is clamped to two lines at every width."
+            },
+            "width": {
+              "type": "\"wide\" | \"reading\"",
+              "required": false,
+              "default": "\"wide\"",
+              "description": "The ceiling, the same values as PageBody's width. Pass the PageBody's value so the title starts where the content starts.",
+              "values": {
+                "wide": "max-w-[110rem]: the default, for every screen with a wide PageBody.",
+                "reading": "max-w-3xl, centred: above a PageBody with width=\"reading\"."
+              }
+            }
+          },
+          "slots": [
+            {
+              "name": "actions",
+              "description": "One Action (a solid one only when it is the screen's way forward, e.g. \"Otra vez, sin miedo\"), or Badges for the mode: \"Práctica\", \"Turno 3 de 7\". Never a row of three buttons."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The h1 at 32px (40px from sm), bold, tracking -0.028em; meta in cream-dim at 16px below it; actions bottom-aligned at the row's end. No rule under it.",
+              "trigger": "Initial render."
+            },
+            {
+              "name": "truncated",
+              "description": "The meta is longer than one line at the current width: it stops at the end of the first line with an ellipsis. The full text is still in the DOM, so a screen reader reads all of it, and a mouse user sees it in the title tooltip on hover.",
+              "trigger": "meta longer than one line at the current width: a 25-word thesis title at any width, or a meta over about 35 characters at 320px."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The header is the fixed point a screen changes under; it never animates in."
+          ],
+          "accessibility": {
+            "role": "generic (<header> inside the shell's <main> is not a banner landmark), containing heading level 1",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "h1",
+                "managedBy": "component",
+                "note": "The title is the page's only h1. One PageHeader per screen; headings below start at h2."
+              },
+              {
+                "attribute": "title (meta)",
+                "managedBy": "component",
+                "note": "The meta's full text, for the hover tooltip when it is clamped. Same text as the content, so screen readers that read both announce it once."
+              },
+              {
+                "attribute": "aria-label (icon-only actions)",
+                "managedBy": "consumer",
+                "note": "Whatever is passed in actions brings its own name and role."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "On the shell's surface-deep ground: cream-bright title 18.8:1 (dark) and 17.3:1 (light); cream-dim meta 13.0:1 and 9.9:1.",
+            "focus": "Not focusable itself. The actions follow the title in source order, so they are the first stops in the screen's content after the shell's navigation.",
+            "targetSize": "not interactive (actions bring their own targets)",
+            "screenReader": "Announced as heading level 1 with the title, then the meta in full — the one-line clamp is visual only. On touch the clamped part of the meta cannot be revealed (the tooltip needs a pointer), so nothing a person needs to act on may live only in the meta."
+          },
+          "content": {
+            "voice": [
+              "The title names the screen in one to four words, sentence case, no period: \"Mi tesis\", \"Tu camino\", \"Tus postulaciones\".",
+              "Possessives in the tú form where the screen is the person's own: \"Tu informe\", \"Tu camino\".",
+              "Meta is one short sentence that says what the screen is for, or one fact: \"Súbela una vez. El jurado la lee antes de cada ensayo.\", \"12 completadas\".",
+              "No exclamation marks; meta never repeats the title."
+            ],
+            "limits": [
+              "Title: ≤ 40 characters so it stays on one line at 320px (two at most).",
+              "Meta: one line. About 35 characters fit at 320px, about 45 at 390px and about 70 from 640px; anything longer is cut, so the point goes in the first 35 characters and instructions go in the body."
+            ],
+            "examples": [
+              "Mi tesis",
+              "Súbela una vez. El jurado la lee antes de cada ensayo.",
+              "Ajustes",
+              "Cuenta y preferencias de práctica",
+              "Tu camino",
+              "Equivócate aquí, no en la entrevista"
+            ]
+          },
+          "usage": {
+            "when": [
+              "At the top of every screen in the signed-in app, once, directly above its PageBody.",
+              "compact for a screen whose content needs the height on a phone: the live call."
+            ],
+            "whenNot": [
+              {
+                "situation": "A marketing page's headline",
+                "instead": "The hero's own h1, then Sections with h2."
+              },
+              {
+                "situation": "A heading inside the screen",
+                "instead": "An h2 in a Panel."
+              },
+              {
+                "situation": "Instructions or a long description of the screen",
+                "instead": "A Panel in the PageBody; meta is cut to one line."
+              },
+              {
+                "situation": "A status message (an error, a saved confirmation)",
+                "instead": "Notice, in the PageBody."
+              }
+            ],
+            "do": [
+              "Pass the same width to PageHeader and PageBody.",
+              "Put the point of the meta in its first 35 characters: that is what a 320px phone shows.",
+              "Keep one Action in actions, and make it solid only when it is the screen's way forward."
+            ],
+            "dont": [
+              "Don't render a second PageHeader (or any other h1) on a screen.",
+              "Don't put something the person must read to act in meta: on touch, the clamped part cannot be revealed.",
+              "Don't draw a rule or a background under the header."
+            ]
+          },
+          "tokens": [
+            "--cream-bright",
+            "--cream",
+            "--surface-deep",
+            "max-w-[110rem]",
+            "max-w-3xl"
+          ],
+          "related": [
+            {
+              "name": "PageBody",
+              "difference": "The content container under it, with the same gutters and ceiling."
+            },
+            {
+              "name": "Badge",
+              "difference": "Goes in actions to state the screen's mode (Práctica, Modo estrés)."
+            },
+            {
+              "name": "Action",
+              "difference": "Goes in actions: at most one, the screen's way forward."
+            }
+          ],
+          "i18n": {
+            "rtl": "The row follows the document direction: the title starts at the right and the actions move to the left end. The meta's ellipsis lands at the line's end (the left in RTL).",
+            "textExpansion": "The title wraps (compact clamps it at two lines); the meta is clamped at one line, so a Portuguese or German meta 30–40% longer than the Spanish shows less of itself rather than growing the header. Actions wrap under the title when the row runs out.",
+            "formatting": "None: title and meta come formatted from the caller (a count through Intl, a date through the app's formatter).",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 16px gutters; 32px above (16px when compact); title 32px (20px when compact); actions wrap onto their own line under the title.",
+              "From sm (640px): 24px gutters, title 40px, 32px above in both modes.",
+              "From lg (1024px): 40px gutters, 40px above. The row stops at the width's ceiling and centres."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "page-header",
+            "importStatement": "import { PageHeader } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "title",
+              "meta",
+              "actions",
+              "compact",
+              "width"
+            ],
+            "placement": "The first child of the app shell's <main>, directly above PageBody. One per screen."
+          },
+          "appCounterpart": {
+            "file": "platform/AppShell.tsx",
+            "exportName": "PageHeader",
+            "differences": [
+              "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap, so on Mi tesis a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
+              "Adds width (\"wide\" | \"reading\") to match PageBody's; the app's copy is always max-w-[110rem], so its title does not line up with a narrower body."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product's app shell.",
+                "Meta clamped to one line with the full text in a title attribute.",
+                "width prop, matching PageBody."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "panel",
       "type": "registry:ui",
       "title": "Panel",
@@ -2000,9 +2514,19 @@
           "target": "mockio/components/Panel/Panel.contract.ts"
         },
         {
+          "path": "src/components/Panel/Panel.md",
+          "type": "registry:file",
+          "target": "mockio/components/Panel/Panel.md"
+        },
+        {
           "path": "src/components/Panel/Panel.previews.tsx",
           "type": "registry:file",
           "target": "mockio/components/Panel/Panel.previews.tsx"
+        },
+        {
+          "path": "src/components/Panel/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Panel/index.ts"
         }
       ],
       "categories": [
@@ -2034,7 +2558,7 @@
               "values": {
                 "card": "bg-surface-card + shadow-card. The lighter fill on the dark theme (#1C1C1E); white on the light one. For panels side by side in a grid: pricing tiers, settings sections, list rows.",
                 "raised": "bg-surface-raised + shadow-card. A step darker than card on the dark theme (#161618), identical to card on the light one. For one block on the page ground: an upload step, an empty state, a wait.",
-                "glass": ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for a screen that failed to load, so the error does not read as content."
+                "glass": ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on six screens) and for two tabbed sheets (the Settings account tab, the Billing plan)."
               }
             },
             "className": {
@@ -2159,7 +2683,7 @@
               "Don't put hover:shadow-lift on a panel nothing happens on — it promises a press.",
               "Don't nest a Panel in a Panel.",
               "Don't recolour it with bg-* or border-*; pick the variant.",
-              "Don't use glass on a plain page for ordinary content; it reads as empty."
+              "Don't reach for glass on a plain page for a grid of ordinary cards: on the dark theme it is near-transparent and reads as empty; use card."
             ]
           },
           "tokens": [
@@ -2433,6 +2957,237 @@
               "version": "1.0.0",
               "changes": [
                 "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "section",
+      "type": "registry:ui",
+      "title": "Section",
+      "description": "A band of a marketing page: owns the vertical rhythm and side gutters, bleeds its background to both edges and centres content in one column.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/eyebrow",
+        "@mockio/mockio-contract",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/Section/Section.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Section/Section.tsx"
+        },
+        {
+          "path": "src/components/Section/Section.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Section/Section.contract.ts"
+        },
+        {
+          "path": "src/components/Section/Section.md",
+          "type": "registry:file",
+          "target": "mockio/components/Section/Section.md"
+        },
+        {
+          "path": "src/components/Section/Section.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Section/Section.previews.tsx"
+        },
+        {
+          "path": "src/components/Section/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Section/index.ts"
+        }
+      ],
+      "categories": [
+        "template"
+      ],
+      "meta": {
+        "level": "template",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Section",
+          "level": "template",
+          "status": "stable",
+          "summary": "A band of a marketing page: owns the vertical rhythm and side gutters, bleeds its background to both edges and centres content in one column.",
+          "source": "src/components/Section/Section.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The band's content: usually an Eyebrow, an h2 and what the heading introduces. It sits in a centred max-w-7xl (80rem) column."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes for the outer <section>: the band's background (bg-surface-base, bg-surface-deep) and positioning (relative). They land on the full-bleed element, not on the content column, so a grid or a gap belongs on a <div> inside."
+            },
+            "id": {
+              "type": "string",
+              "required": false,
+              "description": "The anchor the landing nav scrolls to (\"pricing\", \"features\"). Also the target of a skip or in-page link."
+            },
+            "aria-labelledby": {
+              "type": "string",
+              "required": false,
+              "description": "Native, passed through. The id of the band's h2; it names the <section> so it becomes a region landmark a screen-reader user can jump to."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The band's content. Opens with its heading — an h2 (the page's h1 lives in the hero), optionally preceded by an Eyebrow — then the body: Panels in a grid, a list, a chart. Narrower blocks set their own max-w-* and mx-auto inside."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "py-20 / px-4 on phones, sm:py-28 / sm:px-6, lg:py-36 / lg:px-10. The background in className reaches both window edges; content is centred at max-w-7xl. Section has no other state.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None of its own. Blocks inside enter with FadeRise (or WordsPullUp for a headline) as they scroll into view; the band itself never moves."
+          ],
+          "accessibility": {
+            "role": "generic (<section> without an accessible name); region when aria-labelledby names it",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-labelledby",
+                "managedBy": "consumer",
+                "note": "Point it at the band's h2 (give the h2 an id). Without a name a <section> is announced as nothing and does not appear in the landmarks list."
+              },
+              {
+                "attribute": "aria-label / data-* / other <section> attributes",
+                "managedBy": "consumer",
+                "note": "Spread onto the <section>. Prefer aria-labelledby over aria-label, so the name is the visible heading."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes. Motion inside belongs to FadeRise or WordsPullUp, which handle reduced motion themselves.",
+            "contrast": "Section draws no ink. On the backgrounds landing bands use, the ink tokens clear AA in both themes: on surface-deep cream-bright is 18.8:1 and cream-faint 7.8:1 (dark), 17.3:1 and 5.1:1 (light); on surface-base (black / white) they are higher.",
+            "focus": "Not focusable. With an id it can be the target of an in-page link; the browser moves the reading position there.",
+            "targetSize": "not interactive",
+            "screenReader": "With aria-labelledby: announced as a region with the heading's text, and listed among landmarks. Without it: not announced; the heading inside is what a screen-reader user navigates by."
+          },
+          "content": {
+            "voice": [
+              "The heading is one plain claim, sentence case, ending in a period when it is a sentence: \"Gratis para conseguir el trabajo. Después, al precio de tu país.\"",
+              "The Eyebrow above it names the topic in two or three words: \"Precios\", \"De la entrevista al aumento\".",
+              "Body under the heading in the tú form, concrete, no exclamation marks: \"XP por cada entrevista, una racha que perdona un mal día, misiones semanales e insignias que te ganas.\""
+            ],
+            "limits": [
+              "Heading: one sentence or two short ones, ≤ 90 characters, text-balance so it breaks evenly.",
+              "Intro paragraph: ≤ 2 sentences, in a max-w-2xl column.",
+              "One idea per band; if a band needs two headings it is two bands."
+            ],
+            "examples": [
+              "Gratis para conseguir el trabajo. Después, al precio de tu país.",
+              "Cada conversación de un trabajo remoto, ensayada antes de que cuente.",
+              "Un hábito que vas a querer mantener",
+              "Devoluciones que nombran el error."
+            ]
+          },
+          "usage": {
+            "when": [
+              "Each band of the landing or another marketing page: features, pricing, how it works, the habit loop.",
+              "Alternating backgrounds down a page: give consecutive bands bg-surface-base and bg-surface-deep through className."
+            ],
+            "whenNot": [
+              {
+                "situation": "A screen inside the signed-in app",
+                "instead": "PageBody (with PageHeader above it): tighter gutters, a wider ceiling, no marketing rhythm."
+              },
+              {
+                "situation": "A block inside a band (a tier, a feature card)",
+                "instead": "Panel, inside the Section."
+              },
+              {
+                "situation": "The hero at the top of the page",
+                "instead": "HeroVideo or the hero's own full-height layout over a Backdrop; it is not a padded band."
+              },
+              {
+                "situation": "Laying out the content in columns through className",
+                "instead": "A <div className=\"grid …\"> inside the Section; className reaches the outer band, not the column."
+              }
+            ],
+            "do": [
+              "Give the band an id the nav can scroll to and name it with aria-labelledby on its h2.",
+              "Put background and positioning in className; put layout in a <div> inside.",
+              "Narrow text blocks inside with max-w-2xl or max-w-3xl and mx-auto."
+            ],
+            "dont": [
+              "Don't add py-* or px-* to tune one band — the rhythm is the point; change it here for all of them.",
+              "Don't put grid or flex classes in className: they lay out the single inner column, not your content.",
+              "Don't nest a Section inside a Section."
+            ]
+          },
+          "tokens": [
+            "--surface-base",
+            "--surface-deep",
+            "max-w-7xl"
+          ],
+          "related": [
+            {
+              "name": "PageBody",
+              "difference": "The signed-in app's container: one element, max-w-[110rem], py-8–10. Section is for marketing pages: two elements, max-w-7xl, py-20–36."
+            },
+            {
+              "name": "Panel",
+              "difference": "A surface inside a band; Section is the band."
+            },
+            {
+              "name": "Eyebrow",
+              "difference": "The kicker above a Section's heading."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing to mirror: the gutters are symmetric and the column is centred. Content follows the document direction.",
+            "textExpansion": "The band grows in height with its content; headings wrap (text-balance keeps the lines even). Portuguese and German headings run 10–30% longer and simply take another line.",
+            "formatting": "None: the band renders no text of its own.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 16px side gutters, 80px above and below.",
+              "From sm (640px): 24px gutters, 112px vertical.",
+              "From lg (1024px): 40px gutters, 144px vertical. Content stops growing at 80rem (1280px) and centres."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "section",
+            "importStatement": "import { Section } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children",
+              "className",
+              "id"
+            ],
+            "placement": "A direct child of a marketing page's <main>, stacked one after another below the hero. Never inside the app shell or inside another Section."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Section",
+            "differences": [
+              "Spreads every other <section> attribute (aria-labelledby, aria-label, data-*). The app's copy accepts only children, className and id, so its bands cannot be named and are not landmarks."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product.",
+                "Native <section> attributes are passed through, so a band can be named with aria-labelledby."
               ]
             }
           ]

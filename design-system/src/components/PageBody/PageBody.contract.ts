@@ -29,7 +29,7 @@ export const PageBodyContract = defineContract({
       required: false,
       default: '""',
       description:
-        "Extra classes on the element that holds the children: the screen's layout (flex flex-col gap-4, grid lg:grid-cols-2, flex-1) and vertical padding overrides with pt-* / pb-*, which always win over the built-in py-*. Not a max-w-* — use width.",
+        "Extra classes on the element that holds the children: the screen's layout (flex flex-col gap-4, grid lg:grid-cols-2, flex-1) and vertical padding overrides with pt-* / pb-*, which win over the built-in py-* at the same breakpoint (a base pb-4 still yields to the built-in lg:py-10 from 1024px). Not a max-w-* — use width.",
     },
     id: {
       type: "string",
@@ -57,16 +57,17 @@ export const PageBodyContract = defineContract({
     "None of its own. Blocks inside enter with FadeRise; the app keeps motion restrained, so the container never animates between screens.",
   ],
   accessibility: {
-    role: "generic (a plain <div>); the app shell's <main> is the landmark around it",
+    role: "generic (a plain <div>); the landmark is the <main> the app shell wraps around PageHeader and PageBody",
     keyboard: [],
     aria: [
       { attribute: "aria-busy / aria-live / id / data-*", managedBy: "consumer", note: "Every other <div> attribute is spread onto the container. A loading screen marks its own status Panel with role=\"status\" rather than the whole body." },
+      { attribute: "<main> around the screen", managedBy: "consumer", note: "PageBody is not a landmark. The app shell provides one <main> around PageHeader and PageBody; the product's shell renders screens without one today." },
     ],
     reducedMotion: "Nothing moves, so nothing changes.",
     contrast: "PageBody draws no ink or fill: it sits on the app shell's ground (surface-deep), where the faintest ink, cream-faint, is 7.8:1 on dark and 5.1:1 on light.",
     focus: "Not focusable. With an id it can be the target of a skip link.",
     targetSize: "not interactive",
-    screenReader: "Nothing is announced for the container; its content is read in source order inside the shell's main landmark.",
+    screenReader: "Nothing is announced for the container; its content is read in source order, inside the main landmark when the shell provides one.",
   },
   content: {
     voice: [
@@ -126,7 +127,7 @@ export const PageBodyContract = defineContract({
     registryItem: "page-body",
     importStatement: 'import { PageBody } from "@mockio/design-system";',
     canvasProps: ["children", "width", "className"],
-    placement: "Directly below a PageHeader, inside the app shell's <main>. One per screen; never inside a Section or a Panel.",
+    placement: "Directly below a PageHeader, inside the screen's <main> (provided by the app shell). One per screen; never inside a Section or a Panel.",
   },
   appCounterpart: {
     file: "platform/AppShell.tsx",

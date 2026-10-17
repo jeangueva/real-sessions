@@ -1,22 +1,33 @@
 /**
  * Proving that Google really said what a browser claims it said.
  *
- * The sign-in flow here is the one that needs no client secret: Google hands
- * the browser a signed JWT and the browser posts it to us. Which means this
- * file is the entire security boundary. A browser can send any string it
- * likes, so everything downstream — linking to an existing account, creating
- * one — is only as safe as what happens here.
+ * Two credentials arrive here, from the same button, and neither needs a
+ * client secret:
+ *
+ * - An ID token: a JWT Google signed, verified offline against Google's public
+ *   keys. This was the only path while the sign-in screen used Google's own
+ *   iframe button, and it stays exactly as it was.
+ * - An access token: what the sign-in screen's own button gets now, from the
+ *   OAuth 2.0 token model (`google.accounts.oauth2.initTokenClient`, popup).
+ *   It is opaque, so it is checked by asking Google about it — `tokeninfo`
+ *   for who it was minted for, `userinfo` for whose it is.
+ *
+ * Either way a browser can send any string it likes, so this file is the
+ * entire security boundary. Everything downstream — linking to an existing
+ * account, creating one — is only as safe as what happens here.
  *
  * No client secret exists in this design, deliberately. A secret is a thing
  * that leaks, gets committed, needs rotating, and sits in a chat log
- * somewhere; Google's public keys are public, and verification needs nothing
- * else. The Client ID is not a secret either — it ships inside the HTML of
+ * somewhere. The ID token needs only Google's public keys; the access token
+ * needs nothing but itself, because the token model is the browser-only grant
+ * (no code to exchange) and Google answers `tokeninfo` and `userinfo` for the
+ * bearer. The Client ID is not a secret either — it ships inside the HTML of
  * every site that uses Google sign-in.
  *
  * No dependency for any of it. `node:crypto` imports a JWK and verifies
- * RS256, and a JWT is three base64url strings with a dot between them. A JWT
- * library here would be a supply-chain surface in the one file where that
- * matters most.
+ * RS256, a JWT is three base64url strings with a dot between them, and the
+ * access-token path is two `fetch` calls. A Google SDK here would be a
+ * supply-chain surface in the one file where that matters most.
  */
 import { createPublicKey, verify as verifySignature } from "node:crypto";
 import process from "node:process";
@@ -191,4 +202,109 @@ export async function verifyGoogleIdToken(
   if (!payload.sub) throw new Error("That token carries no subject.");
 
   return { email, subject: payload.sub, name: payload.name?.trim() || null };
+}
+
+/** Where Google says who an access token was minted for, and until when. */
+const TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo";
+
+/** Where Google says whose an access token is. */
+const USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
+
+/**
+ * Verifies a Google OAuth access token and returns who it belongs to.
+ *
+ * An access token is opaque, so unlike the ID token there is nothing to check
+ * offline: the proof is Google's own answer about it. Two questions, and both
+ * answers are required to line up:
+ *
+ * 1. `tokeninfo` — who was this minted for? It must be for *our* Client ID.
+ *    This is the access-token version of the audience check, and the one that
+ *    matters most: an access token from any other Google-connected site would
+ *    otherwise answer `userinfo` just as happily, and anybody running such a
+ *    site could sign in here as each of their users. `azp` is checked too
+ *    when present, so a token authorised by another party for our audience
+ *    does not slip through either.
+ * 2. `userinfo` — whose is it? The address must be one Google has verified
+ *    (the same reason as `email_verified` on the ID token: linking by email
+ *    is only safe for a proved address), and its `sub` must be the one
+ *    `tokeninfo` named, so the two answers are about the same person.
+ *
+ * Throws on anything else, including Google being unreachable — there is no
+ * partially-trusted outcome, and failing closed is the only safe failure.
+ *
+ * `fetchImpl` is injectable so the tests can play Google without a network.
+ */
+export async function verifyGoogleAccessToken(
+  token: string,
+  options: { clientId: string; now?: number },
+  fetchImpl: typeof fetch = fetch,
+): Promise<GoogleIdentity> {
+  const now = options.now ?? Date.now();
+  // Shape only: Google's tokens are URL-safe base64-ish with dots, and
+  // anything else is refused before it is put in a URL or a header.
+  if (!token || token.length > 4096 || !/^[\w.~+/=-]+$/.test(token)) {
+    throw new Error("That is not a Google access token.");
+  }
+
+  const infoResponse = await fetchImpl(
+    `${TOKENINFO_URL}?access_token=${encodeURIComponent(token)}`,
+  );
+  if (!infoResponse.ok) throw new Error(`Google refused the token (${infoResponse.status}).`);
+  const info = (await infoResponse.json()) as {
+    aud?: string;
+    azp?: string;
+    sub?: string;
+    scope?: string;
+    exp?: string | number;
+    expires_in?: string | number;
+  };
+
+  if (info.aud !== options.clientId) throw new Error("That token is for another app.");
+  if (info.azp !== undefined && info.azp !== options.clientId) {
+    throw new Error("That token was authorised by another app.");
+  }
+
+  /**
+   * Expired by either clock. Google normally refuses an expired token itself,
+   * so this is belt and braces — but it costs nothing, and a missing expiry
+   * is treated as expired rather than as eternal.
+   */
+  const exp = Number(info.exp);
+  const expiresIn = Number(info.expires_in);
+  if (info.exp === undefined && info.expires_in === undefined) {
+    throw new Error("That token carries no expiry.");
+  }
+  if (info.exp !== undefined && (!Number.isFinite(exp) || exp * 1000 + CLOCK_SKEW_MS < now)) {
+    throw new Error("That token has expired.");
+  }
+  if (info.expires_in !== undefined && (!Number.isFinite(expiresIn) || expiresIn <= 0)) {
+    throw new Error("That token has expired.");
+  }
+
+  const scopes = new Set((info.scope ?? "").split(/\s+/));
+  if (!scopes.has("email") && !scopes.has("https://www.googleapis.com/auth/userinfo.email")) {
+    throw new Error("That token cannot read an address.");
+  }
+  if (!info.sub) throw new Error("That token carries no subject.");
+
+  const userResponse = await fetchImpl(USERINFO_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!userResponse.ok) throw new Error(`Google would not say whose token it is (${userResponse.status}).`);
+  const user = (await userResponse.json()) as {
+    sub?: string;
+    email?: string;
+    email_verified?: boolean | string;
+    name?: string;
+  };
+
+  if (user.sub !== info.sub) throw new Error("Google's two answers disagree about who this is.");
+  // Strictly true here: the OpenID userinfo endpoint sends a boolean, and a
+  // string or a missing field is not a yes.
+  if (user.email_verified !== true) throw new Error("Google has not verified that address.");
+
+  const email = normalizeEmail(user.email);
+  if (!email) throw new Error("That token carries no address.");
+
+  return { email, subject: info.sub, name: user.name?.trim() || null };
 }
