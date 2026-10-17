@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   UserCheck,
 } from "lucide-react";
-import { Action, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
+import { Action, FadeRise, Panel, Section } from "@/design-system";
 import { ApiError, NotSignedIn, contributeQuestion, fetchCatalogue } from "@/lib/api";
 import type { CatalogueCompany, Role, Sector } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
@@ -117,8 +117,7 @@ export function Contribute() {
     <Section id="contribute" className="bg-surface-base">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-20 [&>*]:min-w-0">
         <FadeRise className="lg:pt-4">
-          <Eyebrow>{t("land.contribEyebrow")}</Eyebrow>
-          <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">
+          <h2 className="text-balance text-headline font-semibold text-cream-bright">
             {t("land.contribTitle")}
           </h2>
           <p className="mt-5 max-w-xl text-base text-cream-dim sm:text-lg">

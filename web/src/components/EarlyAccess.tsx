@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Action, CheckItem, Eyebrow, FadeRise, Field, Panel, Section } from "@/design-system";
+import { Action, CheckItem, FadeRise, Field, Panel, Section } from "@/design-system";
 import { ApiError, fetchEarlyAccessState, joinEarlyAccess } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
@@ -105,8 +105,7 @@ export function EarlyAccess() {
     <Section id="early-access" className="bg-surface-base">
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
         <FadeRise>
-          <Eyebrow>{t("land.eaEyebrow")}</Eyebrow>
-          <h2 className="mt-4 text-headline font-semibold text-cream-bright">
+          <h2 className="text-headline font-semibold text-cream-bright">
             {t("land.eaTitle")}
           </h2>
           <p className="mt-5 max-w-xl text-sm text-cream-dim sm:text-base">

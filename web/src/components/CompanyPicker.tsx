@@ -1,4 +1,4 @@
-import { Section, Eyebrow, FadeRise, Panel } from "@/design-system";
+import { Section, FadeRise, Panel } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -51,7 +51,6 @@ export function CompanyPicker() {
   return (
     <Section id="companies" className="bg-surface-base">
       <FadeRise className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
-        <Eyebrow>{t("land.pickerEyebrow")}</Eyebrow>
         <h2 className="text-balance text-headline font-semibold text-cream-bright">
           {t("land.pickerTitle")}
         </h2>

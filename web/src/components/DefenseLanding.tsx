@@ -37,7 +37,6 @@ const ES = {
   navScenarios: "Grados",
   navPricing: "Precios",
   cta: "Sube tu tesis gratis",
-  heroKicker: "Sustentación de tesis",
   heroTitle: "Sustenta antes de sustentar.",
   heroSub: "Un jurado de 3 que leyó tu tesis te pregunta por voz, repregunta como el de verdad y te deja un acta de 0 a 20.",
   heroSecondary: "Cómo funciona",
@@ -171,7 +170,6 @@ const PT: Record<Key, string> = {
   navScenarios: "Níveis",
   navPricing: "Preços",
   cta: "Envie seu trabalho grátis",
-  heroKicker: "Defesa de TCC, dissertação e tese",
   heroTitle: "Defenda antes de defender.",
   heroSub: "Uma banca de 3 que leu seu trabalho pergunta por voz, faz réplicas como a de verdade e deixa uma ata com sua nota.",
   heroSecondary: "Como funciona",
@@ -303,7 +301,6 @@ const EN: Record<Key, string> = {
   navScenarios: "Degrees",
   navPricing: "Pricing",
   cta: "Upload your thesis free",
-  heroKicker: "Thesis defence",
   heroTitle: "Defend it before you defend it.",
   heroSub: "A panel of three that read your thesis questions you out loud, follows up like the real one and leaves you a graded record.",
   heroSecondary: "How it works",
@@ -446,7 +443,7 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
     <Screen dark>
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-xs text-white/60">
         <span className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-rose-500" />
+          <span className="h-2 w-2 rounded-full bg-step" />
           {c.mockLive} · 08:42
         </span>
         <span className="tabular-nums">3 / 12</span>
@@ -456,12 +453,12 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
           <div
             key={role}
             className={`flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl ${
-              index === 1 ? "bg-white/10 ring-2 ring-[#7d7aff]" : "bg-white/5"
+              index === 1 ? "bg-white/10 ring-2 ring-accent-text" : "bg-white/5"
             }`}
           >
             <span
               className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold ${
-                index === 1 ? "bg-[#5e5ce6] text-white" : "bg-white/10 text-white/70"
+                index === 1 ? "bg-accent text-accent-ink" : "bg-white/10 text-white/70"
               }`}
             >
               {["HS", "VI", "PA"][index]}
@@ -471,8 +468,8 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
         ))}
       </div>
       <div className="flex flex-col gap-2 px-4 pb-4">
-        <p className="text-xs font-semibold text-[#a5a3ff]">{c.mockJuror}</p>
-        <p className="text-[0.95rem] leading-snug text-white">{c.mockQuestion}</p>
+        <p className="text-xs font-semibold text-accent-text">{c.mockJuror}</p>
+        <p className="text-base leading-snug text-white">{c.mockQuestion}</p>
         <div className="mt-2 rounded-xl bg-white/5 px-3 py-2.5">
           <p className="text-xs font-semibold text-white/50">{c.mockYou}</p>
           <p className="text-sm text-white/80">{c.mockAnswer}</p>
@@ -699,8 +696,7 @@ export function DefenseLanding() {
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-black/70 md:bg-gradient-to-r md:from-black/85 md:via-black/40 md:to-transparent" />
         <Wrap className="relative z-10 flex flex-1 flex-col justify-between gap-12 pb-10 pt-[clamp(2.5rem,10svh,7rem)]">
           <FadeRise className="max-w-2xl">
-            <p className="text-sm font-semibold text-white/70">{c.heroKicker}</p>
-            <h1 className="mt-4 text-balance text-[clamp(2.75rem,7vw,5.75rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white">
+            <h1 className="text-balance text-[clamp(2.75rem,7vw,5.75rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white">
               {/* Word by word, out of a blur, once: the headline is the one
                   sentence worth a moment of motion. Screen readers get the
                   sentence whole. */}
@@ -863,7 +859,7 @@ export function DefenseLanding() {
                     {[0, 1, 2, 3].map((bar) => (
                       <span
                         key={bar}
-                        className={`w-1 rounded-sm ${bar <= index ? (index === 3 ? "bg-rose-400" : "bg-grow-text") : "bg-cream-faint/30"}`}
+                        className={`w-1 rounded-sm ${bar <= index ? (index === 3 ? "bg-step" : "bg-grow-text") : "bg-cream-faint/30"}`}
                         style={{ height: `${6 + bar * 3}px` }}
                       />
                     ))}
@@ -914,10 +910,10 @@ export function DefenseLanding() {
             ].map((plan, index) => (
               <FadeRise key={plan.name} delay={index * 0.06} className="h-full">
                 <div
-                  className={`flex h-full flex-col rounded-[1.25rem] p-7 sm:p-8 ${
+                  className={`flex h-full flex-col rounded-card p-7 sm:p-8 ${
                     plan.featured
-                      ? "bg-surface-card shadow-[0_0_0_2px_rgb(var(--cream-bright)),0_24px_60px_-24px_rgb(0_0_0/0.25)]"
-                      : "shadow-[0_0_0_1px_var(--line)]"
+                      ? "bg-surface-card shadow-float ring-2 ring-cream-bright"
+                      : "ring-1 ring-[color:var(--line)]"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -932,7 +928,7 @@ export function DefenseLanding() {
                   </p>
                   <ul className="mt-6 flex flex-1 flex-col gap-3 border-t border-[color:var(--line)] pt-6">
                     {plan.items.map((item) => (
-                      <li key={item} className="flex gap-3 text-[0.95rem] text-cream">
+                      <li key={item} className="flex gap-3 text-base text-cream">
                         <Check aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-cream-bright" strokeWidth={2.5} />
                         {item}
                       </li>

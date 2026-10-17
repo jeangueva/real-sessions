@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Flame, ShieldCheck, Sparkles, Target } from "lucide-react";
-import { Action, Eyebrow, FadeRise, Panel, Section } from "@/design-system";
+import { Action, FadeRise, Panel, Section } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 
 const FORMS = 6;
@@ -39,8 +39,7 @@ export function Habit() {
   return (
     <Section id="habit" className="bg-surface-deep">
       <FadeRise className="mx-auto max-w-2xl text-center">
-        <Eyebrow>{t("land.habitEyebrow")}</Eyebrow>
-        <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">{t("land.habitTitle")}</h2>
+        <h2 className="text-balance text-headline font-semibold text-cream-bright">{t("land.habitTitle")}</h2>
         <p className="mt-4 text-base text-cream-dim sm:text-lg">{t("land.habitBody")}</p>
       </FadeRise>
 
@@ -70,7 +69,7 @@ export function Habit() {
                   <motion.span
                     key={pops}
                     aria-hidden
-                    className="pointer-events-none absolute -top-2 right-0 inline-flex items-center gap-1 rounded-full bg-premium-soft px-2.5 py-1 text-sm font-bold text-premium"
+                    className="pointer-events-none absolute -top-2 right-0 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-sm font-semibold text-accent-text"
                     initial={{ transform: "translateY(8px)", opacity: 0 }}
                     animate={{ transform: "translateY(-16px)", opacity: [0, 1, 1, 0] }}
                     transition={{ duration: 1.1, ease: [0.23, 1, 0.32, 1] }}
@@ -139,7 +138,7 @@ export function Habit() {
                   <li key={label}>
                     <div className="flex items-baseline justify-between gap-2 text-sm">
                       <span className="truncate text-cream-bright">{t(label)}</span>
-                      <span className="shrink-0 font-bold text-premium">+{xp} XP</span>
+                      <span className="shrink-0 font-semibold text-cream-dim">+{xp} XP</span>
                     </div>
                     <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface-lift">
                       <motion.span

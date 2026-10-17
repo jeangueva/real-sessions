@@ -7,7 +7,6 @@ import {
   Users,
 } from "lucide-react";
 import {
-  Eyebrow,
   FadeRise,
   Panel,
   PremiumMark,
@@ -63,8 +62,7 @@ export function Journey() {
   return (
     <Section id="journey">
       <FadeRise className="mx-auto max-w-2xl text-center">
-        <Eyebrow>{t("land.journeyEyebrow")}</Eyebrow>
-        <h2 className="mt-3 text-balance text-headline font-semibold text-cream-bright">
+        <h2 className="text-balance text-headline font-semibold text-cream-bright">
           {t("land.journeyTitle")}
         </h2>
       </FadeRise>
