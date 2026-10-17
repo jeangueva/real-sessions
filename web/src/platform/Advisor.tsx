@@ -295,7 +295,7 @@ function PayoutCard({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const field = "focus-ring w-full rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream-bright";
+  const field = "field-control text-sm text-cream-bright";
   const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
 
   const save = async () => {

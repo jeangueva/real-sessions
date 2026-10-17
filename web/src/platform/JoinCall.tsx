@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { privacyFor, termsFor, legalLocale } from "@/legal/content";
 import { useLocale } from "@/hooks/useLocale";
-import { LogOut, Mic, Send, Users } from "lucide-react";
+import { LogOut, Mic, Send } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { AuthLayout } from "./AuthLayout";
 import { CallStage } from "./CallStage";
@@ -149,9 +149,6 @@ export function JoinCall() {
         <p className="text-base text-cream-bright">{t("joinFull")}</p>
       ) : (
         <div className="flex flex-col gap-5">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent-soft text-accent-text">
-            <Users className="h-6 w-6" aria-hidden />
-          </span>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-cream-bright">
               {t("joinTitle", { host: preview.hostName })}
@@ -184,7 +181,8 @@ export function JoinCall() {
               placeholder={t("joinName")}
               maxLength={60}
               autoComplete="name"
-              className="focus-ring rounded-xl bg-surface-lift px-4 py-3 text-base text-cream-bright placeholder:text-cream-faint"
+              aria-label={t("joinName")}
+              className="field-control text-base text-cream-bright placeholder:text-cream-faint"
             />
           </fieldset>
 
@@ -531,7 +529,7 @@ function CallEnded({
           <p className="text-sm text-cream-dim">{t("reportUnavailable", { host: hostName })}</p>
         ) : (
           <p className="flex items-center gap-2 text-sm text-cream-dim">
-            <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+            <span aria-hidden className="h-2 w-2 animate-live rounded-full bg-accent" />
             {t("reportWaiting")}
           </p>
         )}

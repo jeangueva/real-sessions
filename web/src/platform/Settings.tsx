@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
-import { Eyebrow, Field, Panel, Action, Notice, SegmentThumb, Segmented } from "@/design-system";
+import { Field, Panel, Action, Notice, SegmentThumb, Segmented } from "@/design-system";
 import { Profile } from "./Profile";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
@@ -200,7 +200,6 @@ export function Settings() {
           aria-labelledby="settings-tab-appearance"
           className="grid gap-6 p-6 sm:p-8 lg:grid-cols-2"
         >
-          <Eyebrow className="lg:col-span-2">{t("settings.appearance")}</Eyebrow>
           <Field
             label={t("settings.theme")}
             hint={
@@ -262,7 +261,7 @@ export function Settings() {
                   className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
                     locale === entry.id
                       ? "border-cream bg-cream text-surface-base"
-                      : "border-line text-cream-dim hover:text-cream-bright"
+                      : "border-line-strong text-cream-dim hover:text-cream-bright"
                   }`}
                 >
                   {entry.label}
@@ -281,7 +280,6 @@ export function Settings() {
           aria-labelledby="settings-tab-practice"
           className="grid gap-6 p-6 sm:p-8 lg:grid-cols-2"
         >
-          <Eyebrow className="lg:col-span-2">{t("settings.practice")}</Eyebrow>
 
           {!preferences && !error && (
             <p className="text-sm text-cream-dim">{t("settings.loading")}</p>
@@ -470,14 +468,13 @@ export function Settings() {
           role="tabpanel"
           id="settings-panel-account"
           aria-labelledby="settings-tab-account"
-          variant="glass"
+          variant="card"
           className="p-6 sm:p-8"
         >
-          <Eyebrow>{t("settings.account")}</Eyebrow>
           {/* The name lives with the account: it is who you are, used by the
               interviewer and shown in the sidebar instead of your email. */}
           {preferences && (
-            <div className="mt-5 flex max-w-md flex-col gap-3">
+            <div className="flex max-w-md flex-col gap-3">
             <Field
               label={t("settings.yourName")}
               hint={t("settings.yourNameHint")}

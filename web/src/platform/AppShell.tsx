@@ -363,9 +363,13 @@ function TopBar({
               <PremiumShine />
             </span>
           )}
-          <span className="hidden max-w-[12rem] truncate text-sm font-medium text-cream-dim lg:block" title={email ?? undefined}>
-            {who}
-          </span>
+          {/* A name, when there is one. An address cut to "ana.quispe@unmsm.e…"
+              said less than the avatar beside it, which carries it as a title. */}
+          {!who.includes("@") && (
+            <span className="hidden max-w-[12rem] truncate text-sm font-medium text-cream-dim lg:block" title={email ?? undefined}>
+              {who}
+            </span>
+          )}
           <NavLink
             to="/app/settings"
             aria-label={t("nav.settings")}

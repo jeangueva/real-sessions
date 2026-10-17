@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
-import { Action, Eyebrow, Notice } from "@/design-system";
+import { Action, Notice } from "@/design-system";
 import { ApiError, confirmEmail } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
 
@@ -51,8 +51,7 @@ export function ConfirmEmail() {
 
   return (
     <AuthLayout>
-    <Eyebrow>{t("auth.email")}</Eyebrow>
-    <h1 className="mt-3 text-title font-semibold text-cream-bright">
+    <h1 className="text-title font-semibold text-cream-bright">
       {state === "working"
         ? t("confirm.working")
         : state === "done"

@@ -165,7 +165,7 @@ export function FeedbackReport() {
       <>
         <PageHeader title={t("feedback.title")} meta={meta} />
         <PageBody>
-          <Panel variant="glass" className="flex max-w-2xl flex-col gap-4 p-6 sm:p-8">
+          <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6 sm:p-8">
             <p role="alert" className="text-sm text-cream-bright">
               {error}
             </p>
@@ -642,7 +642,7 @@ function FeedbackBody({
               <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                 {xp && (
                   <PopIn delay={0.8}>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-premium-soft px-3 py-1 text-sm font-bold text-premium">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-text">
                       <Sparkles aria-hidden className="h-4 w-4" />+{xp.gained} XP
                     </span>
                   </PopIn>
@@ -675,16 +675,19 @@ function FeedbackBody({
             to put off; one is a plan. */}
         {(evaluation.actionable_next_steps[0] || evaluation.areas_for_improvement[0]) && (
           <FadeRise delay={0.1}>
-            <section className="flex gap-4 rounded-card bg-accent p-6 text-accent-ink shadow-lift sm:p-7">
-              <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/20">
+            {/* A wash of the accent, not a slab of it: the solid fill belongs
+                to the one button that starts the next rehearsal, and a whole
+                panel in it outshouted that button and took its text to 4.2:1. */}
+            <section className="flex gap-4 rounded-card bg-accent-soft p-6 sm:p-7">
+              <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-card text-accent-text shadow-card">
                 <Target className="h-6 w-6" />
               </span>
               <div className="min-w-0 [overflow-wrap:anywhere]">
-                <p className="text-sm font-semibold opacity-85">{t("feedback.missionTitle")}</p>
-                <p className="mt-1 text-lg font-semibold leading-snug">
+                <p className="text-sm font-semibold text-accent-text">{t("feedback.missionTitle")}</p>
+                <p className="mt-1 text-lg font-semibold leading-snug text-cream-bright">
                   {evaluation.actionable_next_steps[0] ?? evaluation.areas_for_improvement[0]}
                 </p>
-                <p className="mt-2 text-sm opacity-85">{t("feedback.missionHint")}</p>
+                <p className="mt-2 text-sm text-cream-dim">{t("feedback.missionHint")}</p>
               </div>
             </section>
           </FadeRise>

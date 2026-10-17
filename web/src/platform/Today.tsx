@@ -83,7 +83,7 @@ export function Today({ sessions }: { sessions: SessionSummary[] }) {
                   className="grid h-10 w-10 place-items-center rounded-full bg-grow text-white"
                   initial={still ? false : { transform: "scale(0.6)", opacity: 0 }}
                   animate={{ transform: "scale(1)", opacity: 1 }}
-                  transition={{ type: "spring", duration: 0.5, bounce: 0.4, delay: 0.9 }}
+                  transition={{ duration: 0.3, ease: EASE_OUT, delay: 0.9 }}
                 >
                   <Check className="h-5 w-5" strokeWidth={3} aria-hidden />
                 </motion.span>
@@ -160,7 +160,7 @@ export function Today({ sessions }: { sessions: SessionSummary[] }) {
                       <p className={`truncate text-sm font-medium ${mission.done ? "text-cream-dim" : "text-cream-bright"}`}>
                         {t(MISSION_LABEL[mission.id])}
                       </p>
-                      <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-premium">
+                      <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-cream-dim">
                         <Sparkles aria-hidden className="h-3.5 w-3.5" />+{mission.xp} XP
                       </span>
                     </div>

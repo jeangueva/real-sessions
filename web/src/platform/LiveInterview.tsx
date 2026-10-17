@@ -783,7 +783,8 @@ export function LiveInterview() {
                 {t("field.pressureOn")}
               </Badge>
             )}
-            <Badge tone={busy ? "live" : "neutral"}>{status}</Badge>
+            {/* The turn count is not repeated here: the stage carries it, on
+                the call itself, where the eye already is. */}
           </div>
         }
       />

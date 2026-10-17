@@ -129,7 +129,7 @@ export function Applications() {
 
       <PageBody className="flex flex-col gap-4">
         {error && (
-          <Panel variant="glass" className="max-w-2xl p-6">
+          <Panel variant="raised" className="max-w-2xl p-6">
             <p role="alert" className="text-sm text-cream-bright">
               {error}
             </p>
@@ -188,10 +188,10 @@ export function Applications() {
                   onChange={(event) => void move(row.id, event.target.value as ApplicationStatus)}
                   className={`focus-ring rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                     row.status === "offer"
-                      ? "border-grow/50 bg-grow/10 text-grow"
+                      ? "border-grow/60 bg-grow-soft text-grow-text"
                       : row.status === "interviewing"
-                        ? "border-accent/50 bg-accent/10 text-accent"
-                        : "border-line bg-surface-card text-cream-bright"
+                        ? "border-accent/60 bg-accent-soft text-accent-text"
+                        : "border-line-strong bg-surface-card text-cream-bright"
                   }`}
                 >
                   {APPLICATION_STATUSES.map((status) => (
