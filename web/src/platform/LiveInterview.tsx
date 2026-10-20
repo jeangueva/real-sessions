@@ -7,6 +7,7 @@ import { useVoice } from "@/hooks/useVoice";
 import { PageBody, PageHeader } from "./AppShell";
 import { uploadPresence,
   ApiError,
+  fetchThesis,
   requestCoaching,
   sendAnswerStream,
   startSessionStream,
@@ -17,6 +18,7 @@ import type {
   Persona,
   RunningContext,
   SessionMode,
+  SlideReview,
 } from "@/lib/api";
 import { JURORS, NEUTRAL_VOICE, showJurors, type JurorTag } from "@/lib/voice";
 import { useThesisT } from "@/lib/thesis-copy";
@@ -111,6 +113,21 @@ export function LiveInterview() {
   const jobPosting = setup.jobPosting ?? "";
   const applicationId = setup.applicationId ?? "";
   const defense = setup.defense ?? null;
+  const [defenseSlides, setDefenseSlides] = useState<SlideReview | null>(null);
+  useEffect(() => {
+    if (!defense) return;
+    let alive = true;
+    fetchThesis()
+      .then((res) => {
+        if (alive && res.thesis?.slides?.review) {
+          setDefenseSlides(res.thesis.slides.review);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [Boolean(defense)]);
   /** That country's names for the three tags, for every line on screen. */
   const jurorNames = defense?.jurors
     ? {
@@ -826,6 +843,7 @@ export function LiveInterview() {
                 caption={voice.transcript}
                 listening={voice.listening}
                 turnText={showJurors(turn?.text || streaming, jurorNames) || undefined}
+                slides={defenseSlides}
                 {...(jury ? { jury, activeJuror: juror?.role ?? null } : {})}
                 {...(seat
                   ? {

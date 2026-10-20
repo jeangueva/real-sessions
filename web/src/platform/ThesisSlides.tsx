@@ -4,6 +4,7 @@ import { Eyebrow, Panel, DisclosureMark, Segmented } from "@/design-system";
 import { ApiError, deleteSlides, uploadSlides } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
 
 const SLOTS = [15, 20, 30];
 
@@ -26,6 +27,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
   const [minutes, setMinutes] = useState(() => (thesis.slides ? Math.round(thesis.slides.slotSeconds / 60) : 20));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pageTarget, setPageTarget] = useState<PageDrawerTarget | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const slides = thesis.slides ?? null;
 
@@ -151,7 +153,21 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
                   <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
                     <span className="font-semibold">{t("slideN", { n: entry.slide })}</span>
-                    {entry.thesis_page ? ` · ${t("page", { page: entry.thesis_page })}` : ""}: {entry.issue}
+                    {entry.thesis_page ? (
+                      <>
+                        {" · "}
+                        <button
+                          type="button"
+                          onClick={() => setPageTarget({ page: entry.thesis_page!, note: entry.issue })}
+                          className="focus-ring rounded-full bg-surface-card/80 px-2 py-0.5 text-xs font-semibold tabular-nums text-cream-bright underline decoration-cream-faint/50 underline-offset-2"
+                        >
+                          {t("page", { page: entry.thesis_page })}
+                        </button>
+                      </>
+                    ) : (
+                      ""
+                    )}
+                    : {entry.issue}
                   </span>
                 </p>
               ))}
@@ -196,6 +212,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
           </details>
         </>
       )}
+      <ThesisPageDrawer target={pageTarget} onClose={() => setPageTarget(null)} />
     </Panel>
   );
 }

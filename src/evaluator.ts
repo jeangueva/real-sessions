@@ -164,6 +164,50 @@ Plain text only, no markdown.`,
   return RetryFeedbackSchema.parse(response.value);
 }
 
+/**
+ * Grades a 60-second micro-rehearsal answer to one likely question from the
+ * thesis diagnosis, grounded in the thesis summary and the cited page text.
+ */
+export async function gradeThesisQuestion(input: {
+  thesisTitle: string;
+  field: string;
+  issue: string;
+  question: string;
+  pageExcerpt?: string | null;
+  answer: string;
+  reportLanguage?: string;
+  language?: string;
+  provider?: ModelProvider;
+}): Promise<RetryFeedback> {
+  const model = EVALUATOR_MODEL;
+  const provider = input.provider ?? resolveProvider(model);
+  const language = findLanguage(input.language).promptLabel;
+  const report = input.reportLanguage ?? "Spanish";
+  const response = await provider.json({
+    model,
+    system: `You are a thesis defence juror in ${input.field} coaching a student who just practiced answering one critical question from their thesis diagnosis. Judge only this answer against the weak point identified in the thesis. Be direct, academic, and concise.
+Return:
+- verdict: "strong" (answers the objection directly with methodological/empirical grounding), "ok" (partially answers, lacks precision or page data), or "weak" (evades, rambles, or contradicts the thesis).
+- feedback: one sentence of at most 24 words, in ${report}, saying what worked or what is still missing for the jury.
+- better: a model spoken answer for the defence, in ${language}, at most 45 words, grounded only in the thesis context and what the student said; never invent data — use [placeholders] if a number is missing.
+- improved: true when verdict is "strong", false otherwise.
+Plain text only, no markdown.`,
+    prompt: `Thesis: ${input.thesisTitle} (${input.field})
+Weak point in the thesis: ${input.issue}
+${input.pageExcerpt ? `Cited page excerpt:\n${input.pageExcerpt.slice(0, 1200)}\n` : ""}Jury question: ${input.question}
+
+Student's spoken answer: ${input.answer}
+
+Write feedback in ${report}.`,
+    maxTokens: 600,
+    schema: RetryFeedbackSchema,
+  });
+  if (!response.value) {
+    throw new EvaluationParseError("The thesis question grader returned no usable JSON.", response.raw);
+  }
+  return RetryFeedbackSchema.parse(response.value);
+}
+
 /** A defence model: the deliberation is long reasoning over a long dossier. */
 const DEFENSE_EVALUATOR_MODEL =
   process.env.REALSESSIONS_DEFENSE_EVALUATOR_MODEL ?? "anthropic/claude-sonnet-5";

@@ -52,6 +52,7 @@ import { deleteRecording, loadRecording, type StoredRecording } from "@/lib/reco
 import type { Evaluation } from "@/lib/evaluation";
 import { thesisPath } from "@/lib/spaces";
 import { useLocale } from "@/hooks/useLocale";
+import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
 
 /* ------------------------------------------------------------------------- */
 /* The allowance, read once                                                  */
@@ -552,9 +553,28 @@ export function ObservationsSection({
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pageTarget, setPageTarget] = useState<PageDrawerTarget | null>(null);
+  const [printingObs, setPrintingObs] = useState(false);
+  const { locale } = useLocale();
   const saved = thesis.observations ?? null;
   const total = saved?.items.length ?? 0;
   const doneCount = saved?.items.filter((item) => item.done).length ?? 0;
+
+  useEffect(() => {
+    if (!printingObs) return;
+    document.documentElement.classList.add("print-report");
+    const done = () => {
+      document.documentElement.classList.remove("print-report");
+      setPrintingObs(false);
+    };
+    window.addEventListener("afterprint", done, { once: true });
+    const id = window.requestAnimationFrame(() => window.print());
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener("afterprint", done);
+      document.documentElement.classList.remove("print-report");
+    };
+  }, [printingObs]);
 
   const run = async (action: () => Promise<{ thesis: StoredThesis }>) => {
     setBusy(true);
@@ -655,7 +675,24 @@ export function ObservationsSection({
                         <span className="rounded-full bg-surface-lift px-2 py-0.5 text-cream-dim">{t(EFFORT_LABEL[item.effort])}</span>
                         <span className="rounded-full bg-surface-lift px-2 py-0.5 text-cream-dim">
                           {item.where}
-                          {item.page ? ` · p. ${item.page}` : ""}
+                          {item.page ? (
+                            <>
+                              {" · "}
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  setPageTarget({ page: item.page!, note: item.observation });
+                                }}
+                                className="focus-ring font-semibold tabular-nums text-accent-text hover:underline"
+                              >
+                                p. {item.page}
+                              </button>
+                            </>
+                          ) : (
+                            ""
+                          )}
                         </span>
                       </span>
                     </span>
@@ -674,6 +711,10 @@ export function ObservationsSection({
             <Action withArrow disabled={!modes} onClick={rehearse}>
               {t("obsRehearse")}
             </Action>
+            <Action tone="neutral" onClick={() => setPrintingObs(true)}>
+              <Download aria-hidden className="h-4 w-4" />
+              {t("obsExportPdf")}
+            </Action>
             {!modes && <span className="text-xs text-cream-dim">{t("obsRehearseNeedsModes")}</span>}
             <button
               type="button"
@@ -684,8 +725,48 @@ export function ObservationsSection({
               {t("obsReset")}
             </button>
           </div>
+          {printingObs &&
+            createPortal(
+              <div className="print-report-root hidden bg-white p-10 text-black">
+                <p className="text-sm font-semibold">Mockio · {t("obsExportHeading")}</p>
+                <h1 className="mt-2 text-2xl font-bold leading-tight">{thesis.analysis.title}</h1>
+                <p className="mt-1 text-sm">
+                  {thesis.analysis.field} · {t("obsProgress", { done: doneCount, total })}
+                </p>
+                <table className="mt-6 w-full border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b-2 border-black">
+                      <th className="py-2 pr-2 font-semibold">{t("obsExportColNum")}</th>
+                      <th className="py-2 pr-3 font-semibold">{t("obsExportColObs")}</th>
+                      <th className="py-2 pr-3 font-semibold">{t("obsExportColWhere")}</th>
+                      <th className="py-2 pr-3 font-semibold">{t("obsExportColAction")}</th>
+                      <th className="py-2 font-semibold">{t("obsExportColStatus")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {saved.items.map((item, idx) => (
+                      <tr key={idx} className="border-b border-black/20 align-top">
+                        <td className="py-2.5 pr-2 font-semibold tabular-nums">{idx + 1}</td>
+                        <td className="py-2.5 pr-3">{item.observation}</td>
+                        <td className="py-2.5 pr-3 whitespace-nowrap">
+                          {item.where}
+                          {item.page ? ` (p. ${item.page})` : ""}
+                        </td>
+                        <td className="py-2.5 pr-3">{item.how}</td>
+                        <td className="py-2.5 font-semibold">
+                          {item.done ? t("obsExportDone") : t("obsExportPending")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-8 text-xs">{t("reportFooter", { date: new Date().toLocaleDateString(locale) })}</p>
+              </div>,
+              document.body,
+            )}
         </>
       )}
+      <ThesisPageDrawer target={pageTarget} onClose={() => setPageTarget(null)} />
     </div>
   );
 }

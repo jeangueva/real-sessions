@@ -118,7 +118,7 @@ import { createRateLimiter, MemoryRateLimiter, RULES, type RateLimiter } from ".
 import { closeRedis, getRedis } from "./redis.js";
 import { InterviewSession } from "./interviewer.js";
 import type { ModelProvider } from "./providers/index.js";
-import { evaluateInterview, EvaluationParseError, gradeRetry } from "./evaluator.js";
+import { evaluateInterview, EvaluationParseError, gradeRetry, gradeThesisQuestion } from "./evaluator.js";
 import type { Evaluation } from "./schema.js";
 import { InterviewRefusalError } from "./interviewer.js";
 import {
@@ -3780,6 +3780,60 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return;
   }
 
+  /**
+   * One page of the thesis text, for the side-by-side page drawer when the
+   * student clicks a `p. 41` citation in Diagnosis, Matrix, or Observations.
+   */
+  if (req.method === "GET" && path === "/api/thesis/page") {
+    const [stored, pages] = await Promise.all([THESES.get(identity.id), THESES.pages(identity.id)]);
+    if (!stored || !pages || pages.length === 0) {
+      return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    }
+    const raw = Number(url.searchParams.get("n") ?? 1);
+    const page = Number.isInteger(raw) ? Math.min(pages.length, Math.max(1, raw)) : 1;
+    json(res, 200, {
+      page,
+      total: pages.length,
+      approximate: stored.approximate,
+      text: pages[page - 1] ?? "",
+    });
+    return;
+  }
+
+  /**
+   * 60-second micro-rehearsal from the Diagnosis screen: grades a single spoken
+   * or typed answer to one likely question from the thesis risks, on Free or Paid.
+   */
+  if (req.method === "POST" && path === "/api/thesis/practice-question") {
+    if (await limited(res, `answer:${identity.id}`, RULES.answer)) return;
+    const [stored, pages] = await Promise.all([THESES.get(identity.id), THESES.pages(identity.id)]);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    const body = await readJson(req);
+    const question = typeof body["question"] === "string" ? body["question"].trim().slice(0, 500) : "";
+    const issue = typeof body["issue"] === "string" ? body["issue"].trim().slice(0, 500) : "";
+    const answer = typeof body["answer"] === "string" ? body["answer"].trim().slice(0, 2_000) : "";
+    const pageNum = typeof body["page"] === "number" && Number.isInteger(body["page"]) ? body["page"] : null;
+    if (!question || answer.length < 3) {
+      return json(res, 400, { error: "Responde la pregunta para poder evaluarla." });
+    }
+    const pageExcerpt =
+      pageNum !== null && pages && pageNum >= 1 && pageNum <= pages.length ? pages[pageNum - 1] ?? null : null;
+    const reportLanguage = REPORT_LANGUAGES[String(body["readerLanguage"] ?? "")] ?? "Spanish";
+    const result = await gradeThesisQuestion({
+      thesisTitle: stored.analysis.title,
+      field: stored.analysis.field,
+      issue: issue || question,
+      question,
+      pageExcerpt,
+      answer,
+      reportLanguage,
+      language: stored.analysis.language,
+      ...(PROVIDER ? { provider: PROVIDER } : {}),
+    });
+    json(res, 200, { result });
+    return;
+  }
+
   /** One click, everything: the pages and the diagnosis. */
   if (req.method === "DELETE" && path === "/api/thesis") {
     await THESES.delete(identity.id);
@@ -4351,7 +4405,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
        * — a student who chose "statistics coach" and got a standard defence
        * would have rehearsed the wrong thing without knowing it.
        */
-      const focus = (["completa", "autoria", "trampa", "estadistica", "observaciones", "divulgacion"] as const).find(
+      const focus = (["completa", "autoria", "trampa", "estadistica", "observaciones", "divulgacion", "matriz"] as const).find(
         (entry) => entry === body["focus"],
       ) ?? "completa";
       const setting = (["presencial", "virtual"] as const).find((entry) => entry === body["setting"]) ?? null;

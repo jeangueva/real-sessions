@@ -184,7 +184,7 @@ export const PANEL_SHAPES = {
 /* Modes: what this rehearsal trains, beyond the standard defence            */
 /* ------------------------------------------------------------------------- */
 
-export type DefenseFocus = "completa" | "autoria" | "trampa" | "estadistica" | "observaciones" | "divulgacion";
+export type DefenseFocus = "completa" | "autoria" | "trampa" | "estadistica" | "observaciones" | "divulgacion" | "matriz";
 export type DefenseSetting = "presencial" | "virtual";
 
 export const FOCUSES: Record<DefenseFocus, string> = {
@@ -199,6 +199,8 @@ export const FOCUSES: Record<DefenseFocus, string> = {
     "RESPONDING TO THE REVIEWERS' OBSERVATIONS. The written observations the jury made on the draft are below. Take them one at a time: ask how each was addressed, where in the thesis the change now is, and challenge a fix that is cosmetic or does not answer the observation. An observation the student chose not to address must be defended with a reason.",
   divulgacion:
     "EXPLAIN IT TO A NON-SPECIALIST. The specialist is replaced by a juror from a different field, who asks for plain explanations: what the thesis found in one sentence, why it matters outside the discipline, what a technical term means. Jargon left unexplained is what to press on.",
+  matriz:
+    "CONSISTENCY MATRIX CROSS-EXAMINATION. The methodologist and the specialist cross-examine how the problem, general and specific objectives, hypotheses, variables, dimensions, indicators, instruments and conclusions connect. Every turn challenges a link in that chain: an objective whose indicator does not measure it, a hypothesis not tested by the chosen statistic, a conclusion that goes beyond the instrument or sample, or a gap listed in CONSISTENCY GAPS. Quote the pages from the dossier.",
 };
 
 export const SETTINGS: Record<DefenseSetting, string> = {

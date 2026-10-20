@@ -93,6 +93,17 @@ describe("the thesis panel", () => {
     expect(verdictFor(FORMATS.CL, [4.0, 4.5, 5.1]).code).toBe("aprobado-unanimidad");
     expect(verdictFor(FORMATS.BR, [6.5, 5, 7]).label).toBe("Reprovado");
   });
+
+  it("supports the consistency matrix cross-examination focus", async () => {
+    const { focusBlock } = await import("../src/prompts/defense.js");
+    const block = focusBlock({
+      focus: "matriz",
+      setting: null,
+      material: null,
+      members: [],
+    });
+    expect(block).toContain("CONSISTENCY MATRIX CROSS-EXAMINATION");
+  });
 });
 
 describe("the countdown to a defence", () => {

@@ -1644,6 +1644,34 @@ export function fetchGiftLink() {
   return withIdentity(() => request<{ url: string }>("/api/thesis/gift", { method: "GET" }));
 }
 
+export interface ThesisPageExcerpt {
+  page: number;
+  total: number;
+  approximate: boolean;
+  text: string;
+}
+
+export function fetchThesisPage(page: number) {
+  return withIdentity(() =>
+    request<ThesisPageExcerpt>(`/api/thesis/page?n=${encodeURIComponent(String(page))}`, { method: "GET" }),
+  );
+}
+
+export function practiceThesisQuestion(input: {
+  question: string;
+  issue: string;
+  page: number | null;
+  answer: string;
+  readerLanguage?: string;
+}) {
+  return withIdentity(() =>
+    request<{ result: { verdict: "strong" | "ok" | "weak"; feedback: string; better: string; improved: boolean } }>(
+      "/api/thesis/practice-question",
+      sendJson("POST", input),
+    ),
+  );
+}
+
 /** The gift page, read by whoever holds the link: no identity involved. */
 export interface GiftInfo {
   name: string | null;

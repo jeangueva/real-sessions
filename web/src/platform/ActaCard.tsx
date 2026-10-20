@@ -7,6 +7,7 @@ import type { Evaluation } from "@/lib/evaluation";
 import { useThesisT } from "@/lib/thesis-copy";
 import { JURORS } from "@/lib/voice";
 import { PrintReport } from "./PrintReport";
+import { ThesisShareCard } from "./ThesisShareCard";
 
 type Acta = NonNullable<Evaluation["acta"]>;
 
@@ -69,8 +70,19 @@ export function ActaCard({
     <div className="flex flex-col gap-4">
       {/* On paper only: what this document is, for the advisor reading it. */}
       <p className="hidden text-sm font-semibold text-cream-bright print:block">{t("printHeading")}</p>
-      <div className="print:hidden">
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
         <PrintReport />
+        {!publicView && (
+          <ThesisShareCard
+            data={{
+              grade: acta.grade,
+              gradeMax: acta.grade_max,
+              passMark: acta.pass_mark,
+              readiness: acta.readiness,
+              verdictLabel: acta.verdict_label ?? t(verdict.key),
+            }}
+          />
+        )}
       </div>
       <Panel variant="raised" className="flex flex-col gap-6 p-6 shadow-lift sm:p-8">
         <div className="flex items-start gap-4">

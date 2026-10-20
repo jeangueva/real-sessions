@@ -1,12 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
-import { Action, Panel, DisclosureMark } from "@/design-system";
+import { AlertTriangle, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
+import { Action, Panel, DisclosureMark, PopIn } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchCareers, fetchThesis, saveCareer, syncDefensePack, uploadThesis } from "@/lib/api";
+import {
+  ApiError,
+  buyDefensePack,
+  countRealQuestions,
+  deleteThesis,
+  fetchCareers,
+  fetchThesis,
+  practiceThesisQuestion,
+  saveCareer,
+  syncDefensePack,
+  uploadThesis,
+} from "@/lib/api";
 import type { CareerCatalogue, CareerResolution, DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { useLocale } from "@/hooks/useLocale";
+import { useVoice } from "@/hooks/useVoice";
 import { isThesisSection, thesisPath, type ThesisSection } from "@/lib/spaces";
 import { SCENARIO_OPTIONS, scenarioForDegree, type DefenseScenario } from "@/lib/defense-scenarios";
 import { ThesisSlides } from "./ThesisSlides";
@@ -14,6 +27,8 @@ import { ThesisStudy } from "./ThesisStudy";
 import { DefenseDate } from "./DefenseDate";
 import { ShareRealQuestions } from "./ShareRealQuestions";
 import { AdvisorCard } from "./AdvisorCard";
+import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
+import { ThesisShareCard } from "./ThesisShareCard";
 import {
   DefensePlanCard,
   GiftCard,
@@ -242,13 +257,149 @@ function Privacy() {
   );
 }
 
-function PageRef({ page }: { page: number | null }) {
+function PageRef({
+  page,
+  note,
+  onOpen,
+}: {
+  page: number | null;
+  note?: string;
+  onOpen?: (target: PageDrawerTarget) => void;
+}) {
   const t = useThesisT();
   if (page === null) return null;
+  if (onOpen) {
+    return (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpen({ page, ...(note ? { note } : {}) });
+        }}
+        className="focus-ring ml-1.5 whitespace-nowrap rounded-full bg-surface-lift px-2 py-0.5 text-xs font-semibold tabular-nums text-cream-dim transition-colors hover:bg-accent-soft hover:text-accent-text"
+      >
+        {t("page", { page })}
+      </button>
+    );
+  }
   return (
     <span className="ml-1.5 whitespace-nowrap rounded-full bg-surface-lift px-2 py-0.5 text-xs font-semibold tabular-nums text-cream-dim">
       {t("page", { page })}
     </span>
+  );
+}
+
+/**
+ * 1-click 60-second micro-rehearsal on a specific risk from the Diagnosis tab.
+ * Lets Free and Paid students test their answer by voice or text right where
+ * they read the weak point.
+ */
+function RiskPractice({
+  risk,
+  language,
+  onClose,
+}: {
+  risk: ThesisAnalysis["risks"][number];
+  language: string;
+  onClose: () => void;
+}) {
+  const t = useThesisT();
+  const { locale } = useLocale();
+  const [answer, setAnswer] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<{
+    verdict: "strong" | "ok" | "weak";
+    feedback: string;
+    better: string;
+    improved: boolean;
+  } | null>(null);
+
+  const voice = useVoice({
+    enabled: true,
+    sessionStartedAt: Date.now(),
+    language,
+    bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : "es-PE",
+    onFinalAnswer: (text) => setAnswer((current) => `${current} ${text}`.trim()),
+  });
+
+  const check = async () => {
+    if (voice.listening) voice.stopListening();
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await practiceThesisQuestion({
+        question: risk.likely_question,
+        issue: risk.issue,
+        page: risk.page,
+        answer: voice.listening && voice.transcript ? `${answer} ${voice.transcript}`.trim() : answer,
+        readerLanguage: locale,
+      });
+      setResult(response.result);
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : t("error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mx-3.5 mb-3.5 flex flex-col gap-2.5 rounded-xl bg-surface-lift p-3.5">
+      <textarea
+        value={voice.listening && voice.transcript ? `${answer} ${voice.transcript}`.trim() : answer}
+        onChange={(event) => setAnswer(event.target.value)}
+        rows={2}
+        placeholder={t("riskPracticePlaceholder")}
+        className="field-control resize-none bg-surface-card text-sm text-cream-bright placeholder:text-cream-faint"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        {voice.inputSupported && (
+          <Action
+            tone="glass"
+            onClick={() => (voice.listening ? voice.stopListening() : voice.startListening())}
+          >
+            {voice.listening ? <Square aria-hidden className="h-3.5 w-3.5" /> : <Mic aria-hidden className="h-3.5 w-3.5" />}
+            {t(voice.listening ? "riskPracticeStop" : "riskPracticeSpeak")}
+          </Action>
+        )}
+        <Action
+          onClick={() => void check()}
+          disabled={
+            busy ||
+            (voice.listening && voice.transcript ? `${answer} ${voice.transcript}`.trim() : answer).trim().length < 3
+          }
+        >
+          {t(busy ? "riskPracticeChecking" : "riskPracticeCheck")}
+        </Action>
+        <button
+          type="button"
+          onClick={onClose}
+          className="focus-ring rounded-full px-3 py-1.5 text-xs font-semibold text-cream-dim transition-colors hover:text-cream-bright"
+        >
+          {t("discClose")}
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="text-xs text-step-text">
+          {error}
+        </p>
+      )}
+      {result && (
+        <PopIn>
+          <div className="flex flex-col gap-1.5 border-t border-line pt-2.5" role="status">
+            <p className={`text-xs font-semibold ${result.improved ? "text-grow-text" : "text-accent-text"}`}>
+              {t(result.improved ? "riskPracticeStrong" : "riskPracticeNeedsWork")}
+            </p>
+            <p className="text-sm text-cream">{result.feedback}</p>
+            <div className="mt-1 rounded-xl bg-surface-card px-3 py-2 text-xs text-cream-bright">
+              <span className="block font-semibold text-accent-text">{t("riskPracticeSuggested")}</span>
+              “{result.better.trim().replace(/^["“”']+|["“”']+$/g, "")}”
+            </div>
+          </div>
+        </PopIn>
+      )}
+    </div>
   );
 }
 
@@ -279,6 +430,9 @@ function Diagnosis({
   onDelete: () => void;
 }) {
   const t = useThesisT();
+  const navigate = useNavigate();
+  const [pageTarget, setPageTarget] = useState<PageDrawerTarget | null>(null);
+  const [practicingRisk, setPracticingRisk] = useState<number | null>(null);
   const a = thesis.analysis;
   const severityOrder = { alta: 0, media: 1, baja: 2 };
   const risks = [...a.risks].sort((x, y) => severityOrder[x.severity] - severityOrder[y.severity]);
@@ -360,15 +514,34 @@ function Diagnosis({
                       <span className="min-w-0 flex-1 text-sm text-cream-bright">
                         <span className="line-clamp-2 group-open:line-clamp-none">{risk.issue}</span>
                       </span>
-                      <PageRef page={risk.page} />
+                      <PageRef page={risk.page} note={risk.issue} onOpen={setPageTarget} />
                       <DisclosureMark className="-my-1" />
                     </summary>
-                    <p className="mx-3.5 mb-3.5 flex gap-2 rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream">
-                      <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" />
-                      <span>
-                        <span className="font-semibold">{t("likely")}: </span>“{risk.likely_question}”
+                    <div className="mx-3.5 mb-3.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream">
+                      <span className="flex min-w-0 flex-1 gap-2">
+                        <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" />
+                        <span>
+                          <span className="font-semibold">{t("likely")}: </span>“{risk.likely_question}”
+                        </span>
                       </span>
-                    </p>
+                      {practicingRisk !== index && (
+                        <button
+                          type="button"
+                          onClick={() => setPracticingRisk(index)}
+                          className="focus-ring inline-flex shrink-0 items-center gap-1.5 rounded-full bg-surface-card px-3 py-1 text-xs font-semibold text-accent-text shadow-card transition-[background-color,transform] duration-150 ease-press hover:bg-accent-soft active:scale-[0.97]"
+                        >
+                          <Mic aria-hidden className="h-3.5 w-3.5" />
+                          {t("riskPracticeCta")}
+                        </button>
+                      )}
+                    </div>
+                    {practicingRisk === index && (
+                      <RiskPractice
+                        risk={risk}
+                        language={a.language}
+                        onClose={() => setPracticingRisk(null)}
+                      />
+                    )}
                   </details>
                 </li>
               ))}
@@ -377,9 +550,18 @@ function Diagnosis({
 
           {a.consistency.length > 0 && (
             <section aria-labelledby="matrix" className="flex flex-col gap-2">
-              <p id="matrix" className="text-sm font-semibold text-cream-bright">
-                {t("matrixTitle")}
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p id="matrix" className="text-sm font-semibold text-cream-bright">
+                  {t("matrixTitle")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate(thesisPath("ensayar"), { state: { focus: "matriz" } })}
+                  className="focus-ring text-xs font-semibold text-accent-text transition-colors hover:underline"
+                >
+                  {t("matrixRehearse")} →
+                </button>
+              </div>
               <ul className="flex flex-col gap-2">
                 {a.consistency.map((row, index) => (
                   <li key={index}>
@@ -418,7 +600,7 @@ function Diagnosis({
               </ul>
             </section>
           )}
-          <Ficha analysis={a} />
+          <Ficha analysis={a} onOpenPage={setPageTarget} />
         </div>
       )}
 
@@ -453,6 +635,7 @@ function Diagnosis({
           <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
         </div>
       )}
+      <ThesisPageDrawer target={pageTarget} onClose={() => setPageTarget(null)} />
     </>
   );
 }
@@ -484,7 +667,13 @@ export const TAB_LABEL = {
   mas: "tabMore",
 } as const;
 
-function Ficha({ analysis }: { analysis: ThesisAnalysis }) {
+function Ficha({
+  analysis,
+  onOpenPage,
+}: {
+  analysis: ThesisAnalysis;
+  onOpenPage: (target: PageDrawerTarget) => void;
+}) {
   const t = useThesisT();
   const f = analysis.ficha;
   const rows: [Parameters<typeof t>[0], ThesisCited | ThesisCited[]][] = [
@@ -515,7 +704,7 @@ function Ficha({ analysis }: { analysis: ThesisAnalysis }) {
               {items.map((item, index) => (
                 <dd key={index} className="mt-1 text-sm text-cream">
                   {item.text}
-                  <PageRef page={item.page} />
+                  <PageRef page={item.page} note={item.text} onOpen={onOpenPage} />
                 </dd>
               ))}
             </div>
@@ -527,7 +716,7 @@ function Ficha({ analysis }: { analysis: ThesisAnalysis }) {
             {analysis.chapters.map((chapter, index) => (
               <dd key={index} className="mt-1 text-sm text-cream">
                 {chapter.name}
-                <PageRef page={chapter.page} />
+                <PageRef page={chapter.page} note={chapter.name} onOpen={onOpenPage} />
               </dd>
             ))}
           </div>
@@ -1175,10 +1364,11 @@ function withRealJury(
   return next;
 }
 
-type Focus = "completa" | "autoria" | "trampa" | "estadistica" | "observaciones" | "divulgacion";
-const FOCUS_OPTIONS: Focus[] = ["completa", "autoria", "trampa", "estadistica", "observaciones", "divulgacion"];
+type Focus = "completa" | "autoria" | "trampa" | "estadistica" | "observaciones" | "divulgacion" | "matriz";
+const FOCUS_OPTIONS: Focus[] = ["completa", "matriz", "autoria", "trampa", "estadistica", "observaciones", "divulgacion"];
 const FOCUS_LABEL = {
   completa: "modeCompleta",
+  matriz: "modeMatriz",
   autoria: "modeAutoria",
   trampa: "modeTrampa",
   estadistica: "modeEstadistica",
@@ -1204,11 +1394,21 @@ function ProgressStrip({ points }: { points: DefenseProgressPoint[] }) {
   const grade = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
   return (
     <div className="flex flex-col gap-2 rounded-2xl bg-surface-lift p-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm font-semibold text-cream-bright">{t("progressTitle")}</p>
-        <p className="text-xs text-cream-dim">
-          {t("progressReadiness", { from: first.readiness, to: last.readiness })} · {t("progressPass", { mark: grade(last.passMark) })}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-cream-bright">{t("progressTitle")}</p>
+          <p className="text-xs text-cream-dim">
+            {t("progressReadiness", { from: first.readiness, to: last.readiness })} · {t("progressPass", { mark: grade(last.passMark) })}
+          </p>
+        </div>
+        <ThesisShareCard
+          data={{
+            grade: last.grade,
+            gradeMax: last.gradeMax,
+            passMark: last.passMark,
+            readiness: last.readiness,
+          }}
+        />
       </div>
       <div className="flex h-20 items-end gap-1.5" role="img" aria-label={points.map((p) => `${grade(p.grade)}/${p.gradeMax}`).join(", ")}>
         {points.map((point) => {

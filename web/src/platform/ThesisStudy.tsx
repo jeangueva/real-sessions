@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
-import { BookOpen, FileDown, Layers, Loader2, Shuffle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { BookOpen, FileDown, Layers, Loader2, Shuffle, Square, Volume2 } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { ApiError, prepareStudy } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
 
 /**
  * The night before: the thesis on one page, and the questions on cards.
@@ -16,7 +17,44 @@ export function ThesisStudy({ thesis, onChange }: { thesis: StoredThesis; onChan
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"sheet" | "cards">("sheet");
+  const [speaking, setSpeaking] = useState(false);
+  const [pageTarget, setPageTarget] = useState<PageDrawerTarget | null>(null);
   const study = thesis.study ?? null;
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const toggleListen = () => {
+    if (!study || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const s = study.sheet;
+    const parts = [
+      thesis.analysis.title,
+      `${t("sheetOneLiner")}: ${s.one_liner}`,
+      `${t("sheetProblem")}: ${s.problem}`,
+      `${t("sheetObjective")}: ${s.objective}`,
+      `${t("sheetMethod")}: ${s.method}`,
+      `${t("sheetResults")}: ${s.key_results.join(". ")}`,
+      `${t("sheetContribution")}: ${s.contribution}`,
+      ...s.hard_questions.map((q, idx) => `${idx + 1}. ${q.question} ${q.answer}`),
+    ];
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(parts.join("\n\n"));
+    utterance.lang = thesis.analysis.language === "pt" ? "pt-BR" : thesis.analysis.language === "en" ? "en-US" : "es-PE";
+    utterance.onend = () => setSpeaking(false);
+    utterance.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const prepare = async () => {
     setBusy(true);
@@ -76,22 +114,52 @@ export function ThesisStudy({ thesis, onChange }: { thesis: StoredThesis; onChan
           </button>
         ))}
         {view === "sheet" && (
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="focus-ring ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3.5 py-1.5 text-sm font-semibold text-cream-bright shadow-card transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:shadow-lift"
-          >
-            <FileDown aria-hidden className="h-4 w-4" />
-            {t("sheetPrint")}
-          </button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {typeof window !== "undefined" && "speechSynthesis" in window && (
+              <button
+                type="button"
+                aria-pressed={speaking}
+                onClick={toggleListen}
+                className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3.5 py-1.5 text-sm font-semibold text-cream-bright shadow-card transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:shadow-lift"
+              >
+                {speaking ? (
+                  <Square aria-hidden className="h-3.5 w-3.5 text-accent-text" />
+                ) : (
+                  <Volume2 aria-hidden className="h-4 w-4 text-accent-text" />
+                )}
+                {t(speaking ? "sheetStopListen" : "sheetListen")}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-surface-card px-3.5 py-1.5 text-sm font-semibold text-cream-bright shadow-card transition-[background-color,color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] hover:shadow-lift"
+            >
+              <FileDown aria-hidden className="h-4 w-4" />
+              {t("sheetPrint")}
+            </button>
+          </div>
         )}
       </div>
-      {view === "sheet" ? <Sheet study={study} title={thesis.analysis.title} /> : <Cards cards={study.cards} />}
+      {view === "sheet" ? (
+        <Sheet study={study} title={thesis.analysis.title} onOpenPage={setPageTarget} />
+      ) : (
+        <Cards cards={study.cards} onOpenPage={setPageTarget} />
+      )}
+      <ThesisPageDrawer target={pageTarget} onClose={() => setPageTarget(null)} />
     </div>
   );
 }
 
-function Sheet({ study, title }: { study: NonNullable<StoredThesis["study"]>; title: string }) {
+function Sheet({
+  study,
+  title,
+  onOpenPage,
+}: {
+  study: NonNullable<StoredThesis["study"]>;
+  title: string;
+  onOpenPage: (target: PageDrawerTarget) => void;
+}) {
   const t = useThesisT();
   const s = study.sheet;
   const row = (label: string, body: React.ReactNode) => (
@@ -133,7 +201,15 @@ function Sheet({ study, title }: { study: NonNullable<StoredThesis["study"]>; ti
             <li key={index} className="text-sm leading-relaxed">
               <p className="font-semibold text-cream-bright">
                 {index + 1}. {item.question}
-                {item.page && <span className="ml-1.5 text-xs font-normal text-cream-dim">{t("page", { page: item.page })}</span>}
+                {item.page && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenPage({ page: item.page!, note: item.question })}
+                    className="focus-ring ml-1.5 rounded-full bg-surface-lift px-2 py-0.5 text-xs font-semibold tabular-nums text-cream-dim transition-colors hover:bg-accent-soft hover:text-accent-text"
+                  >
+                    {t("page", { page: item.page })}
+                  </button>
+                )}
               </p>
               <p className="mt-0.5 text-cream">{item.answer}</p>
             </li>
@@ -145,7 +221,13 @@ function Sheet({ study, title }: { study: NonNullable<StoredThesis["study"]>; ti
 }
 
 /** One card at a time, front then back, in order or shuffled. */
-function Cards({ cards }: { cards: NonNullable<StoredThesis["study"]>["cards"] }) {
+function Cards({
+  cards,
+  onOpenPage,
+}: {
+  cards: NonNullable<StoredThesis["study"]>["cards"];
+  onOpenPage: (target: PageDrawerTarget) => void;
+}) {
   const t = useThesisT();
   const [seed, setSeed] = useState(0);
   const deck = useMemo(() => {
@@ -179,8 +261,28 @@ function Cards({ cards }: { cards: NonNullable<StoredThesis["study"]>["cards"] }
         <span className={`text-lg leading-snug ${flipped ? "text-cream" : "font-semibold text-cream-bright"}`}>
           {flipped ? card.back : card.front}
         </span>
-        <span className="text-xs text-cream-dim">
-          {flipped ? (card.page ? t("page", { page: card.page }) : "") : t("cardFlip")}
+        <span className="flex items-center justify-between gap-2 text-xs text-cream-dim">
+          <span>{flipped ? "" : t("cardFlip")}</span>
+          {flipped && card.page && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenPage({ page: card.page!, note: card.front });
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onOpenPage({ page: card.page!, note: card.front });
+                }
+              }}
+              className="rounded-full bg-surface-lift px-2.5 py-0.5 font-semibold tabular-nums text-accent-text hover:bg-accent-soft"
+            >
+              {t("page", { page: card.page })}
+            </span>
+          )}
         </span>
       </button>
       <div className="flex items-center justify-between gap-2">

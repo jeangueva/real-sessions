@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
-import { VideoOff } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Presentation, VideoOff } from "lucide-react";
 import { InterviewerPresence, Waveform } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
+import type { SlideReview } from "@/lib/api";
+import { useThesisT } from "@/lib/thesis-copy";
 import type { JurorTag } from "@/lib/voice";
 import { JuryRow, PersonTile, type JurorSeat } from "./CallPeople";
 
@@ -37,6 +39,7 @@ export function CallStage({
   selfName,
   selfAnswering = false,
   selfMuted = false,
+  slides = null,
 }: {
   initials: string;
   name: string;
@@ -67,10 +70,29 @@ export function CallStage({
   selfName?: string;
   selfAnswering?: boolean;
   selfMuted?: boolean;
+  /** Uploaded slide deck review, so the student can step through slides live inside the call. */
+  slides?: SlideReview | null;
 }) {
   const t = useT();
+  const tt = useThesisT();
   const self = useRef<HTMLVideoElement>(null);
   const shared = useRef<HTMLVideoElement>(null);
+  const [slidesOpen, setSlidesOpen] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const deck = slides?.slides ?? [];
+
+  // When a juror mentions "lámina 7" or "slide 7", sync the slide viewer to it.
+  useEffect(() => {
+    if (!turnText || deck.length === 0) return;
+    const match = turnText.match(/(?:l[aá]mina|diapositiva|slide)\s+(\d+)/i);
+    if (!match) return;
+    const num = Number(match[1]);
+    const found = deck.findIndex((entry) => entry.n === num);
+    if (found >= 0) {
+      setSlideIndex(found);
+      setSlidesOpen(true);
+    }
+  }, [turnText, deck.length]);
 
   // `srcObject` is a property, not an attribute: React cannot set it from JSX,
   // so it is assigned here whenever the stream changes.
@@ -92,6 +114,10 @@ export function CallStage({
 
   if (jury && !sharing) {
     const group = people.length > 0 || selfName !== undefined;
+    const currentSlide = deck[slideIndex] ?? null;
+    const currentScript = currentSlide
+      ? slides?.script.find((entry) => entry.slide === currentSlide.n)?.say ?? null
+      : null;
     return (
       /* The defence room: the panel across the top, the people defending
          along the bottom. A column rather than overlays, so with three
@@ -100,6 +126,17 @@ export function CallStage({
         <span className="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-cream-bright backdrop-blur-xl">
           {status}
         </span>
+        {deck.length > 0 && (
+          <button
+            type="button"
+            aria-pressed={slidesOpen}
+            onClick={() => setSlidesOpen((open) => !open)}
+            className="focus-ring absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-cream-bright backdrop-blur-xl transition-[background-color,transform] duration-150 ease-press hover:bg-white/20 active:scale-[0.97]"
+          >
+            <Presentation aria-hidden className="h-3.5 w-3.5 text-accent-text" />
+            {tt("liveSlidesToggle", { current: currentSlide?.n ?? 1, total: deck.length })}
+          </button>
+        )}
         <div className="flex w-full flex-1 items-center justify-center">
           <JuryRow
             jury={jury}
@@ -107,9 +144,46 @@ export function CallStage({
             speaking={speaking}
             level={voiceLevel}
             measured={voiceMeasured}
-            compact={group || Boolean(cameraStream || cameraError)}
+            compact={group || slidesOpen || Boolean(cameraStream || cameraError)}
           />
         </div>
+
+        {slidesOpen && currentSlide && (
+          <div className="flex w-full max-w-xl flex-col gap-1.5 rounded-2xl bg-black/55 px-4 py-3 ring-1 ring-white/10 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                aria-label={tt("liveSlidesPrev")}
+                disabled={slideIndex <= 0}
+                onClick={() => setSlideIndex((i) => Math.max(0, i - 1))}
+                className="focus-ring grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-cream-bright transition-transform duration-150 ease-press active:scale-[0.95] disabled:opacity-35"
+              >
+                <ChevronLeft aria-hidden className="h-4 w-4" />
+              </button>
+              <div className="min-w-0 flex-1 text-center">
+                <p className="truncate text-xs font-semibold text-cream-bright">
+                  {currentSlide.n}. {currentSlide.title}
+                </p>
+                <p className="text-xs tabular-nums text-cream-dim">{currentSlide.seconds}s</p>
+              </div>
+              <button
+                type="button"
+                aria-label={tt("liveSlidesNext")}
+                disabled={slideIndex >= deck.length - 1}
+                onClick={() => setSlideIndex((i) => Math.min(deck.length - 1, i + 1))}
+                className="focus-ring grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-cream-bright transition-transform duration-150 ease-press active:scale-[0.95] disabled:opacity-35"
+              >
+                <ChevronRight aria-hidden className="h-4 w-4" />
+              </button>
+            </div>
+            {currentScript && (
+              <p className="line-clamp-2 text-center text-xs leading-relaxed text-cream-dim">
+                <span className="font-semibold text-accent-text">{tt("liveSlidesScript")}: </span>
+                {currentScript}
+              </p>
+            )}
+          </div>
+        )}
 
         {listening && caption && (
           <p className="pointer-events-none hidden min-h-[1.5rem] w-full text-center text-sm text-cream-dim sm:block">{caption}</p>
