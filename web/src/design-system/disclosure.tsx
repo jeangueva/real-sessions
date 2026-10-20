@@ -25,7 +25,7 @@ export function DisclosureMark({
   return (
     <span
       aria-hidden
-      className={`disclosure-pill inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface-lift text-sm font-semibold text-cream-bright transition-colors duration-150 ease-press ${
+      className={`disclosure-pill inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface-lift text-sm font-semibold text-cream-bright transition-[background-color,transform] duration-150 ease-press ${
         label ? "px-3 py-1.5" : "h-8 w-8"
       } ${className}`}
     >

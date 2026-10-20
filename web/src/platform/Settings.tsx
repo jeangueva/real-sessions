@@ -182,7 +182,7 @@ export function Settings() {
                 // through the four rather than leaving the page.
                 history.pushState(null, "", `#${id}`);
               }}
-              className={`focus-ring relative shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200 ease-press sm:text-sm ${
+              className={`focus-ring relative shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium transition-[color,transform] duration-150 ease-press active:scale-[0.97] sm:text-sm ${
                 tab === id ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
               }`}
             >
@@ -258,7 +258,7 @@ export function Settings() {
                   role="radio"
                   aria-checked={locale === entry.id}
                   onClick={() => setLocale(entry.id)}
-                  className={`focus-ring rounded-full border px-4 py-2 text-xs transition-colors sm:text-sm ${
+                  className={`focus-ring rounded-full border px-4 py-2 text-xs transition-[background-color,border-color,color,transform] duration-150 ease-press active:scale-[0.97] sm:text-sm ${
                     locale === entry.id
                       ? "border-cream bg-cream text-surface-base"
                       : "border-line-strong text-cream-dim hover:text-cream-bright"

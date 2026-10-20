@@ -262,7 +262,7 @@ export function SetupSearch({
               setQuery("");
               setOpen(false);
             }}
-            className="focus-ring shrink-0 rounded-full p-1 text-cream-faint transition-colors hover:text-cream-bright"
+            className="focus-ring shrink-0 rounded-full p-1 text-cream-faint transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.92]"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>

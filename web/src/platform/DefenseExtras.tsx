@@ -613,8 +613,8 @@ export function ObservationsSection({
               <span className="font-semibold text-cream-bright">{t("obsProgress", { done: doneCount, total })}</span>
               <span className="h-1.5 w-32 overflow-hidden rounded-full bg-surface-lift" aria-hidden>
                 <span
-                  className="block h-full rounded-full bg-grow transition-[width] duration-300 ease-press"
-                  style={{ width: `${total ? (doneCount / total) * 100 : 0}%` }}
+                  className="block h-full w-full origin-left rounded-full bg-grow transition-transform duration-200 ease-press"
+                  style={{ transform: `scaleX(${total ? doneCount / total : 0})` }}
                 />
               </span>
             </div>

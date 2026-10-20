@@ -569,7 +569,7 @@ export function SessionSetup() {
               <button
                 type="button"
                 onClick={() => setLevelUp(null)}
-                className="focus-ring rounded-full px-4 py-2 text-sm font-medium text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright"
+                className="focus-ring rounded-full px-4 py-2 text-sm font-medium text-cream-dim transition-[background-color,color,transform] duration-150 ease-press hover:bg-surface-lift hover:text-cream-bright active:scale-[0.97]"
               >
                 {t("level.readyDismiss")}
               </button>
@@ -1117,7 +1117,7 @@ export function SessionSetup() {
               type="button"
               onClick={dismissBriefing}
               aria-label={t("setup.dismissBriefing")}
-              className="focus-ring absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface-lift text-cream-dim transition-colors hover:text-cream-bright"
+              className="focus-ring absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface-lift text-cream-dim transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.92]"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>

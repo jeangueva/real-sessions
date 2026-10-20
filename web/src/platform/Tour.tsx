@@ -202,7 +202,7 @@ export function Tour() {
           <button
             onClick={close}
             aria-label={t("tour.close")}
-            className="focus-ring -mr-1 -mt-1 rounded-full p-1 text-cream-faint transition-colors hover:text-cream-bright"
+            className="focus-ring -mr-1 -mt-1 rounded-full p-1 text-cream-faint transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.92]"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>

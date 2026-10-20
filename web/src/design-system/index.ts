@@ -1,4 +1,5 @@
 export {
+  EASE_OUT,
   WordsPullUp,
   FadeRise,
   ScrollRevealText,

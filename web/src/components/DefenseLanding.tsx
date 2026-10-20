@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
-import { Action, FadeRise, HeroVideo } from "@/design-system";
+import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
@@ -480,6 +481,9 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
 }
 
 function ActaScreen({ c }: { c: Record<Key, string> }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-12% 0px" });
+  const still = useReducedMotion();
   const rows = [
     { role: c.juror1, score: 16 },
     { role: c.juror2, score: 12 },
@@ -487,27 +491,38 @@ function ActaScreen({ c }: { c: Record<Key, string> }) {
   ];
   return (
     <Screen className="w-[17rem] p-5">
-      <p className="text-xs font-semibold text-cream-dim">{c.mockActa}</p>
-      <p className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-5xl font-semibold tracking-[-0.04em] tabular-nums text-cream-bright">14</span>
-        <span className="text-lg text-cream-faint">/ 20</span>
-      </p>
-      <p className="mt-2 inline-flex rounded-full bg-grow-soft px-2.5 py-0.5 text-xs font-semibold text-grow-text">{c.mockVerdict}</p>
-      <div className="mt-4 flex flex-col gap-2.5">
-        {rows.map((row) => (
-          <div key={row.role}>
-            <div className="flex justify-between text-xs">
-              <span className="text-cream-dim">{row.role}</span>
-              <span className="font-semibold tabular-nums text-cream-bright">{row.score}</span>
+      <div ref={ref}>
+        <p className="text-xs font-semibold text-cream-dim">{c.mockActa}</p>
+        <p className="mt-1 flex items-baseline gap-1.5">
+          <span className="text-5xl font-semibold tracking-[-0.04em] tabular-nums text-cream-bright">
+            <AnimatedCounter value={14} duration={0.9} />
+          </span>
+          <span className="text-lg text-cream-faint">/ 20</span>
+        </p>
+        <p className="mt-2 inline-flex rounded-full bg-grow-soft px-2.5 py-0.5 text-xs font-semibold text-grow-text">{c.mockVerdict}</p>
+        <div className="mt-4 flex flex-col gap-2.5">
+          {rows.map((row, index) => (
+            <div key={row.role}>
+              <div className="flex justify-between text-xs">
+                <span className="text-cream-dim">{row.role}</span>
+                <span className="font-semibold tabular-nums text-cream-bright">{row.score}</span>
+              </div>
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-surface-lift">
+                <motion.div
+                  className={`h-full origin-left rounded-full ${row.score >= 14 ? "bg-grow" : "bg-accent"}`}
+                  style={{ width: `${(row.score / 20) * 100}%` }}
+                  initial={still ? false : { scaleX: 0 }}
+                  animate={still ? undefined : { scaleX: inView ? 1 : 0 }}
+                  transition={{
+                    duration: 0.7,
+                    delay: 0.15 + index * 0.06,
+                    ease: EASE_OUT,
+                  }}
+                />
+              </div>
             </div>
-            <div className="mt-1 h-1 rounded-full bg-surface-lift">
-              <div
-                className={`h-full rounded-full ${row.score >= 14 ? "bg-grow" : "bg-accent"}`}
-                style={{ width: `${(row.score / 20) * 100}%` }}
-              />
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </Screen>
   );

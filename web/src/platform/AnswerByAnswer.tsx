@@ -121,7 +121,7 @@ function Retry({ historyId, index, onClose }: { historyId: string; index: number
         <Action onClick={() => void check()} disabled={busy || answer.trim().length < 3}>
           {t(busy ? "answers.checking" : "answers.check")}
         </Action>
-        <button type="button" onClick={onClose} className="focus-ring rounded-full px-3 py-1.5 text-sm text-cream-dim hover:text-cream-bright">
+        <button type="button" onClick={onClose} className="focus-ring rounded-full px-3 py-1.5 text-sm text-cream-dim transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.97]">
           {t("answers.close")}
         </button>
       </div>

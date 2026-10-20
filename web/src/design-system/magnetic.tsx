@@ -42,7 +42,7 @@ export function Magnetic({
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      animate={{ x: position.x, y: position.y }}
+      animate={{ transform: `translate3d(${position.x}px, ${position.y}px, 0px)` }}
       transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.5 }}
       className={`inline-block ${className}`}
     >

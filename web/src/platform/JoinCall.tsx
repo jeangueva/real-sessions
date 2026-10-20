@@ -166,7 +166,7 @@ export function JoinCall() {
                     type="button"
                     aria-pressed={name === member}
                     onClick={() => setName(member)}
-                    className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-150 ease-press ${
+                    className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-150 ease-press active:scale-[0.97] ${
                       name === member ? "bg-accent text-accent-ink" : "bg-surface-lift text-cream-bright"
                     }`}
                   >
@@ -333,7 +333,7 @@ function InCall({
             local?.getTracks().forEach((track) => track.stop());
             window.location.assign("/");
           }}
-          className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright"
+          className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-full bg-surface-lift px-4 py-2 text-sm font-semibold text-cream-bright transition-[background-color,transform] duration-150 ease-press hover:bg-cream/15 active:scale-[0.97]"
         >
           <LogOut className="h-4 w-4" aria-hidden />
           <span className="hidden sm:inline">{t("leaveCall")}</span>
@@ -414,7 +414,7 @@ function InCall({
             type="submit"
             disabled={!floorOpen || !typed.trim()}
             aria-label={t("answerSend")}
-            className="focus-ring grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink disabled:opacity-40"
+            className="focus-ring grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-transform duration-150 ease-press active:scale-[0.92] disabled:opacity-40"
           >
             <Send className="h-5 w-5" aria-hidden />
           </button>

@@ -521,6 +521,9 @@ details[open] > summary .disclosure-when-open {
     background-color: rgb(var(--cream) / 0.14);
   }
 }
+details > summary:active .disclosure-pill {
+  transform: scale(0.95);
+}
 
 @media print {
   html.print-report body > *:not(.print-report-root) {

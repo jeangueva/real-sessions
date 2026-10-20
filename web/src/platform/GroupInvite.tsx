@@ -70,7 +70,7 @@ export function GroupInvite({
         <button
           type="button"
           onClick={() => setShown(false)}
-          className="focus-ring shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-cream-dim hover:text-cream-bright"
+          className="focus-ring shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-cream-dim transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.97]"
         >
           {t("discClose")}
         </button>

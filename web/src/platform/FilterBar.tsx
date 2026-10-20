@@ -242,7 +242,7 @@ export function FilterSegment({
         aria-haspopup="dialog"
         {...(disabled && disabledReason ? { title: disabledReason } : {})}
         onClick={() => setOpen((current) => !current)}
-        className={`focus-ring flex w-full flex-col gap-0.5 rounded-[1.5rem] px-5 py-2.5 text-left transition-[background-color,box-shadow] duration-200 ease-press sm:rounded-full sm:px-6 ${
+        className={`focus-ring flex w-full flex-col gap-0.5 rounded-[1.5rem] px-5 py-2.5 text-left transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.98] sm:rounded-full sm:px-6 ${
           open ? "bg-surface-card shadow-float" : "hover:bg-surface-lift"
         }`}
       >
@@ -324,7 +324,7 @@ export function FilterOption({
       aria-selected={selected}
       disabled={disabled}
       onClick={onSelect}
-      className={`focus-ring flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`focus-ring flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-[background-color,transform] duration-150 ease-press active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 ${
         selected ? "bg-surface-lift" : "hover:bg-surface-lift"
       }`}
     >

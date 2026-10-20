@@ -234,8 +234,8 @@ export function Meter({
         className="h-1.5 w-full overflow-hidden rounded-full bg-surface-lift"
       >
         <div
-          className="h-full rounded-full bg-accent transition-[width] duration-700 ease-cinematic"
-          style={{ width: `${pct}%` }}
+          className="h-full w-full origin-left rounded-full bg-accent transition-transform duration-700 ease-cinematic"
+          style={{ transform: `scaleX(${pct / 100})` }}
         />
       </div>
     </div>

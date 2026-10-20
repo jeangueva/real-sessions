@@ -66,7 +66,7 @@ export function DefenseDate({ thesis, onChange }: { thesis: StoredThesis; onChan
           onClick={() => void save(null)}
           aria-label={t("dateClear")}
           title={t("dateClear")}
-          className="focus-ring grid h-6 w-6 place-items-center rounded-full text-cream-faint transition-colors hover:bg-surface-lift hover:text-cream-bright"
+          className="focus-ring grid h-6 w-6 place-items-center rounded-full text-cream-faint transition-[background-color,color,transform] duration-150 ease-press hover:bg-surface-lift hover:text-cream-bright active:scale-[0.92]"
         >
           ×
         </button>

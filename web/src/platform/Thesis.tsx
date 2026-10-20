@@ -828,7 +828,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
                   {[0, 1, 2, 3].map((bar) => (
                     <span
                       key={bar}
-                      className={`w-1 rounded-sm ${bar <= index ? (index === 3 ? "bg-rose-400" : "bg-grow-text") : "bg-cream-faint/30"}`}
+                      className={`w-1 rounded-sm ${bar <= index ? (index === 3 ? "bg-step" : "bg-grow-text") : "bg-cream-faint/30"}`}
                       style={{ height: `${6 + bar * 3}px` }}
                     />
                   ))}

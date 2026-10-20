@@ -866,7 +866,7 @@ export function LiveInterview() {
                 <button
                   type="button"
                   onClick={() => voice.stopListening()}
-                  className="focus-ring self-start rounded-full bg-cream-bright px-4 py-2 text-sm font-semibold text-surface-base transition-transform duration-150 active:scale-[0.97]"
+                  className="focus-ring self-start rounded-full bg-cream-bright px-4 py-2 text-sm font-semibold text-surface-base transition-transform duration-150 ease-press active:scale-[0.97]"
                 >
                   {tt("done")}
                 </button>
@@ -908,7 +908,7 @@ export function LiveInterview() {
                   </p>
                   <button
                     onClick={() => voice.speakNow(turn?.text ?? streaming)}
-                    className="focus-ring rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-bright transition-colors hover:bg-cream/15"
+                    className="focus-ring rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-150 ease-press hover:bg-cream/15 active:scale-[0.97]"
                   >
                     {t("call.playTurn")}
                   </button>

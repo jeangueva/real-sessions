@@ -165,12 +165,17 @@ export function HeroVideo({
 
   if (!hasVideo) return <Backdrop variant="hero" still={reducedMotion} />;
 
+  const cropClass = `absolute inset-0 h-full w-full object-cover ${focus ?? (bare ? "object-center" : "object-[50%_82%]")}`;
+  const webmSrc = src?.endsWith(".mp4") ? `${src.slice(0, -4)}.webm` : undefined;
+
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {/* The CSS field sits underneath, not instead: it is what shows through
           while the first frame is still decoding. Held still when the video
           is, so nothing on the screen is moving under reduced motion. */}
       <Backdrop variant="hero" still={!animated} />
+
+      {poster && <img src={poster} alt="" className={cropClass} />}
 
       <video
         ref={videoRef}
@@ -183,7 +188,7 @@ export function HeroVideo({
         playsInline
         preload="auto"
         poster={poster}
-        src={src}
+        src={webmSrc ? undefined : src}
         style={{ opacity: 0 }}
         /**
          * The lower portion of the frame is the composition worth seeing: the
@@ -202,8 +207,15 @@ export function HeroVideo({
          * a phone the hero is taller than the footage, so the cover crop runs
          * horizontally and this has nothing to do.
          */
-        className={`absolute inset-0 h-full w-full object-cover ${focus ?? (bare ? "object-center" : "object-[50%_82%]")}`}
-      />
+        className={cropClass}
+      >
+        {webmSrc && (
+          <>
+            <source src={webmSrc} type="video/webm" onError={() => setFailed(true)} />
+            <source src={src} type="video/mp4" />
+          </>
+        )}
+      </video>
 
       {!bare && <div className="noise-overlay absolute inset-0 opacity-[0.35] mix-blend-overlay" />}
 

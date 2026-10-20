@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Minus, Plus } from "lucide-react";
+import { EASE_OUT } from "./motion";
 
 /**
  * A list of questions that open one at a time.
@@ -52,6 +53,7 @@ export function Accordion({
 }) {
   const [open, setOpen] = useState<number | null>(defaultOpen);
   const base = useId();
+  const still = useReducedMotion();
 
   return (
     <div className={`w-full rounded-2xl bg-surface-sunken p-1.5 ${className}`}>
@@ -72,7 +74,7 @@ export function Accordion({
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   onClick={() => setOpen(isOpen ? null : index)}
-                  className="focus-ring flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-normal text-cream-bright"
+                  className="focus-ring flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-normal text-cream-bright transition-[background-color,transform] duration-150 ease-press hover:bg-surface-lift/60 active:scale-[0.99]"
                 >
                   <span>{entry.question}</span>
                   {/* The mark turns rather than swapping, so the eye follows
@@ -80,7 +82,7 @@ export function Accordion({
                   <motion.span
                     aria-hidden
                     animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: still ? 0 : 0.2, ease: EASE_OUT }}
                     className="shrink-0 text-cream-faint"
                   >
                     {isOpen ? (
@@ -96,10 +98,10 @@ export function Accordion({
                 {isOpen && (
                   <motion.div
                     key="answer"
-                    initial={{ height: 0, opacity: 0 }}
+                    initial={still ? false : { height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    exit={still ? undefined : { height: 0, opacity: 0 }}
+                    transition={{ duration: still ? 0 : 0.22, ease: EASE_OUT }}
                   >
                     <div
                       id={panelId}

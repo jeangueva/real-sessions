@@ -385,7 +385,7 @@ function ShareControl({
               type="button"
               onClick={() => void stop()}
               disabled={busy}
-              className="focus-ring mx-2 mt-1 rounded-xl px-3 py-2 text-left text-xs font-medium text-cream-faint hover:text-cream-bright"
+              className="focus-ring mx-2 mt-1 rounded-xl px-3 py-2 text-left text-xs font-medium text-cream-faint transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.97]"
             >
               {t("feedback.shareStop")}
             </button>
@@ -466,7 +466,7 @@ function MenuItem({
       role="menuitem"
       onClick={onClick}
       disabled={disabled}
-      className="focus-ring flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-surface-lift disabled:opacity-50"
+      className="focus-ring flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-[background-color,transform] duration-150 ease-press hover:bg-surface-lift active:scale-[0.98] disabled:opacity-50"
     >
       <span aria-hidden className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text">
         {icon}

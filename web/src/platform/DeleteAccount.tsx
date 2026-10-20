@@ -122,7 +122,7 @@ export function DeleteAccount({ email }: { email: string }) {
                 setTyped("");
                 setError(null);
               }}
-              className="focus-ring rounded-full px-4 py-2 text-xs text-cream-dim transition-colors hover:text-cream-bright"
+              className="focus-ring rounded-full px-4 py-2 text-xs text-cream-dim transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.97]"
             >
               {t("delete.cancel")}
             </button>

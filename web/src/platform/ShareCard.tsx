@@ -602,7 +602,7 @@ export function ShareCard() {
                       onClick={() =>
                         guard(PREMIUM_TEMPLATES.has(entry.id), "ready", () => setTemplateId(entry.id))
                       }
-                      className={`focus-ring relative flex flex-col items-center gap-2 rounded-2xl p-2 transition-[background-color,box-shadow] duration-200 ease-press ${
+                      className={`focus-ring relative flex flex-col items-center gap-2 rounded-2xl p-2 transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.98] ${
                         entry.id === templateId
                           ? "bg-surface-card shadow-card ring-2 ring-accent"
                           : "bg-surface-lift hover:bg-cream/10"
