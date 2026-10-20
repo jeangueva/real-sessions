@@ -536,6 +536,17 @@ const ES = {
   liveSlidesPrev: "Lámina anterior",
   liveSlidesNext: "Siguiente lámina",
   liveSlidesScript: "Guion sugerido",
+  settingsDefenseTab: "Sustentación",
+  settingsAdvisorTab: "Asesor e institución",
+  settingsMetaDefense: "Tu cuenta, preferencias del jurado y plan de sustentación",
+  settingsYourNameHintDefense: "Cómo se dirige a ti el jurado durante la sustentación. Si lo dejas vacío, se toma de tu correo.",
+  settingsDefenseSaved: "Preferencias de sustentación guardadas.",
+  settingsThesisDocTitle: "Tu documento de tesis",
+  settingsThesisDocNone: "Aún no has subido tu tesis. Súbela en Ensayar para configurar el jurado por carrera.",
+  settingsThesisGoUpload: "Ir a subir mi tesis",
+  settingsPlanDefenseTitle: "Tu plan en Sustentación",
+  settingsPlanDefenseSubtitle: "Créditos para ensayar con el panel de 3 jurados, modos de defensa y opciones de regalo.",
+  settingsPlanSubscriptionSubtitle: "Suscripción mensual o anual (incluye sustentaciones ilimitadas y práctica de entrevistas en Profesional).",
 };
 
 type Key = keyof typeof ES;
@@ -1068,6 +1079,17 @@ const PT: Record<Key, string> = {
   liveSlidesPrev: "Slide anterior",
   liveSlidesNext: "Próximo slide",
   liveSlidesScript: "Roteiro sugerido",
+  settingsDefenseTab: "Defesa",
+  settingsAdvisorTab: "Orientador e instituição",
+  settingsMetaDefense: "Sua conta, preferências da banca e plano de defesa",
+  settingsYourNameHintDefense: "Como a banca se dirige a você durante a defesa. Se ficar vazio, é lido do seu e-mail.",
+  settingsDefenseSaved: "Preferências de defesa salvas.",
+  settingsThesisDocTitle: "Seu documento de tese",
+  settingsThesisDocNone: "Você ainda não enviou seu trabalho. Envie em Ensaiar para configurar a banca por curso.",
+  settingsThesisGoUpload: "Ir para enviar meu trabalho",
+  settingsPlanDefenseTitle: "Seu plano na Defesa",
+  settingsPlanDefenseSubtitle: "Créditos para ensaiar com a banca de 3, modos de defesa e opções de presente.",
+  settingsPlanSubscriptionSubtitle: "Assinatura mensal ou anual (inclui defesas ilimitadas e prática de entrevistas no Profissional).",
 };
 
 const EN: Record<Key, string> = {
@@ -1597,6 +1619,17 @@ const EN: Record<Key, string> = {
   liveSlidesPrev: "Previous slide",
   liveSlidesNext: "Next slide",
   liveSlidesScript: "Suggested script",
+  settingsDefenseTab: "Defence",
+  settingsAdvisorTab: "Advisor & institution",
+  settingsMetaDefense: "Your account, jury preferences and defence plan",
+  settingsYourNameHintDefense: "How the jury addresses you during the defence. Left empty, it is guessed from your email.",
+  settingsDefenseSaved: "Defence preferences saved.",
+  settingsThesisDocTitle: "Your thesis document",
+  settingsThesisDocNone: "You have not uploaded your thesis yet. Upload it in Rehearse to configure the jury by field.",
+  settingsThesisGoUpload: "Go upload my thesis",
+  settingsPlanDefenseTitle: "Your Defence plan",
+  settingsPlanDefenseSubtitle: "Credits to rehearse with the panel of 3, defence modes and gift options.",
+  settingsPlanSubscriptionSubtitle: "Monthly or annual subscription (includes unlimited defences and interview practice in Professional).",
 };
 
 const BY_LOCALE: Record<string, Record<Key, string>> = { es: ES, pt: PT, en: EN };

@@ -69,6 +69,7 @@ export function storedSpace(): Space {
 export function rememberSpace(space: Space): void {
   try {
     localStorage.setItem(SPACE_KEY, space);
+    window.dispatchEvent(new CustomEvent("mockio:space", { detail: space }));
   } catch {
     // Private mode: the shared screens fall back to Sustentación.
   }

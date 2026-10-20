@@ -100,6 +100,14 @@ function useSpace(): Space {
     if (owned && owned !== last) setLast(owned);
     if (owned) rememberSpace(owned);
   }, [owned, last]);
+  useEffect(() => {
+    const onSpace = (event: Event) => {
+      const next = (event as CustomEvent<Space>).detail;
+      if (next === "defense" || next === "career") setLast(next);
+    };
+    window.addEventListener("mockio:space", onSpace);
+    return () => window.removeEventListener("mockio:space", onSpace);
+  }, []);
   return owned ?? last;
 }
 
@@ -311,6 +319,8 @@ function TopBar({
   email: string | null;
 }) {
   const t = useT();
+  const { pathname } = useLocation();
+  const onSharedPage = spaceOf(pathname) === null;
   const spaces: { id: Space; label: string; icon: Icon }[] = [
     { id: "defense", label: t("nav.spaceDefense"), icon: GraduationCap },
     { id: "career", label: t("nav.spaceCareer"), icon: Briefcase },
@@ -330,7 +340,7 @@ function TopBar({
             return (
               <Link
                 key={id}
-                to={SPACE_HOME[id]}
+                to={onSharedPage ? pathname : SPACE_HOME[id]}
                 onClick={() => rememberSpace(id)}
                 aria-current={active ? "page" : undefined}
                 className={`focus-ring group relative flex items-center gap-2 rounded-lg px-2.5 text-sm font-semibold transition-[color,transform] duration-150 ease-press active:scale-[0.97] sm:px-3 sm:text-base ${
