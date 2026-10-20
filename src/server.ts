@@ -242,8 +242,8 @@ import {
   type PackKind,
 } from "./defense-packs.js";
 
-/** Free rehearsals of a defence, per account, ever. */
-const FREE_DEFENSES = 1;
+/** Free rehearsals of a defence per week on the free plan. */
+const FREE_WEEKLY_DEFENSES = 1;
 
 /** The currency every pack is sold in: the Mercado Pago account's own. */
 const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPAGO_CURRENCY ?? "PEN";
@@ -315,8 +315,9 @@ function readLtiPass(pass: string): { accountId: string; to: string } | null {
 }
 
 async function defenseAllowance(ownerId: string): Promise<{
-  credits: number;
+  credits: number | null;
   freeLeft: number;
+  unlimited: boolean;
   modes: boolean;
   group: boolean;
   /** Who pays for the rehearsals beyond the student's own: an advisor or a school. */
@@ -332,26 +333,32 @@ async function defenseAllowance(ownerId: string): Promise<{
    */
   paid: boolean;
 }> {
-  const [packs, past, sponsored] = await Promise.all([
+  const [plan, packs, past, sponsored] = await Promise.all([
+    readQuietly(PLANS.planFor(ownerId), "free" as Plan),
     readQuietly(PACKS.active(ownerId), []),
     readQuietly(PROGRESS.listSessions(ownerId), []),
     readQuietly(sponsorship(ownerId), null),
   ]);
+  const premium = plan === "premium";
   const full = past.filter((entry) => entry.stage === "Sustentación de tesis").map((entry) => entry.startedAt);
-  const express = past.filter((entry) => entry.stage.startsWith("Sustentación")).length;
+  const sinceMonday = weekStart(new Date()).getTime();
+  const weeklyDefenses = past.filter(
+    (entry) => entry.stage.startsWith("Sustentación") && Date.parse(entry.startedAt) >= sinceMonday,
+  ).length;
   // A sponsor's rehearsals count as one more grant: whatever is used is
   // used from all of them together, so nobody is charged twice for one.
   const grants = sponsored ? [...packs, sponsored.grant] : packs;
   const own = unlocks(packs);
   return {
-    credits: remainingCredits(grants, full),
-    freeLeft: Math.max(0, FREE_DEFENSES - express),
-    modes: own.modes || sponsored?.modes === true,
-    group: own.group,
+    credits: premium ? null : remainingCredits(grants, full),
+    freeLeft: Math.max(0, FREE_WEEKLY_DEFENSES - weeklyDefenses),
+    unlimited: premium,
+    modes: premium || own.modes || sponsored?.modes === true,
+    group: true,
     sponsor: sponsored ? { kind: sponsored.kind, name: sponsored.name } : null,
     rubric: sponsored?.rubric ?? null,
     mentor: own.mentor,
-    paid: grants.length > 0,
+    paid: premium || grants.length > 0,
   };
 }
 
@@ -4319,22 +4326,17 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
       }
       /**
-       * The full panel spends a pack credit; without one, the express
-       * rehearsal is the free one, once. Counted on sessions started rather
-       * than finished: abandoning one at the last question and starting again
-       * would otherwise be unlimited.
+       * Premium is unlimited; otherwise a pack credit or the weekly free
+       * allowance opens the full panel (1:1 or group). Counted on sessions
+       * started rather than finished: abandoning one at the last question and
+       * starting again would otherwise be unlimited.
        */
       const allowance = await defenseAllowance(identity.id);
-      if (allowance.credits === 0) {
-        if (allowance.freeLeft === 0) {
-          return json(res, 402, {
-            error: "Ya usaste tu ensayo gratis. El Pack Sustentación incluye 5 con el panel de 3 jurados.",
-            code: "defenseFreeUsed",
-          });
-        }
-        if (rounds[0]?.id !== "sustentacion-express") {
-          rounds = resolveStages(null, ["sustentacion-express"]);
-        }
+      if (!allowance.unlimited && (allowance.credits ?? 0) === 0 && allowance.freeLeft === 0) {
+        return json(res, 402, {
+          error: "Ya usaste tu sustentación gratis de esta semana. Pásate a Premium para ensayos ilimitados o adquiere un Pack.",
+          code: "defenseFreeUsed",
+        });
       }
       const difficulty = (["calentamiento", "estandar", "exigente", "hostil"] as const).find(
         (entry) => entry === body["difficulty"],
@@ -4397,9 +4399,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         // The format they defend in: chosen on the thesis screen, or guessed
         // from the thesis's language when an older client sends none.
         country: findFormat(body["country"], stored.analysis.language).country,
-        // The real people, on a paid rehearsal; the prompt leaves them out
-        // of the express one and the coach.
-        ...(allowance.paid && stored.jury && stored.jury.length > 0 ? { jury: stored.jury } : {}),
+        // The real people, when the student filled them in; the prompt leaves
+        // them out of the express rehearsal and the coach.
+        ...(stored.jury && stored.jury.length > 0 ? { jury: stored.jury } : {}),
         // The discipline's jury, with no setup: the career on the cover, or
         // the one the student picked. The generic panel when we cannot tell.
         career: defenseCareer(resolveCareer(stored.analysis, stored.careerOverride)),

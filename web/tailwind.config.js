@@ -177,6 +177,16 @@ export default {
         // beside text someone is reading is the one motion that cannot be
         // ignored, which is the opposite of what a status dot is for.
         livePulse: { "0%,100%": { opacity: "1" }, "50%": { opacity: "0.35" } },
+        // A line of text replaced by the next: the blur bridges the two
+        // states so the eye reads one change, not two texts swapping.
+        swapIn: {
+          from: { opacity: "0", transform: "translateY(6px)", filter: "blur(4px)" },
+          to: { opacity: "1", transform: "translateY(0)", filter: "blur(0)" },
+        },
+        // A juror speaking: bars breathing on scaleY only, never height.
+        speak: { "0%,100%": { transform: "scaleY(0.35)" }, "50%": { transform: "scaleY(1)" } },
+        // The autoplay's clock: constant motion, so linear.
+        fillX: { from: { transform: "scaleX(0)" }, to: { transform: "scaleX(1)" } },
         /**
          * The backdrop drift. Deliberately enormous periods — a minute is fast
          * enough to notice and slow enough that nothing on top of it appears
@@ -201,6 +211,8 @@ export default {
         "fade-in": "fadeIn 0.5s ease both",
         blink: "blink 1s step-end infinite",
         live: "livePulse 2s cubic-bezier(0.45, 0, 0.55, 1) infinite",
+        swap: "swapIn 280ms cubic-bezier(0.23, 1, 0.32, 1) both",
+        speak: "speak 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite",
         "drift-slow": "driftSlow 34s cubic-bezier(0.45,0,0.55,1) infinite",
         "drift-wide": "driftWide 46s cubic-bezier(0.45,0,0.55,1) infinite",
         "drift-counter": "driftCounter 58s cubic-bezier(0.45,0,0.55,1) infinite",

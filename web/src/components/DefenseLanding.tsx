@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
@@ -41,18 +41,24 @@ const ES = {
   heroTitle: "Sustenta antes de sustentar.",
   heroSub: "Un jurado de 3 que leyó tu tesis te pregunta por voz, repregunta como el de verdad y te deja un acta de 0 a 20.",
   heroSecondary: "Cómo funciona",
-  heroNote: "1 ensayo gratis · sin tarjeta",
+  heroNote: "1 videollamada con el jurado gratis a la semana · sin tarjeta",
   countries: "Con el formato de jurado de",
   prodTitle: "Un jurado que leyó tu tesis. Completa.",
   prodBody: "Hasta 300 páginas, escaneadas o no. Cada pregunta sale de una página que puedes abrir, y cada repregunta, de lo que acabas de responder.",
-  prod1: "Presidente, metodólogo y especialista, cada uno con su voz",
-  prod2: "Preguntas que citan tu página, no “una tesis cualquiera”",
+  prod1: "Presidente, metodólogo y especialista pre-seteados por carrera, cada uno con su voz",
+  prod2: "Videollamada individual o grupal, con preguntas que citan tu página",
   prod3: "Deliberación y acta con la escala de tu país",
   mockLive: "En vivo",
+  mockJuror1: "Dr. Ramírez · Presidente del jurado",
+  mockQuestion1: "En la página 18 plantea tres objetivos específicos, pero en las conclusiones solo responde a dos. ¿Qué ocurrió con el tercero?",
+  mockAnswer1: "El tercer objetivo se aborda en la conclusión 2 junto con el análisis de costos de la tabla 9…",
   mockJuror: "Dra. Vidal · Metodóloga",
   mockQuestion: "En la página 41 aplica Pearson. ¿Verificó antes la normalidad de sus datos? No encuentro esa prueba en su tesis.",
   mockYou: "Tú",
   mockAnswer: "Sí, apliqué Kolmogorov-Smirnov; está en el anexo 4, pero no lo cité en el capítulo…",
+  mockJuror3: "Dr. Paredes · Especialista",
+  mockQuestion3: "En la discusión (p. 54) afirma que su propuesta reduce tiempos en 30%, pero no controla por estacionalidad. ¿Cómo lo sustenta?",
+  mockAnswer3: "Comparamos el mismo trimestre contra el año base en la página 48 para aislar el factor estacional…",
   mockActa: "Acta simulada",
   mockVerdict: "Aprobado por mayoría",
   juror1: "Presidente",
@@ -74,9 +80,9 @@ const ES = {
   sevHigh: "Alta",
   sevMed: "Media",
   matrixLine: "Matriz de consistencia: 2 de 5 objetivos no cuadran con sus conclusiones",
-  juryTitle: "Tu jurado, con nombre y apellido.",
-  juryBody: "Escribe quiénes te van a tomar la sustentación y cómo preguntan. El panel los interpreta: la metodóloga que siempre pide la muestra, te pide la muestra.",
-  juryMockTitle: "Tu jurado real",
+  juryTitle: "Jurados pre-seteados por carrera. O el tuyo con nombre y apellido.",
+  juryBody: "Desde el primer minuto tienes un jurado configurado según tu carrera (Derecho, Medicina, Ingeniería, Administración y más). Y si ya sabes quiénes te van a evaluar, puedes personalizarlos opcionalmente.",
+  juryMockTitle: "Jurado por carrera + personalización opcional",
   jury1: "Dr. Huamán",
   jury1Field: "Gestión pública",
   jury2: "Dra. Rojas",
@@ -124,9 +130,9 @@ const ES = {
   pricingSub: "Pago único, sin suscripción. Empieza gratis.",
   freeName: "Gratis",
   freePrice: "S/ 0",
-  freeUnit: "para siempre",
-  free1: "1 ensayo express con un jurado",
-  free2: "Diagnóstico completo de tu tesis",
+  freeUnit: "1 a la semana",
+  free1: "1 videollamada semanal con el jurado de 3 (1:1 o grupal)",
+  free2: "Jurados pre-seteados por carrera + diagnóstico de tu tesis",
   free3: "Sin tarjeta",
   freeCta: "Empezar gratis",
   packName: "Pack Sustentación",
@@ -174,18 +180,24 @@ const PT: Record<Key, string> = {
   heroTitle: "Defenda antes de defender.",
   heroSub: "Uma banca de 3 que leu seu trabalho pergunta por voz, faz réplicas como a de verdade e deixa uma ata com sua nota.",
   heroSecondary: "Como funciona",
-  heroNote: "1 ensaio grátis · sem cartão",
+  heroNote: "1 videochamada com a banca grátis por semana · sem cartão",
   countries: "Com o formato de banca de",
   prodTitle: "Uma banca que leu seu trabalho. Inteiro.",
   prodBody: "Até 300 páginas, digitalizadas ou não. Cada pergunta vem de uma página que você pode abrir, e cada réplica, do que você acabou de responder.",
-  prod1: "Presidente, metodólogo e especialista, cada um com sua voz",
-  prod2: "Perguntas que citam sua página, não “um trabalho qualquer”",
+  prod1: "Presidente, metodólogo e especialista predefinidos por área, cada um com sua voz",
+  prod2: "Videochamada individual ou em grupo, com perguntas que citam sua página",
   prod3: "Deliberação e ata na escala do seu país",
   mockLive: "Ao vivo",
+  mockJuror1: "Prof. Dr. Almeida · Presidente da banca",
+  mockQuestion1: "Na página 18 você propõe três objetivos específicos, mas nas conclusões responde apenas a dois. O que houve com o terceiro?",
+  mockAnswer1: "O terceiro objetivo é tratado na conclusão 2 junto com a análise de custos da tabela 9…",
   mockJuror: "Profa. Vidal · Metodóloga",
   mockQuestion: "Na página 41 você aplica Pearson. Verificou antes a normalidade dos dados? Não encontro esse teste no trabalho.",
   mockYou: "Você",
   mockAnswer: "Sim, apliquei Kolmogorov-Smirnov; está no anexo 4, mas não citei no capítulo…",
+  mockJuror3: "Prof. Dr. Mendes · Especialista",
+  mockQuestion3: "Na discussão (p. 54) você afirma que a proposta reduz prazos em 30%, mas não controla a sazonalidade. Como sustenta isso?",
+  mockAnswer3: "Comparamos o mesmo trimestre com o ano-base na página 48 para isolar a sazonalidade…",
   mockActa: "Ata simulada",
   mockVerdict: "Aprovado por maioria",
   juror1: "Presidente",
@@ -207,9 +219,9 @@ const PT: Record<Key, string> = {
   sevHigh: "Alta",
   sevMed: "Média",
   matrixLine: "Matriz de consistência: 2 de 5 objetivos não fecham com as conclusões",
-  juryTitle: "Sua banca, com nome e sobrenome.",
-  juryBody: "Escreva quem estará na sua banca e como pergunta. A banca os interpreta: a metodóloga que sempre pede a amostra pede a amostra.",
-  juryMockTitle: "Sua banca real",
+  juryTitle: "Bancas predefinidas por curso. Ou a sua com nome e sobrenome.",
+  juryBody: "Desde o primeiro minuto você tem uma banca configurada para o seu curso. E se já souber quem estará na sua banca, pode personalizá-los opcionalmente.",
+  juryMockTitle: "Banca por área + personalização opcional",
   jury1: "Prof. Dr. Almeida",
   jury1Field: "Gestão pública",
   jury2: "Profa. Dra. Lima",
@@ -257,9 +269,9 @@ const PT: Record<Key, string> = {
   pricingSub: "Pagamento único, sem assinatura. Comece grátis.",
   freeName: "Grátis",
   freePrice: "US$ 0",
-  freeUnit: "para sempre",
-  free1: "1 ensaio express com um avaliador",
-  free2: "Diagnóstico completo do trabalho",
+  freeUnit: "1 por semana",
+  free1: "1 videochamada semanal com a banca de 3 (1:1 ou em grupo)",
+  free2: "Bancas predefinidas por curso + diagnóstico do trabalho",
   free3: "Sem cartão",
   freeCta: "Começar grátis",
   packName: "Pacote Defesa",
@@ -305,18 +317,24 @@ const EN: Record<Key, string> = {
   heroTitle: "Defend it before you defend it.",
   heroSub: "A panel of three that read your thesis questions you out loud, follows up like the real one and leaves you a graded record.",
   heroSecondary: "How it works",
-  heroNote: "1 free rehearsal · no card",
+  heroNote: "1 free video call with the jury per week · no card",
   countries: "With the panel format of",
   prodTitle: "A panel that read your thesis. All of it.",
   prodBody: "Up to 300 pages, scanned or not. Every question comes from a page you can open, and every follow-up from what you just said.",
-  prod1: "A chair, a methodologist and a specialist, each with their own voice",
-  prod2: "Questions that cite your page, not “a thesis”",
+  prod1: "Preset chair, methodologist and specialist by field, each with their own voice",
+  prod2: "1:1 or group video call, with questions that cite your page",
   prod3: "Deliberation and a record on your country's scale",
   mockLive: "Live",
+  mockJuror1: "Dr Ramírez · Chair of the panel",
+  mockQuestion1: "On page 18 you set out three specific objectives, but your conclusions only answer two. What happened to the third?",
+  mockAnswer1: "The third objective is addressed in conclusion 2 alongside the cost breakdown in table 9…",
   mockJuror: "Dr Vidal · Methodologist",
   mockQuestion: "On page 41 you use Pearson. Did you check the data were normal first? I can't find that test in your thesis.",
   mockYou: "You",
   mockAnswer: "Yes, I ran Kolmogorov-Smirnov; it's in appendix 4, but I didn't cite it in the chapter…",
+  mockJuror3: "Dr Paredes · Specialist",
+  mockQuestion3: "In the discussion (p. 54) you claim a 30% time reduction, without controlling for seasonality. How do you defend that?",
+  mockAnswer3: "We compared the same quarter against the baseline year on page 48 to isolate seasonality…",
   mockActa: "Sample record",
   mockVerdict: "Passed by majority",
   juror1: "Chair",
@@ -338,9 +356,9 @@ const EN: Record<Key, string> = {
   sevHigh: "High",
   sevMed: "Medium",
   matrixLine: "Consistency matrix: 2 of 5 aims don't match their conclusions",
-  juryTitle: "Your panel, by name.",
-  juryBody: "Write down who will examine you and how they question. The panel plays them: the methodologist who always asks about the sample asks about the sample.",
-  juryMockTitle: "Your real panel",
+  juryTitle: "Preset panels by degree. Or your own examiners by name.",
+  juryBody: "From the start you get a panel tailored to your discipline (Law, Medicine, Engineering, Business and more). And if you already know who will examine you, you can optionally customise them.",
+  juryMockTitle: "Preset by field + optional customisation",
   jury1: "Prof. Hughes",
   jury1Field: "Public management",
   jury2: "Dr Rojas",
@@ -388,9 +406,9 @@ const EN: Record<Key, string> = {
   pricingSub: "One payment, no subscription. Start free.",
   freeName: "Free",
   freePrice: "US$ 0",
-  freeUnit: "forever",
-  free1: "1 express rehearsal with one examiner",
-  free2: "The full diagnosis of your thesis",
+  freeUnit: "1 per week",
+  free1: "1 weekly video call with the panel of 3 (1:1 or group)",
+  free2: "Preset juries by field + full diagnosis of your thesis",
   free3: "No card",
   freeCta: "Start free",
   packName: "Defence Pack",
@@ -440,40 +458,74 @@ const COUNTRIES = ["PE", "BR", "CO", "CL", "AR", "EC", "BO", "UY", "PA"];
 /* ------------------------------------------------------------------------- */
 
 function CallScreen({ c }: { c: Record<Key, string> }) {
+  const [active, setActive] = useState(1);
+  const still = useReducedMotion();
+  const turns = [
+    { role: c.juror1, initials: "RA", speaker: c.mockJuror1, question: c.mockQuestion1, answer: c.mockAnswer1, turn: "2 / 12" },
+    { role: c.juror2, initials: "VI", speaker: c.mockJuror, question: c.mockQuestion, answer: c.mockAnswer, turn: "3 / 12" },
+    { role: c.juror3, initials: "PA", speaker: c.mockJuror3, question: c.mockQuestion3, answer: c.mockAnswer3, turn: "4 / 12" },
+  ];
+
+  useEffect(() => {
+    if (still) return;
+    const id = window.setInterval(() => {
+      setActive((current) => (current + 1) % 3);
+    }, 5200);
+    return () => window.clearInterval(id);
+  }, [still]);
+
+  const current = turns[active]!;
+
   return (
     <Screen dark>
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-xs text-white/60">
         <span className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-step" />
+          <span className="h-2 w-2 animate-live rounded-full bg-step" />
           {c.mockLive} · 08:42
         </span>
-        <span className="tabular-nums">3 / 12</span>
+        <span className="tabular-nums">{current.turn}</span>
       </div>
-      <div className="grid grid-cols-3 gap-2 p-3">
-        {[c.juror1, c.juror2, c.juror3].map((role, index) => (
-          <div
-            key={role}
-            className={`flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl ${
-              index === 1 ? "bg-white/10 ring-2 ring-accent-text" : "bg-white/5"
-            }`}
-          >
-            <span
-              className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold ${
-                index === 1 ? "bg-accent text-accent-ink" : "bg-white/10 text-white/70"
+      <div className="grid grid-cols-3 gap-2 p-3" role="tablist" aria-label={c.navProduct}>
+        {turns.map((entry, index) => {
+          const isSpeaking = index === active;
+          return (
+            <button
+              key={entry.role}
+              type="button"
+              role="tab"
+              aria-selected={isSpeaking}
+              onClick={() => setActive(index)}
+              className={`focus-ring flex aspect-[4/3] flex-col items-center justify-center gap-1.5 rounded-xl transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.97] ${
+                isSpeaking ? "bg-white/10 ring-2 ring-accent-text" : "bg-white/5 hover:bg-white/[0.08]"
               }`}
             >
-              {["HS", "VI", "PA"][index]}
-            </span>
-            <span className="text-xs text-white/60">{role}</span>
-          </div>
-        ))}
+              <span
+                className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold transition-colors duration-200 ${
+                  isSpeaking ? "bg-accent text-accent-ink" : "bg-white/10 text-white/70"
+                }`}
+              >
+                {entry.initials}
+              </span>
+              <span className="text-xs text-white/70">{entry.role}</span>
+              <span aria-hidden className={`flex h-2.5 items-center gap-0.5 transition-opacity duration-200 ${isSpeaking ? "opacity-100" : "opacity-0"}`}>
+                {[0, 150, 300, 120].map((delay, barIndex) => (
+                  <span
+                    key={barIndex}
+                    className="h-2.5 w-0.5 origin-center rounded-full bg-accent-text motion-safe:animate-speak"
+                    style={{ animationDelay: `${delay}ms` }}
+                  />
+                ))}
+              </span>
+            </button>
+          );
+        })}
       </div>
-      <div className="flex flex-col gap-2 px-4 pb-4">
-        <p className="text-xs font-semibold text-accent-text">{c.mockJuror}</p>
-        <p className="text-base leading-snug text-white">{c.mockQuestion}</p>
+      <div key={active} className="flex flex-col gap-2 px-4 pb-4 motion-safe:animate-swap">
+        <p className="text-xs font-semibold text-accent-text">{current.speaker}</p>
+        <p className="text-base leading-snug text-white">{current.question}</p>
         <div className="mt-2 rounded-xl bg-white/5 px-3 py-2.5">
-          <p className="text-xs font-semibold text-white/50">{c.mockYou}</p>
-          <p className="text-sm text-white/80">{c.mockAnswer}</p>
+          <p className="text-xs font-semibold text-white/50">{c.mockYou} · Cam ON</p>
+          <p className="text-sm text-white/80">{current.answer}</p>
         </div>
       </div>
     </Screen>

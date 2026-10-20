@@ -180,6 +180,34 @@ describe("the routes", () => {
     );
     expect(result).toMatchObject({ verified: 0, questions: [], locked: true });
   });
+
+  it("grants 1 weekly full video-call defense (1:1 or group) on Free and unlimited on Premium", async () => {
+    await api.authenticate();
+    const freeState = await api.json<{
+      allowance: { credits: number | null; unlimited?: boolean; freeLeft: number; group: boolean; modes: boolean; paid: boolean };
+    }>("/api/thesis");
+    expect(freeState.allowance).toMatchObject({
+      credits: 0,
+      unlimited: false,
+      freeLeft: 1,
+      group: true,
+      modes: false,
+      paid: false,
+    });
+
+    await api.makePremium();
+    const premiumState = await api.json<{
+      allowance: { credits: number | null; unlimited?: boolean; freeLeft: number; group: boolean; modes: boolean; paid: boolean };
+    }>("/api/thesis");
+    expect(premiumState.allowance).toMatchObject({
+      credits: null,
+      unlimited: true,
+      freeLeft: 1,
+      group: true,
+      modes: true,
+      paid: true,
+    });
+  });
 });
 
 const cited = { text: "x", page: 1 };

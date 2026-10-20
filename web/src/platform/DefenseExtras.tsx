@@ -155,8 +155,6 @@ export function RealJuryCard({
   onChange: (next: StoredThesis) => void;
 }) {
   const t = useThesisT();
-  const status = useDefenseStatus();
-  const paid = status?.allowance.paid === true;
   const saved = thesis.jury ?? [];
   const [draft, setDraft] = useState<RealJuror[]>(() =>
     SEATS.map(({ seat }) => saved.find((juror) => juror.seat === seat) ?? { seat, name: "", specialty: "", notes: "" }),
@@ -185,7 +183,7 @@ export function RealJuryCard({
   };
 
   return (
-    <details className="group rounded-card bg-surface-raised shadow-card" open={named.length === 0 ? undefined : false}>
+    <details className="group rounded-card bg-surface-raised shadow-card" open={false}>
       <summary className="focus-ring flex cursor-pointer list-none items-center gap-3 rounded-card p-5 sm:p-6">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text">
           <Users aria-hidden className="h-[1.125rem] w-[1.125rem]" />
@@ -193,16 +191,14 @@ export function RealJuryCard({
         <span className="min-w-0 flex-1">
           <span className="block text-lg font-semibold tracking-[-0.01em] text-cream-bright">{t("juryTitle")}</span>
           <span className="block text-sm text-cream-dim">
-            {named.length > 0 && paid
+            {named.length > 0
               ? t("juryActive", { names: named.map((juror) => juror.name).join(", ") })
               : t("juryBody")}
           </span>
         </span>
-        {!paid && <Lock aria-hidden className="h-4 w-4 shrink-0 text-cream-faint" />}
         <DisclosureMark label={named.length > 0 ? t("juryEdit") : t("juryOpen")} openLabel={t("discClose")} />
       </summary>
       <div className="flex flex-col gap-4 px-5 pb-5 sm:px-6 sm:pb-6">
-        {!paid && <LockedNote>{t("juryLocked")}</LockedNote>}
         <div className="grid gap-3 lg:grid-cols-3">
           {SEATS.map(({ seat, key }) => {
             const juror = draft.find((entry) => entry.seat === seat)!;
@@ -1088,7 +1084,7 @@ export function FullPanelTeaser({ evaluation }: { evaluation: Evaluation }) {
       .catch(() => setRisks([]));
   }, []);
 
-  if (!status || status.allowance.paid || status.allowance.credits > 0 || risks.length === 0) return null;
+  if (!status || status.allowance.paid || status.allowance.unlimited || (status.allowance.credits ?? 0) > 0 || risks.length === 0) return null;
   // A risk counts as asked when a question named its page.
   const said = (evaluation.answer_feedback ?? []).map((entry) => entry.question).join(" ");
   const asked = risks.filter((risk) => risk.page !== null && new RegExp(`\\b${risk.page}\\b`).test(said));

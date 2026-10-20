@@ -1436,10 +1436,11 @@ export interface ThesisStudy {
   cards: { front: string; back: string; page: number | null; topic: string }[];
 }
 
-/** What is left to rehearse: full defences in packs, and the free express one. */
+/** What is left to rehearse: full defences in packs, weekly free ones, or unlimited on Premium. */
 export interface DefenseAllowance {
-  credits: number;
+  credits: number | null;
   freeLeft: number;
+  unlimited?: boolean;
   /** An Intensivo or Grupal pass in date: every mode and the setting. */
   modes?: boolean;
   /** A Grupal pass in date: the group rehearsal. */

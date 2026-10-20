@@ -3,8 +3,8 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Action, Panel, DisclosureMark } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchThesis, syncDefensePack, uploadThesis } from "@/lib/api";
-import type { DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
+import { ApiError, buyDefensePack, countRealQuestions, deleteThesis, fetchCareers, fetchThesis, saveCareer, syncDefensePack, uploadThesis } from "@/lib/api";
+import type { CareerCatalogue, CareerResolution, DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { isThesisSection, thesisPath, type ThesisSection } from "@/lib/spaces";
@@ -336,7 +336,7 @@ function Diagnosis({
 
       {tab === "ensayar" && (
         <>
-          <Rehearse thesis={thesis} />
+          <Rehearse thesis={thesis} onChange={onChange} />
           <DefensePlanCard thesis={thesis} />
           <RealJuryCard thesis={thesis} onChange={onChange} />
         </>
@@ -559,7 +559,7 @@ const DIFFICULTY_HINT = {
  * rehearsals, and asking every time is the kind of friction that makes the
  * second rehearsal not happen.
  */
-function Rehearse({ thesis }: { thesis: StoredThesis }) {
+function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
   const t = useThesisT();
   const navigate = useNavigate();
   /** Sent here from the observations, with the mode and the material set. */
@@ -569,6 +569,8 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   const [formats, setFormats] = useState<DefenseFormatInfo[]>([]);
   const [offers, setOffers] = useState<PackOfferDetail[]>([]);
   const [progress, setProgress] = useState<DefenseProgressPoint[]>([]);
+  const [catalogue, setCatalogue] = useState<CareerCatalogue | null>(null);
+  const [careerRes, setCareerRes] = useState<CareerResolution | null>(null);
   const [focus, setFocus] = useState<Focus>(() =>
     arrived?.focus && FOCUS_OPTIONS.includes(arrived.focus) ? arrived.focus : "completa",
   );
@@ -615,7 +617,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
   /** Which defence, by degree: from the cover, then the student's own choice. */
   const [scenario, setScenario] = useState<DefenseScenario>(() => scenarioForDegree(thesis.analysis.degree));
   const shape = SCENARIO_OPTIONS[scenario];
-  const [full, setFull] = useState(false);
+  const [full, setFull] = useState(true);
   /** Verified questions from real juries at the university typed above. */
   const [realCount, setRealCount] = useState(0);
   useEffect(() => {
@@ -637,7 +639,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     const apply = (next: DefenseAllowance) => {
       if (cancelled) return;
       setAllowance(next);
-      setFull(next.credits > 0);
+      setFull(next.unlimited === true || (next.credits ?? 0) > 0 || next.freeLeft > 0);
     };
     fetchThesis()
       .then((result) => {
@@ -645,9 +647,15 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
         if (result.formats && !cancelled) setFormats(result.formats);
         if (result.offers && !cancelled) setOffers(result.offers);
         if (result.progress && !cancelled) setProgress(result.progress);
+        if (result.career !== undefined && !cancelled) setCareerRes(result.career);
         if (result.allowance) apply(result.allowance);
       })
       .catch(() => apply({ credits: 0, freeLeft: 0 }));
+    fetchCareers()
+      .then((result) => {
+        if (!cancelled) setCatalogue(result);
+      })
+      .catch(() => undefined);
 
     /**
      * Back from Mercado Pago. The payment is settled from here as well as by
@@ -684,24 +692,27 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     }
   };
 
-  const hasCredits = (allowance?.credits ?? 0) > 0;
+  const isUnlimited = allowance?.unlimited === true || allowance?.credits === null;
+  const hasCredits = isUnlimited || (allowance?.credits ?? 0) > 0;
   /** The replay is for the full panel: the express one is three questions. */
   const filmable = canRecord() && (full || focus !== "completa");
   const needsMaterial = focus === "estadistica" || focus === "observaciones";
   const canBegin = (hasCredits || (allowance?.freeLeft ?? 0) > 0) && (!needsMaterial || material.trim().length >= 40);
   const named = members.map((entry) => entry.trim()).filter(Boolean);
   /** The offers that would add something to what they hold. */
-  const worthOffering = offers.filter((offer) => offer.kind !== "asesor_pro").filter((offer) =>
-    !hasCredits
-      ? true
-      : offer.kind === "docente"
-        ? !allowance?.mentor
-        : offer.group
-          ? !allowance?.group
-          : offer.modes
-            ? !allowance?.modes
-            : false,
-  );
+  const worthOffering = isUnlimited
+    ? []
+    : offers.filter((offer) => offer.kind !== "asesor_pro").filter((offer) =>
+        !hasCredits
+          ? true
+          : offer.kind === "docente"
+            ? !allowance?.mentor
+            : offer.group
+              ? !allowance?.group
+              : offer.modes
+                ? !allowance?.modes
+                : false,
+      );
   const money = (amount: number, currency: string) =>
     new Intl.NumberFormat(currency === "PEN" ? "es-PE" : undefined, {
       style: "currency",
@@ -720,6 +731,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     // A mode is a full-panel rehearsal; the passes that unlock them carry credits.
     const stage = full || focus !== "completa" ? "sustentacion-pe" : "sustentacion-express";
     const format = formats.find((entry) => entry.country === country);
+    const activeFamily = catalogue?.families.find((entry) => entry.id === (thesis.careerOverride ?? careerRes?.family));
     try {
       localStorage.setItem("mockio.defenseCountry", country);
     } catch {
@@ -742,11 +754,18 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           difficulty,
           scenario,
           country,
-          ...(format ? { jurors: withRealJury(format.jurors, allowance?.paid && stage === "sustentacion-pe" ? thesis.jury : null) } : {}),
+          ...(format
+            ? {
+                jurors: withRealJury(
+                  withCareerRoles(format, activeFamily),
+                  stage === "sustentacion-pe" ? thesis.jury : null,
+                ),
+              }
+            : {}),
           focus,
           ...(setting ? { setting } : {}),
           ...(needsMaterial ? { material: material.trim() } : {}),
-          ...(allowance?.group && named.length > 1 ? { members: named } : {}),
+          ...(named.length > 1 ? { members: named } : {}),
           ...(fluencyNeutral ? { fluencyNeutral: true } : {}),
           ...(record && filmable ? { record: true } : {}),
         },
@@ -771,6 +790,11 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
     .join(" · ");
   const cheapest = offers.find((offer) => offer.kind === "sustentacion");
 
+  const activeFamily = catalogue?.families.find((entry) => entry.id === (thesis.careerOverride ?? careerRes?.family));
+  const seatSummary = activeFamily
+    ? [activeFamily.roles.presidente.m, activeFamily.roles.metodologo.f, activeFamily.roles.especialista.m].join(" · ")
+    : null;
+
   return (
     <>
       <Panel variant="raised" className="flex flex-col gap-6 p-5 sm:p-7">
@@ -783,7 +807,7 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             options rather than a row of small ones. */}
         <div role="radiogroup" aria-label={t("panelChoice")} className="grid gap-2 sm:grid-cols-2">
           {([false, true] as const).map((option) => {
-            const lockedPanel = option && allowance !== null && !hasCredits;
+            const lockedPanel = option && allowance !== null && !hasCredits && (allowance.freeLeft ?? 0) === 0;
             const chosen = full === option;
             return (
               <button
@@ -810,6 +834,43 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
             );
           })}
         </div>
+
+        {catalogue && catalogue.families.length > 0 && (
+          <div className={label}>
+            <label htmlFor="career-jury-select" className="text-xs font-semibold text-cream-dim">
+              {t("careerJuryLabel")}
+            </label>
+            <select
+              id="career-jury-select"
+              value={thesis.careerOverride ?? ""}
+              onChange={(event) => {
+                const next = event.target.value === "" ? null : event.target.value;
+                saveCareer(next)
+                  .then((res) => {
+                    onChange(res.thesis);
+                    setCareerRes(res.career);
+                  })
+                  .catch(() => undefined);
+              }}
+              className={select}
+            >
+              <option value="">
+                {t("careerJuryAuto", {
+                  name: careerRes?.careerName ?? careerRes?.familyName ?? thesis.analysis.field,
+                })}
+              </option>
+              {catalogue.families.map((family) => (
+                <option key={family.id} value={family.id}>
+                  {family.name}
+                </option>
+              ))}
+            </select>
+            {seatSummary && (
+              <span className="font-normal text-cream-dim">{t("careerJurySeats", { roles: seatSummary })}</span>
+            )}
+            <span className="font-normal text-cream-faint">{t("careerJuryCustomHint")}</span>
+          </div>
+        )}
 
         <div className={label} role="group" aria-label={t("level")}>
           {t("level")}
@@ -935,25 +996,23 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
               />
             )}
 
-            {allowance?.group && (
-              <div className={label}>
-                {t("members")}
-                <div className="grid grid-cols-3 gap-2">
-                  {members.map((entry, index) => (
-                    <input
-                      key={index}
-                      value={entry}
-                      maxLength={40}
-                      onChange={(event) =>
-                        setMembers((current) => current.map((value, at) => (at === index ? event.target.value : value)))
-                      }
-                      placeholder={t("memberPlaceholder", { n: index + 1 })}
-                      className={`${select} placeholder:text-cream-faint`}
-                    />
-                  ))}
-                </div>
+            <div className={label}>
+              {t("members")}
+              <div className="grid grid-cols-3 gap-2">
+                {members.map((entry, index) => (
+                  <input
+                    key={index}
+                    value={entry}
+                    maxLength={40}
+                    onChange={(event) =>
+                      setMembers((current) => current.map((value, at) => (at === index ? event.target.value : value)))
+                    }
+                    placeholder={t("memberPlaceholder", { n: index + 1 })}
+                    className={`${select} placeholder:text-cream-faint`}
+                  />
+                ))}
               </div>
-            )}
+            </div>
 
             <label className="flex items-start gap-2 text-sm text-cream">
               <input
@@ -1014,11 +1073,13 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
           )}
           {allowance && (
             <p className="text-sm text-cream-dim">
-              {hasCredits
-                ? `${t("creditsLeft", { count: allowance.credits })}${allowance.sponsor ? ` (${t("sponsoredBy", { name: allowance.sponsor.name })})` : ""}`
-                : allowance.freeLeft > 0
-                  ? t("freeAvailable")
-                  : t("freeUsed")}
+              {isUnlimited
+                ? t("unlimitedAvailable")
+                : hasCredits
+                  ? `${t("creditsLeft", { count: allowance.credits ?? 0 })}${allowance.sponsor ? ` (${t("sponsoredBy", { name: allowance.sponsor.name })})` : ""}`
+                  : allowance.freeLeft > 0
+                    ? t("freeAvailable")
+                    : t("freeUsed")}
             </p>
           )}
         </div>
@@ -1078,6 +1139,28 @@ function Rehearse({ thesis }: { thesis: StoredThesis }) {
  * The names on screen: the real people in their seats when the panel plays
  * them, the format's own jurors otherwise — what is shown matches who speaks.
  */
+function withCareerRoles(
+  format: DefenseFormatInfo,
+  family: CareerCatalogue["families"][number] | undefined,
+): DefenseFormatInfo["jurors"] {
+  if (!family || format.country !== "PE") return format.jurors;
+  const isFem = (name: string) => /^(Dra|Profa|Mg\.ª|Lic\.ª|Ing\.ª)\b/.test(name);
+  return {
+    presidente: {
+      name: format.jurors.presidente.name,
+      role: isFem(format.jurors.presidente.name) ? family.roles.presidente.f : family.roles.presidente.m,
+    },
+    metodologo: {
+      name: format.jurors.metodologo.name,
+      role: isFem(format.jurors.metodologo.name) ? family.roles.metodologo.f : family.roles.metodologo.m,
+    },
+    especialista: {
+      name: format.jurors.especialista.name,
+      role: isFem(format.jurors.especialista.name) ? family.roles.especialista.f : family.roles.especialista.m,
+    },
+  };
+}
+
 function withRealJury(
   jurors: DefenseFormatInfo["jurors"],
   jury: StoredThesis["jury"] | null | undefined,
