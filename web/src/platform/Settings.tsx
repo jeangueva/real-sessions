@@ -48,22 +48,22 @@ const FALLBACK_ROLES = [
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
 /** Preferences, stored per identity and used to pre-fill a new session. */
-type TabId = "appearance" | "practice" | "context" | "plan" | "account";
+type TabId = "account" | "appearance" | "practice" | "context" | "plan";
 
 const TABS: { id: TabId; key: MessageKey }[] = [
+  { id: "account", key: "settings.account" },
   { id: "appearance", key: "settings.appearance" },
   { id: "practice", key: "settings.practice" },
   // The CV the interviewer reads. It was a button in the header that went
   // to its own page; as a tab it sits with the other things about you.
   { id: "context", key: "nav.context" },
   { id: "plan", key: "billing.plan" },
-  { id: "account", key: "settings.account" },
 ];
 
 /** The section a link asked for, defaulting to the first. */
 function tabFromHash(hash: string): TabId {
   const id = hash.replace("#", "");
-  return TABS.some((entry) => entry.id === id) ? (id as TabId) : "appearance";
+  return TABS.some((entry) => entry.id === id) ? (id as TabId) : "account";
 }
 
 export function Settings() {
