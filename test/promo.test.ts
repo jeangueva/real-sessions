@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import pg from "pg";
 import process from "node:process";
 import { migrate } from "../src/db/index.js";
@@ -18,6 +18,20 @@ import {
 const EARLY = { code: "EARLY100", grantDays: 30, cap: 100, expiresAt: null };
 
 describe("reading codes from the environment", () => {
+  it("keeps EARLY100 available when no promotion configuration is supplied", () => {
+    vi.stubEnv("REALSESSIONS_PROMO_CODES", undefined);
+    try {
+      expect(promoCodesFromEnv()).toEqual([EARLY]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("lets explicit configuration disable or replace the launch promotion", () => {
+    expect(promoCodesFromEnv("")).toEqual([]);
+    expect(promoCodesFromEnv("COHORT:7:20").map((promo) => promo.code)).toEqual(["COHORT"]);
+  });
+
   it("takes code, days and seats", () => {
     expect(promoCodesFromEnv("EARLY100:30:100")).toEqual([
       { code: "EARLY100", grantDays: 30, cap: 100, expiresAt: null },

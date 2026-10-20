@@ -559,7 +559,19 @@ export function contributorHash(ownerId: string): string {
  * typo in a promotion is not worth taking the product down for, and the
  * absence of the code is a loud enough symptom.
  */
-export function promoCodesFromEnv(raw = process.env.REALSESSIONS_PROMO_CODES): PromoDefinition[] {
+/**
+ * The launch promotion code seeded when `REALSESSIONS_PROMO_CODES` is unset.
+ *
+ * Gives the first 100 verified accounts 30 days of the paid plan. Because
+ * `definePromo` uses `ON CONFLICT (code) DO NOTHING` on the seat count,
+ * restarts never reset seats already claimed. Setting `REALSESSIONS_PROMO_CODES`
+ * (even to `""`) overrides this default.
+ */
+export const DEFAULT_PROMO_CODES = "EARLY100:30:100";
+
+export function promoCodesFromEnv(
+  raw = process.env.REALSESSIONS_PROMO_CODES ?? DEFAULT_PROMO_CODES,
+): PromoDefinition[] {
   const out: PromoDefinition[] = [];
   for (const entry of (raw ?? "").split(",")) {
     const text = entry.trim();

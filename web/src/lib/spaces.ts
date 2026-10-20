@@ -1,12 +1,10 @@
 /**
- * The two halves of the signed-in app.
+ * The main thesis workspace and the secondary career tools.
  *
  * Sustentación is the thesis and everything around it; Profesional is what
  * comes after the defence — interviews, the path, applications. They were one
- * rail of seven entries, which made the thesis read as one screen among many
- * when it is a workspace of its own. Now each half has its own navigation and
- * the switch between them sits at the top, the way a bank separates Personas
- * from Empresas: the same account, two different sets of things to do.
+ * rail of seven entries. Each has its own navigation; Sustentación is the
+ * default and Profesional is available in the workspace menu.
  */
 
 export type Space = "defense" | "career";

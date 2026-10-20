@@ -139,6 +139,21 @@ database, which is a port rather than a deploy.
 
 ## After the first deploy
 
+### EARLY100 launch access
+
+Set `REALSESSIONS_PROMO_CODES=EARLY100:30:100` in the production service.
+When the variable is absent, the same code is seeded by default; an explicitly
+empty value seeds no codes. Existing codes and redemptions live in Postgres:
+restarting or redeploying does not replenish seats or overwrite admin edits.
+Removing a code from the environment does not revoke an already stored code.
+
+Students redeem `EARLY100` in **Settings → Plan**, after verifying their email.
+It grants 30 days of Premium to at most 100 accounts, once per account.
+Before inviting students, check the code's remaining seats and expiry in the
+admin, then use a verified test account to check redemption and jury access on
+the deployed site. That redemption consumes one real seat.
+
+
 - Point `REALSESSIONS_SITE_URL` at the real domain, or reset emails link to
   localhost.
 - If you use Mercado Pago, set the webhook to

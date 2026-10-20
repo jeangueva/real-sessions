@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ScreenBoundary } from "./ScreenBoundary";
+import { WorkspaceNav } from "./WorkspaceNav";
 import {
   BookOpenCheck,
   Briefcase,
@@ -38,11 +39,8 @@ import {
 /**
  * The signed-in shell, in two workspaces.
  *
- * Sustentación and Profesional sit as two tabs across the top — the way a
- * bank puts Personas and Empresas above everything else — and the navigation
- * under them belongs to whichever is open. One rail of seven entries made the
- * thesis one screen among many; now it is a workspace with its own sections,
- * and interview practice is the other one, a tab away.
+ * Sustentación is the main workspace. Professional tools are reachable through
+ * the workspace menu, with their own navigation and contextual settings.
  *
  * Three layouts, not one squeezed three ways. Below `md` the sections are a
  * bottom bar and the account is the avatar in the top bar. At `md` the rail is
@@ -319,12 +317,6 @@ function TopBar({
   email: string | null;
 }) {
   const t = useT();
-  const { pathname } = useLocation();
-  const onSharedPage = spaceOf(pathname) === null;
-  const spaces: { id: Space; label: string; icon: Icon }[] = [
-    { id: "defense", label: t("nav.spaceDefense"), icon: GraduationCap },
-    { id: "career", label: t("nav.spaceCareer"), icon: Briefcase },
-  ];
   const initial = (who.trim()[0] ?? "·").toUpperCase();
   return (
     <header className="nav-lifted sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
@@ -334,36 +326,7 @@ function TopBar({
           <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright lg:inline-flex" />
         </Link>
 
-        <nav aria-label={t("nav.spaces")} className="flex h-full min-w-0 flex-1 items-stretch justify-center gap-1 md:justify-start sm:gap-2">
-          {spaces.map(({ id, label, icon: SpaceIcon }) => {
-            const active = id === space;
-            return (
-              <Link
-                key={id}
-                to={onSharedPage ? pathname : SPACE_HOME[id]}
-                onClick={() => rememberSpace(id)}
-                aria-current={active ? "page" : undefined}
-                className={`focus-ring group relative flex items-center gap-2 rounded-lg px-2.5 text-sm font-semibold transition-[color,transform] duration-150 ease-press active:scale-[0.97] sm:px-3 sm:text-base ${
-                  active ? "text-cream-bright" : "text-cream-dim hover:text-cream-bright"
-                }`}
-              >
-                <SpaceIcon
-                  aria-hidden
-                  className={`hidden h-[1.125rem] w-[1.125rem] sm:block ${active ? "text-accent-text" : ""}`}
-                />
-                <span className="whitespace-nowrap">{label}</span>
-                {active && (
-                  <motion.span
-                    layoutId="space-underline"
-                    aria-hidden
-                    className="absolute inset-x-2 bottom-0 h-[3px] rounded-t-full bg-accent"
-                    transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        <WorkspaceNav space={space} />
 
         <div className="flex shrink-0 items-center gap-3">
           {isPremium && (
