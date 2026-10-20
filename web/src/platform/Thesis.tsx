@@ -40,6 +40,8 @@ import {
   refreshDefenseStatus,
 } from "./DefenseExtras";
 import { canRecord } from "@/lib/recordings";
+import { resumeAudio } from "@/lib/audio-level";
+import { primeVoiceUnlock } from "@/lib/voice";
 
 const ACCEPT = ".pdf,.docx,.jpg,.jpeg,.png,.webp";
 
@@ -929,6 +931,10 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
     // The country's language wins over the thesis's: a thesis written in
     // Spanish and defended at a Brazilian university is defended in Portuguese.
     const language = format?.language ?? thesis.analysis.language;
+    // Unlock the browser's audio graph and speech synthesiser while the user
+    // click gesture is active, before navigating to the session screen.
+    resumeAudio();
+    primeVoiceUnlock();
     navigate("/app/session", {
       state: {
         company: place || "Universidad",

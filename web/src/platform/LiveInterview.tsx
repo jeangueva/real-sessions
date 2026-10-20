@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Lightbulb, Zap } from "lucide-react";
+import { Lightbulb, Volume2, Zap } from "lucide-react";
 import { Action, Badge, Panel, Waveform } from "@/design-system";
 import { useVoice } from "@/hooks/useVoice";
 import { PageBody, PageHeader } from "./AppShell";
@@ -20,7 +20,7 @@ import type {
   SessionMode,
   SlideReview,
 } from "@/lib/api";
-import { JURORS, NEUTRAL_VOICE, showJurors, type JurorTag } from "@/lib/voice";
+import { JURORS, NEUTRAL_VOICE, primeVoiceUnlock, showJurors, type JurorTag } from "@/lib/voice";
 import { useThesisT } from "@/lib/thesis-copy";
 import { useFrameSampler } from "@/hooks/useFrameSampler";
 import { DefenseClock } from "./DefenseClock";
@@ -483,16 +483,17 @@ export function LiveInterview() {
       .finally(() => setBusy(false));
   }, [company, role, stage, mode, personaId, pressure, jobPosting, applicationId, stages.join(",")]);
 
-  // Released once the assigned interviewer has reached a render, so the
-  // output speaking these words is the one built from their voice.
+  // Released once the assigned interviewer and voice config have reached a
+  // render, so the output speaking these words is the one built from their
+  // voice and is not torn down mid-sentence when `/api/voice/config` resolves.
   useEffect(() => {
-    if ((!persona && !releaseHeld) || held.current.length === 0) return;
+    if ((!persona && !releaseHeld) || (!voice.ready && !releaseHeld) || held.current.length === 0) return;
     for (const chunk of held.current.splice(0)) voice.speakStreamed(chunk);
     if (heldComplete.current) {
       heldComplete.current = false;
       voice.flushSpeech();
     }
-  }, [persona, releaseHeld, voice.speakStreamed, voice.flushSpeech]);
+  }, [persona, releaseHeld, voice.ready, voice.speakStreamed, voice.flushSpeech]);
 
   useEffect(() => {
     if (turn && !turn.isComplete && !busy) inputRef.current?.focus();
@@ -588,6 +589,7 @@ export function LiveInterview() {
     // The same click starts the audio graph. Without it the analyser stays
     // suspended and the waveform never sees the interviewer's voice.
     resumeAudio();
+    primeVoiceUnlock();
     // This click is the trusted gesture Chrome requires before it will speak,
     // and the turn already on screen arrived before any gesture existed — so
     // it can only be spoken from here.
@@ -595,6 +597,15 @@ export function LiveInterview() {
     if (current) voice.speakNow(current);
     // Opening the mic is the reason they pressed it.
     voice.startListening();
+  };
+
+  /** Plays or replays the current turn out loud from a direct user click. */
+  const playCurrentTurn = () => {
+    setVoiceOn(true);
+    resumeAudio();
+    primeVoiceUnlock();
+    const current = turn?.text ?? streaming;
+    if (current) voice.speakNow(current);
   };
 
   /**
@@ -866,16 +877,41 @@ export function LiveInterview() {
                   in the subtitle's place read as a glitch. */}
               {!error && (
               <div className="hidden sm:block">
-                <p
-                  className="min-h-[3.5rem] text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
-                  aria-live="polite"
-                  aria-busy={busy}
-                >
-                  {showJurors(turn?.text || streaming, jurorNames) || (
-                    <span className="text-cream-faint">{t("call.connectingTo")}</span>
+                <div className="flex items-start justify-between gap-3">
+                  <p
+                    className="min-h-[3.5rem] flex-1 text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
+                    aria-live="polite"
+                    aria-busy={busy}
+                  >
+                    {showJurors(turn?.text || streaming, jurorNames) || (
+                      <span className="text-cream-faint">{t("call.connectingTo")}</span>
+                    )}
+                  </p>
+                  {voice.outputSupported && Boolean(turn?.text || streaming) && !voice.speaking && !voice.blocked && (
+                    <button
+                      type="button"
+                      onClick={playCurrentTurn}
+                      aria-label={t("call.playTurn")}
+                      className="focus-ring mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-surface-lift px-3 py-1.5 text-xs font-semibold text-cream-bright transition-[background-color,transform] duration-150 ease-press hover:bg-cream/15 active:scale-[0.97]"
+                    >
+                      <Volume2 aria-hidden className="h-3.5 w-3.5 text-accent-text" />
+                      {t("call.playTurn")}
+                    </button>
                   )}
-                </p>
+                </div>
               </div>
+              )}
+
+              {/* Mobile / universal replay button when not blocked and not speaking */}
+              {voice.outputSupported && Boolean(turn?.text || streaming) && !voice.speaking && !voice.blocked && (
+                <button
+                  type="button"
+                  onClick={playCurrentTurn}
+                  className="focus-ring inline-flex self-start items-center gap-1.5 rounded-full bg-surface-lift px-3 py-1.5 text-xs font-semibold text-cream-bright transition-[background-color,transform] duration-150 ease-press hover:bg-cream/15 active:scale-[0.97] sm:hidden"
+                >
+                  <Volume2 aria-hidden className="h-3.5 w-3.5 text-accent-text" />
+                  {t("call.playTurn")}
+                </button>
               )}
 
               {/* In a defence an answer can run for minutes, so ending it is
@@ -920,14 +956,16 @@ export function LiveInterview() {
               )}
 
               {voice.blocked && (
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface-card p-3 shadow-card ring-1 ring-accent/30">
                   <p role="alert" className="text-xs text-cream-bright">
                     {t("call.blocked")}
                   </p>
                   <button
-                    onClick={() => voice.speakNow(turn?.text ?? streaming)}
-                    className="focus-ring rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-bright transition-[background-color,transform] duration-150 ease-press hover:bg-cream/15 active:scale-[0.97]"
+                    type="button"
+                    onClick={playCurrentTurn}
+                    className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-accent-ink transition-[background-color,transform] duration-150 ease-press hover:opacity-95 active:scale-[0.97]"
                   >
+                    <Volume2 aria-hidden className="h-4 w-4" />
                     {t("call.playTurn")}
                   </button>
                 </div>

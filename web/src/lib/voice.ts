@@ -74,11 +74,26 @@ export const JURORS = {
 export type JurorTag = keyof typeof JURORS;
 
 const JUROR_ORDER: JurorTag[] = ["presidente", "metodologo", "especialista"];
-/** Pace and pitch per juror, for the browser voice. */
-const JUROR_DELIVERY: Record<JurorTag, { rate: number; pitch: number }> = {
-  presidente: { rate: 0.95, pitch: 0.85 },
-  metodologo: { rate: 1.05, pitch: 1.2 },
-  especialista: { rate: 1, pitch: 1 },
+/**
+ * Subtle, human-like pace and pitch per juror for the browser synthesiser.
+ * Kept close to 1.0 so no voice sounds artificially sped up or pitch-shifted.
+ */
+const JUROR_DELIVERY: Record<JurorTag, { rate: number; pitch: number; prefer: string[] }> = {
+  presidente: {
+    rate: 0.96,
+    pitch: 0.96,
+    prefer: ["jorge", "diego", "carlos", "juan", "alvaro", "alonso", "pablo", "andres", "google español de estados unidos", "reed", "daniel"],
+  },
+  metodologo: {
+    rate: 1.0,
+    pitch: 1.04,
+    prefer: ["paulina", "monica", "mónica", "angelica", "angélica", "sabina", "helena", "francisca", "carmen", "paloma", "luciana", "google español", "samantha", "karen"],
+  },
+  especialista: {
+    rate: 0.99,
+    pitch: 1.0,
+    prefer: ["juan", "alberto", "raul", "raúl", "diego", "jorge", "felipe", "ricardo", "thomas", "aaron"],
+  },
 };
 
 const TAG = /\[\[(presidente|metodologo|especialista)\]\]/g;
@@ -283,6 +298,49 @@ function isNovelty(name: string): boolean {
   return NOVELTY.some((bad) => lower.includes(bad));
 }
 
+function voiceQualityScore(voice: SpeechSynthesisVoice, targetLang: string): number {
+  const name = voice.name.toLowerCase();
+  let score = 0;
+  if (voice.lang.toLowerCase() === targetLang.toLowerCase()) score += 15;
+  else if (voice.lang.toLowerCase().startsWith(targetLang.split("-")[0]!.toLowerCase())) score += 8;
+  // Prefer neural/natural/premium voices over flat legacy robotic voices.
+  if (name.includes("natural") || name.includes("neural") || name.includes("online")) score += 30;
+  if (name.includes("premium") || name.includes("enhanced") || name.includes("siri")) score += 25;
+  if (name.includes("google")) score += 18;
+  if (name.includes("espeak") || name.includes("compact")) score -= 25;
+  return score;
+}
+
+/**
+ * Unlocks both the Web Audio graph and the browser's `speechSynthesis` engine
+ * inside a synchronous user click handler before navigating to `/app/session`.
+ *
+ * Chrome and Safari frequently drop or refuse the first utterance when it
+ * arrives asynchronously from an SSE stream hundreds of milliseconds after
+ * navigation. Speaking a zero-volume space during the button click satisfies
+ * the browser's user-activation check for the whole session.
+ */
+export function primeVoiceUnlock(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const synth = window.speechSynthesis;
+    if (synth) {
+      if (synth.paused) synth.resume();
+      // Trigger lazy voice loading early so `getVoices()` is populated by the
+      // time the first streamed sentence arrives.
+      synth.getVoices();
+      if (!synth.speaking) {
+        const silent = new SpeechSynthesisUtterance(" ");
+        silent.volume = 0;
+        silent.rate = 2;
+        synth.speak(silent);
+      }
+    }
+  } catch {
+    // Ignore environments without Web Speech synthesis.
+  }
+}
+
 export function createSpeechOutput(
   lang = "en-US",
   profile: VoiceProfile = NEUTRAL_VOICE,
@@ -306,24 +364,27 @@ export function createSpeechOutput(
   const pickVoice = (juror: JurorTag | null = null): SpeechSynthesisVoice | null => {
     const voices = synth.getVoices();
     if (voices.length === 0) return null;
-    const english = voices.filter((voice) =>
-      voice.lang.startsWith(lang.split("-")[0]!),
+    const primary = lang.split("-")[0]!.toLowerCase();
+    const matchingLang = voices.filter((voice) =>
+      voice.lang.toLowerCase().startsWith(primary),
     );
-    const candidates = english.length > 0 ? english : voices;
+    const candidates = matchingLang.length > 0 ? matchingLang : voices;
     // Novelty voices are dropped before anything else looks at the list, so
     // neither a persona preference nor the last-resort pick can reach one.
     const serious = candidates.filter((voice) => !isNovelty(voice.name));
-    const pool = serious.length > 0 ? serious : candidates;
+    const pool = [...(serious.length > 0 ? serious : candidates)].sort(
+      (a, b) => voiceQualityScore(b, lang) - voiceQualityScore(a, lang),
+    );
 
-    // The persona's preferred names first. Installed voices differ by OS,
-    // browser and language pack, so this is a preference and never a
-    // requirement — an unmatched persona still sounds distinct, because rate
-    // and pitch apply to whatever voice is found.
-    // A thesis panel through the browser — Portuguese, which the voice
-    // provider does not speak. Each juror takes a different installed voice
-    // where there are several, so three people do not share one.
     if (juror) {
-      const local = pool.filter((voice) => voice.lang === lang);
+      const wantedList = JUROR_DELIVERY[juror].prefer;
+      for (const wanted of wantedList) {
+        const match = pool.find((voice) =>
+          voice.name.toLowerCase().includes(wanted.toLowerCase()),
+        );
+        if (match) return match;
+      }
+      const local = pool.filter((voice) => voice.lang.toLowerCase() === lang.toLowerCase());
       const choices = local.length > 0 ? local : pool;
       return choices[JUROR_ORDER.indexOf(juror) % choices.length] ?? null;
     }
@@ -335,12 +396,7 @@ export function createSpeechOutput(
       if (match) return match;
     }
 
-    return (
-      pool.find((voice) => voice.lang === lang && voice.localService) ??
-      pool.find((voice) => voice.lang === lang) ??
-      pool[0] ??
-      null
-    );
+    return pool[0] ?? null;
   };
 
   return {
@@ -357,30 +413,66 @@ export function createSpeechOutput(
       if (trimmed === "") return Promise.resolve("ok" as const);
 
       return new Promise<"ok" | "blocked" | "error">((resolve) => {
+        let settled = false;
+        const finish = (outcome: "ok" | "blocked" | "error") => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(watchdog);
+          resolve(outcome);
+        };
+
+        // Chrome on macOS/Windows can leave `speechSynthesis` paused after tab
+        // switches or prior utterances; resuming before speaking prevents a
+        // silent queue stall.
+        try {
+          if (synth.paused) synth.resume();
+        } catch {
+          // Ignore.
+        }
+
         const utterance = new SpeechSynthesisUtterance(trimmed);
-        utterance.lang = lang;
         const voice = pickVoice(juror);
-        if (voice) utterance.voice = voice;
-        // The archetype's own delivery. Clamped because the browser silently
-        // ignores an out-of-range rate rather than clipping it, which would
-        // drop the persona back to default without saying so.
-        // A juror on a single installed voice still sounds like a different
-        // person: pitch and pace carry it.
+        if (voice) {
+          utterance.voice = voice;
+          utterance.lang = voice.lang || lang;
+        } else {
+          utterance.lang = lang;
+        }
         const delivery = juror ? JUROR_DELIVERY[juror] : profile;
         utterance.rate = Math.min(1.4, Math.max(0.6, delivery.rate));
         utterance.pitch = Math.min(1.4, Math.max(0.6, delivery.pitch));
 
-        // Resolve on every outcome — a rejection here would break the queue
-        // for every later phrase. But "not-allowed" must be reported, not
-        // swallowed: Chrome refuses to speak until the page has had a trusted
-        // user gesture, and silent failure looks like a broken product.
-        utterance.onend = () => resolve("ok");
-        utterance.onerror = (event) =>
-          resolve(
-            (event as SpeechSynthesisErrorEvent).error === "not-allowed"
+        // Watchdog: if the browser synthesiser neither fires `onstart` within
+        // 3s nor finishes within a generous bound, report "blocked" so the UI
+        // shows the "Escuchar al jurado" button instead of hanging forever.
+        let started = false;
+        const maxDurationMs = Math.max(8_000, trimmed.length * 120);
+        const watchdog = setTimeout(() => {
+          finish(started ? "ok" : "blocked");
+        }, maxDurationMs);
+        const startCheck = setTimeout(() => {
+          if (!started && !synth.speaking) {
+            finish("blocked");
+          }
+        }, 2_500);
+
+        utterance.onstart = () => {
+          started = true;
+          clearTimeout(startCheck);
+        };
+        utterance.onend = () => {
+          clearTimeout(startCheck);
+          finish("ok");
+        };
+        utterance.onerror = (event) => {
+          clearTimeout(startCheck);
+          const err = (event as SpeechSynthesisErrorEvent).error;
+          finish(
+            err === "not-allowed" || err === "canceled" || err === "interrupted"
               ? "blocked"
               : "error",
           );
+        };
 
         synth.speak(utterance);
       });

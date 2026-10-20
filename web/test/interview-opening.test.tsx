@@ -71,8 +71,10 @@ describe("the opening turn", () => {
 describe("the opening voice", () => {
   it("holds the first turn's audio rather than speaking it in the wrong voice", () => {
     expect(source).toContain("held.current.push(chunk)");
-    // Released only once a render knows who is speaking.
-    expect(source).toContain("if ((!persona && !releaseHeld) || held.current.length === 0) return;");
+    // Released only once a render knows who is speaking and whether cloud voice is configured.
+    expect(source).toContain(
+      "if ((!persona && !releaseHeld) || (!voice.ready && !releaseHeld) || held.current.length === 0) return;",
+    );
   });
 
   it("speaks anyway if the interviewer is never announced", () => {

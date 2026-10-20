@@ -85,8 +85,12 @@ export function useVoice({
    * back to the browser when a better option was available.
    */
   const [live, setLive] = useState<boolean | null>(null);
-  /** Whether the interviewer speaks with a real voice or the browser's. */
-  const [aura, setAura] = useState(false);
+  /**
+   * Whether the interviewer speaks with a real cloud voice (`true`), the
+   * browser's synthesiser (`false`), or `null` while `/api/voice/config` is
+   * still loading.
+   */
+  const [aura, setAura] = useState<boolean | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,7 +102,10 @@ export function useVoice({
       })
       // A failure here means browser speech, which is the safe default.
       .catch(() => {
-        if (!cancelled) setLive(false);
+        if (!cancelled) {
+          setLive(false);
+          setAura(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -127,6 +134,9 @@ export function useVoice({
       voiceProfile.prefer.join(","),
     ],
   );
+  /** Latest output instance, so queued promises never speak on a torn-down output. */
+  const outputRef = useRef(output);
+  outputRef.current = output;
 
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -171,9 +181,9 @@ export function useVoice({
     return () => {
       window.clearTimeout(silence.current);
       input.stop();
-      output.cancel();
+      outputRef.current.cancel();
     };
-  }, [input, output]);
+  }, [input]);
 
   /**
    * The juror speaking, for a thesis panel. A phrase without a tag is spoken
@@ -190,11 +200,11 @@ export function useVoice({
       // A phrase queued behind another is fetched now rather than when its
       // turn comes, so the round trip overlaps with the sentence still
       // playing. Without this every sentence boundary is a half-second gap.
-      if (outstanding.current > 0) output.prime?.(phrase);
+      if (outstanding.current > 0) outputRef.current.prime?.(phrase);
       outstanding.current += 1;
       setSpeaking(true);
       queue.current = queue.current
-        .then(() => output.speak(phrase))
+        .then(() => outputRef.current.speak(phrase))
         .then((result) => {
           if (result === "blocked") setBlocked(true);
           outstanding.current -= 1;
@@ -207,11 +217,11 @@ export function useVoice({
           }
         });
     },
-    [output],
+    [since],
   );
 
   const startListening = useCallback(() => {
-    if (!enabled || !input.supported || output.speaking) return;
+    if (!enabled || !input.supported || outputRef.current.speaking) return;
     setError(null);
     setTranscript("");
     setListening(true);
@@ -261,7 +271,7 @@ export function useVoice({
         setListening(false);
       },
     });
-  }, [enabled, input, output, onFinalAnswer, since]);
+  }, [enabled, input, onFinalAnswer, since]);
 
   const stopListening = useCallback(() => {
     window.clearTimeout(silence.current);
@@ -293,22 +303,22 @@ export function useVoice({
   /** Feeds streamed text in; complete sentences are spoken as they form. */
   const speakStreamed = useCallback(
     (chunk: string) => {
-      if (!enabled || !output.supported) return;
+      if (!enabled || !outputRef.current.supported) return;
       pending.current += chunk;
       const { phrases, rest } = takeSpeakablePhrases(pending.current);
       pending.current = rest;
       for (const phrase of phrases) enqueue(phrase);
     },
-    [enabled, output, enqueue],
+    [enabled, enqueue],
   );
 
   /** Speaks whatever is left once the turn is complete. */
   const flushSpeech = useCallback(() => {
-    if (!enabled || !output.supported) return;
+    if (!enabled || !outputRef.current.supported) return;
     const remainder = pending.current.trim();
     pending.current = "";
     if (remainder !== "") enqueue(remainder);
-  }, [enabled, output, enqueue]);
+  }, [enabled, enqueue]);
 
   /**
    * Speaks a full turn on demand. Called from a click, which is what clears
@@ -317,28 +327,36 @@ export function useVoice({
    */
   const speakNow = useCallback(
     (text: string) => {
-      if (!output.supported) return;
+      if (!outputRef.current.supported) return;
       setBlocked(false);
+      // Clear any previous stalled queue so the user hears the turn right away.
+      pending.current = "";
+      queue.current = Promise.resolve();
+      outstanding.current = 0;
+      outputRef.current.cancel();
       const { phrases, rest } = takeSpeakablePhrases(text + " ");
       for (const phrase of phrases) enqueue(phrase);
       if (rest.trim() !== "") enqueue(rest.trim());
     },
-    [output, enqueue],
+    [enqueue],
   );
 
   const cancelSpeech = useCallback(() => {
     pending.current = "";
     queue.current = Promise.resolve();
     outstanding.current = 0;
-    output.cancel();
+    outputRef.current.cancel();
     setSpeaking(false);
-  }, [output]);
+  }, []);
 
   return {
     /** Voice is only offered when both halves exist. */
     supported: input.supported && output.supported,
+    /** True once `/api/voice/config` has resolved so we know which output to use. */
+    ready: aura !== null,
     /** The jury speaks with a real voice, which a group call can pass on. */
-    realVoice: aura,
+    realVoice: aura === true,
+    outputSupported: output.supported,
     inputSupported: input.supported,
     listening,
     speaking,
@@ -362,7 +380,7 @@ export function useVoice({
      */
     micLevel: () => input.meter?.level() ?? 0,
     micMeasured: () => input.meter?.measured ?? false,
-    voiceLevel: () => output.meter?.level() ?? 0,
-    voiceMeasured: () => output.meter?.measured ?? false,
+    voiceLevel: () => outputRef.current.meter?.level() ?? 0,
+    voiceMeasured: () => outputRef.current.meter?.measured ?? false,
   };
 }

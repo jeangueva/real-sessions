@@ -30,6 +30,8 @@ import { RecentSessions } from "./RecentSessions";
 import { Today } from "./Today";
 import { Welcome } from "./Welcome";
 import { Journey } from "./Journey";
+import { resumeAudio } from "@/lib/audio-level";
+import { primeVoiceUnlock } from "@/lib/voice";
 
 /**
  * Whether the briefing has been dismissed. Per-device and low stakes, so it
@@ -985,6 +987,8 @@ export function SessionSetup() {
                 level: levelId,
                 targeted: company !== "",
               });
+              resumeAudio();
+              primeVoiceUnlock();
               navigate("/app/session", {
                 state: {
                   company,
