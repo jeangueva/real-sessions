@@ -378,7 +378,7 @@ const ES = {
   tabObservations: "Observaciones",
   shortObservations: "Observ.",
   juryTitle: "Personalizar nombres del jurado (opcional)",
-  juryBody: "Por defecto ya tienes un jurado pre-seteado según tu carrera. Si ya sabes quiénes te van a evaluar, escribe sus nombres y manías aquí.",
+  juryBody: "Por defecto ya tienes un jurado armado según tu carrera. Si ya sabes quiénes te van a evaluar, escribe sus nombres y manías aquí.",
   juryLocked: "Se activa con cualquier plan de pago. Puedes dejarlo listo desde ahora.",
   juryActive: "Tus ensayos con el panel completo los toman: {names}.",
   jurySeatPresidente: "Presidente",

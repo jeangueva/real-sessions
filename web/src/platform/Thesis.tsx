@@ -774,26 +774,29 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
   };
 
   const select =
-    "focus-ring w-full rounded-xl bg-surface-lift px-3 py-2.5 text-sm text-cream-bright disabled:opacity-50";
+    "focus-ring w-full rounded-xl bg-surface-card px-3 py-2.5 text-sm text-cream-bright disabled:opacity-50";
   const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
   const locked = (entry: string) => entry !== "completa" && !allowance?.modes;
 
   const formatName = formats.find((entry) => entry.country === country);
+  const activeFamily = catalogue?.families.find((entry) => entry.id === (thesis.careerOverride ?? careerRes?.family));
+  const seatSummary = activeFamily
+    ? [activeFamily.roles.presidente.m, activeFamily.roles.metodologo.f, activeFamily.roles.especialista.m].join(" · ")
+    : null;
+  const juryDisplayName = thesis.careerOverride
+    ? (activeFamily?.name ?? thesis.analysis.field)
+    : (careerRes?.careerName ?? careerRes?.familyName ?? thesis.analysis.field);
   /** What the folded settings currently say, so nothing is hidden by folding. */
   const summary = [
     t(shape.label),
     formatName ? `${formatName.countryName} ${formatName.scale.min}–${formatName.scale.max}` : null,
+    juryDisplayName,
     university.trim() || t("settingsNoUniversity"),
     focus !== "completa" ? t(FOCUS_LABEL[focus]) : null,
   ]
     .filter(Boolean)
     .join(" · ");
   const cheapest = offers.find((offer) => offer.kind === "sustentacion");
-
-  const activeFamily = catalogue?.families.find((entry) => entry.id === (thesis.careerOverride ?? careerRes?.family));
-  const seatSummary = activeFamily
-    ? [activeFamily.roles.presidente.m, activeFamily.roles.metodologo.f, activeFamily.roles.especialista.m].join(" · ")
-    : null;
 
   return (
     <>
@@ -834,43 +837,6 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
             );
           })}
         </div>
-
-        {catalogue && catalogue.families.length > 0 && (
-          <div className={label}>
-            <label htmlFor="career-jury-select" className="text-xs font-semibold text-cream-dim">
-              {t("careerJuryLabel")}
-            </label>
-            <select
-              id="career-jury-select"
-              value={thesis.careerOverride ?? ""}
-              onChange={(event) => {
-                const next = event.target.value === "" ? null : event.target.value;
-                saveCareer(next)
-                  .then((res) => {
-                    onChange(res.thesis);
-                    setCareerRes(res.career);
-                  })
-                  .catch(() => undefined);
-              }}
-              className={select}
-            >
-              <option value="">
-                {t("careerJuryAuto", {
-                  name: careerRes?.careerName ?? careerRes?.familyName ?? thesis.analysis.field,
-                })}
-              </option>
-              {catalogue.families.map((family) => (
-                <option key={family.id} value={family.id}>
-                  {family.name}
-                </option>
-              ))}
-            </select>
-            {seatSummary && (
-              <span className="font-normal text-cream-dim">{t("careerJurySeats", { roles: seatSummary })}</span>
-            )}
-            <span className="font-normal text-cream-faint">{t("careerJuryCustomHint")}</span>
-          </div>
-        )}
 
         <div className={label} role="group" aria-label={t("level")}>
           {t("level")}
@@ -920,6 +886,42 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
           </summary>
           <div className="flex flex-col gap-3 px-4 pb-4">
             <div className="grid grid-cols-2 gap-3">
+              {catalogue && catalogue.families.length > 0 && (
+                <div className={`${label} col-span-2`}>
+                  <label htmlFor="career-jury-select" className="text-xs font-semibold text-cream-dim">
+                    {t("careerJuryLabel")}
+                  </label>
+                  <select
+                    id="career-jury-select"
+                    value={thesis.careerOverride ?? ""}
+                    onChange={(event) => {
+                      const next = event.target.value === "" ? null : event.target.value;
+                      saveCareer(next)
+                        .then((res) => {
+                          onChange(res.thesis);
+                          setCareerRes(res.career);
+                        })
+                        .catch(() => undefined);
+                    }}
+                    className={select}
+                  >
+                    <option value="">
+                      {t("careerJuryAuto", {
+                        name: careerRes?.careerName ?? careerRes?.familyName ?? thesis.analysis.field,
+                      })}
+                    </option>
+                    {catalogue.families.map((family) => (
+                      <option key={family.id} value={family.id}>
+                        {family.name}
+                      </option>
+                    ))}
+                  </select>
+                  {seatSummary && (
+                    <span className="font-normal text-cream-dim">{t("careerJurySeats", { roles: seatSummary })}</span>
+                  )}
+                  <span className="font-normal text-cream-faint">{t("careerJuryCustomHint")}</span>
+                </div>
+              )}
               <label className={`${label} col-span-2`}>
                 {t("scenario")}
                 <select value={scenario} onChange={(event) => setScenario(event.target.value as DefenseScenario)} className={select}>
