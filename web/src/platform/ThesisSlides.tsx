@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
-import { AlertTriangle, Loader2, PenLine, Presentation, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, Download, Loader2, PenLine, Presentation, Trash2, Upload } from "lucide-react";
 import { Eyebrow, Panel, DisclosureMark, Segmented } from "@/design-system";
 import { ApiError, deleteSlides, uploadSlides, writeThesisScript } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { downloadDeck } from "@/lib/deck";
 import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
 
 const SLOTS = [15, 20, 30];
@@ -41,6 +42,16 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
     } finally {
       setBusy(null);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const download = async () => {
+    if (!slides) return;
+    setError(null);
+    try {
+      await downloadDeck({ title: thesis.analysis.title, career: thesis.analysis.career, review: slides.review });
+    } catch {
+      setError(t("error"));
     }
   };
 
@@ -143,6 +154,18 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
               {fromThesis ? t("scriptRewrite") : t("scriptWrite")}
             </button>
           )}
+          {/* Older scripts were written before slides carried their points;
+              a deck of titles alone is not worth downloading. */}
+          {fromThesis && slides.review.slides.some((slide) => (slide.points ?? []).length > 0) && (
+            <button
+              type="button"
+              onClick={() => void download()}
+              className="focus-ring inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-card transition-transform duration-150 active:scale-[0.97]"
+            >
+              <Download aria-hidden className="h-4 w-4" />
+              {t("deckDownload")}
+            </button>
+          )}
           {slides && (
             <button
               type="button"
@@ -219,6 +242,13 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
                       {fromThesis ? `${slide.seconds}s` : `${slide.seconds}s · ${t("words", { count: slides.words[slide.n - 1] ?? 0 })}`}
                     </span>
                   </div>
+                  {fromThesis && (slide.points ?? []).length > 0 && (
+                    <ul className="mt-1 list-disc pl-5 text-sm text-cream">
+                      {slide.points!.map((point, index) => (
+                        <li key={index}>{point}</li>
+                      ))}
+                    </ul>
+                  )}
                   <p className="mt-1 text-sm text-cream-dim">{slide.note}</p>
                 </li>
               ))}

@@ -1336,7 +1336,15 @@ export interface ThesisAnalysis {
 export interface SlideReview {
   summary: string;
   total_seconds: number;
-  slides: { n: number; title: string; seconds: number; verdict: "ok" | "recargada" | "incoherente" | "sobra"; note: string }[];
+  slides: {
+    n: number;
+    title: string;
+    seconds: number;
+    verdict: "ok" | "recargada" | "incoherente" | "sobra";
+    note: string;
+    /** What goes on the slide. Only on a script written from the thesis. */
+    points?: string[];
+  }[];
   inconsistencies: { slide: number; thesis_page: number | null; issue: string }[];
   script: { slide: number; say: string }[];
 }

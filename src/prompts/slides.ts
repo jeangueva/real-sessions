@@ -21,6 +21,7 @@ RETURN:
   - \`title\`: a short heading, the kind that would sit on its slide.
   - \`seconds\`: how long it takes to say well. Results get the most time; the greeting and the closing the least.
   - \`say\`: what the student says, in the first person, in plain spoken sentences someone can say aloud without reading. Never a list. About 130 words per minute of \`seconds\`.
+  - \`points\`: what goes on its slide: two to four short lines, at most eight words each, never full sentences. The key number when there is one. Empty for the greeting and the closing.
   - \`pages\`: the thesis pages its facts come from, when you know them.
 - \`total_seconds\`: the sum of \`seconds\`. Close to the slot, never over it.
 - \`summary\`: one sentence on how the time is split and why.

@@ -28,6 +28,8 @@ export const SlideReviewSchema = z.object({
       seconds: z.number().int().min(0),
       verdict: z.enum(["ok", "recargada", "incoherente", "sobra"]),
       note: z.string(),
+      /** What goes on the slide. Only on a script written from the thesis. */
+      points: z.array(z.string()).optional(),
     }),
   ),
   inconsistencies: z.array(
@@ -77,6 +79,7 @@ const THESIS_SCRIPT_SCHEMA = z.object({
         title: z.string(),
         seconds: z.number().int().min(0),
         say: z.string(),
+        points: z.array(z.string()).default([]),
         pages: z.array(z.number().int().min(1)).default([]),
       }),
     )
@@ -140,6 +143,7 @@ export async function writeThesisScript(
       seconds: block.seconds,
       verdict: "ok" as const,
       note: block.pages.length > 0 ? `p. ${block.pages.join(", ")}` : "",
+      points: block.points,
     })),
     inconsistencies: [],
     script: blocks.map((block, index) => ({ slide: index + 1, say: block.say })),

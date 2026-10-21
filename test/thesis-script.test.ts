@@ -44,7 +44,7 @@ describe("writeThesisScript", () => {
       total_seconds: 9999,
       blocks: [
         { title: "Saludo", seconds: 60, say: "Buenos días, señores del jurado.", pages: [] },
-        { title: "Resultados", seconds: 300, say: "Encontramos una relación inversa.", pages: [55] },
+        { title: "Resultados", seconds: 300, say: "Encontramos una relación inversa.", points: ["Rho = -0,62"], pages: [55] },
       ],
     });
     const review = await writeThesisScript(thesis, 20 * 60, { provider });
@@ -52,7 +52,7 @@ describe("writeThesisScript", () => {
     // Summed rather than trusted.
     expect(review.total_seconds).toBe(360);
     expect(review.slides.map((slide) => slide.n)).toEqual([1, 2]);
-    expect(review.slides[1]).toMatchObject({ title: "Resultados", verdict: "ok", note: "p. 55" });
+    expect(review.slides[1]).toMatchObject({ title: "Resultados", verdict: "ok", note: "p. 55", points: ["Rho = -0,62"] });
     expect(review.script).toEqual([
       { slide: 1, say: "Buenos días, señores del jurado." },
       { slide: 2, say: "Encontramos una relación inversa." },
