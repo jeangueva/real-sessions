@@ -1342,6 +1342,8 @@ export interface SlideReview {
 }
 
 export interface StoredSlides {
+  /** "thesis" when the script was written from the thesis, with no deck. */
+  source?: "deck" | "thesis";
   fileName: string;
   slideCount: number;
   words: number[];
@@ -1551,6 +1553,15 @@ export function uploadSlides(file: File, minutes: number) {
     request<{ thesis: StoredThesis }>(`/api/thesis/slides?minutes=${encodeURIComponent(String(minutes))}`, {
       method: "POST",
       body: form,
+    }),
+  );
+}
+
+/** The exposition script, written from the thesis alone. */
+export function writeThesisScript(minutes: number) {
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis }>(`/api/thesis/script?minutes=${encodeURIComponent(String(minutes))}`, {
+      method: "POST",
     }),
   );
 }

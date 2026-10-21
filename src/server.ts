@@ -228,7 +228,7 @@ import { CallRoomError, CallRooms, iceServers } from "./call-rooms.js";
 import { payoutSummary, readPayout } from "./advisors.js";
 import { createHmac as hmacFor, randomBytes as randomFor, timingSafeEqual as sameBytes } from "node:crypto";
 import { writeStudy } from "./study.js";
-import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts } from "./slides.js";
+import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts, writeThesisScript } from "./slides.js";
 import {
   createDefensePackStore,
   isPackKind,
@@ -3546,9 +3546,35 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const slides = await readSlides(upload.data);
     const review = await reviewSlides(slides, stored.analysis, slotSeconds, PROVIDER ? { provider: PROVIDER } : {});
     await THESES.putSlides(identity.id, {
+      source: "deck",
       fileName: upload.filename,
       slideCount: slides.length,
       words: wordCounts(slides),
+      slotSeconds,
+      review,
+      reviewedAt: new Date().toISOString(),
+    });
+    json(res, 201, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /**
+   * The exposition script, written from the thesis when there is no deck yet.
+   * Stored where a deck review goes, so a later upload replaces it and the
+   * rehearsal call steps through it the same way.
+   */
+  if (req.method === "POST" && path === "/api/thesis/script") {
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+    const stored = await THESES.get(identity.id);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    const minutes = Number(url.searchParams.get("minutes") ?? 20);
+    const slotSeconds = Number.isFinite(minutes) && minutes >= 5 && minutes <= 90 ? Math.round(minutes * 60) : DEFAULT_SLOT_SECONDS;
+    const review = await writeThesisScript(stored.analysis, slotSeconds, PROVIDER ? { provider: PROVIDER } : {});
+    await THESES.putSlides(identity.id, {
+      source: "thesis",
+      fileName: "",
+      slideCount: review.slides.length,
+      words: review.script.map((entry) => wordCounts([entry.say])[0] ?? 0),
       slotSeconds,
       review,
       reviewedAt: new Date().toISOString(),
