@@ -123,10 +123,11 @@ export function Thesis() {
   return (
     <>
       <PageHeader
+        dense={Boolean(thesis)}
         title={thesis ? t(TAB_LABEL[section]) : t("title")}
         meta={thesis ? thesis.analysis.title : t("meta")}
       />
-      <PageBody className="flex flex-col gap-6">
+      <PageBody className={`flex flex-col gap-4 ${thesis ? "!pt-3" : ""} ${thesis && section === "ensayar" ? "!pb-36" : ""}`}>
         {picker}
         {error && (
           <p role="alert" className="rounded-2xl bg-step-soft px-4 py-3 text-sm text-step-text">
@@ -448,14 +449,16 @@ function Diagnosis({
       {/* The thesis as one quiet line: which file, the date it all counts
           down to, and the two file actions. Its title is the page's own
           subtitle already; its summary belongs to the diagnosis. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl bg-surface-card px-4 py-2.5 shadow-card">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-2xl bg-surface-card px-4 py-2.5 shadow-card sm:flex sm:flex-wrap">
         <span className="flex min-w-0 items-center gap-2 text-sm text-cream-dim">
           <FileText aria-hidden className="h-4 w-4 shrink-0 text-accent-text" />
           <span className="truncate">
             {thesis.fileName} · {t("pages", { count: thesis.pageCount })}
           </span>
         </span>
-        <DefenseDate thesis={thesis} onChange={onChange} />
+        <div className="order-3 col-span-2 sm:order-none">
+          <DefenseDate thesis={thesis} onChange={onChange} />
+        </div>
         <div className="ml-auto flex shrink-0 gap-1">
           <button
             type="button"
@@ -493,8 +496,15 @@ function Diagnosis({
       {tab === "ensayar" && (
         <>
           <Rehearse thesis={thesis} onChange={onChange} />
-          <DefensePlanCard thesis={thesis} />
-          <RealJuryCard thesis={thesis} onChange={onChange} />
+          {thesis.defenseDate && (
+            <details className="group rounded-2xl bg-surface-card shadow-card">
+              <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-cream-bright">
+                {t("planTitle")}
+                <DisclosureMark label={t("discOpen")} openLabel={t("discClose")} />
+              </summary>
+              <DefensePlanCard thesis={thesis} />
+            </details>
+          )}
         </>
       )}
 
@@ -750,7 +760,7 @@ const DIFFICULTY_HINT = {
  * rehearsals, and asking every time is the kind of friction that makes the
  * second rehearsal not happen.
  */
-function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
+export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
   const t = useThesisT();
   const navigate = useNavigate();
   /** Sent here from the observations, with the mode and the material set. */
@@ -762,6 +772,8 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
   const [progress, setProgress] = useState<DefenseProgressPoint[]>([]);
   const [catalogue, setCatalogue] = useState<CareerCatalogue | null>(null);
   const [careerRes, setCareerRes] = useState<CareerResolution | null>(null);
+  const [careerBusy, setCareerBusy] = useState(false);
+  const [careerError, setCareerError] = useState<string | null>(null);
   const [focus, setFocus] = useState<Focus>(() =>
     arrived?.focus && FOCUS_OPTIONS.includes(arrived.focus) ? arrived.focus : "completa",
   );
@@ -846,7 +858,7 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
       .then((result) => {
         if (!cancelled) setCatalogue(result);
       })
-      .catch(() => undefined);
+      .catch(() => { if (!cancelled) setCareerError(t("careerJuryLoadError")); });
 
     /**
      * Back from Mercado Pago. The payment is settled from here as well as by
@@ -975,8 +987,9 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
 
   const formatName = formats.find((entry) => entry.country === country);
   const activeFamily = catalogue?.families.find((entry) => entry.id === (thesis.careerOverride ?? careerRes?.family));
-  const seatSummary = activeFamily
-    ? [activeFamily.roles.presidente.m, activeFamily.roles.metodologo.f, activeFamily.roles.especialista.m].join(" · ")
+  const panel = full || focus !== "completa";
+  const assignedJury = formatName
+    ? withRealJury(withCareerRoles(formatName, activeFamily), panel ? thesis.jury : null)
     : null;
   const juryDisplayName = thesis.careerOverride
     ? (activeFamily?.name ?? thesis.analysis.field)
@@ -985,8 +998,7 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
   const summary = [
     t(shape.label),
     formatName ? `${formatName.countryName} ${formatName.scale.min}–${formatName.scale.max}` : null,
-    juryDisplayName,
-    university.trim() || t("settingsNoUniversity"),
+    university.trim() || null,
     focus !== "completa" ? t(FOCUS_LABEL[focus]) : null,
   ]
     .filter(Boolean)
@@ -995,12 +1007,56 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
 
   return (
     <>
-      <Panel variant="raised" className="flex flex-col gap-6 p-5 sm:p-7">
+      <Panel variant="raised" className="flex flex-col gap-4 p-4 sm:p-5">
         <div className="flex flex-col gap-1">
-          <h2 className="text-title font-semibold text-cream-bright">{t("nextTitle")}</h2>
+          <h2 className="text-lg font-semibold text-cream-bright">{t("nextTitle")}</h2>
           <p className="text-sm text-cream-dim">{summary}</p>
         </div>
 
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+        <section aria-label={t("careerJuryLabel")} className="flex min-w-0 flex-col gap-3 rounded-xl border border-line p-3">
+          <label htmlFor="career-jury-select" className="text-sm font-semibold text-cream-bright">{t("careerJuryLabel")}</label>
+          <select
+            id="career-jury-select"
+            value={thesis.careerOverride ?? ""}
+            disabled={!catalogue || careerBusy}
+            aria-busy={careerBusy}
+            onChange={async (event) => {
+              const next = event.target.value || null;
+              setCareerBusy(true);
+              setCareerError(null);
+              try {
+                const res = await saveCareer(next);
+                onChange(res.thesis);
+                setCareerRes(res.career);
+              } catch (caught) {
+                setCareerError(caught instanceof ApiError ? caught.message : t("error"));
+              } finally {
+                setCareerBusy(false);
+              }
+            }}
+            className="focus-ring w-full min-w-0 rounded-lg bg-surface-lift px-3 py-2 text-sm text-cream-bright disabled:opacity-60"
+          >
+            <option value="">{t("careerJuryAuto", { name: juryDisplayName })}</option>
+            {catalogue?.families.map((family) => <option key={family.id} value={family.id}>{family.name}</option>)}
+          </select>
+          {careerError && <p role="alert" className="text-sm text-step-text">{careerError}</p>}
+          <ul className="flex flex-col gap-2" aria-label={t("assignedJury")}>
+            {(panel ? ["presidente", "metodologo", "especialista"] as const : ["presidente"] as const).map((seat) => (
+              <li key={seat} className="flex min-w-0 items-start gap-2 text-sm">
+                <span aria-hidden className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent-text">
+                  {assignedJury?.[seat].name.replace(/^(Dr\.|Dra\.|Mg\.)\s*/, "").slice(0, 1) ?? "·"}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-medium text-cream-bright">{assignedJury?.[seat].name ?? t("careerJuryLoading")}</span>
+                  <span className="block text-xs text-cream-dim">{assignedJury?.[seat].role ?? t(seat === "presidente" ? "jurySeatPresidente" : seat === "metodologo" ? "jurySeatMetodologo" : "jurySeatEspecialista")}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <RealJuryCard thesis={thesis} onChange={onChange} compact />
+        </section>
+        <div className="flex min-w-0 flex-col gap-4">
         {/* The two choices that change the rehearsal most, as two big
             options rather than a row of small ones. */}
         <div role="radiogroup" aria-label={t("panelChoice")} className="grid gap-2 sm:grid-cols-2">
@@ -1015,7 +1071,7 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
                 aria-checked={chosen}
                 disabled={lockedPanel}
                 onClick={() => setFull(option)}
-                className={`focus-ring flex flex-col items-start gap-1 rounded-2xl px-4 py-3.5 text-left transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.98] disabled:cursor-not-allowed ${
+                className={`focus-ring flex flex-col items-start gap-1 rounded-xl px-3 py-2.5 text-left transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.98] disabled:cursor-not-allowed ${
                   chosen ? "bg-surface-card shadow-card ring-2 ring-accent" : "bg-surface-lift hover:bg-cream/10"
                 }`}
               >
@@ -1068,6 +1124,8 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
           </div>
           <span className="font-normal text-cream-dim">{t(DIFFICULTY_HINT[difficulty])}</span>
         </div>
+        </div>
+        </div>
 
         {/* Everything else, folded: set once, rarely changed. The line under
             the title says what it is set to, so folding hides nothing. */}
@@ -1081,42 +1139,6 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
           </summary>
           <div className="flex flex-col gap-3 px-4 pb-4">
             <div className="grid grid-cols-2 gap-3">
-              {catalogue && catalogue.families.length > 0 && (
-                <div className={`${label} col-span-2`}>
-                  <label htmlFor="career-jury-select" className="text-xs font-semibold text-cream-dim">
-                    {t("careerJuryLabel")}
-                  </label>
-                  <select
-                    id="career-jury-select"
-                    value={thesis.careerOverride ?? ""}
-                    onChange={(event) => {
-                      const next = event.target.value === "" ? null : event.target.value;
-                      saveCareer(next)
-                        .then((res) => {
-                          onChange(res.thesis);
-                          setCareerRes(res.career);
-                        })
-                        .catch(() => undefined);
-                    }}
-                    className={select}
-                  >
-                    <option value="">
-                      {t("careerJuryAuto", {
-                        name: careerRes?.careerName ?? careerRes?.familyName ?? thesis.analysis.field,
-                      })}
-                    </option>
-                    {catalogue.families.map((family) => (
-                      <option key={family.id} value={family.id}>
-                        {family.name}
-                      </option>
-                    ))}
-                  </select>
-                  {seatSummary && (
-                    <span className="font-normal text-cream-dim">{t("careerJurySeats", { roles: seatSummary })}</span>
-                  )}
-                  <span className="font-normal text-cream-faint">{t("careerJuryCustomHint")}</span>
-                </div>
-              )}
               <label className={`${label} col-span-2`}>
                 {t("scenario")}
                 <select value={scenario} onChange={(event) => setScenario(event.target.value as DefenseScenario)} className={select}>
@@ -1262,12 +1284,10 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
 
         {/* The way in, with what it will spend beside it. On a phone it stays
             pinned above the tab bar, so it is never a scroll away. */}
-        <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-30 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-card/95 px-4 py-2.5 backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
-          {canBegin && (
-            <Action withArrow onClick={begin} className="px-6 py-3 text-base">
+        <div data-rehearsal-actions className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-30 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-surface-card/95 px-4 py-3 backdrop-blur md:left-[4.5rem] md:bottom-0 md:px-6 md:pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:left-60 lg:px-10">
+            <Action withArrow onClick={begin} disabled={!canBegin || careerBusy} className="w-full px-5 py-2.5 text-base sm:w-auto">
               {t("rehearse")}
             </Action>
-          )}
           {allowance && (
             <p className="text-sm text-cream-dim">
               {isUnlimited
@@ -1280,7 +1300,6 @@ function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next:
             </p>
           )}
         </div>
-        <div aria-hidden className="h-12 md:hidden" />
       </Panel>
 
       {/* The plans, as one line until the student asks to see them. */}

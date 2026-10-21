@@ -501,6 +501,7 @@ export function PageHeader({
   meta,
   actions,
   compact = false,
+  dense = false,
 }: {
   title: string;
   meta?: string;
@@ -511,18 +512,20 @@ export function PageHeader({
    * from `sm` up as everywhere else.
    */
   compact?: boolean;
+  /** Compact workspace header at every viewport, without reducing body text. */
+  dense?: boolean;
 }) {
   return (
     /* Apple's large title: no rule under it — the size and the space after
        it already end the header, and a line would only box it in. */
-    <header className={`px-4 pb-2 sm:px-6 lg:px-10 lg:pt-10 ${compact ? "pt-4 sm:pt-8" : "pt-8"}`}>
+    <header className={`px-4 pb-2 sm:px-6 lg:px-10 ${dense ? "pt-4" : `lg:pt-10 ${compact ? "pt-4 sm:pt-8" : "pt-8"}`}`}>
       {/* Same container as PageBody, so the title lines up with the content
           under it at every width. */}
       <div className="mx-auto flex w-full max-w-[110rem] flex-wrap items-end justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
           <h1
-            className={`font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright sm:text-[2.5rem] ${
-              compact ? "line-clamp-2 text-xl" : "text-[2rem]"
+            className={`font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright ${
+              dense ? "text-xl sm:text-2xl" : compact ? "line-clamp-2 text-xl sm:text-[2.5rem]" : "text-[2rem] sm:text-[2.5rem]"
             }`}
           >
             {title}

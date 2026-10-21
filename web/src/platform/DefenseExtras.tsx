@@ -151,9 +151,11 @@ const SEATS: { seat: JurorSeat; key: ThesisKey }[] = [
 export function RealJuryCard({
   thesis,
   onChange,
+  compact = false,
 }: {
   thesis: StoredThesis;
   onChange: (next: StoredThesis) => void;
+  compact?: boolean;
 }) {
   const t = useThesisT();
   const saved = thesis.jury ?? [];
@@ -184,14 +186,14 @@ export function RealJuryCard({
   };
 
   return (
-    <details className="group rounded-card bg-surface-raised shadow-card" open={false}>
-      <summary className="focus-ring flex cursor-pointer list-none items-center gap-3 rounded-card p-5 sm:p-6">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text">
+    <details className={`group rounded-xl ${compact ? "border-t border-line" : "bg-surface-raised shadow-card"}`}>
+      <summary className={`focus-ring flex cursor-pointer list-none items-center gap-3 rounded-xl ${compact ? "py-2" : "p-5 sm:p-6"}`}>
+        <span className={`${compact ? "hidden" : "grid"} h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text`}>
           <Users aria-hidden className="h-[1.125rem] w-[1.125rem]" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-lg font-semibold tracking-[-0.01em] text-cream-bright">{t("juryTitle")}</span>
-          <span className="block text-sm text-cream-dim">
+          <span className={`block font-semibold tracking-[-0.01em] text-cream-bright ${compact ? "text-xs" : "text-lg"}`}>{t("juryTitle")}</span>
+          <span className={`${compact ? "hidden" : "block"} text-sm text-cream-dim`}>
             {named.length > 0
               ? t("juryActive", { names: named.map((juror) => juror.name).join(", ") })
               : t("juryBody")}
@@ -199,8 +201,8 @@ export function RealJuryCard({
         </span>
         <DisclosureMark label={named.length > 0 ? t("juryEdit") : t("juryOpen")} openLabel={t("discClose")} />
       </summary>
-      <div className="flex flex-col gap-4 px-5 pb-5 sm:px-6 sm:pb-6">
-        <div className="grid gap-3 lg:grid-cols-3">
+      <div className={`flex flex-col gap-4 ${compact ? "pb-3" : "px-5 pb-5 sm:px-6 sm:pb-6"}`}>
+        <div className={`grid gap-3 ${compact ? "" : "lg:grid-cols-3"}`}>
           {SEATS.map(({ seat, key }) => {
             const juror = draft.find((entry) => entry.seat === seat)!;
             return (
