@@ -552,9 +552,9 @@ export function SessionSetup() {
             on the outer padding element, and the children sit in a plain block
             inside it — so a gap set there never reaches them, and the search
             box ended up flush against the panel below it. */}
-        {/* `pb-20 md:pb-0` clears the fixed Begin bar, the same way the shell
+        {/* `pb-20` clears the fixed Begin bar, the same way the shell
             reserves the height of the mobile nav under it. */}
-        <div className="flex flex-col gap-6 pb-20 md:pb-0">
+        <div className="flex flex-col gap-6 pb-20">
         {/* The nudge sits above the bar it changes, so accepting it and
             seeing the level field move are one glance apart. Dismissing is
             local and for this visit only: the condition that raised it is a
