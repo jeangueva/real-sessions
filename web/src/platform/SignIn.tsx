@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { GoogleButton } from "./GoogleButton";
+import { pendingThesisName } from "@/lib/pending-thesis";
 import { Action, Field, Notice } from "@/design-system";
 import { ApiError, signIn, signUp } from "@/lib/api";
 import { track } from "@/lib/analytics";
@@ -12,12 +13,22 @@ import { useLocale, useT } from "@/hooks/useLocale";
  * Sign in or create an account. One screen with a mode switch rather than two
  * routes: the fields are identical and people routinely arrive at the wrong one.
  */
+/** Kept here rather than in every locale file: it is one sentence on one screen. */
+const PENDING_NOTE: Record<string, string> = {
+  es: "Tu tesis «{name}» está lista. Crea tu cuenta y la leemos al entrar.",
+  pt: "Seu trabalho «{name}» está pronto. Crie sua conta e o lemos ao entrar.",
+  en: "Your thesis “{name}” is ready. Create your account and we read it as you come in.",
+};
+
 export function SignIn() {
   const t = useT();
   const { locale } = useLocale();
   const navigate = useNavigate();
   const { state } = useLocation() as { state: { from?: string } | null };
-  const [mode, setMode] = useState<"in" | "up">("in");
+  // A thesis picked on the public page: this visitor is almost certainly
+  // new, so the form opens on sign-up and says what happens next.
+  const [pending] = useState(() => pendingThesisName());
+  const [mode, setMode] = useState<"in" | "up">(() => (pending ? "up" : "in"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -47,6 +58,11 @@ export function SignIn() {
         ? t("auth.signInTitle")
         : t("auth.signUpTitle")}
     </h1>
+    {pending && (
+      <p className="mt-3 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent-text">
+        {(PENDING_NOTE[locale] ?? PENDING_NOTE.en)!.replace("{name}", pending)}
+      </p>
+    )}
 
     {/* Above the form, because somebody who has a Google account and uses it
         here never has to read the form at all — and because the fastest way
