@@ -80,13 +80,13 @@ export function FilterRow({
           </button>
         )}
 
-        {/* On a phone the button leaves the row and sits above the nav bar,
-            where a thumb is, rather than below whatever the page happens to
-            be showing. `bottom-16` is the height of that bar; `z-20` keeps it
-            under it, and the setup screen reserves the space so nothing ends
-            up hidden behind it. From `md` it is back in the row, where the
-            nav bar itself disappears. */}
-        <div className="nav-lifted fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-20 !border-b-0 border-t border-line px-4 py-3 [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:py-3 md:static md:z-auto md:w-auto md:shrink-0 md:!border-0 md:!bg-transparent md:p-0 md:![backdrop-filter:none] md:[&>*]:w-auto md:[&_button]:w-auto md:[&_button]:px-7 md:[&_button]:py-4">
+        {/* Pinned to the bottom at every width, so starting is never a
+            scroll away. On a phone it sits above the nav bar, where a thumb
+            is; `z-20` keeps it under that bar. From `md` the nav bar is gone
+            and it clears the side rail instead (`4.5rem`, then `15rem` from
+            `lg`), the same offsets as the thesis screen's bar. The setup
+            screen reserves the space so nothing ends up hidden behind it. */}
+        <div className="nav-lifted fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-20 !border-b-0 border-t border-line px-4 py-3 [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:py-3 md:bottom-0 md:left-[4.5rem] md:flex md:justify-end md:px-6 md:pb-[max(0.75rem,env(safe-area-inset-bottom))] md:[&>*]:w-auto md:[&_button]:w-auto md:[&_button]:px-7 lg:left-60 lg:px-10">
           {begin}
         </div>
       </div>

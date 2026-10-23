@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
+import { savePendingThesis } from "@/lib/pending-thesis";
 import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
 import { Lede, Screen, Title, Wrap } from "./marketing";
 
@@ -38,6 +39,7 @@ const ES = {
   navScenarios: "Grados",
   navPricing: "Precios",
   cta: "Sube tu tesis gratis",
+  ctaHint: "PDF, Word o foto. Tu diagnóstico, apenas creas tu cuenta.",
   heroTitle: "Sustenta antes de sustentar.",
   heroSub: "Un jurado de 3 que leyó tu tesis te pregunta por voz, repregunta como el de verdad y te deja un acta de 0 a 20.",
   heroSecondary: "Cómo funciona",
@@ -177,6 +179,7 @@ const PT: Record<Key, string> = {
   navScenarios: "Níveis",
   navPricing: "Preços",
   cta: "Envie seu trabalho grátis",
+  ctaHint: "PDF, Word ou foto. Seu diagnóstico, assim que criar sua conta.",
   heroTitle: "Defenda antes de defender.",
   heroSub: "Uma banca de 3 que leu seu trabalho pergunta por voz, faz réplicas como a de verdade e deixa uma ata com sua nota.",
   heroSecondary: "Como funciona",
@@ -314,6 +317,7 @@ const EN: Record<Key, string> = {
   navScenarios: "Degrees",
   navPricing: "Pricing",
   cta: "Upload your thesis free",
+  ctaHint: "PDF, Word or a photo. Your diagnosis, as soon as you have an account.",
   heroTitle: "Defend it before you defend it.",
   heroSub: "A panel of three that read your thesis questions you out loud, follows up like the real one and leaves you a graded record.",
   heroSecondary: "How it works",
@@ -708,6 +712,16 @@ export function DefenseLanding() {
   const { locale } = useLocale();
   const c = BY_LOCALE[locale] ?? EN;
   const start = "/app";
+  const navigate = useNavigate();
+  const pickerRef = useRef<HTMLInputElement>(null);
+  // The thesis is chosen here, held in this browser, and uploaded by the
+  // thesis screen once there is an account to own it. The app's own gate
+  // sends a visitor without one to sign up first.
+  const pick = () => pickerRef.current?.click();
+  const picked = async (file: File) => {
+    await savePendingThesis(file);
+    navigate(start);
+  };
 
   // An advisor's link: remembered until the student is inside the app, where
   // the link is made. Only a well-formed code is kept.
@@ -745,6 +759,18 @@ export function DefenseLanding() {
 
   return (
     <main className="bg-surface-base">
+      <input
+        ref={pickerRef}
+        type="file"
+        accept=".pdf,.docx,.jpg,.jpeg,.png,.webp"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void picked(file);
+        }}
+      />
       <LandingNav
         links={[
           { label: c.navProduct, href: "#panel" },
@@ -775,11 +801,9 @@ export function DefenseLanding() {
             <p className="mt-6 max-w-lg text-pretty text-lg leading-relaxed text-white/80 sm:text-xl">{c.heroSub}</p>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
               <Magnet padding={60} magnetStrength={4}>
-                <Link to={start}>
-                  <Action withArrow className="px-6 py-3 text-base">
-                    {c.cta}
-                  </Action>
-                </Link>
+                <Action withArrow onClick={pick} className="px-6 py-3 text-base">
+                  {c.cta}
+                </Action>
               </Magnet>
               <a
                 href="#how"
@@ -792,7 +816,8 @@ export function DefenseLanding() {
                 <ArrowRight aria-hidden className={arrow} />
               </a>
             </div>
-            <p className="mt-4 text-sm text-white/60">{c.heroNote}</p>
+            <p className="mt-4 text-sm text-white/60">{c.ctaHint}</p>
+            <p className="mt-1 text-sm text-white/60">{c.heroNote}</p>
           </FadeRise>
         </Wrap>
       </section>
@@ -1073,11 +1098,9 @@ export function DefenseLanding() {
               <Lede className="mt-5 max-w-xl">{c.finalSub}</Lede>
             </div>
             <Magnet padding={70} magnetStrength={4} wrapperClassName="shrink-0">
-              <Link to={start}>
-                <Action withArrow className="px-7 py-3.5 text-base">
-                  {c.cta}
-                </Action>
-              </Link>
+              <Action withArrow onClick={pick} className="px-7 py-3.5 text-base">
+                {c.cta}
+              </Action>
             </Magnet>
           </FadeRise>
         </Wrap>

@@ -21,6 +21,7 @@ import { ExtractionError, normalize, type UploadKind } from "./extract.js";
 import { THESIS_ANALYSIS_TEMPLATE } from "./prompts/thesis.js";
 import { ocrImage, ocrPdf } from "./ocr.js";
 import type { StoredSlides } from "./slides.js";
+import type { StoredDemo } from "./demo-defense.js";
 import type { Study } from "./study.js";
 import type { MentorRequest, RealJuror, StoredObservations } from "./defense-extras.js";
 import { newGiftToken } from "./defense-extras.js";
@@ -301,6 +302,8 @@ export interface StoredThesis {
   defenseDate?: string | null;
   /** The defence sheet and review cards, once written. */
   study?: Study | null;
+  /** The model defence to listen to, once written. */
+  demo?: StoredDemo | null;
   /** The people who will really sit on the panel, as the student named them. */
   jury?: RealJuror[] | null;
   /** The jury's written observations, read against the thesis, with progress. */
@@ -334,6 +337,7 @@ export interface ThesisStore {
   /** Sets or clears the slide review. */
   putSlides(ownerId: string, slides: StoredSlides | null): Promise<void>;
   putStudy(ownerId: string, study: Study): Promise<void>;
+  putDemo(ownerId: string, demo: StoredDemo): Promise<void>;
   /** Sets or clears the defence date; a new date restarts the countdown. */
   setDefenseDate(ownerId: string, date: string | null): Promise<void>;
   /** Theses defended between the two dates, inclusive. */
@@ -355,7 +359,7 @@ class PostgresThesisStore implements ThesisStore {
 
   async get(ownerId: string): Promise<StoredThesis | null> {
     const { rows } = await this.pool.query(
-      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study, jury, observations, mentor, career_override,
+      `SELECT file_name, page_count, approximate, analysis, uploaded_at, slides, study, demo, jury, observations, mentor, career_override,
               to_char(defense_date, 'YYYY-MM-DD') AS defense_date
          FROM theses WHERE owner_id = $1`,
       [ownerId],
@@ -371,6 +375,7 @@ class PostgresThesisStore implements ThesisStore {
       slides: (row.slides as StoredSlides | null) ?? null,
       defenseDate: (row.defense_date as string | null) ?? null,
       study: (row.study as Study | null) ?? null,
+      demo: (row.demo as StoredDemo | null) ?? null,
       jury: (row.jury as RealJuror[] | null) ?? null,
       observations: (row.observations as StoredObservations | null) ?? null,
       mentor: (row.mentor as MentorRequest | null) ?? null,
@@ -389,7 +394,7 @@ class PostgresThesisStore implements ThesisStore {
        VALUES ($1, $2, $3, $4, $5, $6, now())
        ON CONFLICT (owner_id) DO UPDATE SET file_name = EXCLUDED.file_name,
          page_count = EXCLUDED.page_count, approximate = EXCLUDED.approximate,
-         pages = EXCLUDED.pages, analysis = EXCLUDED.analysis, uploaded_at = now(), slides = NULL, study = NULL`,
+         pages = EXCLUDED.pages, analysis = EXCLUDED.analysis, uploaded_at = now(), slides = NULL, study = NULL, demo = NULL`,
       [ownerId, fileName, thesis.pages.length, thesis.approximate, JSON.stringify(thesis.pages), JSON.stringify(analysis)],
     );
   }
@@ -407,6 +412,10 @@ class PostgresThesisStore implements ThesisStore {
 
   async putStudy(ownerId: string, study: Study) {
     await this.pool.query(`UPDATE theses SET study = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(study)]);
+  }
+
+  async putDemo(ownerId: string, demo: StoredDemo) {
+    await this.pool.query(`UPDATE theses SET demo = $2 WHERE owner_id = $1`, [ownerId, JSON.stringify(demo)]);
   }
 
   async setDefenseDate(ownerId: string, date: string | null) {
@@ -558,6 +567,11 @@ class MemoryThesisStore implements ThesisStore {
   async putStudy(ownerId: string, study: Study) {
     const row = this.rows.get(ownerId);
     if (row) row.study = study;
+  }
+
+  async putDemo(ownerId: string, demo: StoredDemo) {
+    const row = this.rows.get(ownerId);
+    if (row) row.demo = demo;
   }
 
   async setDefenseDate(ownerId: string, date: string | null) {

@@ -510,6 +510,8 @@ CREATE TABLE IF NOT EXISTS advisor_commissions (
 -- The defence sheet and review cards, written from the thesis on request and
 -- kept with the version they were written from (cleared on a new upload).
 ALTER TABLE theses ADD COLUMN IF NOT EXISTS study JSONB;
+-- The model defence to listen to (src/demo-defense.ts); cleared with a new version.
+ALTER TABLE theses ADD COLUMN IF NOT EXISTS demo JSONB;
 
 -- Schools and faculties that buy rehearsals for a cohort, set up by hand from
 -- the admin, and the students who joined with their code.

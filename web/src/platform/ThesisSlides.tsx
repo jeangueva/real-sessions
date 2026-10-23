@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
-import { AlertTriangle, Loader2, Presentation, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, Download, Loader2, PenLine, Presentation, Trash2, Upload } from "lucide-react";
 import { Eyebrow, Panel, DisclosureMark, Segmented } from "@/design-system";
-import { ApiError, deleteSlides, uploadSlides } from "@/lib/api";
+import { ApiError, deleteSlides, uploadSlides, writeThesisScript } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
+import { downloadDeck } from "@/lib/deck";
 import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
 
 const SLOTS = [15, 20, 30];
@@ -25,22 +26,44 @@ const VERDICT = {
 export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
   const t = useThesisT();
   const [minutes, setMinutes] = useState(() => (thesis.slides ? Math.round(thesis.slides.slotSeconds / 60) : 20));
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"upload" | "write" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageTarget, setPageTarget] = useState<PageDrawerTarget | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const slides = thesis.slides ?? null;
 
   const upload = async (file: File) => {
-    setBusy(true);
+    setBusy("upload");
     setError(null);
     try {
       onChange((await uploadSlides(file, minutes)).thesis);
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : t("error"));
     } finally {
-      setBusy(false);
+      setBusy(null);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const download = async () => {
+    if (!slides) return;
+    setError(null);
+    try {
+      await downloadDeck({ title: thesis.analysis.title, career: thesis.analysis.career, review: slides.review });
+    } catch {
+      setError(t("error"));
+    }
+  };
+
+  const write = async () => {
+    setBusy("write");
+    setError(null);
+    try {
+      onChange((await writeThesisScript(minutes)).thesis);
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : t("error"));
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -53,6 +76,9 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
   };
 
   const review = slides?.review;
+  // Written from the thesis rather than read from a deck: no verdicts or word
+  // counts to show, and the script is the point, so it opens unfolded.
+  const fromThesis = slides?.source === "thesis";
   // Whole minutes: "about 12 of 20" is what someone plans with, and a decimal
   // point reads wrong in Spanish and Portuguese anyway.
   const totalMinutes = review ? Math.max(1, Math.round(review.total_seconds / 60)) : 0;
@@ -78,7 +104,9 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
           {!slides && <p className="mt-1 max-w-prose text-sm text-cream-dim">{t("slidesBody")}</p>}
           {slides && (
             <p className="mt-1 text-sm text-cream-dim">
-              {slides.fileName} · {t("slidesCount", { count: slides.slideCount })}
+              {fromThesis
+                ? t("scriptFromThesis", { count: slides.slideCount })
+                : `${slides.fileName} · ${t("slidesCount", { count: slides.slideCount })}`}
             </p>
           )}
         </div>
@@ -104,7 +132,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
       {busy ? (
         <p className="flex items-center gap-2 text-sm text-cream">
           <Loader2 aria-hidden className="h-4 w-4 animate-spin text-accent-text" />
-          {t("slidesReading")}
+          {busy === "write" ? t("scriptWriting") : t("slidesReading")}
         </p>
       ) : (
         <div className="flex flex-wrap gap-3">
@@ -114,8 +142,30 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
             className="focus-ring inline-flex items-center gap-2 rounded-full bg-surface-card px-4 py-2 text-sm font-semibold text-cream-bright shadow-card transition-transform duration-150 active:scale-[0.97]"
           >
             <Upload aria-hidden className="h-4 w-4" />
-            {slides ? t("slidesReplace") : t("slidesUpload")}
+            {slides && !fromThesis ? t("slidesReplace") : t("slidesUpload")}
           </button>
+          {(!slides || fromThesis) && (
+            <button
+              type="button"
+              onClick={() => void write()}
+              className="focus-ring inline-flex items-center gap-2 rounded-full bg-surface-card px-4 py-2 text-sm font-semibold text-cream-bright shadow-card transition-transform duration-150 active:scale-[0.97]"
+            >
+              <PenLine aria-hidden className="h-4 w-4" />
+              {fromThesis ? t("scriptRewrite") : t("scriptWrite")}
+            </button>
+          )}
+          {/* Older scripts were written before slides carried their points;
+              a deck of titles alone is not worth downloading. */}
+          {fromThesis && slides.review.slides.some((slide) => (slide.points ?? []).length > 0) && (
+            <button
+              type="button"
+              onClick={() => void download()}
+              className="focus-ring inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-card transition-transform duration-150 active:scale-[0.97]"
+            >
+              <Download aria-hidden className="h-4 w-4" />
+              {t("deckDownload")}
+            </button>
+          )}
           {slides && (
             <button
               type="button"
@@ -175,7 +225,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
           )}
 
           <section className="flex flex-col gap-2">
-            <Eyebrow>{t("slidesPerSlide")}</Eyebrow>
+            <Eyebrow>{fromThesis ? t("scriptOutline") : t("slidesPerSlide")}</Eyebrow>
             <ol className="flex flex-col gap-2">
               {review.slides.map((slide) => (
                 <li key={slide.n} className="rounded-2xl bg-surface-card p-4 shadow-card">
@@ -183,20 +233,31 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
                     <span className="text-sm font-semibold text-cream-bright">
                       {slide.n}. {slide.title}
                     </span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${VERDICT[slide.verdict].tone}`}>
-                      {t(VERDICT[slide.verdict].key)}
-                    </span>
+                    {!fromThesis && (
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${VERDICT[slide.verdict].tone}`}>
+                        {t(VERDICT[slide.verdict].key)}
+                      </span>
+                    )}
                     <span className="text-xs tabular-nums text-cream-dim">
-                      {slide.seconds}s · {t("words", { count: slides.words[slide.n - 1] ?? 0 })}
+                      {fromThesis ? `${slide.seconds}s` : `${slide.seconds}s · ${t("words", { count: slides.words[slide.n - 1] ?? 0 })}`}
                     </span>
                   </div>
+                  {fromThesis && (slide.points ?? []).length > 0 && (
+                    <ul className="mt-1 list-disc pl-5 text-sm text-cream">
+                      {slide.points!.map((point, index) => (
+                        <li key={index}>{point}</li>
+                      ))}
+                    </ul>
+                  )}
                   <p className="mt-1 text-sm text-cream-dim">{slide.note}</p>
                 </li>
               ))}
             </ol>
           </section>
 
-          <details className="rounded-2xl bg-surface-card p-4 shadow-card">
+          {fromThesis && <p className="max-w-prose text-sm text-cream-dim">{t("scriptDraftNote")}</p>}
+
+          <details open={fromThesis} className="rounded-2xl bg-surface-card p-4 shadow-card">
             <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl text-sm font-semibold text-cream-bright">
               {t("script")}
               <DisclosureMark />

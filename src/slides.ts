@@ -12,7 +12,7 @@ import { resolveProvider } from "./providers/index.js";
 import type { ModelProvider } from "./providers/index.js";
 import { ExtractionError } from "./extract.js";
 import { extractPages, THESIS_MODEL, type ThesisAnalysis } from "./thesis.js";
-import { SLIDES_TEMPLATE } from "./prompts/slides.js";
+import { SCRIPT_TEMPLATE, SLIDES_TEMPLATE } from "./prompts/slides.js";
 
 export const MAX_SLIDES = 60;
 /** The default exposition slot in Peru, in seconds. */
@@ -28,6 +28,8 @@ export const SlideReviewSchema = z.object({
       seconds: z.number().int().min(0),
       verdict: z.enum(["ok", "recargada", "incoherente", "sobra"]),
       note: z.string(),
+      /** What goes on the slide. Only on a script written from the thesis. */
+      points: z.array(z.string()).optional(),
     }),
   ),
   inconsistencies: z.array(
@@ -39,6 +41,12 @@ export const SlideReviewSchema = z.object({
 export type SlideReview = z.infer<typeof SlideReviewSchema>;
 
 export interface StoredSlides {
+  /**
+   * "deck" when the student uploaded slides; "thesis" when there were none and
+   * the script was written from the thesis alone. Absent on older rows, which
+   * are all decks.
+   */
+  source?: "deck" | "thesis";
   fileName: string;
   slideCount: number;
   words: number[];
@@ -62,14 +70,28 @@ export async function readSlides(buffer: Buffer): Promise<string[]> {
   return pages;
 }
 
-export async function reviewSlides(
-  slides: readonly string[],
-  thesis: ThesisAnalysis,
-  slotSeconds: number,
-  options: { provider?: ModelProvider } = {},
-): Promise<SlideReview> {
-  const provider = options.provider ?? resolveProvider(THESIS_MODEL);
-  const thesisNotes = [
+const THESIS_SCRIPT_SCHEMA = z.object({
+  summary: z.string(),
+  total_seconds: z.number().int().min(0),
+  blocks: z
+    .array(
+      z.object({
+        title: z.string(),
+        seconds: z.number().int().min(0),
+        say: z.string(),
+        points: z.array(z.string()).default([]),
+        pages: z.array(z.number().int().min(1)).default([]),
+      }),
+    )
+    .min(1),
+});
+
+export function languageName(thesis: ThesisAnalysis): string {
+  return thesis.language === "pt" ? "Brazilian Portuguese" : thesis.language === "en" ? "English" : "Spanish";
+}
+
+export function thesisNotesFor(thesis: ThesisAnalysis): string {
+  return [
     `Title: ${thesis.title}`,
     `Problem: ${thesis.ficha.problem.text}`,
     `General objective: ${thesis.ficha.general_objective.text}`,
@@ -81,12 +103,67 @@ export async function reviewSlides(
     ...thesis.ficha.main_results.map((entry) => `Result: ${entry.text}${entry.page ? ` (p. ${entry.page})` : ""}`),
     ...thesis.ficha.conclusions.map((entry) => `Conclusion: ${entry.text}${entry.page ? ` (p. ${entry.page})` : ""}`),
   ].join("\n");
+}
+
+/**
+ * The exposition, written from the thesis for a student who has no deck yet.
+ *
+ * Returned in the shape of a deck review — one block per future slide, with
+ * what to say on it — so everything that already reads a review (this screen,
+ * the slide stepper inside a rehearsal call) works on it unchanged. Its
+ * blocks are also the outline of the deck the student is about to make.
+ */
+export async function writeThesisScript(
+  thesis: ThesisAnalysis,
+  slotSeconds: number,
+  options: { provider?: ModelProvider } = {},
+): Promise<SlideReview> {
+  const provider = options.provider ?? resolveProvider(THESIS_MODEL);
+  const response = await provider.json({
+    model: THESIS_MODEL,
+    system: SCRIPT_TEMPLATE.replace("{{slot_minutes}}", String(Math.round(slotSeconds / 60))).replace(
+      "{{language}}",
+      languageName(thesis),
+    ),
+    prompt: `THE THESIS:\n${thesisNotesFor(thesis)}`,
+    maxTokens: 6_000,
+    schema: THESIS_SCRIPT_SCHEMA,
+  });
+  if (response.refused || !response.value) {
+    throw new ExtractionError("No pudimos escribir tu guion. Inténtalo de nuevo en un momento.");
+  }
+  const { summary, blocks } = response.value;
+  return {
+    summary,
+    // Summed here rather than trusted: the bar on screen compares it with the slot.
+    total_seconds: blocks.reduce((sum, block) => sum + block.seconds, 0),
+    slides: blocks.map((block, index) => ({
+      n: index + 1,
+      title: block.title,
+      seconds: block.seconds,
+      verdict: "ok" as const,
+      note: block.pages.length > 0 ? `p. ${block.pages.join(", ")}` : "",
+      points: block.points,
+    })),
+    inconsistencies: [],
+    script: blocks.map((block, index) => ({ slide: index + 1, say: block.say })),
+  };
+}
+
+export async function reviewSlides(
+  slides: readonly string[],
+  thesis: ThesisAnalysis,
+  slotSeconds: number,
+  options: { provider?: ModelProvider } = {},
+): Promise<SlideReview> {
+  const provider = options.provider ?? resolveProvider(THESIS_MODEL);
+  const thesisNotes = thesisNotesFor(thesis);
   const deck = slides.map((text, index) => `[slide ${index + 1}]\n${text || "(no text — image only)"}`).join("\n\n");
   const response = await provider.json({
     model: THESIS_MODEL,
     system: SLIDES_TEMPLATE.replace("{{slot_minutes}}", String(Math.round(slotSeconds / 60))).replace(
       "{{language}}",
-      thesis.language === "pt" ? "Brazilian Portuguese" : thesis.language === "en" ? "English" : "Spanish",
+      languageName(thesis),
     ),
     prompt: `THE THESIS:\n${thesisNotes}\n\nTHE SLIDES:\n${deck}`,
     maxTokens: 6_000,

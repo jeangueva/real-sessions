@@ -1336,12 +1336,22 @@ export interface ThesisAnalysis {
 export interface SlideReview {
   summary: string;
   total_seconds: number;
-  slides: { n: number; title: string; seconds: number; verdict: "ok" | "recargada" | "incoherente" | "sobra"; note: string }[];
+  slides: {
+    n: number;
+    title: string;
+    seconds: number;
+    verdict: "ok" | "recargada" | "incoherente" | "sobra";
+    note: string;
+    /** What goes on the slide. Only on a script written from the thesis. */
+    points?: string[];
+  }[];
   inconsistencies: { slide: number; thesis_page: number | null; issue: string }[];
   script: { slide: number; say: string }[];
 }
 
 export interface StoredSlides {
+  /** "thesis" when the script was written from the thesis, with no deck. */
+  source?: "deck" | "thesis";
   fileName: string;
   slideCount: number;
   words: number[];
@@ -1360,6 +1370,8 @@ export interface StoredThesis {
   /** YYYY-MM-DD, when they told us. */
   defenseDate?: string | null;
   study?: ThesisStudy | null;
+  /** The model defence to listen to, once written. */
+  demo?: { demo: DemoDefense; writtenAt: string } | null;
   /** The people who will really sit on the panel. */
   jury?: RealJuror[] | null;
   /** The jury's written observations, read against the thesis. */
@@ -1551,6 +1563,15 @@ export function uploadSlides(file: File, minutes: number) {
     request<{ thesis: StoredThesis }>(`/api/thesis/slides?minutes=${encodeURIComponent(String(minutes))}`, {
       method: "POST",
       body: form,
+    }),
+  );
+}
+
+/** The exposition script, written from the thesis alone. */
+export function writeThesisScript(minutes: number) {
+  return withIdentity(() =>
+    request<{ thesis: StoredThesis }>(`/api/thesis/script?minutes=${encodeURIComponent(String(minutes))}`, {
+      method: "POST",
     }),
   );
 }
@@ -1819,6 +1840,20 @@ export function shareWithAdvisor(share: boolean) {
 
 export function unlinkAdvisor() {
   return withIdentity(() => request<{ link: null }>("/api/advisor/link", { method: "DELETE" }));
+}
+
+/** Mirrors `DemoDefenseSchema` in src/demo-defense.ts. */
+export interface DemoDefense {
+  lines: {
+    speaker: "estudiante" | "presidente" | "metodologo" | "especialista";
+    text: string;
+    weak: boolean;
+    lesson: string;
+  }[];
+}
+
+export function prepareDemoDefense() {
+  return withIdentity(() => request<{ thesis: StoredThesis }>("/api/thesis/demo", { method: "POST" }));
 }
 
 export function prepareStudy() {

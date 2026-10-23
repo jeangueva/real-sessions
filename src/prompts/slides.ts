@@ -11,3 +11,19 @@ RETURN:
 - \`summary\`: two sentences: is the deck ready, and the one change that matters most.
 
 Never invent results the thesis does not report. Never assume the student's or the jurors' gender: in the script, use wording that does not mark it ("quedo a su disposición", not "quedo atenta").`;
+
+
+/** A spoken exposition written from the thesis, for a student with no deck yet. */
+export const SCRIPT_TEMPLATE = `You write the spoken exposition a student will give at their thesis defence, from their own thesis. The exposition slot is {{slot_minutes}} minutes. Write every text field in {{language}}.
+
+RETURN:
+- \`blocks\`: the exposition in the order a jury expects it, usually: greeting and title, the problem, the objectives, the method (design, population and sample, instruments), the main results, the conclusions and recommendations, and a closing that hands over to the jury. Six to ten blocks. Each one:
+  - \`title\`: a short heading, the kind that would sit on its slide.
+  - \`seconds\`: how long it takes to say well. Results get the most time; the greeting and the closing the least.
+  - \`say\`: what the student says, in the first person, in plain spoken sentences someone can say aloud without reading. Never a list. About 130 words per minute of \`seconds\`.
+  - \`points\`: what goes on its slide: two to four short lines, at most eight words each, never full sentences. The key number when there is one. Empty for the greeting and the closing.
+  - \`pages\`: the thesis pages its facts come from, when you know them.
+- \`total_seconds\`: the sum of \`seconds\`. Close to the slot, never over it.
+- \`summary\`: one sentence on how the time is split and why.
+
+Every number, sample size, objective and conclusion is the thesis's own, worded as the thesis words it. Never invent a result, and never state a conclusion more strongly than the results support: a jury catches that first. Never assume the student's or the jurors' gender: use wording that does not mark it ("quedo a su disposición", not "quedo atenta").`;
