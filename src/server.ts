@@ -228,6 +228,7 @@ import { CallRoomError, CallRooms, iceServers } from "./call-rooms.js";
 import { payoutSummary, readPayout } from "./advisors.js";
 import { createHmac as hmacFor, randomBytes as randomFor, timingSafeEqual as sameBytes } from "node:crypto";
 import { writeStudy } from "./study.js";
+import { writeDemoDefense } from "./demo-defense.js";
 import { DEFAULT_SLOT_SECONDS, readSlides, reviewSlides, wordCounts, writeThesisScript } from "./slides.js";
 import {
   createDefensePackStore,
@@ -3607,6 +3608,22 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!stored || !pages) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
     if (!stored.study) {
       await THESES.putStudy(identity.id, await writeStudy(pages, stored.analysis, PROVIDER ? { provider: PROVIDER } : {}));
+    }
+    json(res, 200, { thesis: await THESES.get(identity.id) });
+    return;
+  }
+
+  /**
+   * The model defence, written on the first request like the study material:
+   * most students open it once, before their first rehearsal.
+   */
+  if (req.method === "POST" && path === "/api/thesis/demo") {
+    if (await limited(res, `upload:${identity.id}`, RULES.upload)) return;
+    const stored = await THESES.get(identity.id);
+    if (!stored) return json(res, 409, { error: "Sube tu tesis primero.", code: "noThesis" });
+    if (!stored.demo) {
+      const demo = await writeDemoDefense(stored.analysis, PROVIDER ? { provider: PROVIDER } : {});
+      await THESES.putDemo(identity.id, { demo, writtenAt: new Date().toISOString() });
     }
     json(res, 200, { thesis: await THESES.get(identity.id) });
     return;

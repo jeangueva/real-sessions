@@ -20,6 +20,12 @@ const PENDING_NOTE: Record<string, string> = {
   en: "Your thesis “{name}” is ready. Create your account and we read it as you come in.",
 };
 
+const PENDING_TITLE: Record<string, string> = {
+  es: "Crea tu cuenta para ver tu diagnóstico.",
+  pt: "Crie sua conta para ver seu diagnóstico.",
+  en: "Create your account to see your diagnosis.",
+};
+
 export function SignIn() {
   const t = useT();
   const { locale } = useLocale();
@@ -56,7 +62,9 @@ export function SignIn() {
     <h1 className="text-title font-semibold text-cream-bright">
       {mode === "in"
         ? t("auth.signInTitle")
-        : t("auth.signUpTitle")}
+        : pending
+          ? (PENDING_TITLE[locale] ?? PENDING_TITLE.en)
+          : t("auth.signUpTitle")}
     </h1>
     {pending && (
       <p className="mt-3 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent-text">

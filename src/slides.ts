@@ -86,11 +86,11 @@ const THESIS_SCRIPT_SCHEMA = z.object({
     .min(1),
 });
 
-function languageName(thesis: ThesisAnalysis): string {
+export function languageName(thesis: ThesisAnalysis): string {
   return thesis.language === "pt" ? "Brazilian Portuguese" : thesis.language === "en" ? "English" : "Spanish";
 }
 
-function thesisNotesFor(thesis: ThesisAnalysis): string {
+export function thesisNotesFor(thesis: ThesisAnalysis): string {
   return [
     `Title: ${thesis.title}`,
     `Problem: ${thesis.ficha.problem.text}`,

@@ -23,6 +23,7 @@ import { useVoice } from "@/hooks/useVoice";
 import { isThesisSection, thesisPath, type ThesisSection } from "@/lib/spaces";
 import { SCENARIO_OPTIONS, scenarioForDegree, type DefenseScenario } from "@/lib/defense-scenarios";
 import { ThesisSlides } from "./ThesisSlides";
+import { ThesisDemo } from "./ThesisDemo";
 import { pendingThesisName, takePendingThesis } from "@/lib/pending-thesis";
 import { ThesisStudy } from "./ThesisStudy";
 import { DefenseDate } from "./DefenseDate";
@@ -506,6 +507,7 @@ function Diagnosis({
       {tab === "ensayar" && (
         <>
           <Rehearse thesis={thesis} onChange={onChange} />
+          <ThesisDemo thesis={thesis} onChange={onChange} />
           {thesis.defenseDate && (
             <details className="group rounded-2xl bg-surface-card shadow-card">
               <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-cream-bright">
