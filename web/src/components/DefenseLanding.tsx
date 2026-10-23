@@ -11,7 +11,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { savePendingThesis } from "@/lib/pending-thesis";
 import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
-import { Lede, Screen, Title, Wrap } from "./marketing";
+import { Chip, IconTile, Inset, Lede, MonoLabel, Screen, Title, Widget, Wrap } from "./marketing";
 
 /** The same footage as the interview landing; `VITE_HERO_VIDEO` overrides both. */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
@@ -33,6 +33,16 @@ const HERO_POSTER = "/hero-2.jpg";
  * defence screens; any other interface language reads the English.
  */
 const ES = {
+  lblProduct: "El producto",
+  lblCall: "La videollamada",
+  lblHow: "Cómo funciona",
+  lblDiag: "Diagnóstico",
+  lblJury: "Tu jurado",
+  lblPlan: "Tu plan",
+  lblMore: "Además",
+  lblScenarios: "Escenarios",
+  lblPrivacy: "Privacidad",
+  lblPricing: "Precios",
   docTitle: "Mockio — Ensaya tu sustentación de tesis con un jurado de 3",
   navProduct: "El jurado",
   navHow: "Cómo funciona",
@@ -173,6 +183,16 @@ const ES = {
 type Key = keyof typeof ES;
 
 const PT: Record<Key, string> = {
+  lblProduct: "O produto",
+  lblCall: "A videochamada",
+  lblHow: "Como funciona",
+  lblDiag: "Diagnóstico",
+  lblJury: "Sua banca",
+  lblPlan: "Seu plano",
+  lblMore: "Além disso",
+  lblScenarios: "Cenários",
+  lblPrivacy: "Privacidade",
+  lblPricing: "Preços",
   docTitle: "Mockio — Ensaie sua defesa com uma banca de 3",
   navProduct: "A banca",
   navHow: "Como funciona",
@@ -311,6 +331,16 @@ const PT: Record<Key, string> = {
 };
 
 const EN: Record<Key, string> = {
+  lblProduct: "The product",
+  lblCall: "The video call",
+  lblHow: "How it works",
+  lblDiag: "Diagnosis",
+  lblJury: "Your panel",
+  lblPlan: "Your plan",
+  lblMore: "And more",
+  lblScenarios: "Scenarios",
+  lblPrivacy: "Privacy",
+  lblPricing: "Pricing",
   docTitle: "Mockio — Rehearse your thesis defence with a panel of three",
   navProduct: "The panel",
   navHow: "How it works",
@@ -679,26 +709,30 @@ function PlanScreen({ c, locale }: { c: Record<Key, string>; locale: string }) {
 
 /** One feature: words on one side, the product on the other. */
 function Feature({
+  label,
   title,
   body,
   screen,
   flip = false,
 }: {
+  label: string;
   title: string;
   body: string;
   screen: React.ReactNode;
   flip?: boolean;
 }) {
   return (
-    <div className="grid items-center gap-10 py-16 md:grid-cols-2 md:gap-16 md:py-24 [&>*]:min-w-0">
-      <FadeRise className={flip ? "md:order-2" : ""}>
-        <h3 className="text-balance text-[clamp(1.75rem,3.2vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-cream-bright">
-          {title}
-        </h3>
-        <p className="mt-4 max-w-md text-pretty text-lg leading-relaxed text-cream-dim">{body}</p>
+    <div className="grid items-stretch gap-3 md:grid-cols-2 [&>*]:min-w-0">
+      <FadeRise className={`h-full ${flip ? "md:order-2" : ""}`}>
+        <Widget label={label} className="h-full justify-center">
+          <h3 className="text-balance text-[clamp(1.75rem,3.2vw,2.5rem)] font-light leading-[1.08] tracking-[-0.04em] text-cream-bright">
+            {title}
+          </h3>
+          <p className="max-w-md text-pretty text-lg leading-relaxed text-cream-dim">{body}</p>
+        </Widget>
       </FadeRise>
       <FadeRise delay={0.08} className={flip ? "md:order-1" : ""}>
-        {screen}
+        <Widget>{screen}</Widget>
       </FadeRise>
     </div>
   );
@@ -822,64 +856,75 @@ export function DefenseLanding() {
         </Wrap>
       </section>
 
-      {/* 2. Whose format: the strip a product page shows its customers in,
-          made of something true — the countries the panel follows. */}
-      <section className="border-b border-[color:var(--line)]">
-        <Wrap className="flex flex-col gap-3 py-8 md:flex-row md:items-center md:gap-10">
-          <p className="shrink-0 text-sm text-cream-dim">{c.countries}</p>
-          <ul className="flex flex-wrap gap-x-7 gap-y-2">
+      {/* 2. Whose format: the countries the panel follows, as peach chips. */}
+      <section className="py-8">
+        <Wrap className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+          <MonoLabel className="shrink-0">{c.countries}</MonoLabel>
+          <ul className="flex flex-wrap gap-2">
             {countries.map((name) => (
-              <li key={name} className="text-base font-semibold tracking-[-0.01em] text-cream-faint">
-                {name}
+              <li key={name}>
+                <Chip>{name}</Chip>
               </li>
             ))}
           </ul>
         </Wrap>
       </section>
 
-      {/* 3. The product itself: the call and the record, Stripe-style. */}
-      <section id="panel" className="scroll-mt-16 py-20 md:py-32">
-        <Wrap className="grid items-center gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-20">
-          <FadeRise>
-            <Title>{c.prodTitle}</Title>
-            <Lede className="mt-5 max-w-lg">{c.prodBody}</Lede>
-            <ul className="mt-8 max-w-lg divide-y divide-[color:var(--line)] border-y border-[color:var(--line)]">
-              {[c.prod1, c.prod2, c.prod3].map((item) => (
-                <li key={item} className="flex items-start gap-3 py-3.5 text-base text-cream-bright">
-                  <Check aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent-text" strokeWidth={2.5} />
-                  {item}
-                </li>
-              ))}
-            </ul>
+      {/* 3. The product itself, as a dashboard: what it is beside the call
+          and the record. Widgets on the page, the way the app draws them. */}
+      <section id="panel" className="scroll-mt-16 py-12 md:py-20">
+        <Wrap className="grid items-start gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <FadeRise className="h-full">
+            <Widget label={c.lblProduct} className="h-full">
+              <Title>{c.prodTitle}</Title>
+              <Lede>{c.prodBody}</Lede>
+              <ul className="mt-auto flex flex-col gap-2">
+                {[c.prod1, c.prod2, c.prod3].map((item, index) => (
+                  <li key={item}>
+                    <Inset className="flex items-center gap-3 p-3">
+                      <IconTile>0{index + 1}</IconTile>
+                      <span className="text-base text-cream-bright">{item}</span>
+                    </Inset>
+                  </li>
+                ))}
+              </ul>
+            </Widget>
           </FadeRise>
-          <FadeRise delay={0.1} className="relative sm:pb-10 lg:pb-0 lg:pr-10">
-            <CallScreen c={c} />
-            {/* Overlapping the call's corner on a wide screen; on a phone it
-                only tucks under the edge, so the question stays readable. */}
-            <div className="relative -mt-5 ml-auto w-fit sm:absolute sm:-bottom-2 sm:-right-4 sm:mt-0 lg:-bottom-12 lg:-right-2">
-              <ActaScreen c={c} />
-            </div>
+          <FadeRise delay={0.1}>
+            <Widget label={c.lblCall}>
+              <div className="relative sm:pb-10">
+                <CallScreen c={c} />
+                <div className="relative -mt-5 ml-auto w-fit sm:absolute sm:-bottom-2 sm:right-3 sm:mt-0">
+                  <ActaScreen c={c} />
+                </div>
+              </div>
+            </Widget>
           </FadeRise>
         </Wrap>
       </section>
 
-      {/* 4. How it works: three numbered columns on a hairline, no icons. */}
-      <section id="how" className="scroll-mt-16 bg-surface-deep py-20 md:py-28">
+      {/* 4. How it works: three trail-info tiles, a number in an amber square. */}
+      <section id="how" className="scroll-mt-16 py-12 md:py-20">
         <Wrap>
           <FadeRise>
-            <Title className="max-w-2xl">{c.howTitle}</Title>
+            <MonoLabel>{c.lblHow}</MonoLabel>
+            <Title className="mt-3 max-w-2xl">{c.howTitle}</Title>
           </FadeRise>
-          <ol className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+          <ol className="mt-8 grid gap-3 md:grid-cols-3">
             {[
               { title: c.step1Title, body: c.step1Body },
               { title: c.step2Title, body: c.step2Body },
               { title: c.step3Title, body: c.step3Body },
             ].map((step, index) => (
               <li key={step.title} className="min-w-0">
-                <FadeRise delay={index * 0.06} className="border-t border-[color:var(--line-strong)] pt-6">
-                  <span className="text-sm font-semibold tabular-nums text-cream-faint">0{index + 1}</span>
-                  <h3 className="mt-3 text-2xl font-semibold tracking-[-0.02em] text-cream-bright">{step.title}</h3>
-                  <p className="mt-2 text-pretty text-base leading-relaxed text-cream-dim">{step.body}</p>
+                <FadeRise delay={index * 0.06} className="h-full">
+                  <Widget className="h-full">
+                    <Inset className="flex flex-col gap-4">
+                      <IconTile>0{index + 1}</IconTile>
+                      <h3 className="text-2xl font-light tracking-[-0.03em] text-cream-bright">{step.title}</h3>
+                    </Inset>
+                    <p className="text-pretty text-base leading-relaxed text-cream-dim">{step.body}</p>
+                  </Widget>
                 </FadeRise>
               </li>
             ))}
@@ -887,155 +932,166 @@ export function DefenseLanding() {
         </Wrap>
       </section>
 
-      {/* 5. Three features, one screen each, alternating sides. */}
+      {/* 5. Three features, each a widget with its screen inside. */}
       <section className="py-4 md:py-8">
-        <Wrap className="divide-y divide-[color:var(--line)]">
-          <Feature title={c.diagTitle} body={c.diagBody} screen={<DiagnosisScreen c={c} />} />
-          <Feature title={c.juryTitle} body={c.juryBody} screen={<JuryScreen c={c} />} flip />
-          <Feature title={c.planTitle} body={c.planBody} screen={<PlanScreen c={c} locale={locale} />} />
+        <Wrap className="flex flex-col gap-3">
+          <Feature label={c.lblDiag} title={c.diagTitle} body={c.diagBody} screen={<DiagnosisScreen c={c} />} />
+          <Feature label={c.lblJury} title={c.juryTitle} body={c.juryBody} screen={<JuryScreen c={c} />} flip />
+          <Feature label={c.lblPlan} title={c.planTitle} body={c.planBody} screen={<PlanScreen c={c} locale={locale} />} />
         </Wrap>
       </section>
 
-      {/* 6. The rest, as a quiet four-up list rather than more cards. */}
-      <section className="border-t border-[color:var(--line)] py-20 md:py-24">
+      {/* 6. The rest: four small widgets. */}
+      <section className="py-12 md:py-20">
         <Wrap>
           <FadeRise>
-            <h2 className="text-2xl font-semibold tracking-[-0.02em] text-cream-bright sm:text-3xl">{c.moreTitle}</h2>
+            <MonoLabel>{c.lblMore}</MonoLabel>
+            <h2 className="mt-3 text-3xl font-light tracking-[-0.04em] text-cream-bright sm:text-4xl">{c.moreTitle}</h2>
           </FadeRise>
-          <dl className="mt-10 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { title: c.more1Title, body: c.more1Body },
               { title: c.more2Title, body: c.more2Body },
               { title: c.more3Title, body: c.more3Body },
               { title: c.more4Title, body: c.more4Body },
             ].map((item, index) => (
-              <FadeRise key={item.title} delay={index * 0.05}>
-                <dt className="text-base font-semibold text-cream-bright">{item.title}</dt>
-                <dd className="mt-1 text-pretty text-base text-cream-dim">{item.body}</dd>
+              <FadeRise key={item.title} delay={index * 0.05} className="h-full">
+                <Widget className="h-full">
+                  <dt className="text-lg font-medium tracking-[-0.01em] text-cream-bright">{item.title}</dt>
+                  <dd className="text-pretty text-base text-cream-dim">{item.body}</dd>
+                </Widget>
               </FadeRise>
             ))}
           </dl>
         </Wrap>
       </section>
 
-      {/* 7. Degrees and levels: a table, the way a spec sheet reads. */}
-      <section id="scenarios" className="scroll-mt-16 bg-surface-deep py-20 md:py-28">
-        <Wrap className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
-          <FadeRise>
-            <Title>{c.scenTitle}</Title>
-            <Lede className="mt-5 max-w-md">{c.scenSub}</Lede>
+      {/* 7. Degrees and levels: rows in an inset, the levels as a tab bar. */}
+      <section id="scenarios" className="scroll-mt-16 py-12 md:py-20">
+        <Wrap className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <FadeRise className="h-full">
+            <Widget label={c.lblScenarios} className="h-full">
+              <Title>{c.scenTitle}</Title>
+              <Lede>{c.scenSub}</Lede>
+            </Widget>
           </FadeRise>
           <FadeRise delay={0.08}>
-            <ul className="divide-y divide-[color:var(--line)] border-y border-[color:var(--line)]">
-              {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((scenario) => (
-                <li key={scenario} className="flex items-baseline justify-between gap-4 py-4">
-                  <span className="text-lg font-semibold tracking-[-0.01em] text-cream-bright">{c[`sc_${scenario}` as Key]}</span>
-                  <span className="shrink-0 text-sm tabular-nums text-cream-dim">
-                    {c.scenMeta
-                      .replace("{minutes}", String(SCENARIO_OPTIONS[scenario].exposition))
-                      .replace("{questions}", String(SCENARIO_OPTIONS[scenario].questions))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-10 text-sm font-semibold text-cream-dim">{c.levelsTitle}</p>
-            <div className="mt-3 grid grid-cols-2 gap-1 rounded-2xl bg-surface-lift p-1 sm:grid-cols-4">
-              {[c.lv1, c.lv2, c.lv3, c.lv4].map((level, index) => (
-                <div
-                  key={level}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${
-                    index === 1 ? "bg-surface-card text-cream-bright shadow-card" : "text-cream-dim"
-                  }`}
-                >
-                  <span aria-hidden className="flex items-end gap-0.5">
-                    {[0, 1, 2, 3].map((bar) => (
-                      <span
-                        key={bar}
-                        className={`w-1 rounded-sm ${bar <= index ? (index === 3 ? "bg-step" : "bg-grow-text") : "bg-cream-faint/30"}`}
-                        style={{ height: `${6 + bar * 3}px` }}
-                      />
-                    ))}
-                  </span>
-                  {level}
-                </div>
-              ))}
+            <Widget>
+              <ul className="flex flex-col gap-2">
+                {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((scenario) => (
+                  <li key={scenario}>
+                    <Inset className="flex items-baseline justify-between gap-4 px-4 py-3">
+                      <span className="text-lg font-medium tracking-[-0.01em] text-cream-bright">{c[`sc_${scenario}` as Key]}</span>
+                      <span className="shrink-0 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
+                        {c.scenMeta
+                          .replace("{minutes}", String(SCENARIO_OPTIONS[scenario].exposition))
+                          .replace("{questions}", String(SCENARIO_OPTIONS[scenario].questions))}
+                      </span>
+                    </Inset>
+                  </li>
+                ))}
+              </ul>
+              <MonoLabel className="mt-2">{c.levelsTitle}</MonoLabel>
+              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-surface-lift p-1 sm:grid-cols-4">
+                {[c.lv1, c.lv2, c.lv3, c.lv4].map((level, index) => (
+                  <div
+                    key={level}
+                    className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-mono text-xs font-medium uppercase tracking-[0.06em] ${
+                      index === 1 ? "bg-[#FBD06A] text-[#2E2D2A]" : "text-cream-dim"
+                    }`}
+                  >
+                    <span aria-hidden className="flex items-end gap-0.5">
+                      {[0, 1, 2, 3].map((bar) => (
+                        <span
+                          key={bar}
+                          className={`w-1 rounded-sm ${bar <= index ? "bg-current" : "bg-current opacity-25"}`}
+                          style={{ height: `${6 + bar * 3}px` }}
+                        />
+                      ))}
+                    </span>
+                    {level}
+                  </div>
+                ))}
+              </div>
+            </Widget>
+          </FadeRise>
+        </Wrap>
+      </section>
+
+      {/* 8. The one claim that has to land: an ink widget with amber checks. */}
+      <section className="py-12 md:py-20">
+        <Wrap>
+          <FadeRise>
+            <div className="grid gap-8 rounded-[1.375rem] bg-[#2E2D2A] p-6 text-[#F4F0E9] sm:p-10 md:grid-cols-2">
+              <div>
+                <p className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-[#FBD06A]">
+                  <span aria-hidden className="tracking-[-0.1em]">::</span>
+                  {c.lblPrivacy}
+                </p>
+                <h2 className="mt-3 text-balance text-[clamp(2.25rem,5vw,4rem)] font-light leading-[1.02] tracking-[-0.045em]">
+                  {c.privacyTitle}
+                </h2>
+                <p className="mt-5 max-w-md text-pretty text-lg leading-relaxed opacity-75">{c.privacyNote}</p>
+              </div>
+              <ul className="flex flex-col gap-2 self-end">
+                {[c.privacy1, c.privacy2, c.privacy3].map((item) => (
+                  <li key={item} className="flex items-center gap-4 rounded-2xl bg-white/[0.06] px-4 py-4 text-lg">
+                    <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#F6B733] text-[#2E2D2A]">
+                      <Check className="h-4 w-4" strokeWidth={2.5} />
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </FadeRise>
         </Wrap>
       </section>
 
-      {/* 8. The one claim that has to land, in a band of its own — Uber's
-          black, which inverts with the theme. */}
-      <section className="bg-cream-bright text-surface-base">
-        <Wrap className="grid gap-10 py-20 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:py-28">
-          <FadeRise>
-            <h2 className="text-balance text-[clamp(2.25rem,5vw,4rem)] font-semibold leading-[1.02] tracking-[-0.04em]">
-              {c.privacyTitle}
-            </h2>
-            <p className="mt-5 max-w-md text-pretty text-lg leading-relaxed opacity-70">{c.privacyNote}</p>
-          </FadeRise>
-          <FadeRise delay={0.08}>
-            <ul className="divide-y divide-surface-base/15 border-y border-surface-base/15">
-              {[c.privacy1, c.privacy2, c.privacy3].map((item) => (
-                <li key={item} className="flex items-center gap-4 py-5 text-xl font-semibold tracking-[-0.015em]">
-                  <Check aria-hidden className="h-5 w-5 shrink-0" strokeWidth={2.5} />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </FadeRise>
-        </Wrap>
-      </section>
-
-      {/* 9. Pricing: three columns on hairlines, the middle one marked. */}
-      <section id="pricing" className="scroll-mt-16 py-20 md:py-32">
+      {/* 9. Pricing: three widgets, the middle one in amber. */}
+      <section id="pricing" className="scroll-mt-16 py-12 md:py-20">
         <Wrap>
           <FadeRise className="max-w-2xl">
-            <Title>{c.pricingTitle}</Title>
+            <MonoLabel>{c.lblPricing}</MonoLabel>
+            <Title className="mt-3">{c.pricingTitle}</Title>
             <Lede className="mt-4">{c.pricingSub}</Lede>
           </FadeRise>
-          <div className="mt-14 grid gap-4 lg:grid-cols-3 [&>*]:min-w-0">
+          <div className="mt-8 grid gap-3 lg:grid-cols-3 [&>*]:min-w-0">
             {[
               { name: c.freeName, price: c.freePrice, unit: c.freeUnit, items: [c.free1, c.free2, c.free3], cta: c.freeCta, featured: false },
               { name: c.packName, price: c.packPrice, unit: c.packUnit, items: [c.pack1, c.pack2, c.pack3, c.pack4], cta: c.packCta, featured: true },
               { name: c.intName, price: c.intPrice, unit: c.intUnit, items: [c.int1, c.int2, c.int3], cta: c.intCta, featured: false },
             ].map((plan, index) => (
               <FadeRise key={plan.name} delay={index * 0.06} className="h-full">
-                <div
-                  className={`flex h-full flex-col rounded-card p-7 sm:p-8 ${
-                    plan.featured
-                      ? "bg-surface-card shadow-float ring-2 ring-cream-bright"
-                      : "ring-1 ring-[color:var(--line)]"
-                  }`}
-                >
+                <Widget className={`h-full ${plan.featured ? "!ring-2 !ring-accent" : ""}`}>
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-lg font-semibold text-cream-bright">{plan.name}</h3>
-                    {plan.featured && (
-                      <span className="rounded-full bg-cream-bright px-2.5 py-0.5 text-xs font-semibold text-surface-base">{c.packBadge}</span>
-                    )}
+                    <MonoLabel>{plan.name}</MonoLabel>
+                    {plan.featured && <Chip className="!bg-[#FBD06A]">{c.packBadge}</Chip>}
                   </div>
-                  <p className="mt-5 flex items-baseline gap-2">
-                    <span className="text-5xl font-semibold tracking-[-0.04em] tabular-nums text-cream-bright">{plan.price}</span>
-                    <span className="text-sm text-cream-dim">{plan.unit}</span>
-                  </p>
-                  <ul className="mt-6 flex flex-1 flex-col gap-3 border-t border-[color:var(--line)] pt-6">
+                  <Inset>
+                    <p className="flex items-baseline gap-2">
+                      <span className="text-5xl font-light tracking-[-0.045em] tabular-nums text-cream-bright">{plan.price}</span>
+                      <span className="font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">{plan.unit}</span>
+                    </p>
+                  </Inset>
+                  <ul className="flex flex-1 flex-col gap-3">
                     {plan.items.map((item) => (
                       <li key={item} className="flex gap-3 text-base text-cream">
-                        <Check aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-cream-bright" strokeWidth={2.5} />
+                        <Check aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-text" strokeWidth={2.5} />
                         {item}
                       </li>
                     ))}
                   </ul>
-                  <Link to={start} className="mt-8 self-start">
-                    <Action tone={plan.featured ? "solid" : "glass"} withArrow={plan.featured}>
+                  <Link to={start} className="mt-2 self-start">
+                    <Action tone={plan.featured ? "solid" : "quiet"} withArrow={plan.featured}>
                       {plan.cta}
                     </Action>
                   </Link>
-                </div>
+                </Widget>
               </FadeRise>
             ))}
           </div>
-          <div className="mt-8 flex flex-col gap-2 text-sm text-cream-dim">
+          <div className="mt-6 flex flex-col gap-2 text-sm text-cream-dim">
             <p className="text-cream">{c.passes}</p>
             <p>{c.giftLine}</p>
             <p className="max-w-3xl text-xs">{c.legal}</p>
@@ -1043,65 +1099,44 @@ export function DefenseLanding() {
         </Wrap>
       </section>
 
-      {/* 10. The people around the student, as three plain columns. */}
-      <section className="border-t border-[color:var(--line)] py-16 md:py-20">
-        <Wrap className="grid gap-10 md:grid-cols-3 md:gap-8">
+      {/* 10. The people around the student: three widgets. */}
+      <section className="py-12 md:py-16">
+        <Wrap className="grid gap-3 md:grid-cols-3">
           {[
-            {
-              title: c.advisorTitle,
-              body: c.advisorBody,
-              link: (
-                <Link to="/afiliados" className={textLink}>
-                  {c.advisorCta}
-                  <ArrowRight aria-hidden className={arrow} />
-                </Link>
-              ),
-            },
-            {
-              title: c.institutionTitle,
-              body: c.institutionBody,
-              link: (
-                <Link to="/instituciones" className={textLink}>
-                  {c.institutionCta}
-                  <ArrowRight aria-hidden className={arrow} />
-                </Link>
-              ),
-            },
-            {
-              title: c.ladderTitle,
-              body: c.ladderBody,
-              link: (
-                <Link to="/entrevistas" className={textLink}>
-                  {c.ladderCta}
-                  <ArrowRight aria-hidden className={arrow} />
-                </Link>
-              ),
-            },
+            { title: c.advisorTitle, body: c.advisorBody, to: "/afiliados", cta: c.advisorCta },
+            { title: c.institutionTitle, body: c.institutionBody, to: "/instituciones", cta: c.institutionCta },
+            { title: c.ladderTitle, body: c.ladderBody, to: "/entrevistas", cta: c.ladderCta },
           ].map((item, index) => (
-            <FadeRise key={item.title} delay={index * 0.05} className="flex flex-col items-start gap-2">
-              <h2 className="text-lg font-semibold text-cream-bright">{item.title}</h2>
-              <p className="text-pretty text-base text-cream-dim">{item.body}</p>
-              <div className="mt-2">{item.link}</div>
+            <FadeRise key={item.title} delay={index * 0.05} className="h-full">
+              <Widget label={item.title} className="h-full">
+                <p className="flex-1 text-pretty text-base text-cream-dim">{item.body}</p>
+                <Link to={item.to} className={textLink}>
+                  {item.cta}
+                  <ArrowRight aria-hidden className={arrow} />
+                </Link>
+              </Widget>
             </FadeRise>
           ))}
         </Wrap>
       </section>
 
-      {/* 11. The close: one sentence and the way in. */}
-      <section className="bg-surface-deep py-24 md:py-36">
+      {/* 11. The close: one amber card with the way in. */}
+      <section className="pb-16 pt-6 md:pb-24">
         <Wrap>
-          <FadeRise className="flex flex-col items-start gap-8 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-3xl">
-              <h2 className="text-balance text-[clamp(2.25rem,5.5vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.045em] text-cream-bright">
-                {c.finalTitle}
-              </h2>
-              <Lede className="mt-5 max-w-xl">{c.finalSub}</Lede>
+          <FadeRise>
+            <div className="flex flex-col items-start gap-8 rounded-[1.375rem] bg-accent p-6 text-[#2E2D2A] sm:p-10 md:flex-row md:items-end md:justify-between">
+              <div className="max-w-3xl">
+                <h2 className="text-balance text-[clamp(2.25rem,5.5vw,4.5rem)] font-light leading-[1.02] tracking-[-0.045em]">
+                  {c.finalTitle}
+                </h2>
+                <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed opacity-80">{c.finalSub}</p>
+              </div>
+              <Magnet padding={70} magnetStrength={4} wrapperClassName="shrink-0">
+                <Action tone="neutral" withArrow onClick={pick} className="px-7 py-3.5 text-base">
+                  {c.cta}
+                </Action>
+              </Magnet>
             </div>
-            <Magnet padding={70} magnetStrength={4} wrapperClassName="shrink-0">
-              <Action withArrow onClick={pick} className="px-7 py-3.5 text-base">
-                {c.cta}
-              </Action>
-            </Magnet>
           </FadeRise>
         </Wrap>
       </section>

@@ -75,7 +75,7 @@ export function applyTheme(theme: Theme, root: HTMLElement): void {
   // The phone's status bar, which follows `theme-color` rather than the page.
   // Both tags get the chosen theme's colour: a theme picked in the app
   // overrides the OS scheme the tags were written for.
-  const bar = theme === "light" ? "#ffffff" : "#000000";
+  const bar = theme === "light" ? "#F4F0E9" : "#141311";
   root.ownerDocument
     ?.querySelectorAll('meta[name="theme-color"]')
     .forEach((tag) => tag.setAttribute("content", bar));

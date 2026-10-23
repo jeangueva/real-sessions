@@ -126,7 +126,7 @@ export function ThesisDemo({ thesis, onChange }: { thesis: StoredThesis; onChang
           <button
             type="button"
             onClick={() => (playing ? stop() : void play(current !== null && current < lines.length - 1 ? current : 0))}
-            className="focus-ring inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-card transition-transform duration-150 active:scale-[0.97]"
+            className="focus-ring inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-card transition-transform duration-150 active:scale-[0.97]"
           >
             {playing ? <Pause aria-hidden className="h-4 w-4" /> : <Play aria-hidden className="h-4 w-4" />}
             {playing ? t("demoPause") : current === null ? t("demoPlay") : t("demoResume")}

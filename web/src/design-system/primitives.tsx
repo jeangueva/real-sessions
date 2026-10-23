@@ -24,21 +24,20 @@ interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const TONE: Record<Tone, string> = {
   // Disabled is grey, Apple's way, rather than the accent at 40%: a pale
   // violet pill still reads as "press me", just faintly.
-  // Duolingo's key: a darker edge underneath that the button sinks into on
-  // press. The press is a translate the height of the edge, so the face
-  // lands exactly where the edge was — it reads as pushed, not as shrunk.
+  // Flat, the trail-dashboard way: no edge and no shadow under anything.
+  // The press is a small scale, which answers the finger without pretending
+  // the button has depth.
   solid:
-    "bg-accent text-accent-ink shadow-[0_4px_0_rgb(var(--accent-depth))] hover:brightness-110 active:translate-y-[4px] active:shadow-[0_0_0_rgb(var(--accent-depth))] disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100 disabled:shadow-none",
+    "bg-accent text-accent-ink hover:brightness-105 active:scale-[0.97] disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100",
   neutral:
-    "bg-cream-bright text-surface-base shadow-[0_4px_0_rgb(0_0_0/0.35)] hover:bg-cream-bright/90 active:translate-y-[4px] active:shadow-none",
-  // The pressed edge of `solid`, drawn in the hairline colour instead of the
-  // accent, so it reads as the same family of control at a lower volume. A
-  // busy quiet button (a sign-in popup open) dims less than the default 40%:
-  // it is waiting, not unavailable.
+    "bg-cream-bright text-surface-base hover:bg-cream-bright/90 active:scale-[0.97]",
+  // The same family of control at a lower volume: a hairline instead of a fill.
+  // A busy quiet button (a sign-in popup open) dims less than the default
+  // 40%: it is waiting, not unavailable.
   quiet:
-    "bg-surface-card text-cream-bright shadow-[inset_0_0_0_1px_var(--line-strong),0_4px_0_var(--line-strong)] hover:bg-surface-lift active:translate-y-[4px] active:shadow-[inset_0_0_0_1px_var(--line-strong)] disabled:opacity-70",
+    "bg-surface-card text-cream-bright shadow-[inset_0_0_0_1px_var(--line-strong)] hover:bg-surface-lift active:scale-[0.97] disabled:opacity-70",
   glass:
-    "liquid-glass text-cream-bright shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)] hover:bg-surface-lift active:translate-y-[3px] active:shadow-[inset_0_0_0_1px_var(--line)]",
+    "liquid-glass text-cream-bright shadow-[inset_0_0_0_1px_var(--line)] hover:bg-surface-lift active:scale-[0.97]",
   ghost: "text-cream-dim hover:bg-surface-lift hover:text-cream-bright",
 };
 
@@ -78,13 +77,11 @@ export function Action({
 }
 
 /**
- * A panel's own label: "General", "Qué funcionó", "Tu cuenta".
+ * A panel's own label: "::GENERAL", "::QUÉ FUNCIONÓ", "::TU CUENTA".
  *
- * Ink, in weight, never spaced caps. It used to be the accent, which put the
- * colour that means "the way forward" on every label of every panel — a
- * report with six of them had six violet words and no way to tell which one
- * was the action. Not a kicker above a heading either: a heading carries its
- * own weight, so where one follows, this is left out.
+ * The instrument voice of the trail-dashboard look: mono, uppercase, a little
+ * tracking, with a tight "::" in front. Ink at reading strength rather than
+ * the accent, so the colour that means "the way forward" stays on the action.
  */
 export function Eyebrow({
   children,
@@ -94,7 +91,8 @@ export function Eyebrow({
   className?: string;
 }) {
   return (
-    <p className={`text-sm font-semibold text-cream-bright ${className}`}>
+    <p className={`font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim ${className}`}>
+      <span aria-hidden className="tracking-[-0.1em]">::</span>
       {children}
     </p>
   );

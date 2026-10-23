@@ -32,27 +32,27 @@
      * (#1C1C1E, #2C2C2E) read as surfaces rather than as fog. The ink is a
      * cool off-white so nothing on the page looks yellowed next to the accent.
      */
-    --cream: 245 245 247;
-    --cream-bright: 250 250 252;
-    --surface-base: 0 0 0;
-    --surface-raised: 22 22 24;
-    --surface-card: 28 28 30;
+    --cream: 240 236 228;
+    --cream-bright: 250 247 241;
+    --surface-base: 20 19 17;
+    --surface-raised: 32 31 28;
+    --surface-card: 38 37 33;
     /* The signed-in ground: a step off black, so cards on it still lift. */
-    --surface-deep: 12 12 13;
+    --surface-deep: 14 13 12;
     /* Recessed panels inside a surface — transcript, call stage. */
     --surface-sunken: 0 0 0;
     --surface-sunken-alpha: 0.32;
     /* A barely-there lift, for a row that is hovered or selected. */
     --surface-lift: 255 255 255;
     --surface-lift-alpha: 0.07;
-    --line: rgba(245, 245, 247, 0.12);
+    --line: rgba(240, 236, 228, 0.12);
     /* 0.42 is the lowest that clears 3:1 against every dark surface. */
-    --line-strong: rgba(245, 245, 247, 0.42);
+    --line-strong: rgba(240, 236, 228, 0.42);
     --scrim: rgba(0, 0, 0, 0.6);
 
     /* Shadows barely register on black; the hairline does the separating. */
     --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06);
-    --shadow-lift: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.5);
+    --shadow-lift: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.45);
     --shadow-float: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 64px rgba(0, 0, 0, 0.6);
 
     /**
@@ -73,20 +73,20 @@
      * 4.0:1 on a `surface-lift` row inside a card (#2C2C2E), the one dark
      * surface it failed on. This one clears 4.7:1 there and 5.7:1 on a card.
      */
-    --accent: 94 92 230;
-    --accent-ink: 255 255 255;
-    --accent-text: 140 137 255;
-    --accent-soft: 30 30 62;
+    --accent: 246 183 51;
+    --accent-ink: 46 45 42;
+    --accent-text: 251 208 106;
+    --accent-soft: 62 47 14;
     /* The darker edge under a primary button — the key's side, Duolingo-style. */
-    --accent-depth: 58 56 168;
+    --accent-depth: 196 138 18;
     --grow: 48 209 88;
     --grow-text: 48 209 88;
     --grow-soft: 16 44 26;
     --step: 255 159 10;
     --step-text: 255 159 10;
     --step-soft: 56 38 8;
-    --premium: 255 204 0;
-    --premium-soft: 58 46 8;
+    --premium: 160 150 255;
+    --premium-soft: 40 36 70;
   }
 
   /**
@@ -98,36 +98,33 @@
    * sits on #F5F5F7 so white cards on it read as cards without a border.
    */
   :root[data-theme="light"] {
-    --cream: 29 29 31;
-    --cream-bright: 17 17 19;
-    --surface-base: 255 255 255;
-    --surface-raised: 255 255 255;
-    --surface-card: 255 255 255;
-    --surface-deep: 245 245 247;
-    --surface-sunken: 29 29 31;
+    --cream: 34 33 30;
+    --cream-bright: 26 25 23;
+    --surface-base: 239 235 227;
+    --surface-raised: 244 240 233;
+    --surface-card: 244 240 233;
+    --surface-deep: 234 230 222;
+    --surface-sunken: 46 45 42;
     --surface-sunken-alpha: 0.04;
-    --surface-lift: 29 29 31;
-    --surface-lift-alpha: 0.05;
-    --line: rgba(29, 29, 31, 0.11);
+    --surface-lift: 46 45 42;
+    --surface-lift-alpha: 0.06;
+    --line: rgba(46, 45, 42, 0.11);
     /* The light surfaces are brighter, so the same rule costs more alpha. */
-    --line-strong: rgba(29, 29, 31, 0.49);
-    --scrim: rgba(29, 29, 31, 0.32);
+    --line-strong: rgba(46, 45, 42, 0.58);
+    --scrim: rgba(46, 45, 42, 0.32);
 
     /* Airbnb's card: a hairline you barely see and a wide, soft fall-off. */
-    --shadow-card: 0 0 0 1px rgba(29, 29, 31, 0.06), 0 2px 4px rgba(29, 29, 31, 0.04),
-      0 8px 24px rgba(29, 29, 31, 0.06);
-    --shadow-lift: 0 0 0 1px rgba(29, 29, 31, 0.06), 0 6px 12px rgba(29, 29, 31, 0.06),
-      0 18px 40px rgba(29, 29, 31, 0.1);
-    --shadow-float: 0 0 0 1px rgba(29, 29, 31, 0.05), 0 12px 24px rgba(29, 29, 31, 0.08),
-      0 32px 72px rgba(29, 29, 31, 0.14);
+    --shadow-card: 0 0 0 1px rgba(46, 45, 42, 0.06);
+    --shadow-lift: 0 0 0 1px rgba(46, 45, 42, 0.09);
+    --shadow-float: 0 0 0 1px rgba(46, 45, 42, 0.06), 0 12px 32px rgba(46, 45, 42, 0.12);
 
     /* #5856D6 carries white at 5.6:1, reads as text on white at 5.6:1 and on
        #F5F5F7 at 5.2:1. */
-    --accent: 88 86 214;
-    --accent-ink: 255 255 255;
-    --accent-text: 88 86 214;
-    --accent-soft: 238 238 252;
-    --accent-depth: 62 60 170;
+    --accent: 246 183 51;
+    --accent-ink: 46 45 42;
+    --accent-text: 138 92 0;
+    --accent-soft: 251 232 186;
+    --accent-depth: 214 150 20;
     --grow: 52 199 89;
     --grow-text: 30 123 52;
     --grow-soft: 226 246 231;
@@ -135,8 +132,8 @@
     --step-text: 178 80 0;
     --step-soft: 255 243 224;
     /* #A16A00 clears 4.5:1 on white; the crown sits on its own soft wash. */
-    --premium: 161 106 0;
-    --premium-soft: 255 244 204;
+    --premium: 124 108 242;
+    --premium-soft: 234 231 253;
   }
 
   html {
@@ -154,7 +151,7 @@
   body {
     @apply bg-surface-base text-cream-bright antialiased;
     /* Inter's single-storey a and open digits — closer to SF's shapes. */
-    font-feature-settings: "cv11", "ss01";
+    font-feature-settings: "ss01";
   }
 
   /* Headings carry weight, not size alone: hierarchy is weight, size and
@@ -336,17 +333,17 @@
    * nothing about the hero — comes out right.
    */
   .on-media {
-    --cream: 245 245 247;
-    --cream-bright: 250 250 252;
+    --cream: 240 236 228;
+    --cream-bright: 250 247 241;
     --surface-base: 0 0 0;
     --line: rgba(245, 245, 247, 0.14);
     --line-strong: rgba(245, 245, 247, 0.42);
-    --accent: 94 92 230;
-    --accent-ink: 255 255 255;
-    --accent-text: 140 137 255;
+    --accent: 246 183 51;
+    --accent-ink: 46 45 42;
+    --accent-text: 251 208 106;
     /* The idle avatar on a dark stage: a dark indigo disc rather than the
        light theme's near-white wash, which glared off black. */
-    --accent-soft: 30 30 62;
+    --accent-soft: 62 47 14;
   }
 
   /* Liquid glass. The only surface treatment allowed to float over video. */

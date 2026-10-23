@@ -12,10 +12,10 @@
  * index.css as a variable — the theme is a swap, not a rewrite.
  */
 const SANS = [
+  '"Inter Tight"',
+  '"Inter"',
   "-apple-system",
   "BlinkMacSystemFont",
-  '"SF Pro Text"',
-  '"Inter"',
   '"Almarai"',
   "system-ui",
   "sans-serif",
@@ -120,6 +120,9 @@ export default {
         /* The wordmark. Same family, display cut — a logo that is the product's
            own type set tight, the way Apple and Airbnb set theirs. */
         mark: SANS,
+        /* Labels, chips, tabs and figures: the instrument voice, set in
+           uppercase with a little tracking — the trail-dashboard look. */
+        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       fontSize: {
         // The small end of the scale, lifted one step off Tailwind's defaults
@@ -137,8 +140,8 @@ export default {
         // single word and overflowed the column once the name wrapped.
         // Tracking is per size, never one value: large type tightens as it
         // grows, the small end stays at zero. Leading runs the other way.
-        display: ["clamp(3rem, 9vw, 8rem)", { lineHeight: "0.95", letterSpacing: "-0.045em" }],
-        headline: ["clamp(2rem, 4.6vw, 4rem)", { lineHeight: "1.04", letterSpacing: "-0.032em" }],
+        display: ["clamp(3rem, 9vw, 8rem)", { lineHeight: "0.95", letterSpacing: "-0.045em", fontWeight: "300" }],
+        headline: ["clamp(2rem, 4.6vw, 4rem)", { lineHeight: "1.04", letterSpacing: "-0.04em", fontWeight: "300" }],
         title: ["clamp(1.25rem, 2vw, 1.75rem)", { lineHeight: "1.18", letterSpacing: "-0.018em" }],
       },
       borderRadius: { inset: "1.75rem", card: "1.25rem" },

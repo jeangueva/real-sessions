@@ -12,8 +12,8 @@
     <!-- The status bar takes the colour of the top of the page. Two values,
          one per scheme; the script below and theme.ts correct them when the
          theme was chosen in the app rather than by the OS. -->
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F0E9" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141311" />
     <title>Mockio — Ensaya tu sustentación de tesis con un jurado de 3</title>
     <meta
       name="description"
@@ -42,7 +42,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Almarai:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300..700&family=Inter:opsz,wght@14..32,400..700&family=JetBrains+Mono:wght@500&family=Almarai:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <script>
@@ -65,7 +65,7 @@
               window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (light) document.documentElement.setAttribute("data-theme", "light");
           document.documentElement.style.colorScheme = light ? "light" : "dark";
-          var bar = light ? "#ffffff" : "#000000";
+          var bar = light ? "#F4F0E9" : "#141311";
           document.querySelectorAll('meta[name="theme-color"]').forEach(function (tag) {
             tag.setAttribute("content", bar);
           });

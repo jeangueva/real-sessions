@@ -160,7 +160,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
             <button
               type="button"
               onClick={() => void download()}
-              className="focus-ring inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-card transition-transform duration-150 active:scale-[0.97]"
+              className="focus-ring inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-card transition-transform duration-150 active:scale-[0.97]"
             >
               <Download aria-hidden className="h-4 w-4" />
               {t("deckDownload")}
