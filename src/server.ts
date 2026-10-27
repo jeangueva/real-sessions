@@ -2572,7 +2572,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // dropped, so the page opens Mockio in its own tab instead.
       return ltiPage(
         200,
-        `<p style="font-size:1.1rem">Abriendo Mockio…</p><p><a id="go" href="${next}" target="_blank" rel="noopener" style="display:inline-block;margin-top:1rem;padding:.75rem 1.25rem;border-radius:999px;background:#5e5ce6;color:#fff;text-decoration:none;font-weight:600">Abrir Mockio</a></p><script>if(window.top===window.self){location.replace(${JSON.stringify(next)})}</script>`,
+        `<p style="font-size:1.1rem">Abriendo Mockio…</p><p><a id="go" href="${next}" target="_blank" rel="noopener" style="display:inline-block;margin-top:1rem;padding:.75rem 1.25rem;border-radius:999px;background:#f6b733;color:#2e2d2a;text-decoration:none;font-weight:600">Abrir Mockio</a></p><script>if(window.top===window.self){location.replace(${JSON.stringify(next)})}</script>`,
       );
     } catch (error) {
       console.error("[mockio] LTI launch refused:", error);

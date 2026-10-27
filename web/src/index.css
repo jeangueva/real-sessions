@@ -58,20 +58,17 @@
     /**
      * The colours that mean something — three roles, never decoration:
      *
-     *   accent  The way forward. Apple's indigo: confident, nowhere near the
-     *           red of a mistake, and continuous with the violet the brand
-     *           already wore.
+     *   accent  The way forward. Mustard amber, the trail-dashboard look:
+     *           warm, nowhere near the red of a mistake.
      *   grow    Something that got better.
      *   step    Something to work on. Orange, not red: what you said is the
      *           step before the better version, not a wrong answer.
      *
      * Each has an ink for text on its fill (`-ink`), a text shade that clears
      * 4.5:1 on every surface (`-text`), and a soft wash for chips and rows.
-     * On dark the fill and the text part ways: #5E5CE6 carries white at 5:1
-     * but is only 3.4:1 as text on a card, so text takes the lighter step.
-     * That step is #8C89FF rather than #7D7AFF: the older value measured
-     * 4.0:1 on a `surface-lift` row inside a card (#2C2C2E), the one dark
-     * surface it failed on. This one clears 4.7:1 there and 5.7:1 on a card.
+     * Amber is a fill, never text: on cream it is under 2:1, so text in the
+     * accent takes `-text`, a deep amber on light and a pale one on dark,
+     * and the ink on an amber fill is the dark ink, not white.
      */
     --accent: 246 183 51;
     --accent-ink: 46 45 42;
@@ -118,8 +115,7 @@
     --shadow-lift: 0 0 0 1px rgba(46, 45, 42, 0.09);
     --shadow-float: 0 0 0 1px rgba(46, 45, 42, 0.06), 0 12px 32px rgba(46, 45, 42, 0.12);
 
-    /* #5856D6 carries white at 5.6:1, reads as text on white at 5.6:1 and on
-       #F5F5F7 at 5.2:1. */
+    /* Amber fills carry the dark ink; #8A5C00 is the accent as text on cream. */
     --accent: 246 183 51;
     --accent-ink: 46 45 42;
     --accent-text: 138 92 0;
@@ -341,7 +337,7 @@
     --accent: 246 183 51;
     --accent-ink: 46 45 42;
     --accent-text: 251 208 106;
-    /* The idle avatar on a dark stage: a dark indigo disc rather than the
+    /* The idle avatar on a dark stage: a dark amber disc rather than the
        light theme's near-white wash, which glared off black. */
     --accent-soft: 62 47 14;
   }
