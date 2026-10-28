@@ -294,7 +294,7 @@ export function TrailChart({
         {mark && (
           <>
             <line x1={pad} x2={W - pad} y1={y(mark.value)} y2={y(mark.value)} stroke="#F6B733" strokeDasharray="3 4" />
-            <text x={W - pad} y={y(mark.value) - 4} textAnchor="end" className="fill-cream-dim font-mono" fontSize="9">
+            <text x={pad} y={y(mark.value) - 4} className="fill-cream-dim font-mono" fontSize="9">
               {mark.label}
             </text>
           </>

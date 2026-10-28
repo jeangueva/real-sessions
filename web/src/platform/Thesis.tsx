@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
-import { Action, Panel, DisclosureMark, PopIn } from "@/design-system";
+import { AlertTriangle, Clock, FileText, Gavel, Loader2, MessageSquareQuote, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
+import { Action, Panel, DisclosureMark, PopIn, DashWidget, Gauge, StatTile, TopoMap, TrailChart, Well, type MapPin } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import {
   ApiError,
@@ -133,10 +133,12 @@ export function Thesis() {
 
   return (
     <>
+      {/* The thesis is the subject of every section, so its title heads the
+          page in the light display cut, and the section names it underneath. */}
       <PageHeader
-        dense={Boolean(thesis)}
-        title={thesis ? t(TAB_LABEL[section]) : t("title")}
-        meta={thesis ? thesis.analysis.title : t("meta")}
+        compact={Boolean(thesis)}
+        title={thesis ? thesis.analysis.title : t("title")}
+        meta={thesis ? t(TAB_LABEL[section]) : t("meta")}
       />
       <PageBody className={`flex flex-col gap-4 ${thesis ? "!pt-3" : ""} ${thesis && section === "ensayar" ? "!pb-36" : ""}`}>
         {picker}
@@ -1016,17 +1018,38 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     .filter(Boolean)
     .join(" · ");
   const cheapest = offers.find((offer) => offer.kind === "sustentacion");
+  const last = progress.at(-1);
+  const gradeText = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+  /** The weakest points first, at most four, placed on the map by page. */
+  const risks = [...thesis.analysis.risks]
+    .sort((a, b) => ["alta", "media", "baja"].indexOf(a.severity) - ["alta", "media", "baja"].indexOf(b.severity))
+    .slice(0, 4);
+  const riskPins: MapPin[] = [
+    { x: 0.03, y: 0.88, tone: "violet" },
+    ...risks
+      .map((risk, index) => ({ risk, index }))
+      .sort((a, b) => (a.risk.page ?? a.index) - (b.risk.page ?? b.index))
+      .map(({ risk }, order, all) => ({
+        x: 0.18 + (0.78 * (order + 1)) / all.length,
+        y: Math.max(0.08, 0.78 - (0.7 * (order + 1)) / all.length),
+        tone: (risk.severity === "alta" ? "orange" : "ink") as MapPin["tone"],
+        label: risk.issue,
+      })),
+  ];
+  const daysLeft = thesis.defenseDate
+    ? Math.max(0, Math.round((Date.parse(`${thesis.defenseDate}T12:00:00`) - Date.now()) / 86_400_000))
+    : null;
 
   return (
     <>
-      <Panel variant="raised" className="flex flex-col gap-4 p-4 sm:p-5">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-cream-bright">{t("nextTitle")}</h2>
-          <p className="text-sm text-cream-dim">{summary}</p>
-        </div>
-
-        <div className="grid items-start gap-5 xl:grid-cols-2">
-        <section aria-label={t("careerJuryLabel")} className="flex min-w-0 flex-col gap-3 rounded-xl border border-line p-3">
+      {/* The rehearsal as a dashboard: who sits on the panel and where they
+          will press on the left, the next rehearsal and the grade over
+          rehearsals in the middle, how ready and the facts on the right. */}
+      <div className="grid items-start gap-3 lg:grid-cols-12">
+      {/* On a phone the next rehearsal comes first, then how ready, then the
+          panel and the risks; on a wide screen the three sit side by side. */}
+      <div className="order-3 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-4">
+        <DashWidget label={t("assignedJury")}>
           <label htmlFor="career-jury-select" className="text-sm font-semibold text-cream-bright">{t("careerJuryLabel")}</label>
           <select
             id="career-jury-select"
@@ -1067,7 +1090,37 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             ))}
           </ul>
           <RealJuryCard thesis={thesis} onChange={onChange} compact />
-        </section>
+        </DashWidget>
+        {risks.length > 0 && (
+          <DashWidget
+            label={t("dashRisks")}
+            action={
+              <button
+                type="button"
+                onClick={() => navigate("/app/tesis/diagnostico")}
+                className="focus-ring shrink-0 whitespace-nowrap rounded-full font-mono text-xs font-medium uppercase tracking-[0.06em] text-accent-text"
+              >
+                {t("dashAllRisks")}
+              </button>
+            }
+          >
+            <TopoMap ariaLabel={t("dashRisks")} pins={riskPins} onPin={() => navigate("/app/tesis/diagnostico")} />
+            <ul className="flex flex-col gap-1.5">
+              {risks.map((risk, index) => (
+                <li key={index} className="flex items-center gap-2 text-sm text-cream">
+                  <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${risk.severity === "alta" ? "bg-[#F59E0B]" : "bg-[#7C6CF2]"}`} />
+                  <span className="min-w-0 flex-1 truncate">{risk.issue}</span>
+                  {risk.page && <span className="font-mono text-xs text-cream-dim">p. {risk.page}</span>}
+                </li>
+              ))}
+            </ul>
+          </DashWidget>
+        )}
+      </div>
+
+      <div className="order-1 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-5">
+        <DashWidget label={t("nextTitle")}>
+        <p className="-mt-1 text-sm text-cream-dim">{summary}</p>
         <div className="flex min-w-0 flex-col gap-4">
         {/* The two choices that change the rehearsal most, as two big
             options rather than a row of small ones. */}
@@ -1135,7 +1188,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             ))}
           </div>
           <span className="font-normal text-cream-dim">{t(DIFFICULTY_HINT[difficulty])}</span>
-        </div>
         </div>
         </div>
 
@@ -1312,7 +1364,69 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             </p>
           )}
         </div>
-      </Panel>
+        </DashWidget>
+
+        <DashWidget
+          label={t("dashGrade")}
+          action={
+            last ? (
+              <ThesisShareCard data={{ grade: last.grade, gradeMax: last.gradeMax, passMark: last.passMark, readiness: last.readiness }} />
+            ) : undefined
+          }
+        >
+          {progress.length > 1 ? (
+            <TrailChart
+              ariaLabel={progress.map((point) => `${gradeText(point.grade)}/${point.gradeMax}`).join(", ")}
+              values={progress.map((point) => point.grade)}
+              min={Math.max(0, Math.min(...progress.map((point) => point.grade), last!.passMark) - 2)}
+              max={last!.gradeMax}
+              mark={{ value: last!.passMark, label: t("progressPass", { mark: gradeText(last!.passMark) }) }}
+              labels={[t("dashFirst"), "", t("dashLatest")]}
+            />
+          ) : (
+            <Well className="text-sm text-cream-dim">
+              {last ? t("dashGradeOne", { grade: gradeText(last.grade), max: last.gradeMax }) : t("dashGradeEmpty")}
+            </Well>
+          )}
+        </DashWidget>
+      </div>
+
+      <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-3">
+        <DashWidget label={t("dashReady")}>
+          <Gauge
+            value={last?.readiness ?? 0}
+            center={`${last?.readiness ?? 0}%`}
+            caption={t(last && last.readiness >= 70 ? "dashReadyWord" : "dashReadyOnTheWay")}
+            left="0"
+            right="100"
+            pill={t("dashReadyPill")}
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <Well className="flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
+                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-[#F59E0B]" />
+                {t("dashDays")}
+              </span>
+              <span className="font-mono text-lg font-medium text-cream-bright">{daysLeft === null ? "—" : daysLeft}</span>
+            </Well>
+            <Well className="flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
+                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-[#FBD06A]" />
+                {t("dashDone")}
+              </span>
+              <span className="font-mono text-lg font-medium text-cream-bright">{progress.length}</span>
+            </Well>
+          </div>
+        </DashWidget>
+        <DashWidget label={t("dashDefence")}>
+          <StatTile icon={<Clock />} value={full ? `${shape.exposition} min` : "1 min"} caption={t("dashExposition")} />
+          <StatTile icon={<MessageSquareQuote />} value={full ? shape.questions : 3} caption={t("dashQuestions")} />
+          {formatName && (
+            <StatTile icon={<Gavel />} value={`${formatName.scale.min}–${formatName.scale.max}`} caption={t("dashScale")} />
+          )}
+        </DashWidget>
+      </div>
+      </div>
 
       {/* The plans, as one line until the student asks to see them. */}
       {allowance && pack?.available && worthOffering.length > 0 && (
@@ -1354,11 +1468,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
         </details>
       )}
 
-      {progress.length > 0 && (
-        <Panel variant="raised" className="p-5 sm:p-6">
-          <ProgressStrip points={progress} />
-        </Panel>
-      )}
     </>
   );
 }
@@ -1419,48 +1528,3 @@ const OFFER_LABEL: Record<Exclude<PackKind, "asesor_pro">, { name: Parameters<Re
   docente: { name: "offerDocente", body: "offerDocenteBody" },
 } as const;
 
-/**
- * The last rehearsals as a row of bars, each the grade against the pass
- * mark: one glance says whether the practice is working. A line under it
- * gives the readiness from the first to the latest.
- */
-function ProgressStrip({ points }: { points: DefenseProgressPoint[] }) {
-  const t = useThesisT();
-  const first = points[0]!;
-  const last = points.at(-1)!;
-  const grade = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
-  return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-surface-lift p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="text-sm font-semibold text-cream-bright">{t("progressTitle")}</p>
-          <p className="text-xs text-cream-dim">
-            {t("progressReadiness", { from: first.readiness, to: last.readiness })} · {t("progressPass", { mark: grade(last.passMark) })}
-          </p>
-        </div>
-        <ThesisShareCard
-          data={{
-            grade: last.grade,
-            gradeMax: last.gradeMax,
-            passMark: last.passMark,
-            readiness: last.readiness,
-          }}
-        />
-      </div>
-      <div className="flex h-20 items-end gap-1.5" role="img" aria-label={points.map((p) => `${grade(p.grade)}/${p.gradeMax}`).join(", ")}>
-        {points.map((point) => {
-          const passed = point.grade >= point.passMark;
-          return (
-            <div key={point.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-              <span className="text-xs font-semibold tabular-nums text-cream-dim">{grade(point.grade)}</span>
-              <span
-                className={`block w-full max-w-10 rounded-t-md ${passed ? "bg-grow" : "bg-step"}`}
-                style={{ height: `${Math.max(8, (point.grade / point.gradeMax) * 44)}px` }}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
