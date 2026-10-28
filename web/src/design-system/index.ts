@@ -43,3 +43,4 @@ export { DecryptedText } from "./decrypted-text";
 export { Magnetic } from "./magnetic";
 export { DisclosureMark } from "./disclosure";
 export { Segmented } from "./segmented";
+export { Chip as DataChip, Gauge, Label as DashLabel, StatTile, TabBar, TopoMap, TrailChart, Well, Widget as DashWidget, type MapPin } from "./dashboard";
