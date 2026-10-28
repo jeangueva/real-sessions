@@ -37,9 +37,13 @@ const INK_DIM = "#6e6e73";
 const GROUND = "#f5f5f7";
 const PANEL = "#ffffff";
 const LINE = "#e5e5ea";
-/** The accent, and the ink that sits on it — the product's #5856D6. */
-const ACCENT = "#5856d6";
-const ACCENT_INK = "#ffffff";
+/** The accent, and the ink that sits on it — the product's amber. */
+const ACCENT = "#f6b733";
+const ACCENT_INK = "#2e2d2a";
+/** The accent as text on a light panel: amber itself is too pale to read. */
+const ACCENT_TEXT = "#8a5c00";
+/** The tile behind the mark, which keeps the logo's own colour. */
+const MARK_GROUND = "#5856d6";
 
 /** The mark as a PNG, from the product's own site (absolute: mail has no base URL). */
 const MARK_URL = `${(process.env.REALSESSIONS_SITE_URL ?? "https://www.getmockio.com").replace(/\/$/, "")}/mark-email.png`;
@@ -93,7 +97,7 @@ export function shellHtml({ heading, body, action, footnote }: Shell): string {
        </table>
        <p style="margin:0 0 28px;font-size:13px;line-height:1.6;color:${INK_DIM}">
          Or paste this into your browser:<br>
-         <a href="${escape(action.url)}" style="color:${ACCENT};text-decoration:none;word-break:break-all">${escape(action.url)}</a>
+         <a href="${escape(action.url)}" style="color:${ACCENT_TEXT};text-decoration:none;word-break:break-all">${escape(action.url)}</a>
        </p>`
     : "";
 
@@ -109,7 +113,7 @@ export function shellHtml({ heading, body, action, footnote }: Shell): string {
   // brand either way.
   const mark = `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td width="28" height="28" style="width:28px;height:28px;background:${ACCENT};border-radius:8px;line-height:0"><img src="${MARK_URL}" width="28" height="28" alt="" style="display:block;width:28px;height:28px;border:0;border-radius:8px"></td>
+            <td width="28" height="28" style="width:28px;height:28px;background:${MARK_GROUND};border-radius:8px;line-height:0"><img src="${MARK_URL}" width="28" height="28" alt="" style="display:block;width:28px;height:28px;border:0;border-radius:8px"></td>
             <td style="padding-left:10px;font-size:17px;font-weight:600;letter-spacing:-0.02em;color:${INK}">mockio</td>
           </tr>
         </table>`;
