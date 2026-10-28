@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
-import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo } from "@/design-system";
+import { Action, FadeRise, HeroVideo } from "@/design-system";
 import { LandingNav } from "./LandingNav";
+import { LandingDashboard, LandingDegrees, LandingRoute } from "./LandingDashboard";
 import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { savePendingThesis } from "@/lib/pending-thesis";
-import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
-import { Chip, IconTile, Inset, Lede, MonoLabel, Screen, Title, Widget, Wrap } from "./marketing";
+import { Chip, Inset, Lede, MonoLabel, Screen, Title, Widget, Wrap } from "./marketing";
 
 /** The same footage as the interview landing; `VITE_HERO_VIDEO` overrides both. */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
@@ -566,177 +566,10 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
   );
 }
 
-function ActaScreen({ c }: { c: Record<Key, string> }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-12% 0px" });
-  const still = useReducedMotion();
-  const rows = [
-    { role: c.juror1, score: 16 },
-    { role: c.juror2, score: 12 },
-    { role: c.juror3, score: 14 },
-  ];
-  return (
-    <Screen className="w-[17rem] p-5">
-      <div ref={ref}>
-        <p className="text-xs font-semibold text-cream-dim">{c.mockActa}</p>
-        <p className="mt-1 flex items-baseline gap-1.5">
-          <span className="text-5xl font-semibold tracking-[-0.04em] tabular-nums text-cream-bright">
-            <AnimatedCounter value={14} duration={0.9} />
-          </span>
-          <span className="text-lg text-cream-faint">/ 20</span>
-        </p>
-        <p className="mt-2 inline-flex rounded-full bg-grow-soft px-2.5 py-0.5 text-xs font-semibold text-grow-text">{c.mockVerdict}</p>
-        <div className="mt-4 flex flex-col gap-2.5">
-          {rows.map((row, index) => (
-            <div key={row.role}>
-              <div className="flex justify-between text-xs">
-                <span className="text-cream-dim">{row.role}</span>
-                <span className="font-semibold tabular-nums text-cream-bright">{row.score}</span>
-              </div>
-              <div className="mt-1 h-1 overflow-hidden rounded-full bg-surface-lift">
-                <motion.div
-                  className={`h-full origin-left rounded-full ${row.score >= 14 ? "bg-grow" : "bg-accent"}`}
-                  style={{ width: `${(row.score / 20) * 100}%` }}
-                  initial={still ? false : { scaleX: 0 }}
-                  animate={still ? undefined : { scaleX: inView ? 1 : 0 }}
-                  transition={{
-                    duration: 0.7,
-                    delay: 0.15 + index * 0.06,
-                    ease: EASE_OUT,
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Screen>
-  );
-}
 
-function DiagnosisScreen({ c }: { c: Record<Key, string> }) {
-  const risks = [
-    { text: c.risk1, page: 34, high: true },
-    { text: c.risk2, page: 41, high: true },
-    { text: c.risk3, page: 31, high: false },
-  ];
-  return (
-    <Screen className="p-5 sm:p-6">
-      <p className="text-sm font-semibold text-cream-bright">{c.diagMock}</p>
-      <ul className="mt-4 divide-y divide-[color:var(--line)]">
-        {risks.map((risk) => (
-          <li key={risk.page} className="flex items-center gap-3 py-3">
-            <span
-              className={`w-14 shrink-0 rounded-full px-2 py-0.5 text-center text-xs font-semibold ${
-                risk.high ? "bg-step-soft text-step-text" : "bg-surface-lift text-cream-dim"
-              }`}
-            >
-              {risk.high ? c.sevHigh : c.sevMed}
-            </span>
-            <span className="min-w-0 flex-1 text-sm text-cream-bright">{risk.text}</span>
-            <span className="shrink-0 rounded-md bg-surface-lift px-1.5 py-0.5 text-xs font-semibold tabular-nums text-cream-dim">
-              p. {risk.page}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-3 rounded-xl bg-surface-lift px-3 py-2.5 text-xs text-cream-dim">{c.matrixLine}</p>
-    </Screen>
-  );
-}
 
-function JuryScreen({ c }: { c: Record<Key, string> }) {
-  const seats = [
-    { role: c.juror1, name: c.jury1, field: c.jury1Field, note: null },
-    { role: c.juror2, name: c.jury2, field: c.jury2Field, note: c.jury2Note },
-    { role: c.juror3, name: c.jury3, field: c.jury3Field, note: null },
-  ];
-  return (
-    <Screen className="p-5 sm:p-6">
-      <p className="text-sm font-semibold text-cream-bright">{c.juryMockTitle}</p>
-      <ul className="mt-4 flex flex-col gap-2.5">
-        {seats.map((seat) => (
-          <li key={seat.role} className="rounded-xl bg-surface-lift px-4 py-3">
-            <p className="text-xs font-semibold text-accent-text">{seat.role}</p>
-            <p className="mt-0.5 text-sm font-semibold text-cream-bright">
-              {seat.name} <span className="font-normal text-cream-dim">· {seat.field}</span>
-            </p>
-            {seat.note && <p className="mt-1 text-xs italic text-cream-dim">“{seat.note}”</p>}
-          </li>
-        ))}
-      </ul>
-    </Screen>
-  );
-}
 
-function PlanScreen({ c, locale }: { c: Record<Key, string>; locale: string }) {
-  // Real days from today, in the reader's language.
-  const day = (offset: number) =>
-    new Date(Date.now() + offset * 86_400_000).toLocaleDateString(locale, { weekday: "short", day: "numeric" });
-  const days = [
-    { label: c.planToday, text: c.plan1, done: true },
-    { label: day(1), text: c.plan2, done: false },
-    { label: day(2), text: c.plan3, done: false },
-    { label: day(3), text: c.plan4, done: false },
-  ];
-  return (
-    <Screen className="p-5 sm:p-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-cream-bright">{c.planTitle.replace(/\.$/, "")}</p>
-        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">{c.planMock}</span>
-      </div>
-      <ol className="mt-4 flex flex-col gap-1">
-        {days.map((entry, index) => (
-          <li key={entry.text} className={`flex items-start gap-3 rounded-xl px-3 py-2.5 ${index === 0 ? "bg-surface-lift" : ""}`}>
-            <span
-              className={`mt-0.5 grid shrink-0 place-items-center rounded-[0.3rem] border ${
-                entry.done ? "border-grow bg-grow text-white" : "border-cream-faint/50"
-              }`}
-              style={{ height: 18, width: 18 }}
-            >
-              {entry.done && <Check className="h-3 w-3" strokeWidth={3} />}
-            </span>
-            <span className="min-w-0">
-              <span className="block text-xs font-semibold text-cream-dim">{entry.label}</span>
-              <span className={`block text-sm ${entry.done ? "text-cream-faint line-through" : "text-cream-bright"}`}>{entry.text}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </Screen>
-  );
-}
 
-/** One feature: words on one side, the product on the other. */
-function Feature({
-  label,
-  title,
-  body,
-  screen,
-  flip = false,
-}: {
-  label: string;
-  title: string;
-  body: string;
-  screen: React.ReactNode;
-  flip?: boolean;
-}) {
-  return (
-    <div className="grid items-stretch gap-3 md:grid-cols-2 [&>*]:min-w-0">
-      <FadeRise className={`h-full ${flip ? "md:order-2" : ""}`}>
-        <Widget label={label} className="h-full justify-center">
-          <h3 className="text-balance text-[clamp(1.75rem,3.2vw,2.5rem)] font-light leading-[1.08] tracking-[-0.04em] text-cream-bright">
-            {title}
-          </h3>
-          <p className="max-w-md text-pretty text-lg leading-relaxed text-cream-dim">{body}</p>
-        </Widget>
-      </FadeRise>
-      <FadeRise delay={0.08} className={flip ? "md:order-1" : ""}>
-        <Widget>{screen}</Widget>
-      </FadeRise>
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------------- */
 /* The page                                                                  */
@@ -870,153 +703,15 @@ export function DefenseLanding() {
         </Wrap>
       </section>
 
-      {/* 3. The product itself, as a dashboard: what it is beside the call
-          and the record. Widgets on the page, the way the app draws them. */}
-      <section id="panel" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap className="grid items-start gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <FadeRise className="h-full">
-            <Widget label={c.lblProduct} className="h-full">
-              <Title>{c.prodTitle}</Title>
-              <Lede>{c.prodBody}</Lede>
-              <ul className="mt-auto flex flex-col gap-2">
-                {[c.prod1, c.prod2, c.prod3].map((item, index) => (
-                  <li key={item}>
-                    <Inset className="flex items-center gap-3 p-3">
-                      <IconTile>0{index + 1}</IconTile>
-                      <span className="text-base text-cream-bright">{item}</span>
-                    </Inset>
-                  </li>
-                ))}
-              </ul>
-            </Widget>
-          </FadeRise>
-          <FadeRise delay={0.1}>
-            <Widget label={c.lblCall}>
-              <div className="relative sm:pb-10">
-                <CallScreen c={c} />
-                <div className="relative -mt-5 ml-auto w-fit sm:absolute sm:-bottom-2 sm:right-3 sm:mt-0">
-                  <ActaScreen c={c} />
-                </div>
-              </div>
-            </Widget>
-          </FadeRise>
-        </Wrap>
-      </section>
+      {/* 3. The product as the dashboard it is: one sample thesis, laid
+          out the way the signed-in screen lays out a real one. */}
+      <LandingDashboard locale={locale} call={<CallScreen c={c} />} onPick={pick} />
 
-      {/* 4. How it works: three trail-info tiles, a number in an amber square. */}
-      <section id="how" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap>
-          <FadeRise>
-            <MonoLabel>{c.lblHow}</MonoLabel>
-            <Title className="mt-3 max-w-2xl">{c.howTitle}</Title>
-          </FadeRise>
-          <ol className="mt-8 grid gap-3 md:grid-cols-3">
-            {[
-              { title: c.step1Title, body: c.step1Body },
-              { title: c.step2Title, body: c.step2Body },
-              { title: c.step3Title, body: c.step3Body },
-            ].map((step, index) => (
-              <li key={step.title} className="min-w-0">
-                <FadeRise delay={index * 0.06} className="h-full">
-                  <Widget className="h-full">
-                    <Inset className="flex flex-col gap-4">
-                      <IconTile>0{index + 1}</IconTile>
-                      <h3 className="text-2xl font-light tracking-[-0.03em] text-cream-bright">{step.title}</h3>
-                    </Inset>
-                    <p className="text-pretty text-base leading-relaxed text-cream-dim">{step.body}</p>
-                  </Widget>
-                </FadeRise>
-              </li>
-            ))}
-          </ol>
-        </Wrap>
-      </section>
+      {/* 4. The route from PDF to record, as four waypoints. */}
+      <LandingRoute locale={locale} />
 
-      {/* 5. Three features, each a widget with its screen inside. */}
-      <section className="py-4 md:py-8">
-        <Wrap className="flex flex-col gap-3">
-          <Feature label={c.lblDiag} title={c.diagTitle} body={c.diagBody} screen={<DiagnosisScreen c={c} />} />
-          <Feature label={c.lblJury} title={c.juryTitle} body={c.juryBody} screen={<JuryScreen c={c} />} flip />
-          <Feature label={c.lblPlan} title={c.planTitle} body={c.planBody} screen={<PlanScreen c={c} locale={locale} />} />
-        </Wrap>
-      </section>
-
-      {/* 6. The rest: four small widgets. */}
-      <section className="py-12 md:py-20">
-        <Wrap>
-          <FadeRise>
-            <MonoLabel>{c.lblMore}</MonoLabel>
-            <h2 className="mt-3 text-3xl font-light tracking-[-0.04em] text-cream-bright sm:text-4xl">{c.moreTitle}</h2>
-          </FadeRise>
-          <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { title: c.more1Title, body: c.more1Body },
-              { title: c.more2Title, body: c.more2Body },
-              { title: c.more3Title, body: c.more3Body },
-              { title: c.more4Title, body: c.more4Body },
-            ].map((item, index) => (
-              <FadeRise key={item.title} delay={index * 0.05} className="h-full">
-                <Widget className="h-full">
-                  <dt className="text-lg font-medium tracking-[-0.01em] text-cream-bright">{item.title}</dt>
-                  <dd className="text-pretty text-base text-cream-dim">{item.body}</dd>
-                </Widget>
-              </FadeRise>
-            ))}
-          </dl>
-        </Wrap>
-      </section>
-
-      {/* 7. Degrees and levels: rows in an inset, the levels as a tab bar. */}
-      <section id="scenarios" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <FadeRise className="h-full">
-            <Widget label={c.lblScenarios} className="h-full">
-              <Title>{c.scenTitle}</Title>
-              <Lede>{c.scenSub}</Lede>
-            </Widget>
-          </FadeRise>
-          <FadeRise delay={0.08}>
-            <Widget>
-              <ul className="flex flex-col gap-2">
-                {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((scenario) => (
-                  <li key={scenario}>
-                    <Inset className="flex items-baseline justify-between gap-4 px-4 py-3">
-                      <span className="text-lg font-medium tracking-[-0.01em] text-cream-bright">{c[`sc_${scenario}` as Key]}</span>
-                      <span className="shrink-0 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
-                        {c.scenMeta
-                          .replace("{minutes}", String(SCENARIO_OPTIONS[scenario].exposition))
-                          .replace("{questions}", String(SCENARIO_OPTIONS[scenario].questions))}
-                      </span>
-                    </Inset>
-                  </li>
-                ))}
-              </ul>
-              <MonoLabel className="mt-2">{c.levelsTitle}</MonoLabel>
-              <div className="grid grid-cols-2 gap-1 rounded-2xl bg-surface-lift p-1 sm:grid-cols-4">
-                {[c.lv1, c.lv2, c.lv3, c.lv4].map((level, index) => (
-                  <div
-                    key={level}
-                    className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-mono text-xs font-medium uppercase tracking-[0.06em] ${
-                      index === 1 ? "bg-[#FBD06A] text-[#2E2D2A]" : "text-cream-dim"
-                    }`}
-                  >
-                    <span aria-hidden className="flex items-end gap-0.5">
-                      {[0, 1, 2, 3].map((bar) => (
-                        <span
-                          key={bar}
-                          className={`w-1 rounded-sm ${bar <= index ? "bg-current" : "bg-current opacity-25"}`}
-                          style={{ height: `${6 + bar * 3}px` }}
-                        />
-                      ))}
-                    </span>
-                    {level}
-                  </div>
-                ))}
-              </div>
-            </Widget>
-          </FadeRise>
-        </Wrap>
-      </section>
+      {/* 5. The degrees, as tabs. */}
+      <LandingDegrees locale={locale} />
 
       {/* 8. The one claim that has to land: an ink widget with amber checks. */}
       <section className="py-12 md:py-20">
