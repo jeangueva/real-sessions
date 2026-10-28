@@ -42,8 +42,8 @@ const ACCENT = "#f6b733";
 const ACCENT_INK = "#2e2d2a";
 /** The accent as text on a light panel: amber itself is too pale to read. */
 const ACCENT_TEXT = "#8a5c00";
-/** The tile behind the mark, which keeps the logo's own colour. */
-const MARK_GROUND = "#5856d6";
+/** The tile behind the mark: the logo's own mustard. */
+const MARK_GROUND = "#f6b733";
 
 /** The mark as a PNG, from the product's own site (absolute: mail has no base URL). */
 const MARK_URL = `${(process.env.REALSESSIONS_SITE_URL ?? "https://www.getmockio.com").replace(/\/$/, "")}/mark-email.png`;
