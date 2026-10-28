@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, Clock, FileText, Gavel, Loader2, MessageSquareQuote, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
-import { Action, Panel, DisclosureMark, PopIn, DashWidget, Gauge, StatTile, TopoMap, TrailChart, Well, type MapPin } from "@/design-system";
+import { AlertTriangle, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
+import { Action, Panel, DisclosureMark, PopIn, DashWidget, Gauge, TopoMap, TrailChart, Well, type MapPin } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import {
   ApiError,
@@ -138,7 +138,7 @@ export function Thesis() {
       <PageHeader
         compact={Boolean(thesis)}
         title={thesis ? thesis.analysis.title : t("title")}
-        meta={thesis ? t(TAB_LABEL[section]) : t("meta")}
+        meta={thesis ? undefined : t("meta")}
       />
       <PageBody className={`flex flex-col gap-4 ${thesis ? "!pt-3" : ""} ${thesis && section === "ensayar" ? "!pb-36" : ""}`}>
         {picker}
@@ -1023,7 +1023,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
   /** The weakest points first, at most four, placed on the map by page. */
   const risks = [...thesis.analysis.risks]
     .sort((a, b) => ["alta", "media", "baja"].indexOf(a.severity) - ["alta", "media", "baja"].indexOf(b.severity))
-    .slice(0, 4);
+    .slice(0, 3);
   const riskPins: MapPin[] = [
     { x: 0.03, y: 0.88, tone: "violet" },
     ...risks
@@ -1036,9 +1036,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
         label: risk.issue,
       })),
   ];
-  const daysLeft = thesis.defenseDate
-    ? Math.max(0, Math.round((Date.parse(`${thesis.defenseDate}T12:00:00`) - Date.now()) / 86_400_000))
-    : null;
 
   return (
     <>
@@ -1050,7 +1047,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
           panel and the risks; on a wide screen the three sit side by side. */}
       <div className="order-3 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-4">
         <DashWidget label={t("assignedJury")}>
-          <label htmlFor="career-jury-select" className="text-sm font-semibold text-cream-bright">{t("careerJuryLabel")}</label>
+          <label htmlFor="career-jury-select" className="sr-only">{t("careerJuryLabel")}</label>
           <select
             id="career-jury-select"
             value={thesis.careerOverride ?? ""}
@@ -1106,7 +1103,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
           >
             <TopoMap ariaLabel={t("dashRisks")} pins={riskPins} onPin={() => navigate("/app/tesis/diagnostico")} />
             <ul className="flex flex-col gap-1.5">
-              {risks.map((risk, index) => (
+              {risks.slice(0, 2).map((risk, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm text-cream">
                   <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${risk.severity === "alta" ? "bg-[#F59E0B]" : "bg-[#7C6CF2]"}`} />
                   <span className="min-w-0 flex-1 truncate">{risk.issue}</span>
@@ -1399,31 +1396,8 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             caption={t(last && last.readiness >= 70 ? "dashReadyWord" : "dashReadyOnTheWay")}
             left="0"
             right="100"
-            pill={t("dashReadyPill")}
+            className="!bg-transparent !p-0"
           />
-          <div className="grid grid-cols-2 gap-2">
-            <Well className="flex flex-col gap-1">
-              <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
-                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-[#F59E0B]" />
-                {t("dashDays")}
-              </span>
-              <span className="font-mono text-lg font-medium text-cream-bright">{daysLeft === null ? "—" : daysLeft}</span>
-            </Well>
-            <Well className="flex flex-col gap-1">
-              <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
-                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-[#FBD06A]" />
-                {t("dashDone")}
-              </span>
-              <span className="font-mono text-lg font-medium text-cream-bright">{progress.length}</span>
-            </Well>
-          </div>
-        </DashWidget>
-        <DashWidget label={t("dashDefence")}>
-          <StatTile icon={<Clock />} value={full ? `${shape.exposition} min` : "1 min"} caption={t("dashExposition")} />
-          <StatTile icon={<MessageSquareQuote />} value={full ? shape.questions : 3} caption={t("dashQuestions")} />
-          {formatName && (
-            <StatTile icon={<Gavel />} value={`${formatName.scale.min}–${formatName.scale.max}`} caption={t("dashScale")} />
-          )}
         </DashWidget>
       </div>
       </div>

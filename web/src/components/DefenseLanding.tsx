@@ -705,7 +705,7 @@ export function DefenseLanding() {
 
       {/* 3. The product as the dashboard it is: one sample thesis, laid
           out the way the signed-in screen lays out a real one. */}
-      <LandingDashboard locale={locale} call={<CallScreen c={c} />} onPick={pick} />
+      <LandingDashboard locale={locale} call={<CallScreen c={c} />} />
 
       {/* 4. The route from PDF to record, as four waypoints. */}
       <LandingRoute locale={locale} />
