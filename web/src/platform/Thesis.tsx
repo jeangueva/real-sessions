@@ -1007,6 +1007,33 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     });
   };
 
+  /**
+   * A focused rehearsal pressed from its card. The focus is state, so the
+   * rehearsal starts on the render after it is set rather than in the click,
+   * which would still carry the previous one.
+   */
+  const [pendingFocus, setPendingFocus] = useState<Focus | null>(null);
+  useEffect(() => {
+    if (!pendingFocus || focus !== pendingFocus) return;
+    setPendingFocus(null);
+    begin();
+    // `begin` reads the state this waits for; it is not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFocus, focus]);
+  const startFocus = (entry: Focus) => {
+    resumeAudio();
+    primeVoiceUnlock();
+    setFull(true);
+    setFocus(entry);
+    // Two of them need the student's own material first: the settings open
+    // on the box for it instead of starting an empty rehearsal.
+    if (entry === "estadistica" || entry === "observaciones") {
+      document.getElementById("rehearsal-settings")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setPendingFocus(entry);
+  };
+
   const select =
     "focus-ring w-full rounded-xl bg-surface-card px-3 py-2.5 text-sm text-cream-bright disabled:opacity-50";
   const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
@@ -1204,6 +1231,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
         {/* Everything else, folded: set once, rarely changed. The line under
             the title says what it is set to, so folding hides nothing. */}
         <details
+          id="rehearsal-settings"
           className="group rounded-2xl bg-surface-lift"
           open={needsMaterial || undefined}
         >
@@ -1399,6 +1427,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             </Well>
           )}
         </DashWidget>
+
       </div>
 
       <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-3">
@@ -1414,6 +1443,35 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
         </DashWidget>
       </div>
       </div>
+
+      {/* The focused rehearsals as cards, each starting its own — the way a
+          catalogue of situations reads, instead of an option in a select. */}
+      <DashWidget label={t("focusTitle")}>
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {FOCUS_OPTIONS.filter((entry) => entry !== "completa").map((entry) => (
+            <li key={entry} className="flex flex-col gap-3 rounded-2xl bg-surface-lift p-4">
+              <div>
+                <p className="text-base font-medium text-cream-bright">{t(FOCUS_LABEL[entry])}</p>
+                <p className="mt-1 text-sm leading-relaxed text-cream-dim">{t(FOCUS_HINT[entry])}</p>
+              </div>
+              {locked(entry) ? (
+                <Link to="/app/settings#plan" className="focus-ring mt-auto inline-flex items-center gap-1.5 self-start rounded-full text-sm font-semibold text-cream-dim">
+                  🔒 {t("focusLocked")}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled={careerBusy}
+                  onClick={() => startFocus(entry)}
+                  className="focus-ring mt-auto inline-flex items-center gap-1.5 self-start rounded-full bg-surface-card px-4 py-2 text-sm font-semibold text-cream-bright ring-1 ring-[color:var(--line)] transition-transform duration-150 ease-press active:scale-[0.97] disabled:opacity-50"
+                >
+                  {entry === "estadistica" || entry === "observaciones" ? t("focusPrepare") : t("focusStart")}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </DashWidget>
 
       {/* The plans, as one line until the student asks to see them. */}
       {allowance && pack?.available && worthOffering.length > 0 && (
@@ -1507,6 +1565,15 @@ const FOCUS_LABEL = {
   estadistica: "modeEstadistica",
   observaciones: "modeObservaciones",
   divulgacion: "modeDivulgacion",
+} as const;
+const FOCUS_HINT = {
+  completa: "focusHintMatriz",
+  matriz: "focusHintMatriz",
+  autoria: "focusHintAutoria",
+  trampa: "focusHintTrampa",
+  estadistica: "focusHintEstadistica",
+  observaciones: "focusHintObservaciones",
+  divulgacion: "focusHintDivulgacion",
 } as const;
 const OFFER_LABEL: Record<Exclude<PackKind, "asesor_pro">, { name: Parameters<ReturnType<typeof useThesisT>>[0]; body: Parameters<ReturnType<typeof useThesisT>>[0] }> = {
   sustentacion: { name: "offerSustentacion", body: "offerSustentacionBody" },

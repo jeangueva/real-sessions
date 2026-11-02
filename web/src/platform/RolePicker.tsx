@@ -117,7 +117,7 @@ const COPY = {
 /** The label over the settings bar, under the picker. */
 export function useTuneLabel(): string {
   const { locale } = useLocale();
-  return locale === "pt" ? "Ou ajuste a entrevista" : locale === "en" ? "Or tune the interview" : "O ajusta la entrevista";
+  return locale === "pt" ? "Ou ajuste a entrevista" : locale === "es" ? "O ajusta la entrevista" : "Or tune the interview";
 }
 
 const fill = (text: string, values: Record<string, string | number>) =>
@@ -143,9 +143,9 @@ export function RolePicker({
   disabled?: boolean;
 }) {
   const { locale } = useLocale();
-  const c = locale === "pt" ? COPY.pt : locale === "en" ? COPY.en : COPY.es;
+  const c = locale === "pt" ? COPY.pt : locale === "es" ? COPY.es : COPY.en;
   const areaName = (area: Area) =>
-    (locale === "pt" ? AREA_PT[area.id] : locale === "en" ? undefined : AREA_ES[area.id]) ?? area.label;
+    (locale === "pt" ? AREA_PT[area.id] : locale === "es" ? AREA_ES[area.id] : undefined) ?? area.label;
   const [open, setOpen] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
