@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Globe2, GraduationCap, MessagesSquare, RotateCcw, Sparkles, Terminal } from "lucide-react";
+import { Globe2, GraduationCap, MessagesSquare, RotateCcw, Terminal } from "lucide-react";
 import {
   Action,
-  Badge,
   CheckItem,
   Eyebrow,
   FadeRise,
@@ -161,15 +160,15 @@ const CULTURE_ES: Record<CultureItem["id"], { label: string; detail: string }> =
 const COPY = {
   en: {
     eduEyebrow: "Education · Academic simulations",
-    eduTitle: "Academic scenarios and high-stakes conversations",
-    eduIntro: "Rehearse group project conflicts, rubric reviews, advisor scope negotiations and oral exam questions before they happen.",
+    eduTitle: "Academic situations",
+    eduIntro: "A group project, a grade you want explained, the scope talk with your advisor. Rehearse it before it happens.",
     proEyebrow: "Professional · HardTalk Tech & Latam",
-    proTitle: "High-stakes conversations for work and life",
-    proIntro: "Practice stakeholder pushback in tech (saying no to a founder, negotiating engineering scope, giving senior design feedback) and culturally adapted personal conversations across Latin America and North America.",
+    proTitle: "Difficult conversations",
+    proIntro: "At work and at home: saying no, negotiating scope, talking money with family. Pick one and rehearse it out loud.",
     trackLabel: "Focus area",
     trackAll: "All scenarios",
-    trackTech: "Tech & Stakeholder Lab",
-    trackPersonal: "Personal & Cultural (HardTalk Latam / NA)",
+    trackTech: "Work",
+    trackPersonal: "Family and personal",
     scenarioHeading: "1. Choose a scenario",
     cultureHeading: "2. Cultural context",
     languageHeading: "3. Rehearsal language",
@@ -204,15 +203,15 @@ const COPY = {
   },
   es: {
     eduEyebrow: "Educación · Simulaciones académicas",
-    eduTitle: "Escenarios académicos y conversaciones de estudio",
-    eduIntro: "Ensaya acuerdos en trabajos grupales, revisión de rúbricas con docentes, alcance de tesis con tu asesor y preguntas ambiguas de jurado.",
+    eduTitle: "Situaciones académicas",
+    eduIntro: "Un trabajo grupal, una nota que quieres que te expliquen, la conversación de alcance con tu asesor. Ensáyala antes de que pase.",
     proEyebrow: "Profesional · HardTalk Tech y Conversaciones Difíciles",
-    proTitle: "Conversaciones de alto riesgo en tecnología y vida personal",
-    proIntro: "Entrena conversaciones difíciles del mundo tech (decir que no a un founder, negociar alcance de ingeniería, dar feedback a un diseñador senior, alinear stakeholders con datos incompletos) y situaciones personales adaptadas al contexto cultural de Latinoamérica y Norteamérica.",
+    proTitle: "Conversaciones difíciles",
+    proIntro: "En el trabajo y en casa: decir que no, negociar alcance, hablar de plata con la familia. Elige una y ensáyala en voz alta.",
     trackLabel: "Área de práctica",
     trackAll: "Todos los escenarios",
-    trackTech: "Mundo Tech · Stakeholder Lab",
-    trackPersonal: "Personal y familiar · HardTalk Latam / NA",
+    trackTech: "Trabajo",
+    trackPersonal: "Familia y personal",
     scenarioHeading: "1. Elige un escenario",
     cultureHeading: "2. Contexto cultural",
     languageHeading: "3. Idioma de la práctica",
@@ -247,15 +246,15 @@ const COPY = {
   },
   pt: {
     eduEyebrow: "Educação · Simulações acadêmicas",
-    eduTitle: "Cenários acadêmicos e conversas de estudo",
-    eduIntro: "Ensaie acordos em trabalhos em grupo, revisão de rubricas, escopo de tese com seu orientador e perguntas de banca.",
+    eduTitle: "Situações acadêmicas",
+    eduIntro: "Um trabalho em grupo, uma nota que você quer entender, a conversa de escopo com seu orientador. Ensaie antes que aconteça.",
     proEyebrow: "Profissional · HardTalk Tech e Conversas Difíceis",
-    proTitle: "Conversas de alto risco no trabalho e na vida pessoal",
-    proIntro: "Pratique conversas difíceis em tecnologia (dizer não a um fundador, negociar escopo de engenharia, dar feedback a um designer sênior) e situações pessoais com contexto cultural da América Latina e da América do Norte.",
+    proTitle: "Conversas difíceis",
+    proIntro: "No trabalho e em casa: dizer não, negociar escopo, falar de dinheiro com a família. Escolha uma e ensaie em voz alta.",
     trackLabel: "Área de prática",
     trackAll: "Todos os cenários",
-    trackTech: "Mundo Tech · Stakeholder Lab",
-    trackPersonal: "Pessoal e familiar · HardTalk Latam / NA",
+    trackTech: "Trabalho",
+    trackPersonal: "Família e pessoal",
     scenarioHeading: "1. Escolha um cenário",
     cultureHeading: "2. Contexto cultural",
     languageHeading: "3. Idioma da prática",
@@ -294,6 +293,8 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
   const { locale } = useLocale();
   const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : COPY.en;
   const isEs = locale === "es";
+  /** The widgets' mono labels, in the reader's language. */
+  const tag = (es: string, pt: string, en: string) => (locale === "es" ? es : locale === "pt" ? pt : en);
 
   const [scenarios, setScenarios] = useState<ScenarioItem[]>([]);
   const [cultures, setCultures] = useState<CultureItem[]>([]);
@@ -433,19 +434,13 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
       <PageHeader
         title={domain === "education" ? copy.eduTitle : copy.proTitle}
         meta={domain === "education" ? copy.eduIntro : copy.proIntro}
-        actions={
-          <Badge tone="live">
-            <Sparkles className="h-3 w-3" aria-hidden />
-            {domain === "education" ? copy.eduEyebrow : copy.proEyebrow}
-          </Badge>
-        }
       />
 
       <PageBody className="space-y-6 pt-2">
         {error && <Notice tone="error">{error}</Notice>}
 
         {loading ? (
-          <Widget label="CATALOGUE" className="p-6">
+          <Widget label={tag("Catálogo", "Catálogo", "Catalogue")} className="p-6">
             <p role="status" className="text-sm text-cream-dim">
               {copy.loadingCatalogue}
             </p>
@@ -490,7 +485,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                   <h2 id="scenario-picker-heading" className="text-base font-medium text-cream-bright">
                     {copy.scenarioHeading}
                   </h2>
-                  <MonoLabel>{String(filteredScenarios.length).padStart(2, "0")} SCENARIOS</MonoLabel>
+                  <MonoLabel>{`${filteredScenarios.length} ${tag("escenarios", "cenários", "scenarios")}`}</MonoLabel>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
@@ -553,8 +548,8 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
             {/* Right column: Cultural context + Language + Objective + Start */}
             <div className="xl:col-span-4">
               <Widget
-                label="SETUP · LIVE ROLEPLAY"
-                className="sticky top-24 space-y-6 p-6"
+                label={tag("Prepara la práctica", "Prepare a prática", "Set up the practice")}
+                className="space-y-6 p-6 xl:sticky xl:top-24"
               >
                 <fieldset>
                   <legend className="text-sm font-medium text-cream-bright">
@@ -720,7 +715,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
 
             {!session.complete && (
               <Widget
-                label="RESPONSE"
+                label={tag("Tu respuesta", "Sua resposta", "Your answer")}
                 className="p-5 sm:p-6"
               >
                 <div className="flex items-center gap-2.5">
@@ -780,7 +775,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
 
             {feedback && (
               <Widget
-                label="COACHING REPORT"
+                label={tag("Devolución", "Devolutiva", "Feedback")}
                 className="p-6 sm:p-7"
               >
                 <Eyebrow>{copy.feedbackEyebrow}</Eyebrow>

@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { Compass, ExternalLink, Sparkles } from "lucide-react";
+import { Compass, ExternalLink } from "lucide-react";
 import {
   Action,
-  Badge,
   Eyebrow,
   FadeRise,
   Field,
-  Meter,
   Notice,
   Panel,
 } from "@/design-system";
@@ -100,9 +98,9 @@ const CASE_ES: Record<string, { title: string; prompt: string; options: [string,
 
 const COPY = {
   en: {
-    eyebrow: "Professional · Product, Design & Systems Intuition",
-    title: "Deliberate intuition trainer with real-world outcomes",
-    intro: "Commit to a product, design or systems decision, state your confidence and write your reasoning before revealing what actually happened in the documented historical case.",
+    eyebrow: "",
+    title: "Product intuition",
+    intro: "Make the call on a real case, say how sure you are and why, then see what actually happened.",
     filterLabel: "Decision type",
     filterAll: "All cases",
     prioritization: "Prioritization",
@@ -126,9 +124,9 @@ const COPY = {
     loadingCases: "Loading intuition cases…",
   },
   es: {
-    eyebrow: "Profesional · Intuición de Producto, Diseño y Sistemas",
-    title: "Entrenador de intuición de producto y diseño con feedback de realidad",
-    intro: "Compromete tu decisión de priorización, trade-offs o hipótesis, registra tu nivel de confianza y explica tu razonamiento antes de revelar qué ocurrió realmente en el caso histórico documentado.",
+    eyebrow: "",
+    title: "Intuición de producto",
+    intro: "Decides en un caso real, dices qué tan seguro estás y por qué, y después ves qué pasó de verdad.",
     filterLabel: "Tipo de criterio",
     filterAll: "Todos los casos",
     prioritization: "Priorización",
@@ -152,9 +150,9 @@ const COPY = {
     loadingCases: "Cargando casos de intuición…",
   },
   pt: {
-    eyebrow: "Profissional · Intuição de Produto, Design e Sistemas",
-    title: "Treinador de intuição de produto e design com feedback da realidade",
-    intro: "Registre sua decisão de priorização, trade-offs ou hipóteses, defina sua confiança e explique seu raciocínio antes de revelar o que realmente aconteceu no caso histórico documentado.",
+    eyebrow: "",
+    title: "Intuição de produto",
+    intro: "Você decide em um caso real, diz o quanto tem certeza e por quê, e depois vê o que aconteceu de verdade.",
     filterLabel: "Tipo de decisão",
     filterAll: "Todos os casos",
     prioritization: "Priorização",
@@ -183,6 +181,7 @@ export function IntuitionTrainer() {
   const { locale } = useLocale();
   const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : COPY.en;
   const isEs = locale === "es";
+  const tag = (es: string, pt: string, en: string) => (locale === "es" ? es : locale === "pt" ? pt : en);
 
   const [cases, setCases] = useState<IntuitionCaseItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -284,19 +283,13 @@ export function IntuitionTrainer() {
       <PageHeader
         title={copy.title}
         meta={copy.intro}
-        actions={
-          <Badge tone="live">
-            <Sparkles className="h-3 w-3" aria-hidden />
-            {copy.eyebrow}
-          </Badge>
-        }
       />
 
       <PageBody className="space-y-6 pt-2">
         {error && <Notice tone="error">{error}</Notice>}
 
         {loading ? (
-          <Widget label="CASES" className="p-6">
+          <Widget label={tag("Casos", "Casos", "Cases")} className="p-6">
             <p role="status" className="text-sm text-cream-dim">
               {copy.loadingCases}
             </p>
@@ -367,7 +360,7 @@ export function IntuitionTrainer() {
             <div className="space-y-6 xl:col-span-8">
               {activeCase && localizedActive && (
                 <Widget
-                  label={`${activeCase.id.toUpperCase()} · ${kindLabel(activeCase.kind)}`}
+                  label={kindLabel(activeCase.kind)}
                   className="p-6 sm:p-8"
                 >
                   <div className="flex items-center gap-3">
@@ -429,11 +422,8 @@ export function IntuitionTrainer() {
                       disabled={Boolean(result)}
                       value={confidence}
                       onChange={(e) => setConfidence(Number(e.target.value))}
-                      className="mt-3 w-full text-sm"
+                      className="mt-3 w-full accent-[#F6B733]"
                     />
-                    <div className="mt-3">
-                      <Meter value={confidence} label={`${confidence}%`} />
-                    </div>
                   </Inset>
 
                   <div className="mt-5">

@@ -60,9 +60,9 @@ describe("PublicLanding", () => {
 
     expect(screen.getByRole("heading", { name: "Education" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Professional" })).toBeInTheDocument();
-    expect(screen.getByText(/HardTalk Tech · Stakeholder Lab/i)).toBeInTheDocument();
-    expect(screen.getByText(/HardTalk Latam & NA/i)).toBeInTheDocument();
-    expect(screen.getByText(/Product & design intuition with reality feedback/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/^At work$/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^With family$/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Product intuition/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/100% free to practice\. Optional to support\./i)).toBeInTheDocument();
 
     for (const amount of ["$1", "$2", "$5", "$8", "$10", "Custom"]) {
