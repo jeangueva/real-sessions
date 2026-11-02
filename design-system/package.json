@@ -26,6 +26,7 @@
     "figma:drift": "node scripts/figma-script.mjs drift",
     "figma:push": "node scripts/figma-script.mjs push",
     "figma:audit": "node scripts/figma-script.mjs audit",
+    "figma:push-docs": "node scripts/figma-script.mjs docs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "node scripts/build-tokens.mjs --check && tsx scripts/build-registry.ts --check && tsx scripts/build-figma-docs.ts --check && tsc --noEmit && vitest run"

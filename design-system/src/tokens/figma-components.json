@@ -234,6 +234,132 @@
         "Don't capitalise it, translate it or route it through a translation function.",
         "Don't add a tagline or a second word inside the lockup."
       ]
+    },
+    {
+      "name": "Field",
+      "node": "30:370",
+      "properties": [
+        "Label",
+        "Value",
+        "Hint",
+        "Show hint",
+        "Control",
+        "State"
+      ],
+      "description": "A form control with its label above and an optional hint below, at the spacing every form in the product shares.\n\n**Use it for:** Any form control that needs a visible label: sign-in, reset password, settings, the early-access form; A setting in a settings grid whose effect needs a sentence of explanation, in the hint.\n\n**Not for:** A message about what just happened after submitting → Notice, below the fields and above the Action; A heading over a group of fields or a block → Eyebrow, then the Fields under it.\n\n**Also known as:** input, text field, form field, select, textarea, campo, campo de formulario.\n\n`import { Field } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Field/Field.md",
+      "do": [
+        "Always pass htmlFor and the matching id on a native control.",
+        "Give the control the field-control class so it matches every other field.",
+        "Put the rule a value must meet in the hint, before the person types, and wire it with hintId."
+      ],
+      "dont": [
+        "Don't use the placeholder as the label: it disappears as soon as someone types.",
+        "Don't put an error in the hint; the outcome of a submit is a Notice.",
+        "Don't draw a box or border around the Field; the control's well is the field."
+      ]
+    },
+    {
+      "name": "Notice",
+      "node": "29:319",
+      "properties": [
+        "Message",
+        "Tone"
+      ],
+      "description": "A message about what just happened, in a tinted box with its mark: it did not work and what to do next, it worked, or something neutral.\n\n**Use it for:** The outcome of a form submit: under the fields, above the Action (sign in, reset password); The result of a request the page made on its own (confirming an email, unsubscribing).\n\n**Not for:** A rule a value must meet, before anyone types → Field's hint; A standing fact about the screen, such as its mode → Badge.\n\n**Also known as:** alert, banner, callout, message, aviso, mensaje, toast inline.\n\n`import { Notice } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Notice/Notice.md",
+      "do": [
+        "Say what happened and what to do next, in that order.",
+        "One Notice per outcome, placed where the person was looking when they acted.",
+        "Use tone error for anything that did not work; it is orange, never red."
+      ],
+      "dont": [
+        "Don't use a Notice for instructions that were true before anything happened.",
+        "Don't stack several Notices; merge them into one message.",
+        "Don't recolour it red or add a second icon."
+      ]
+    },
+    {
+      "name": "Segmented",
+      "node": "30:248",
+      "properties": [
+        "Option 4",
+        "Option 5"
+      ],
+      "description": "A pill of two to five options where exactly one is chosen, with a thumb that slides to the choice. A radio group to assistive technology.\n\n**Use it for:** Choosing one of two to five mutually exclusive options whose effect is immediate: the theme, a filter on a list, the length of the exposition; Switching between two or three views of the same content in place, such as the study sheet and the cards.\n\n**Not for:** Six or more options, or options that need a sentence each → A radio list (stacked radios with descriptions) or a select; Moving between sections of a page that each have their own panel and heading → A tablist (role=\"tab\" + tabpanel), as the settings screen does.\n\n**Also known as:** segmented control, tabs, toggle group, radio group, pestañas, selector.\n\n`import { Segmented } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Segmented/Segmented.md",
+      "do": [
+        "Keep the labels short and parallel so the slots stay narrow.",
+        "Pass a label that matches the visible field name next to it.",
+        "Apply the choice at once; a Segmented never needs a Save."
+      ],
+      "dont": [
+        "Don't put actions in it: each option is a value, not a command.",
+        "Don't use it for more than five options or for long labels — it gets wider than a phone.",
+        "Don't recolour the thumb to mark one option as right or recommended."
+      ]
+    },
+    {
+      "name": "DisclosureMark",
+      "node": "29:336",
+      "properties": [
+        "Label",
+        "Open label",
+        "Kind",
+        "Open"
+      ],
+      "description": "The pill at the end of a <details> summary that says the card opens — a chevron that turns over when open and, on larger disclosures, the word for what clicking does.\n\n**Use it for:** At the end of a <summary> drawn as a card or a row, so it reads as something that opens: \"La conversación\", \"Ver el detalle completo\"; With a label on the larger disclosures, where the summary is a title and a line of body: \"Tu plan hasta el día D\" with \"Ver\"/\"Cerrar\", the plans with \"Ver planes\"/\"Ocultar\".\n\n**Not for:** A button that opens a menu, a sheet or a dialog → Action (ghost or neutral) with its own words; the mark only follows a <details>; A card that navigates somewhere → A link, with Action's arrow if it needs a sign. A chevron down promises the content opens in place.\n\n**Also known as:** chevron, expand, accordion toggle, disclosure, ver más, desplegable.\n\n`import { DisclosureMark } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/DisclosureMark/DisclosureMark.md",
+      "do": [
+        "Put it inside a <summary>, last, with the summary's text before it.",
+        "Give the summary list-none, focus-ring and cursor-pointer, so it looks and behaves like the product's disclosures.",
+        "Use a label only where the summary is a title and a line of body."
+      ],
+      "dont": [
+        "Don't put it on a button or a link: outside <summary> it never turns and its words never swap.",
+        "Don't use it to promise content that loads on a new screen.",
+        "Don't repeat the summary's text in the label."
+      ]
+    },
+    {
+      "name": "Meter",
+      "node": "29:354",
+      "properties": [
+        "Label",
+        "Value",
+        "Fill"
+      ],
+      "description": "A measured amount on a known scale — a score out of ten, a percentage, the XP into a level — as a label, the number and a bar that fills to it.\n\n**Use it for:** A score on a fixed scale in a report: vocabulary and structure out of ten in the feedback detail; How far into a level someone is: XP into the next level on the progress screen.\n\n**Not for:** Something loading or being evaluated, with no real total → A sentence that names what is happening (\"Evaluando…\"); A status in words, not a quantity → Badge.\n\n**Also known as:** progress bar, gauge, score bar, barra de progreso, medidor.\n\n`import { Meter } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Meter/Meter.md",
+      "do": [
+        "Pass the suffix that matches the scale: \"/10\" with max 10, \"\" for XP.",
+        "Put related meters in one grid or column so the bars compare.",
+        "Say in words, near the meters, what the scores mean for the next step."
+      ],
+      "dont": [
+        "Don't use a Meter as a loading bar.",
+        "Don't recolour the fill to mark a low score: nothing in this product marks a person wrong.",
+        "Don't show a meter without its number by hiding it with className."
+      ]
+    },
+    {
+      "name": "MonoLabel",
+      "node": "29:320",
+      "properties": [
+        "Label"
+      ],
+      "description": "The \"::LABEL\" that names a card or a section in the instrument voice — mono, spaced caps, cream-dim, led by two colons.\n\n**Use it for:** The name of a card on the landing's instrument look: a pricing tier (\"Pack Sustentación\"), a widget; A section's kicker above its title on the landing: \"Cómo funciona\" over \"De tu PDF a tu acta en una tarde.\".\n\n**Not for:** The line above a heading inside the signed-in product → Eyebrow, the product's kicker in the accent; The name of the block in a screen reader's heading list → A heading (h2/h3) under the label. The label is a paragraph.\n\n**Also known as:** card label, overline, instrument label, caption, etiqueta mono, ::LABEL.\n\n`import { MonoLabel } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/MonoLabel/MonoLabel.md",
+      "do": [
+        "Write the label in sentence case and let the style uppercase it.",
+        "Keep a real heading under a section label.",
+        "One label per card, at its top."
+      ],
+      "dont": [
+        "Don't type the colons: the component draws them.",
+        "Don't write a sentence in spaced caps.",
+        "Don't use it inside the signed-in product, where the kicker is Eyebrow."
+      ]
     }
   ]
 }

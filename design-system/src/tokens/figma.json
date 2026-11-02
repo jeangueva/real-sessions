@@ -653,6 +653,16 @@
       "letterSpacing": 0.06,
       "uppercase": true,
       "tailwind": "font-mono text-xs uppercase tracking-[0.06em]"
+    },
+    {
+      "name": "Label colons",
+      "size": 14,
+      "family": "JetBrains Mono",
+      "weight": 500,
+      "lineHeight": 1.5,
+      "letterSpacing": -0.1,
+      "uppercase": true,
+      "tailwind": "font-mono text-xs tracking-[-0.1em]"
     }
   ],
   "components": [
@@ -761,6 +771,66 @@
       "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=17-113",
       "properties": [
         "Mark"
+      ]
+    },
+    {
+      "name": "Field",
+      "node": "30:370",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=30-370",
+      "properties": [
+        "Label",
+        "Value",
+        "Hint",
+        "Show hint",
+        "Control",
+        "State"
+      ]
+    },
+    {
+      "name": "Notice",
+      "node": "29:319",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=29-319",
+      "properties": [
+        "Message",
+        "Tone"
+      ]
+    },
+    {
+      "name": "Segmented",
+      "node": "30:248",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=30-248",
+      "properties": [
+        "Option 4",
+        "Option 5"
+      ]
+    },
+    {
+      "name": "DisclosureMark",
+      "node": "29:336",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=29-336",
+      "properties": [
+        "Label",
+        "Open label",
+        "Kind",
+        "Open"
+      ]
+    },
+    {
+      "name": "Meter",
+      "node": "29:354",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=29-354",
+      "properties": [
+        "Label",
+        "Value",
+        "Fill"
+      ]
+    },
+    {
+      "name": "MonoLabel",
+      "node": "29:320",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=29-320",
+      "properties": [
+        "Label"
       ]
     }
   ],
