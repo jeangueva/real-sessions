@@ -10,6 +10,9 @@ import { AURA_VOICES } from "../src/voice/tts.js";
 import { liveQuery } from "../src/voice/deepgram.js";
 import { buildInterviewerPrompt } from "../src/prompts/interviewer.js";
 import { buildEvaluatorPrompt } from "../src/prompts/evaluator.js";
+import { buildCoachPrompt } from "../src/prompts/coach.js";
+import { InterviewSession } from "../src/interviewer.js";
+import { startConversation } from "../src/training/conversation.js";
 import { capabilitiesFor } from "../src/entitlements.js";
 import { nameFromEmail } from "../src/user-store.js";
 import type { InterviewContext } from "../src/types.js";
@@ -34,11 +37,11 @@ const context = (): InterviewContext => ({
 });
 
 describe("findLanguage", () => {
-  it("resolves the three we offer", () => {
+  it("resolves the four simulation languages we offer (en, es, fr, pt)", () => {
     expect(findLanguage("en").id).toBe("en");
     expect(findLanguage("es").id).toBe("es");
-    expect(findLanguage("pt").id).toBe("pt");
     expect(findLanguage("fr").id).toBe("fr");
+    expect(findLanguage("pt").id).toBe("pt");
   });
 
   it("falls back to English rather than throwing", () => {
@@ -65,15 +68,13 @@ describe("transcription follows the language", () => {
     expect(query.get("model")).toBe("nova-2");
   });
 
-  it("does the same for Portuguese", () => {
+  it("does the same for French and Portuguese", () => {
+    const frQuery = new URLSearchParams(liveQuery("fr"));
+    expect(frQuery.get("language")).toBe("fr");
+    expect(frQuery.get("model")).toBe("nova-2");
+
     const query = new URLSearchParams(liveQuery("pt"));
     expect(query.get("language")).toBe("pt-BR");
-    expect(query.get("model")).toBe("nova-2");
-  });
-
-  it("hears French with a model that knows it", () => {
-    const query = new URLSearchParams(liveQuery("fr"));
-    expect(query.get("language")).toBe("fr");
     expect(query.get("model")).toBe("nova-2");
   });
 
@@ -88,11 +89,17 @@ describe("transcription follows the language", () => {
 });
 
 describe("voiceFor", () => {
-  it("gives every interviewer a real Spanish voice", () => {
+  it("gives every interviewer a real Spanish and French voice in AURA_VOICES", () => {
     for (const persona of PERSONAS) {
-      const voice = voiceFor(persona.id, persona.voice.model, findLanguage("es"));
-      expect(voice, persona.id).not.toBeNull();
-      expect(voice, persona.id).toContain("-es");
+      const esVoice = voiceFor(persona.id, persona.voice.model, findLanguage("es"));
+      expect(esVoice, persona.id).not.toBeNull();
+      expect(esVoice, persona.id).toContain("-es");
+      expect(AURA_VOICES.has(esVoice!)).toBe(true);
+
+      const frVoice = voiceFor(persona.id, persona.voice.model, findLanguage("fr"));
+      expect(frVoice, persona.id).not.toBeNull();
+      expect(frVoice, persona.id).toContain("-fr");
+      expect(AURA_VOICES.has(frVoice!)).toBe(true);
     }
   });
 
@@ -113,14 +120,6 @@ describe("voiceFor", () => {
     }
   });
 
-  it("gives every interviewer a French voice the speak route accepts", () => {
-    for (const persona of PERSONAS) {
-      const voice = voiceFor(persona.id, persona.voice.model, findLanguage("fr"));
-      expect(voice, persona.id).toContain("-fr");
-      expect(AURA_VOICES.has(voice!), persona.id).toBe(true);
-    }
-  });
-
   it("names a voice the allowlist has not been told about", () => {
     // The Spanish voices are not in AURA_VOICES, which only lists the English
     // set — a reminder that the allowlist has to grow with this map or the
@@ -132,20 +131,79 @@ describe("voiceFor", () => {
 });
 
 describe("the prompts are told which language", () => {
-  it("tells the interviewer to conduct it in French", () => {
-    const prompt = buildInterviewerPrompt(context(), { personaId: "measured", language: "fr" });
-    expect(prompt).toContain("entire interview in French");
-  });
-
-  it("tells the interviewer to conduct it in Spanish", () => {
-    const prompt = buildInterviewerPrompt(context(), {
+  it("tells the interviewer to conduct it in Spanish, French, or Portuguese", () => {
+    const esPrompt = buildInterviewerPrompt(context(), {
       personaId: "measured",
       language: "es",
     });
-    expect(prompt).toContain("entire interview in Spanish");
-    // Technical terms have no natural translation and inventing them is worse
-    // than borrowing them.
-    expect(prompt).toContain("pull request");
+    expect(esPrompt).toContain("entire interview in Spanish");
+    expect(esPrompt).toContain("pull request");
+
+    const frPrompt = buildInterviewerPrompt(context(), {
+      personaId: "measured",
+      language: "fr",
+    });
+    expect(frPrompt).toContain("entire interview in French");
+
+    const ptPrompt = buildInterviewerPrompt(context(), {
+      personaId: "measured",
+      language: "pt",
+    });
+    expect(ptPrompt).toContain("entire interview in Brazilian Portuguese");
+  });
+
+  it("persists the selected language across InterviewSession snapshot and restore (turn 2+)", () => {
+    const provider = {
+      name: "stub",
+      chat: async () => {
+        throw new Error("not used");
+      },
+      json: async () => {
+        throw new Error("not used");
+      },
+    };
+    for (const lang of ["es", "fr", "pt", "en"] as const) {
+      const original = new InterviewSession(context(), {
+        provider,
+        language: lang,
+        level: "b1",
+        pressure: true,
+      });
+      const restored = InterviewSession.restore(original.snapshot(), { provider });
+      expect(restored.renderedSystemPrompt).toBe(original.renderedSystemPrompt);
+      expect(restored.renderedSystemPrompt).toContain(
+        `entire interview in ${findLanguage(lang).promptLabel}`,
+      );
+    }
+  });
+
+  it("tells the live coach and training roleplay partner which language to speak", async () => {
+    expect(buildCoachPrompt(context(), { language: "fr" })).toContain("interviewing in French");
+    expect(buildCoachPrompt(context(), { language: "es" })).toContain("interviewing in Spanish");
+
+    const seenSystems: string[] = [];
+    const provider = {
+      name: "stub",
+      chat: async (req: { system?: string }) => {
+        seenSystems.push(req.system ?? "");
+        return {
+          text: "Bonjour, voyons le périmètre de lancement.",
+          stopReason: "end_turn" as const,
+          refused: false,
+          usage: { inputTokens: 5, outputTokens: 5, cacheReadTokens: 0, cacheCreationTokens: 0 },
+          latency: { ttftMs: 1, totalMs: 2 },
+        };
+      },
+      json: async () => {
+        throw new Error("not used");
+      },
+    };
+    await startConversation(
+      "user-1",
+      { scenarioId: "founder-no", culture: "neutral", language: "fr" },
+      provider,
+    );
+    expect(seenSystems[0]).toContain("Speak ONLY French");
   });
 
   it("defaults to English when nobody chose", () => {

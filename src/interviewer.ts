@@ -50,6 +50,14 @@ export interface SessionSnapshot {
   minTurns: number;
   maxTurns: number;
   fallbackModels: string[];
+  /** The rounds this session runs, in order. */
+  stages?: string[];
+  /** What the interview is conducted in. */
+  language?: string;
+  /** How much English/target language the candidate has. */
+  level?: string;
+  /** Whether stress mode is active. */
+  pressure?: boolean;
   /** Optional: a snapshot written before personas existed has none. */
   personaId?: string;
   /** The candidate briefing in force for this session, if any. */
@@ -125,6 +133,10 @@ export class InterviewSession {
   private readonly minTurns: number;
   private readonly maxTurns: number;
   private readonly fallbackModels: string[];
+  private readonly stages: string[];
+  private readonly language: string | undefined;
+  private readonly level: string | undefined;
+  private readonly pressure: boolean;
   private readonly personaId: string;
   private readonly candidateBrief: string | null;
   private readonly jobPosting: string | null;
@@ -165,16 +177,20 @@ export class InterviewSession {
     this.minTurns = minTurns;
     this.maxTurns = maxTurns;
     this.fallbackModels = options.fallbackModels ?? INTERVIEWER_FALLBACKS;
+    this.stages = stages.map((entry) => entry.id);
+    this.language = options.language;
+    this.level = options.level;
+    this.pressure = Boolean(options.pressure);
     this.personaId = options.personaId ?? defaultPersonaFor(context.companyName).id;
     this.candidateBrief = options.candidateBrief ?? null;
     this.jobPosting = options.jobPosting ?? null;
     this.knownQuestions = [...(options.knownQuestions ?? [])];
     this.defense = options.defense ?? null;
     this.systemPrompt = buildInterviewerPrompt(context, {
-      stages: stages.map((entry) => entry.id),
-      ...(options.language ? { language: options.language } : {}),
-      ...(options.level ? { level: options.level } : {}),
-      ...(options.pressure ? { pressure: true } : {}),
+      stages: this.stages,
+      ...(this.language ? { language: this.language } : {}),
+      ...(this.level ? { level: this.level } : {}),
+      ...(this.pressure ? { pressure: true } : {}),
       minTurns,
       maxTurns,
       personaId: this.personaId,
@@ -228,6 +244,10 @@ export class InterviewSession {
       minTurns: this.minTurns,
       maxTurns: this.maxTurns,
       fallbackModels: [...this.fallbackModels],
+      stages: [...this.stages],
+      ...(this.language ? { language: this.language } : {}),
+      ...(this.level ? { level: this.level } : {}),
+      ...(this.pressure ? { pressure: true } : {}),
       personaId: this.personaId,
       candidateBrief: this.candidateBrief,
       jobPosting: this.jobPosting,
@@ -257,6 +277,10 @@ export class InterviewSession {
       minTurns: snapshot.minTurns,
       maxTurns: snapshot.maxTurns,
       fallbackModels: snapshot.fallbackModels,
+      ...(snapshot.stages ? { stages: snapshot.stages } : {}),
+      ...(snapshot.language ? { language: snapshot.language } : {}),
+      ...(snapshot.level ? { level: snapshot.level } : {}),
+      ...(snapshot.pressure ? { pressure: true } : {}),
       // A session must keep the temperament it started with; swapping it
       // mid-interview would read as the interviewer becoming another person.
       ...(snapshot.personaId ? { personaId: snapshot.personaId } : {}),

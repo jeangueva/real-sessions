@@ -63,9 +63,9 @@ export const AURA_VOICES = new Set([
   "aura-2-aquila-es",
   "aura-2-antonia-es",
   "aura-2-gloria-es",
-  // French: the two voices Aura has.
+  // The French cast.
   "aura-2-agathe-fr",
-  "aura-2-hector-fr",
+  "aura-2-ector-fr",
 ]);
 
 /** What Aura returns, and what the route forwards unchanged. */

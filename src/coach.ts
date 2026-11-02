@@ -23,6 +23,8 @@ export interface CoachOptions {
   provider?: ModelProvider;
   model?: string;
   maxTokens?: number;
+  language?: string;
+  reportLanguage?: string;
   /**
    * Give up after this long. The sidebar is worth having only while the
    * candidate is still on the turn it describes; a note that lands four
@@ -52,7 +54,10 @@ export async function coachTurn(
     const response = await withTimeout(
       provider.json({
         model,
-        system: buildCoachPrompt(context),
+        system: buildCoachPrompt(context, {
+          ...(options.language ? { language: options.language } : {}),
+          ...(options.reportLanguage ? { reportLanguage: options.reportLanguage } : {}),
+        }),
         prompt: formatExchange(question, answer, context),
         // Three short sentences. A larger budget only buys a slower call.
         maxTokens: options.maxTokens ?? 512,

@@ -346,7 +346,7 @@ function RiskPractice({
     enabled: true,
     sessionStartedAt: Date.now(),
     language,
-    bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : "es-PE",
+    bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : language === "fr" ? "fr-FR" : "es-PE",
     onFinalAnswer: (text) => setAnswer((current) => `${current} ${text}`.trim()),
   });
 
@@ -801,15 +801,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     arrived?.focus && FOCUS_OPTIONS.includes(arrived.focus) ? arrived.focus : "completa",
   );
   const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
-  /** The language the panel speaks; null follows the country's. Remembered. */
-  const [juryLanguage, setJuryLanguage] = useState<"es" | "pt" | "en" | "fr" | null>(() => {
-    try {
-      const saved = localStorage.getItem("mockio.juryLanguage");
-      return saved === "es" || saved === "pt" || saved === "en" || saved === "fr" ? saved : null;
-    } catch {
-      return null;
-    }
-  });
   const [material, setMaterial] = useState(() => arrived?.material?.slice(0, 20_000) ?? "");
   /** Filmed on this device for the replay; remembered, and off by default. */
   const [record, setRecord] = useState(() => {
@@ -836,7 +827,13 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     } catch {
       // Private mode: guessed every time.
     }
-    return thesis.analysis.language === "pt" ? "BR" : "PE";
+    return thesis.analysis.language === "pt"
+      ? "BR"
+      : thesis.analysis.language === "en"
+        ? "INT"
+        : thesis.analysis.language === "fr"
+          ? "FR"
+          : "PE";
   });
   const [university, setUniversity] = useState(() => {
     try {
@@ -846,6 +843,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     }
   });
   const [difficulty, setDifficulty] = useState<Difficulty>("estandar");
+  const [languageOverride, setLanguageOverride] = useState<"es" | "en" | "fr" | "pt" | null>(null);
   /** Which defence, by degree: from the cover, then the student's own choice. */
   const [scenario, setScenario] = useState<DefenseScenario>(() => scenarioForDegree(thesis.analysis.degree));
   const shape = SCENARIO_OPTIONS[scenario];
@@ -907,9 +905,9 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     } catch {
       // Private mode: guessed again next time.
     }
-    // The country's language wins over the thesis's: a thesis written in
-    // Spanish and defended at a Brazilian university is defended in Portuguese.
-    const language = juryLanguage ?? format?.language ?? thesis.analysis.language;
+    // The explicit rehearsal language choice wins first, then the country's
+    // language, then the thesis's language.
+    const language = languageOverride ?? format?.language ?? thesis.analysis.language;
     // Unlock the browser's audio graph and speech synthesiser while the user
     // click gesture is active, before navigating to the session screen.
     resumeAudio();
@@ -924,7 +922,15 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
         bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : language === "fr" ? "fr-FR" : `es-${country}`,
         mode: "real",
         defense: {
-          university: place || (language === "pt" ? "a universidade" : "la universidad"),
+          university:
+            place ||
+            (language === "pt"
+              ? "a universidade"
+              : language === "en"
+                ? "the university"
+                : language === "fr"
+                  ? "l'université"
+                  : "la universidad"),
           difficulty,
           scenario,
           country,
@@ -1201,7 +1207,14 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
               {formats.length > 0 && (
                 <label className={`${label} col-span-2 sm:col-span-1`}>
                   {t("country")}
-                  <select value={country} onChange={(event) => setCountry(event.target.value)} className={select}>
+                  <select
+                    value={country}
+                    onChange={(event) => {
+                      setCountry(event.target.value);
+                      setLanguageOverride(null);
+                    }}
+                    className={select}
+                  >
                     {formats.map((format) => (
                       <option key={format.country} value={format.country}>
                         {format.countryName} · {format.scale.min}–{format.scale.max}
@@ -1210,6 +1223,27 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
                   </select>
                 </label>
               )}
+              <label className={`${label} col-span-2 sm:col-span-1`}>
+                {locale === "es"
+                  ? "Idioma del jurado"
+                  : locale === "pt"
+                    ? "Idioma da banca"
+                    : locale === "fr"
+                      ? "Langue du jury"
+                      : "Jury language"}
+                <select
+                  value={languageOverride ?? formatName?.language ?? thesis.analysis.language}
+                  onChange={(event) =>
+                    setLanguageOverride(event.target.value as "es" | "en" | "fr" | "pt")
+                  }
+                  className={select}
+                >
+                  <option value="es">Español</option>
+                  <option value="en">English</option>
+                  <option value="fr">Français</option>
+                  <option value="pt">Português</option>
+                </select>
+              </label>
               <label className={label}>
                 {t("mode")}
                 <select value={focus} onChange={(event) => setFocus(event.target.value as Focus)} className={select}>
@@ -1218,29 +1252,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
                       {t(FOCUS_LABEL[entry])}
                     </option>
                   ))}
-                </select>
-              </label>
-              <label className={label}>
-                {t("juryLanguage")}
-                <select
-                  value={juryLanguage ?? ""}
-                  onChange={(event) => {
-                    const next = (event.target.value || null) as typeof juryLanguage;
-                    setJuryLanguage(next);
-                    try {
-                      if (next) localStorage.setItem("mockio.juryLanguage", next);
-                      else localStorage.removeItem("mockio.juryLanguage");
-                    } catch {
-                      // Private mode: chosen again next time.
-                    }
-                  }}
-                  className={select}
-                >
-                  <option value="">{t("juryLanguageAuto")}</option>
-                  <option value="es">Español</option>
-                  <option value="pt">Português</option>
-                  <option value="en">English</option>
-                  <option value="fr">Français</option>
                 </select>
               </label>
               <label className={label}>

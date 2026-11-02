@@ -39,6 +39,13 @@ const FALLBACK_ROLES = ["Senior Product Designer", "Backend Engineer"];
 /** Shown until the catalogue arrives, so the form is never empty on load. */
 const FALLBACK_COMPANIES = ["Stripe", "Amazon", "Airbnb", "Mercado Libre"];
 
+const FALLBACK_LANGUAGES: Language[] = [
+  { id: "en", label: "English", bcp47: "en-US" },
+  { id: "es", label: "Español", bcp47: "es-419" },
+  { id: "fr", label: "Français", bcp47: "fr-FR" },
+  { id: "pt", label: "Português", bcp47: "pt-BR" },
+];
+
 /** Collects exactly the variables the Phase 1 prompt needs — nothing more. */
 type Phase = "prepare" | "drill" | "work" | "grow";
 
@@ -55,7 +62,6 @@ export function SessionSetup() {
   const [sectors, setSectors] = useState<Sector[]>([]);
   /** The search opens on demand, from the recent setups' heading. */
   const [searchOpen, setSearchOpen] = useState(false);
-
   const [roles, setRoles] = useState<Role[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [stagesByRole, setStagesByRole] = useState<
@@ -96,7 +102,7 @@ export function SessionSetup() {
    */
   const [stageIds, setStageIds] = useState<string[]>([]);
   const [maxCombined, setMaxCombined] = useState(3);
-  const [languages, setLanguages] = useState<Language[]>([]);
+  const [languages, setLanguages] = useState<Language[]>(FALLBACK_LANGUAGES);
   /** What the interviewer speaks. Not the interface language. */
   const [languageId, setLanguageId] = useState("en");
   const [levels, setLevels] = useState<Level[]>([]);

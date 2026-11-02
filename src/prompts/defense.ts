@@ -167,6 +167,7 @@ export const REGISTERS: Record<DefenseFormat["language"], string> = {
   es: 'Use "usted".',
   pt: 'Use Brazilian Portuguese as a banca speaks it: "você" or "o senhor/a senhora", never European Portuguese.',
   en: "Use the measured, courteous English of an international examining committee; the candidate may not be a native speaker, so speak clearly without simplifying the questions.",
+  fr: 'Use formal academic French ("vous").',
 };
 
 /** How the session is laid out, for the full panel and for the express. */

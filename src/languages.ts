@@ -22,7 +22,7 @@
  * rather than discovered.
  */
 
-export type LanguageId = "en" | "es" | "pt" | "fr";
+export type LanguageId = "en" | "es" | "fr" | "pt";
 
 export interface Language {
   id: LanguageId;
@@ -66,6 +66,15 @@ export const LANGUAGES: Language[] = [
     bcp47: "es-419",
   },
   {
+    id: "fr",
+    label: "Français",
+    promptLabel: "French",
+    stt: "fr",
+    sttModel: "nova-2",
+    auraSuffix: "fr",
+    bcp47: "fr-FR",
+  },
+  {
     id: "pt",
     label: "Português",
     promptLabel: "Brazilian Portuguese",
@@ -75,15 +84,6 @@ export const LANGUAGES: Language[] = [
     bcp47: "pt-BR",
     caveat:
       "Deepgram has no Portuguese voice, so your interviewer speaks through your browser's built-in one. Everything else works the same.",
-  },
-  {
-    id: "fr",
-    label: "Français",
-    promptLabel: "French",
-    stt: "fr",
-    sttModel: "nova-2",
-    auraSuffix: "fr",
-    bcp47: "fr-FR",
   },
 ];
 
@@ -120,16 +120,15 @@ const SPANISH_VOICES: Record<string, string> = {
 };
 
 /**
- * The French voices. Aura has two, a woman and a man, so the cast alternates
- * by temperament rather than giving everyone the same voice.
+ * The French voice each interviewer speaks with via Deepgram Aura-2.
  */
 const FRENCH_VOICES: Record<string, string> = {
-  measured: "aura-2-hector-fr",
+  measured: "aura-2-ector-fr",
   skeptic: "aura-2-agathe-fr",
   rapid: "aura-2-agathe-fr",
   warm: "aura-2-agathe-fr",
-  systems: "aura-2-hector-fr",
-  founder: "aura-2-hector-fr",
+  systems: "aura-2-ector-fr",
+  founder: "aura-2-agathe-fr",
 };
 
 /**

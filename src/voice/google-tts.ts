@@ -27,10 +27,24 @@ const PORTUGUESE_VOICES: Record<string, string> = {
   founder: "pt-BR-Wavenet-A",
 };
 
+const FRENCH_GOOGLE_VOICES: Record<string, string> = {
+  measured: "fr-FR-Neural2-B",
+  skeptic: "fr-FR-Neural2-C",
+  systems: "fr-FR-Neural2-D",
+  warm: "fr-FR-Neural2-A",
+  rapid: "fr-FR-Neural2-C",
+  founder: "fr-FR-Neural2-A",
+};
+
 /** The Google voice for a persona in a language, or null when there is none. */
 export function googleVoiceFor(personaId: string, languageId: string): { name: string; languageCode: string } | null {
-  if (languageId !== "pt") return null;
-  return { name: PORTUGUESE_VOICES[personaId] ?? "pt-BR-Neural2-A", languageCode: "pt-BR" };
+  if (languageId === "pt") {
+    return { name: PORTUGUESE_VOICES[personaId] ?? "pt-BR-Neural2-A", languageCode: "pt-BR" };
+  }
+  if (languageId === "fr") {
+    return { name: FRENCH_GOOGLE_VOICES[personaId] ?? "fr-FR-Neural2-A", languageCode: "fr-FR" };
+  }
+  return null;
 }
 
 export async function synthesizeGoogle(

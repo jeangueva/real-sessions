@@ -62,9 +62,23 @@ export function ThesisDemo({ thesis, onChange }: { thesis: StoredThesis; onChang
 
   const voice = async (): Promise<SpeechOutput> => {
     if (output.current) return output.current;
-    const language = thesis.analysis.language === "pt" ? "pt" : thesis.analysis.language === "en" ? "en" : "es";
+    const language =
+      thesis.analysis.language === "pt"
+        ? "pt"
+        : thesis.analysis.language === "en"
+          ? "en"
+          : thesis.analysis.language === "fr"
+            ? "fr"
+            : "es";
     const country = savedCountry();
-    const bcp47 = language === "pt" ? "pt-BR" : language === "en" ? "en-US" : `es-${country}`;
+    const bcp47 =
+      language === "pt"
+        ? "pt-BR"
+        : language === "en"
+          ? "en-US"
+          : language === "fr"
+            ? "fr-FR"
+            : `es-${country}`;
     const config = await fetchVoiceConfig().catch(() => ({ speech: false }));
     output.current = config.speech
       ? createAuraOutput(STUDENT_PERSONA, NEUTRAL_VOICE, bcp47, language, country)

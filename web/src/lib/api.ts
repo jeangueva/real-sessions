@@ -1300,7 +1300,7 @@ export interface ThesisAnalysis {
   field: string;
   /** The school or career as the cover prints it; absent on older analyses. */
   career?: string | null;
-  language: "es" | "pt" | "en";
+  language: "es" | "pt" | "en" | "fr";
   summary: string;
   ficha: {
     problem: ThesisCited;
@@ -1481,7 +1481,7 @@ export interface PackOfferDetail {
 export interface DefenseFormatInfo {
   country: string;
   countryName: string;
-  language: "es" | "pt" | "en";
+  language: "es" | "pt" | "en" | "fr";
   jurors: Record<"presidente" | "metodologo" | "especialista", { name: string; role: string }>;
   scale: { min: number; max: number; pass: number; decimals: boolean };
 }

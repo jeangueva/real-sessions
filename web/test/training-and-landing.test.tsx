@@ -113,6 +113,10 @@ describe("TrainingConversations", () => {
     expect(await screen.findByRole("heading", { name: /Say no to a founder/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /A family request for money/i })).toBeInTheDocument();
 
+    for (const langLabel of ["Español", "English", "Français", "Português"]) {
+      expect(screen.getByRole("button", { name: langLabel })).toBeInTheDocument();
+    }
+
     fireEvent.click(screen.getByRole("button", { name: /Start rehearsal/i }));
     expect(await screen.findByText(/We need this feature live on Friday\./i)).toBeInTheDocument();
 
