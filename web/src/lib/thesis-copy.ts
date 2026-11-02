@@ -274,8 +274,11 @@ const ES = {
   title: "Mi tesis",
   meta: "Súbela una vez. El jurado la lee antes de cada ensayo.",
   uploadTitle: "Sube tu tesis",
+  nextStep1: "En un minuto ves tu diagnóstico",
+  nextStep2: "Revisas tu jurado y tu fecha",
+  nextStep3: "Ensayas por voz y recibes tu acta",
   uploadBody:
-    "PDF (también escaneado), Word o una foto, hasta 300 páginas. La leemos página por página y te mostramos por dónde te va a atacar el jurado.",
+    "PDF (también escaneado), Word o fotos, hasta 300 páginas. La leemos completa y te decimos dónde va a preguntar el jurado.",
   uploadCta: "Elegir archivo",
   callInvite: "Invitar a tu compañero",
   callInviteBody: "Envíale este enlace. Entra desde su celular o computadora, sin crear cuenta, y el mismo jurado los ve a los dos.",
@@ -846,6 +849,9 @@ const PT: Record<Key, string> = {
   title: "Minha tese",
   meta: "Envie uma vez. A banca lê antes de cada ensaio.",
   uploadTitle: "Envie seu trabalho",
+  nextStep1: "Em um minuto você vê o diagnóstico",
+  nextStep2: "Confere a banca e a data",
+  nextStep3: "Ensaia por voz e recebe a ata",
   uploadBody:
     "PDF (também escaneado), Word ou uma foto, até 300 páginas. Lemos página por página e mostramos onde a banca vai pressionar.",
   uploadCta: "Escolher arquivo",
@@ -1415,6 +1421,9 @@ const EN: Record<Key, string> = {
   title: "My thesis",
   meta: "Upload it once. The panel reads it before every rehearsal.",
   uploadTitle: "Upload your thesis",
+  nextStep1: "Your diagnosis in a minute",
+  nextStep2: "Check your panel and your date",
+  nextStep3: "Rehearse out loud and get your record",
   uploadBody:
     "PDF (scanned is fine), Word or a photo, up to 300 pages. We read it page by page and show you where the panel will press.",
   uploadCta: "Choose file",

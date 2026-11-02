@@ -130,7 +130,7 @@ const ES: Record<MessageKey, string> = {
     "El idioma de esta aplicación. Lo que habla el entrevistador se elige en cada entrevista.",
   "settings.yourName": "Tu nombre",
   "settings.yourNameHint":
-    "Cómo te llama el entrevistador. Vacío, se adivina desde tu email — y si no se puede, no te llama de ninguna forma en vez de inventarlo.",
+    "Así te saluda el entrevistador. Si lo dejas vacío, usamos el nombre de tu correo.",
   "settings.yourNamePlaceholder": "Cómo quieres que te saluden",
   "feedback.title": "Tu informe",
   "feedback.retry":
@@ -384,11 +384,11 @@ const ES: Record<MessageKey, string> = {
 
   "profile.lockedBody": "Sube un CV o portfolio y el entrevistador deja de hacer preguntas genéricas. Arranca por algo que hiciste de verdad y aprieta donde tu CV queda vago, que es lo que hace una entrevista real.",
   "profile.cvTitle": "CV o portfolio",
-  "profile.cvNote": "PDF, .docx o texto plano, hasta 8 MB. Leemos el texto, escribimos un resumen corto y le pasamos eso al entrevistador; nunca el documento entero, que lo haría recitar tu CV en vez de interrogarlo.",
+  "profile.cvNote": "PDF, Word o texto, hasta 8 MB. El entrevistador recibe un resumen corto, no el documento: así te pregunta por tu experiencia en vez de leerte el CV.",
   "profile.choose": "Elegir un archivo",
   "profile.reading": "Leyéndolo…",
   "profile.links": "Enlaces",
-  "profile.linksNote": "GitHub, LinkedIn, Figma, un sitio de portfolio: uno por línea. No los abrimos: al entrevistador se le dice que existen y de qué tipo son, y con eso alcanza para preguntar. Traer páginas en tu nombre es una decisión de seguridad que todavía no tomamos.",
+  "profile.linksNote": "GitHub, LinkedIn, Figma o tu portafolio, uno por línea. No entramos a esas páginas: el entrevistador solo sabe que existen y puede preguntarte por ellas.",
   "profile.saving": "Guardando…",
   "profile.saveLinks": "Guardar enlaces",
   "profile.briefTitle": "Lo que lee el entrevistador",
@@ -545,7 +545,7 @@ const ES: Record<MessageKey, string> = {
   "settings.account": "Cuenta",
   "settings.signedInAs": "Sesión iniciada como",
   "settings.signedInNote": "Tu historial sigue a la cuenta, en cualquier dispositivo.",
-  "settings.unconfirmed": "Esta dirección todavía no está confirmada. Hasta que lo esté no podemos mandarte un restablecimiento de contraseña, así que perderías la cuenta si te la olvidas. Si te uniste en el acceso anticipado, confirma tu correo para desbloquear tus seis meses gratis.",
+  "settings.unconfirmed": "Todavía no confirmas este correo. Confírmalo para poder recuperar tu contraseña si la olvidas. Si entraste con acceso anticipado, al confirmarlo se activan tus meses gratis.",
   "settings.sent": "Enviado: revisa tu bandeja",
   "settings.resend": "Reenviar confirmación",
 
@@ -721,7 +721,7 @@ const ES: Record<MessageKey, string> = {
   "apps.title": "Tus postulaciones",
   "apps.meta": "Los puestos que estás buscando, y la práctica detrás de cada uno.",
   "apps.loading": "Cargando…",
-  "apps.none": "Todavía no hay nada",
+  "apps.none": "Aún no agregas ningún puesto",
   "apps.count": "{count} en seguimiento",
   "apps.add": "Agregar un puesto",
   "apps.cancel": "Cancelar",

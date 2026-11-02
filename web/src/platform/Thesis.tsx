@@ -163,6 +163,18 @@ export function Thesis() {
               onPick={() => fileRef.current?.click()}
               onWrong={() => setError(t("dropWrong"))}
             />
+            {/* What happens after the file, so the first screen is not a
+                dead end: three steps, each a few words. */}
+            <ol className="grid w-full gap-2 sm:grid-cols-3">
+              {(["nextStep1", "nextStep2", "nextStep3"] as const).map((key, index) => (
+                <li key={key} className="flex items-center gap-3 rounded-2xl bg-surface-lift px-4 py-3 text-sm text-cream">
+                  <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft font-mono text-xs font-medium text-accent-text">
+                    {index + 1}
+                  </span>
+                  {t(key)}
+                </li>
+              ))}
+            </ol>
             <Privacy />
           </Panel>
         ) : thesis ? (
