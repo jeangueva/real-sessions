@@ -44,7 +44,7 @@ export function Widget({
   return (
     <Tag className={`flex min-w-0 flex-col gap-3 rounded-[1.375rem] bg-surface-card p-4 ring-1 ring-[color:var(--line)] sm:p-5 ${className}`}>
       {(label || action) && (
-        <div className="flex min-h-[1.5rem] items-center justify-between gap-3">
+        <div className="flex min-h-[1.5rem] flex-wrap items-center justify-between gap-x-3 gap-y-2">
           {label ? <Label>{label}</Label> : <span />}
           {action}
         </div>
