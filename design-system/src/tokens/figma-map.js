@@ -160,6 +160,10 @@ export const COMPONENTS = {
   PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface.", aliases: ["page container", "layout", "content area", "contenedor"] },
   Mark: { figma: "17:112", properties: [], aliases: ["logo", "isologo", "app icon", "favicon", "logotipo"] },
   Wordmark: { figma: "17:113", properties: ["Mark"], aliases: ["logo", "lockup", "brand", "logotype", "marca", "logotipo con nombre"] },
+  Field: { figma: null, reason: "Not drawn in the library yet: the label, the control and the hint are a form pattern, and the control itself is drawn by whoever writes the form.", aliases: ["form field", "labelled input", "input group", "campo", "campo de formulario", "etiqueta de campo"] },
+  Meter: { figma: null, reason: "Not drawn in the library yet: the meter is a number and a bar, and the bar is a different component the moment somebody wants it animated.", aliases: ["progress bar", "score bar", "gauge", "medidor", "barra de progreso", "puntaje"] },
+  Notice: { figma: null, reason: "Not drawn in the library yet: the three tones are the same box with a different ground, and Figma would draw three of them.", aliases: ["alert", "message", "toast", "banner", "aviso", "mensaje", "alerta"] },
+  InsetFrame: { figma: null, reason: "Page rhythm and gutters, not a drawable surface: it is the window the public site's page sits in.", aliases: ["frame", "window", "browser frame", "marco", "ventana"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
