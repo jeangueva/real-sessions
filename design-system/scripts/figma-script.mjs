@@ -4,6 +4,9 @@
  *
  *   node scripts/figma-script.mjs drift   read-only: what in Figma differs from figma.json
  *   node scripts/figma-script.mjs push    make Figma hold figma.json, then report what changed
+ *   node scripts/figma-script.mjs docs    push only component docs (descriptions, doc links,
+ *                                         preferred instances, slot descriptions) — the part a
+ *                                         new component changes, in a much shorter script
  *   node scripts/figma-script.mjs audit   read-only: the library against the agent-readiness
  *                                         checklist (docs/guides/figma.md#audit)
  *
@@ -20,13 +23,15 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mode = process.argv[2];
-if (!["drift", "push", "audit"].includes(mode)) {
-  console.error("usage: node scripts/figma-script.mjs drift|push|audit");
+if (!["drift", "push", "audit", "docs"].includes(mode)) {
+  console.error("usage: node scripts/figma-script.mjs drift|push|audit|docs");
   process.exit(1);
 }
 const spec = JSON.parse(readFileSync(path.join(root, "src/tokens/figma.json"), "utf8"));
 delete spec.$description;
 // Descriptions, doc links and preferred instances, written from the contracts.
+// (The do / don't lists are for the Guidelines page and stay out of these scripts:
+// use_figma takes at most 50,000 characters.)
 spec.docs = JSON.parse(readFileSync(path.join(root, "src/tokens/figma-components.json"), "utf8")).components;
 
 const WEIGHTS = { 300: "Light", 400: "Regular", 500: "Medium", 600: "Semi Bold", 700: "Bold" };
@@ -195,6 +200,45 @@ if (MODE === "drift") { delete report.changed; delete report.unmatched; }
 return report;
 `;
 
+// Docs only: the component-documentation part of push, on its own.
+const docsOnly = String.raw`
+const MODE = "push";
+const report = { changed: [] };
+// Component documentation: description (Markdown), doc link, slot descriptions
+// and preferred instances, from figma-components.json. Preferred names resolve
+// to components on the library's pages.
+const libraryPages = figma.root.children.filter((p) => /Iconografía|Componentes|Examples/.test(p.name));
+for (const p of libraryPages) await p.loadAsync();
+const byName = new Map();
+for (const p of libraryPages) for (const n of p.findAllWithCriteria({ types: ["COMPONENT", "COMPONENT_SET"] })) if (!(n.type === "COMPONENT" && n.parent?.type === "COMPONENT_SET")) byName.set(n.name, n);
+for (const d of SPEC.docs) {
+  const node = await figma.getNodeByIdAsync(d.node);
+  if (!node) continue;
+  const sameDesc = (node.descriptionMarkdown || "").trim() === d.description.trim();
+  const sameLink = (node.documentationLinks?.[0]?.uri ?? "") === d.docUrl;
+  if (!sameDesc) { if (MODE === "drift") report.drift.push({ component: d.name, figma: "description differs" }); else { node.descriptionMarkdown = d.description; report.changed.push(d.name + ": description"); } }
+  if (!sameLink) { if (MODE === "drift") report.drift.push({ component: d.name, figma: "doc link differs" }); else { node.documentationLinks = [{ uri: d.docUrl }]; report.changed.push(d.name + ": doc link"); } }
+  const defs = node.componentPropertyDefinitions;
+  for (const [prop, names] of Object.entries(d.preferred ?? {})) {
+    const key = Object.keys(defs).find((k) => k.split("#")[0] === prop);
+    if (!key) continue;
+    const want = names.map((n) => byName.get(n)).filter(Boolean).map((n) => ({ type: n.type, key: n.key }));
+    const got = (defs[key].preferredValues ?? []).map((v) => v.key);
+    const missing = names.filter((n) => !byName.has(n));
+    if (missing.length) report.unresolvedPreferred = [...(report.unresolvedPreferred ?? []), ...missing.map((m) => d.name + "." + prop + " → " + m)];
+    if (JSON.stringify(got) !== JSON.stringify(want.map((w) => w.key))) {
+      if (MODE === "drift") report.drift.push({ component: d.name, property: prop, figma: "preferred instances differ" });
+      else { node.editComponentProperty(key, { preferredValues: want, ...(d.slot?.[prop] ? { description: d.slot[prop] } : {}) }); report.changed.push(d.name + "." + prop + ": preferred"); }
+    } else if (d.slot?.[prop] && defs[key].description !== d.slot[prop]) {
+      if (MODE === "drift") report.drift.push({ component: d.name, property: prop, figma: "slot description differs" });
+      else { node.editComponentProperty(key, { description: d.slot[prop] }); report.changed.push(d.name + "." + prop + ": slot description"); }
+    }
+  }
+}
+
+return report;
+`;
+
 // The agent-readiness audit, after Figma's own checklist for a library an agent
 // can use: meaningful layer names, resizing, properties, focused variants,
 // descriptions with aliases, every value on a variable or style, examples.
@@ -262,4 +306,4 @@ const byRule = {}; for (const f of findings) byRule[f.rule] = (byRule[f.rule] ??
 return { total: findings.length, byRule, findings: findings.slice(0, 60) };
 `;
 
-process.stdout.write(`// Generated by design-system/scripts/figma-script.mjs ${mode} — run with use_figma in ${spec.file.url}\nconst SPEC = ${JSON.stringify(mode === "audit" ? { docs: spec.docs.map(({ name, node }) => ({ name, node })) } : spec)};\n${(mode === "audit" ? audit : body).trim()}\n`);
+process.stdout.write(`// Generated by design-system/scripts/figma-script.mjs ${mode} — run with use_figma in ${spec.file.url}\nconst SPEC = ${JSON.stringify(mode === "audit" ? { docs: spec.docs.map(({ name, node }) => ({ name, node })) } : mode === "docs" ? { docs: spec.docs.map(({ do: _d, dont: _n, ...d }) => d) } : { ...spec, docs: spec.docs.map(({ do: _d, dont: _n, ...d }) => d) })};\n${(mode === "audit" ? audit : mode === "docs" ? docsOnly : body).trim()}\n`);

@@ -126,6 +126,8 @@ export const TEXT_STYLES = [
   // The lockup's name at the product's usual size (Wordmark className="text-xl font-semibold").
   { figma: "Wordmark", px: 20, lineHeight: "1.4", letterSpacing: "-0.03em", weight: 600, family: "sans", tailwind: "text-xl font-semibold tracking-[-0.03em]" },
   { figma: "Label", preset: "xs", weight: 500, letterSpacing: "0.06em", uppercase: true, family: "mono", tailwind: "font-mono text-xs uppercase tracking-[0.06em]" },
+  // MonoLabel's leading "::", drawn tighter than the words after it.
+  { figma: "Label colons", preset: "xs", weight: 500, letterSpacing: "-0.1em", uppercase: true, family: "mono", tailwind: "font-mono text-xs tracking-[-0.1em]" },
 ];
 
 /**
@@ -160,12 +162,12 @@ export const COMPONENTS = {
   PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface.", aliases: ["page container", "layout", "content area", "contenedor"] },
   Mark: { figma: "17:112", properties: [], aliases: ["logo", "isologo", "app icon", "favicon", "logotipo"] },
   Wordmark: { figma: "17:113", properties: ["Mark"], aliases: ["logo", "lockup", "brand", "logotype", "marca", "logotipo con nombre"] },
-  Field: { figma: null, reason: "Batch 1: being drawn.", aliases: ["input", "text field", "form field", "select", "textarea", "campo", "campo de formulario"] },
-  Notice: { figma: null, reason: "Batch 1: being drawn.", aliases: ["alert", "banner", "callout", "message", "aviso", "mensaje", "toast inline"] },
-  Segmented: { figma: null, reason: "Batch 1: being drawn.", aliases: ["segmented control", "tabs", "toggle group", "radio group", "pestañas", "selector"] },
-  DisclosureMark: { figma: null, reason: "Batch 1: being drawn.", aliases: ["chevron", "expand", "accordion toggle", "disclosure", "ver más", "desplegable"] },
-  Meter: { figma: null, reason: "Batch 1: being drawn.", aliases: ["progress bar", "gauge", "score bar", "barra de progreso", "medidor"] },
-  MonoLabel: { figma: null, reason: "Batch 1: being drawn.", aliases: ["card label", "overline", "instrument label", "caption", "etiqueta mono", "::LABEL"] },
+  Field: { figma: "30:370", properties: ["Label", "Value", "Hint", "Show hint", "Control", "State"], aliases: ["input", "text field", "form field", "select", "textarea", "campo", "campo de formulario"] },
+  Notice: { figma: "29:319", properties: ["Message", "Tone"], aliases: ["alert", "banner", "callout", "message", "aviso", "mensaje", "toast inline"] },
+  Segmented: { figma: "30:248", properties: ["Option 4", "Option 5"], aliases: ["segmented control", "tabs", "toggle group", "radio group", "pestañas", "selector"] },
+  DisclosureMark: { figma: "29:336", properties: ["Label", "Open label", "Kind", "Open"], aliases: ["chevron", "expand", "accordion toggle", "disclosure", "ver más", "desplegable"] },
+  Meter: { figma: "29:354", properties: ["Label", "Value", "Fill"], aliases: ["progress bar", "gauge", "score bar", "barra de progreso", "medidor"] },
+  MonoLabel: { figma: "29:320", properties: ["Label"], aliases: ["card label", "overline", "instrument label", "caption", "etiqueta mono", "::LABEL"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
