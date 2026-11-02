@@ -244,6 +244,49 @@ const COPY = {
     techBadge: "Tech y trabajo",
     academicBadge: "Académico",
   },
+  fr: {
+    eduEyebrow: "Éducation · Situations académiques",
+    eduTitle: "Situations académiques",
+    eduIntro: "Un travail de groupe, une note que vous voulez comprendre, la discussion de périmètre avec votre directeur. Répétez-la avant qu’elle arrive.",
+    proEyebrow: "Professionnel · Conversations difficiles",
+    proTitle: "Conversations difficiles",
+    proIntro: "Au travail et à la maison : dire non, négocier un périmètre, parler d’argent en famille. Choisissez-en une et répétez-la à voix haute.",
+    trackLabel: "Domaine",
+    trackAll: "Toutes les situations",
+    trackTech: "Travail",
+    trackPersonal: "Famille et vie personnelle",
+    scenarioHeading: "1. Choisissez une situation",
+    cultureHeading: "2. Contexte culturel",
+    languageHeading: "3. Langue de la pratique",
+    langEs: "Español",
+    langEn: "English",
+    langPt: "Português",
+    partnerRole: "Votre interlocuteur",
+    situation: "Situation",
+    goal: "Votre objectif",
+    startBtn: "Commencer",
+    startingBtn: "Ouverture de la conversation…",
+    turnCount: (answers: number, max: number) => `Échange ${answers} sur ${max}`,
+    partnerTag: "Interlocuteur",
+    youTag: "Vous",
+    replyLabel: "Votre réponse",
+    replyPlaceholder: "Écrivez ce que vous diriez vraiment dans cette conversation…",
+    sendBtn: "Envoyer",
+    sendingBtn: "Réponse en cours…",
+    feedbackBtn: "Voir le retour",
+    feedbackLoading: "Préparation du retour…",
+    resetBtn: "Choisir une autre situation",
+    feedbackEyebrow: "Retour",
+    feedbackTitle: "Ce qui a marché et quoi essayer ensuite",
+    strengths: "Ce qui a marché",
+    improvements: "À affiner",
+    suggestedReply: "Une autre façon de le dire",
+    nextPractice: "Prochaine pratique",
+    loadingCatalogue: "Chargement des situations…",
+    personalBadge: "Famille",
+    techBadge: "Travail",
+    academicBadge: "Académique",
+  },
   pt: {
     eduEyebrow: "Educação · Simulações acadêmicas",
     eduTitle: "Situações acadêmicas",
@@ -291,7 +334,7 @@ const COPY = {
 
 export function TrainingConversations({ domain }: { domain: "education" | "professional" }) {
   const { locale } = useLocale();
-  const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : COPY.en;
+  const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : locale === "fr" ? COPY.fr : COPY.en;
   const isEs = locale === "es";
   /** The widgets' mono labels, in the reader's language. */
   const tag = (es: string, pt: string, en: string) => (locale === "es" ? es : locale === "pt" ? pt : en);
