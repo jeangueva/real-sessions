@@ -44,7 +44,7 @@ export const MarkPreviews = definePreviews([
     id: "both-themes",
     title: "The same on both grounds",
     kind: "variant",
-    description: "The colours are the brand's, not the theme's: the tile is the same indigo on black and on white.",
+    description: "The colours are the brand's, not the theme's: the tile is the same mustard on black and on white.",
     render: () => (
       <div className="flex gap-3">
         <div className="grid h-20 w-20 place-items-center rounded-card bg-black">

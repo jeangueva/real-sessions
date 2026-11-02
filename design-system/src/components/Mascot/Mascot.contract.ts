@@ -64,7 +64,7 @@ export const MascotContract = defineContract({
       { attribute: "alt (translation)", managedBy: "consumer", note: "The default alt is Spanish. Any other locale must pass its own alt." },
     ],
     reducedMotion: "Nothing to reduce: the component does not move. Wrappers that animate it (PopIn, the level-up spring) check prefers-reduced-motion themselves.",
-    contrast: "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated indigo body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
+    contrast: "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated mustard body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
     focus: "Never focusable.",
     targetSize: "not interactive",
     screenReader: "Announced as its alt (\"Mocki, nivel 3\", image) unless decorative. Sighted users see which form it is; the default alt gives the stage as a number, not the form's description.",
@@ -105,8 +105,6 @@ export const MascotContract = defineContract({
   tokens: [],
   related: [
     { name: "Mark", difference: "The reduced, fixed logo; Mascot is the full character and changes with progress." },
-    { name: "InterviewerPresence", difference: "The interviewer during a call; Mascot is the candidate's own character outside it." },
-    { name: "PopIn", difference: "The entrance to wrap Mocki in when it appears as a reward; Mascot itself does not move." },
   ],
   i18n: {
     rtl: "Does not mirror. The six illustrations are drawn once and are never flipped in Arabic or Hebrew: a character is not a direction, and a flipped Mocki is a different drawing.",
@@ -138,6 +136,9 @@ export const MascotContract = defineContract({
       "Drops the axis prop, which the app's copy accepted and ignored.",
     ],
   },
-  version: "0.1.0",
-  changelog: [{ version: "0.1.0", changes: ["First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."] }],
+  version: "0.1.1",
+  changelog: [
+    { version: "0.1.1", changes: ["The six stages recoloured from violet to mustard, the same PNGs the product ships in public/avatars/."] },
+    { version: "0.1.0", changes: ["First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."] },
+  ],
 });

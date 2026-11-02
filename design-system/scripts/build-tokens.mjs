@@ -66,9 +66,10 @@ out.typography = {
   sm: { $type: "dimension", $value: "1rem", $extensions: { "com.mockio": { lineHeight: "1.55", tailwind: "text-sm" } } },
   base: { $type: "dimension", $value: "1.0625rem", $extensions: { "com.mockio": { lineHeight: "1.6", tailwind: "text-base" } } },
   title: { $type: "dimension", $value: "clamp(1.25rem, 2vw, 1.75rem)", $extensions: { "com.mockio": { lineHeight: "1.18", letterSpacing: "-0.018em", tailwind: "text-title" } } },
-  headline: { $type: "dimension", $value: "clamp(2rem, 4.6vw, 4rem)", $extensions: { "com.mockio": { lineHeight: "1.04", letterSpacing: "-0.032em", tailwind: "text-headline" } } },
-  display: { $type: "dimension", $value: "clamp(3rem, 9vw, 8rem)", $extensions: { "com.mockio": { lineHeight: "0.95", letterSpacing: "-0.045em", tailwind: "text-display" } } },
-  family: { $type: "fontFamily", $value: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Inter", "Almarai", "system-ui", "sans-serif"] },
+  headline: { $type: "dimension", $value: "clamp(2rem, 4.6vw, 4rem)", $extensions: { "com.mockio": { lineHeight: "1.04", letterSpacing: "-0.04em", fontWeight: "300", tailwind: "text-headline" } } },
+  display: { $type: "dimension", $value: "clamp(3rem, 9vw, 8rem)", $extensions: { "com.mockio": { lineHeight: "0.95", letterSpacing: "-0.045em", fontWeight: "300", tailwind: "text-display" } } },
+  family: { $type: "fontFamily", $value: ["Inter Tight", "Inter", "-apple-system", "BlinkMacSystemFont", "Almarai", "system-ui", "sans-serif"] },
+  mono: { $type: "fontFamily", $value: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"], $extensions: { "com.mockio": { tailwind: "font-mono", use: "Labels, chips, tabs and figures, uppercase with a little tracking." } } },
 };
 out.radius = {
   pill: { $type: "dimension", $value: "9999px", $extensions: { "com.mockio": { tailwind: "rounded-full" } } },

@@ -43,11 +43,13 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             web/package-lock.json
+            design-system/package-lock.json
 
       - name: Install
         run: |
           npm ci
           npm --prefix web ci
+          npm --prefix design-system ci
 
       - name: Typecheck
         run: |
@@ -61,6 +63,12 @@ jobs:
         run: |
           npm test
           npm --prefix web test
+
+      # Generated files, types, contracts, previews (rendered and run through
+      # axe) and tokens against web/src/index.css. A colour changed in the
+      # product and not in the system fails here, not months later.
+      - name: Design system
+        run: npm --prefix design-system run check
 
       - name: Build
         run: npm --prefix web run build
