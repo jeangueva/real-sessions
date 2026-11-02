@@ -585,6 +585,108 @@
       "tailwind": "font-mono text-xs uppercase tracking-[0.06em]"
     }
   ],
+  "components": [
+    {
+      "name": "Action",
+      "node": "14:103",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-103",
+      "properties": [
+        "Label",
+        "With arrow",
+        "Icon",
+        "Tone",
+        "State"
+      ]
+    },
+    {
+      "name": "Badge",
+      "node": "14:109",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-109",
+      "properties": [
+        "Label",
+        "Tone"
+      ]
+    },
+    {
+      "name": "CheckItem",
+      "node": "14:110",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-110",
+      "properties": [
+        "Label"
+      ]
+    },
+    {
+      "name": "Eyebrow",
+      "node": "14:115",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-115",
+      "properties": [
+        "Label"
+      ]
+    },
+    {
+      "name": "Panel",
+      "node": "15:54",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=15-54",
+      "properties": [
+        "Content",
+        "Variant"
+      ]
+    },
+    {
+      "name": "PremiumMark",
+      "node": "14:117",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-117",
+      "properties": []
+    },
+    {
+      "name": "PageHeader",
+      "node": "15:91",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=15-91",
+      "properties": [
+        "Title",
+        "Meta",
+        "Show meta",
+        "Show actions",
+        "Size",
+        "Compact"
+      ]
+    },
+    {
+      "name": "Backdrop",
+      "node": null,
+      "reason": "Animated CSS light behind a hero; it has no static form worth a component."
+    },
+    {
+      "name": "Mascot",
+      "node": null,
+      "reason": "Six illustrated PNG stages; place the image itself."
+    },
+    {
+      "name": "ShimmerText",
+      "node": null,
+      "reason": "An animation on a word; in Figma it is the word."
+    },
+    {
+      "name": "Section",
+      "node": null,
+      "reason": "Page rhythm and gutters, not a drawable surface."
+    },
+    {
+      "name": "PageBody",
+      "node": null,
+      "reason": "Page rhythm and gutters, not a drawable surface."
+    },
+    {
+      "name": "Mark",
+      "node": null,
+      "reason": "Brand artwork: its contract still names the indigo tile while the product moved to mustard; draw it once the code is updated."
+    },
+    {
+      "name": "Wordmark",
+      "node": null,
+      "reason": "Composes Mark; waits for it."
+    }
+  ],
   "effectStyles": [
     {
       "name": "Elevation/Card/Light",

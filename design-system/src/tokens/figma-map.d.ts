@@ -27,4 +27,6 @@ export interface TextStylePairing {
 }
 export declare const TEXT_STYLES: TextStylePairing[];
 
+export declare const COMPONENTS: Record<string, { figma: string; properties: string[] } | { figma: null; reason: string }>;
+
 export declare const SHADOWS: { figma: string; css: string; tailwind: string }[];

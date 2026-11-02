@@ -145,7 +145,16 @@ for (const e of SPEC.effectStyles) {
   report.changed.push("effect/" + e.name);
 }
 
-report.checked = { colors: SPEC.colors.length * 2, radii: SPEC.radii.length, spacing: SPEC.spacing.length, textStyles: SPEC.textStyles.length, effectStyles: SPEC.effectStyles.length };
+// Components: the node exists and its properties are the ones figma-map.js names.
+// Read-only in both modes; a component is drawn by a person or an agent, not pushed.
+for (const c of SPEC.components.filter((x) => x.node)) {
+  const node = await figma.getNodeByIdAsync(c.node);
+  if (!node || (node.type !== "COMPONENT" && node.type !== "COMPONENT_SET")) { report.drift.push({ component: c.name, figma: "missing", code: c.node }); continue; }
+  const got = Object.keys(node.componentPropertyDefinitions).map((k) => k.split("#")[0]).sort();
+  if (JSON.stringify(got) !== JSON.stringify([...c.properties].sort())) report.drift.push({ component: c.name, figma: got, code: c.properties });
+}
+
+report.checked = { components: SPEC.components.filter((x) => x.node).length, colors: SPEC.colors.length * 2, radii: SPEC.radii.length, spacing: SPEC.spacing.length, textStyles: SPEC.textStyles.length, effectStyles: SPEC.effectStyles.length };
 if (MODE === "drift") { delete report.changed; delete report.unmatched; }
 return report;
 `;

@@ -46,6 +46,36 @@ An agent with the Figma MCP (`use_figma`) does this; a person reviews it.
    families the file cannot load (Inter Tight, until it is installed there);
    those styles use Inter and say so in their description.
 
+## Components
+
+`COMPONENTS` in `figma-map.js` lists every component folder with the node of
+its component (set) on the **04 · Componentes** page, or `figma: null` and the
+reason it is not drawn (animation, layout, brand art waiting on the code). A
+new folder fails `test/contracts.test.ts` until it has an entry.
+
+Figma properties mirror the contract's `designTool.canvasProps`, in the four
+kinds Figma has:
+
+| Kind | Example |
+| --- | --- |
+| Text | Action → `Label`, PageHeader → `Title`, `Meta` |
+| Boolean | Action → `With arrow`, PageHeader → `Show meta`, `Show actions` |
+| Instance swap | Action → `Icon` (any `icon/*`), Panel → `Content` |
+| Nested instance | PageHeader → its `Actions` is an exposed Action |
+
+Variants are the contract's unions and states: Action is `Tone × State`,
+Panel is `Variant`, PageHeader is `Size × Compact`. Each component's
+description carries its import line and the path of its contract.
+
+`drift` checks that each listed node exists and has exactly the properties
+the map names. It does not compare pixels: a component is drawn and reviewed
+by a person, not pushed. When a contract gains or loses a prop, update the
+component in Figma and its `properties` here in the same PR.
+
+A Panel has no padding of its own; its `Content` slot swaps in a component
+you build for the content (see `Ejemplo/Pack Sustentación`, the fragment
+from AGENTS.md made only of instances).
+
 ## When a token is added or renamed
 
 Add it to `tokens.css` and `web/src/index.css`, pair it in `figma-map.js`,

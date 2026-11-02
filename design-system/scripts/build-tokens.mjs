@@ -167,6 +167,11 @@ const figmaJson =
       })),
       spacing: figmaMap.SPACING.map((entry) => ({ name: entry.figma, px: entry.px, tailwind: entry.tailwind })),
       textStyles: figmaMap.TEXT_STYLES.flatMap(textStyles),
+      components: Object.entries(figmaMap.COMPONENTS).map(([name, entry]) =>
+        entry.figma
+          ? { name, node: entry.figma, url: `${figmaMap.FIGMA_FILE.url}?node-id=${entry.figma.replace(":", "-")}`, properties: entry.properties }
+          : { name, node: null, reason: entry.reason },
+      ),
       effectStyles: figmaMap.SHADOWS.flatMap((entry) =>
         [
           ["Light", light],

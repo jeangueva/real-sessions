@@ -114,6 +114,32 @@ export const TEXT_STYLES = [
   { figma: "Label", preset: "xs", weight: 500, letterSpacing: "0.06em", uppercase: true, family: "mono", tailwind: "font-mono text-xs uppercase tracking-[0.06em]" },
 ];
 
+/**
+ * Every component folder, and where it lives in the library: the node of its
+ * component (set) on the "04 · Componentes" page, or `figma: null` with the
+ * reason it is not drawn there. A new folder fails the tests until it has an
+ * entry, so the library cannot quietly fall behind the package.
+ *
+ * Figma component properties mirror the contract's `designTool.canvasProps`;
+ * the node's description carries the import and the contract's path.
+ */
+export const COMPONENTS = {
+  Action: { figma: "14:103", properties: ["Label", "With arrow", "Icon", "Tone", "State"] },
+  Badge: { figma: "14:109", properties: ["Label", "Tone"] },
+  CheckItem: { figma: "14:110", properties: ["Label"] },
+  Eyebrow: { figma: "14:115", properties: ["Label"] },
+  Panel: { figma: "15:54", properties: ["Content", "Variant"] },
+  PremiumMark: { figma: "14:117", properties: [] },
+  PageHeader: { figma: "15:91", properties: ["Title", "Meta", "Show meta", "Show actions", "Size", "Compact"] },
+  Backdrop: { figma: null, reason: "Animated CSS light behind a hero; it has no static form worth a component." },
+  Mascot: { figma: null, reason: "Six illustrated PNG stages; place the image itself." },
+  ShimmerText: { figma: null, reason: "An animation on a word; in Figma it is the word." },
+  Section: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
+  PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
+  Mark: { figma: null, reason: "Brand artwork: its contract still names the indigo tile while the product moved to mustard; draw it once the code is updated." },
+  Wordmark: { figma: null, reason: "Composes Mark; waits for it." },
+};
+
 /** Elevation: one Figma effect style per theme for each shadow variable. */
 export const SHADOWS = [
   { figma: "Elevation/Card", css: "--shadow-card", tailwind: "shadow-card" },
