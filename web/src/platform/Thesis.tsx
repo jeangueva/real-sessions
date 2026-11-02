@@ -463,7 +463,6 @@ function Diagnosis({
   const severityOrder = { alta: 0, media: 1, baja: 2 };
   const risks = [...a.risks].sort((x, y) => severityOrder[x.severity] - severityOrder[y.severity]);
 
-  const serious = risks.filter((risk) => risk.severity === "alta").length;
 
   return (
     <>
@@ -510,11 +509,6 @@ function Diagnosis({
           on a laptop, the tab bar on a phone — so the page is only the one
           that is open. The count of serious risks stays here, where it is
           read. */}
-      {tab === "diagnostico" && serious > 0 && (
-        <p className="self-start rounded-full bg-step-soft px-3 py-1 text-xs font-semibold text-step-text">
-          {t("severityAlta")} · {serious}
-        </p>
-      )}
 
       {tab === "ensayar" && (
         <>

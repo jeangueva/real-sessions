@@ -55,10 +55,13 @@ export function Warmup() {
       <PageBody className="mx-auto flex max-w-2xl flex-col gap-4">
         {step === 0 && (
           <Panel variant="raised" className="flex flex-col items-start gap-4 p-6 sm:p-8">
-            <ol className="flex flex-col gap-2 text-base text-cream">
-              <li>1. {t("warmupStep1")} · 2 min</li>
-              <li>2. {t("warmupStep2")} · 3 min</li>
-              <li>3. {t("warmupStep3")} · 5 min</li>
+            <ol className="flex w-full flex-col text-base text-cream-bright">
+              {([["warmupStep1", 2], ["warmupStep2", 3], ["warmupStep3", 5]] as const).map(([key, min]) => (
+                <li key={key} className="flex items-baseline justify-between gap-3 border-t border-[color:var(--line)] py-2.5 first:border-t-0 first:pt-0">
+                  {t(key)}
+                  <span className="font-mono text-xs text-cream-dim">{min} min</span>
+                </li>
+              ))}
             </ol>
             <Action withArrow onClick={() => setStep(1)}>
               {t("warmupStart")}
