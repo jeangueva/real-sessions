@@ -591,7 +591,7 @@ export function Settings() {
         {/* Signing out lives in the sidebar on a wide screen, but the phone's
             bottom bar has no room for it, so it was nowhere at all there.
             Here it is findable on both — Account is where people look. */}
-        <Panel className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8">
+        <Panel className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8 md:hidden">
           <p className="text-sm text-cream-dim">{t("settings.signOutHint")}</p>
           <Action
             tone="neutral"

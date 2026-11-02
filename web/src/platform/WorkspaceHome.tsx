@@ -13,7 +13,7 @@ import {
   Route,
 } from "lucide-react";
 import { Action, FadeRise } from "@/design-system";
-import { IconTile, Inset, MonoLabel, Widget } from "@/components/marketing";
+import { IconTile, Widget } from "@/components/marketing";
 import { usePracticeCopy } from "@/lib/practice-copy";
 import { thesisPath, type Space } from "@/lib/spaces";
 import { PageBody, PageHeader } from "./AppShell";
@@ -92,7 +92,6 @@ export function WorkspaceHome({ space }: { space: Space }) {
             return (
               <FadeRise key={card.to} delay={i * 0.05}>
                 <Widget
-                  label={card.label}
                   className="flex h-full flex-col p-6 sm:p-7"
                 >
                   <div>
@@ -108,9 +107,8 @@ export function WorkspaceHome({ space }: { space: Space }) {
                     <p className="mt-3 text-sm leading-relaxed text-cream-dim">{card.body}</p>
 
                     {card.subLinks.length > 0 && (
-                      <Inset className="mt-4 p-3">
-                        <MonoLabel>{c.tools}</MonoLabel>
-                        <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-4">
+                        <div className="flex flex-wrap gap-2" aria-label={c.tools}>
                           {card.subLinks.map((sub) => {
                             const SubIcon = sub.icon;
                             return (
@@ -125,7 +123,7 @@ export function WorkspaceHome({ space }: { space: Space }) {
                             );
                           })}
                         </div>
-                      </Inset>
+                      </div>
                     )}
                   </div>
 
