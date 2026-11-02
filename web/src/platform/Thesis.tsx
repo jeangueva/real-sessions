@@ -1,8 +1,8 @@
 import { freeAccessCopy } from "@/lib/free-access-copy";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
-import { Action, Panel, DisclosureMark, PopIn, DashWidget, Gauge, TopoMap, TrailChart, Well, type MapPin } from "@/design-system";
+import { AlertTriangle, ArrowRight, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
+import { Action, Panel, DisclosureMark, PopIn, DashWidget, Gauge, TrailChart, Well } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import {
   ApiError,
@@ -1008,18 +1008,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
   const risks = [...thesis.analysis.risks]
     .sort((a, b) => ["alta", "media", "baja"].indexOf(a.severity) - ["alta", "media", "baja"].indexOf(b.severity))
     .slice(0, 3);
-  const riskPins: MapPin[] = [
-    { x: 0.03, y: 0.88, tone: "violet" },
-    ...risks
-      .map((risk, index) => ({ risk, index }))
-      .sort((a, b) => (a.risk.page ?? a.index) - (b.risk.page ?? b.index))
-      .map(({ risk }, order, all) => ({
-        x: 0.18 + (0.78 * (order + 1)) / all.length,
-        y: Math.max(0.08, 0.78 - (0.7 * (order + 1)) / all.length),
-        tone: (risk.severity === "alta" ? "orange" : "ink") as MapPin["tone"],
-        label: risk.issue,
-      })),
-  ];
 
   return (
     <>
@@ -1085,7 +1073,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
               </button>
             }
           >
-            <TopoMap ariaLabel={t("dashRisks")} pins={riskPins} onPin={() => navigate("/app/tesis/diagnostico")} />
             <ul className="flex flex-col gap-1.5">
               {risks.slice(0, 2).map((risk, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm text-cream">
@@ -1396,21 +1383,21 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
       {/* The focused rehearsals as cards, each starting its own — the way a
           catalogue of situations reads, instead of an option in a select. */}
       <DashWidget label={t("focusTitle")}>
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid min-w-0 grid-cols-1 gap-x-6 sm:grid-cols-2">
           {FOCUS_OPTIONS.filter((entry) => entry !== "completa").map((entry) => (
-            <li key={entry} className="flex flex-col gap-3 rounded-2xl bg-surface-lift p-4">
-              <div>
-                <p className="text-base font-medium text-cream-bright">{t(FOCUS_LABEL[entry])}</p>
-                <p className="mt-1 text-sm leading-relaxed text-cream-dim">{t(FOCUS_HINT[entry])}</p>
-              </div>
-                <button
-                  type="button"
-                  disabled={careerBusy}
-                  onClick={() => startFocus(entry)}
-                  className="focus-ring mt-auto inline-flex items-center gap-1.5 self-start rounded-full bg-surface-card px-4 py-2 text-sm font-semibold text-cream-bright ring-1 ring-[color:var(--line)] transition-transform duration-150 ease-press active:scale-[0.97] disabled:opacity-50"
-                >
-                  {entry === "estadistica" || entry === "observaciones" ? t("focusPrepare") : t("focusStart")}
-                </button>
+            <li key={entry} className="min-w-0 border-t border-[color:var(--line)] first:border-t-0 sm:[&:nth-child(2)]:border-t-0">
+              <button
+                type="button"
+                disabled={careerBusy}
+                onClick={() => startFocus(entry)}
+                className="focus-ring group flex w-full items-center gap-3 py-3 text-left transition-transform duration-150 ease-press active:scale-[0.99] disabled:opacity-50"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-medium text-cream-bright">{t(FOCUS_LABEL[entry])}</span>
+                  <span className="block truncate text-sm text-cream-dim">{t(FOCUS_HINT[entry])}</span>
+                </span>
+                <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-cream-dim transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-accent-text" />
+              </button>
             </li>
           ))}
         </ul>
