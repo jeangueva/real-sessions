@@ -14,7 +14,7 @@ import {
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Avatar, PopIn } from "@/design-system";
-import { TIER_COUNT, dominantAxis, nextEvolution } from "@/lib/avatar";
+import { dominantAxis, nextEvolution } from "@/lib/avatar";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 import {
@@ -170,26 +170,8 @@ export function Progress() {
       <>
         <PageHeader title={t("progress.title")} meta={t("progress.nothing")} />
         <PageBody className="flex flex-col gap-4">
-          <Welcome sessions={[]} />
           <Journey sessions={[]} />
           <Panel variant="raised" className="flex max-w-2xl flex-col gap-5 p-6 sm:p-8">
-            {/* The first form, shown rather than described. The copy beside
-                this used to promise that the shape starts meaning something
-                around the third session while showing no shape at all, which
-                asked someone to work toward a reward they had never seen.
-                Recessive but not faint: it is what they have rather than what
-                they are heading for, and a shape too pale to make out would
-                fail the one job it has. */}
-            <div className="flex items-center gap-4">
-              <Avatar
-                level={1}
-                size={88}
-                className="shrink-0 text-cream-dim"
-              />
-              <p className="text-xs text-cream-faint">
-                {t("avatar.empty", { count: TIER_COUNT - 1 })}
-              </p>
-            </div>
             <p className="text-sm text-cream-dim">
               {t("progress.empty")}
             </p>
