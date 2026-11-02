@@ -460,9 +460,7 @@ export function RealQuestionsCard() {
           className={field}
         />
       </label>
-      {!result ? (
-        <p className="text-sm text-cream-dim">{t("realUniversityHint")}</p>
-      ) : result.verified === 0 ? (
+      {!result ? null : result.verified === 0 ? (
         <p className="text-sm text-cream-dim">{t("realNone")}</p>
       ) : (
         <div className="flex flex-col gap-3">

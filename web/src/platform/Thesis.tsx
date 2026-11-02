@@ -1,8 +1,8 @@
 import { freeAccessCopy } from "@/lib/free-access-copy";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
-import { Action, Panel, DisclosureMark, PopIn } from "@/design-system";
+import { AlertTriangle, ArrowRight, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
+import { Action, Panel, DisclosureMark, PopIn, DashWidget, Gauge, TrailChart, Well } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import {
   ApiError,
@@ -131,10 +131,12 @@ export function Thesis() {
 
   return (
     <>
+      {/* The thesis is the subject of every section, so its title heads the
+          page in the light display cut, and the section names it underneath. */}
       <PageHeader
-        dense={Boolean(thesis)}
-        title={thesis ? t(TAB_LABEL[section]) : t("title")}
-        meta={thesis ? thesis.analysis.title : t("meta")}
+        compact={Boolean(thesis)}
+        title={thesis ? thesis.analysis.title : t("title")}
+        meta={thesis ? undefined : t("meta")}
       />
       <PageBody className={`flex flex-col gap-4 ${thesis ? "!pt-3" : ""} ${thesis && section === "ensayar" ? "!pb-36" : ""}`}>
         {picker}
@@ -159,6 +161,18 @@ export function Thesis() {
               onPick={() => fileRef.current?.click()}
               onWrong={() => setError(t("dropWrong"))}
             />
+            {/* What happens after the file, so the first screen is not a
+                dead end: three steps, each a few words. */}
+            <ol className="grid w-full gap-2 sm:grid-cols-3">
+              {(["nextStep1", "nextStep2", "nextStep3"] as const).map((key, index) => (
+                <li key={key} className="flex items-center gap-3 rounded-2xl bg-surface-lift px-4 py-3 text-sm text-cream">
+                  <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft font-mono text-xs font-medium text-accent-text">
+                    {index + 1}
+                  </span>
+                  {t(key)}
+                </li>
+              ))}
+            </ol>
             <Privacy />
           </Panel>
         ) : thesis ? (
@@ -449,15 +463,13 @@ function Diagnosis({
   const severityOrder = { alta: 0, media: 1, baja: 2 };
   const risks = [...a.risks].sort((x, y) => severityOrder[x.severity] - severityOrder[y.severity]);
 
-  const serious = risks.filter((risk) => risk.severity === "alta").length;
 
   return (
     <>
-      {/* The thesis in one compact card: what was read, when it is defended,
-          and the two file actions as small buttons — not a page of its own. */}
       {/* The thesis as one quiet line: which file, the date it all counts
-          down to, and the two file actions. Its title is the page's own
-          subtitle already; its summary belongs to the diagnosis. */}
+          down to, and the two file actions. Only where they are used — the
+          rehearsal and "more" — rather than repeated over every section. */}
+      {(tab === "ensayar" || tab === "mas") && (
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-2xl bg-surface-card px-4 py-2.5 shadow-card sm:flex sm:flex-wrap">
         <span className="flex min-w-0 items-center gap-2 text-sm text-cream-dim">
           <FileText aria-hidden className="h-4 w-4 shrink-0 text-accent-text" />
@@ -489,6 +501,7 @@ function Diagnosis({
           </button>
         </div>
       </div>
+      )}
 
       {tab === "diagnostico" && <p className="max-w-prose text-sm leading-relaxed text-cream">{a.summary}</p>}
 
@@ -496,11 +509,6 @@ function Diagnosis({
           on a laptop, the tab bar on a phone — so the page is only the one
           that is open. The count of serious risks stays here, where it is
           read. */}
-      {tab === "diagnostico" && serious > 0 && (
-        <p className="self-start rounded-full bg-step-soft px-3 py-1 text-xs font-semibold text-step-text">
-          {t("severityAlta")} · {serious}
-        </p>
-      )}
 
       {tab === "ensayar" && (
         <>
@@ -521,7 +529,8 @@ function Diagnosis({
       {tab === "diagnostico" && (
         <div className="flex flex-col gap-4">
           <section aria-labelledby="risks" className="flex flex-col gap-2">
-            <p id="risks" className="text-sm font-semibold text-cream-bright">
+            <p id="risks" className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim">
+              <span aria-hidden className="tracking-[-0.1em]">::</span>
               {t("risksTitle")}
             </p>
             {/* One line per risk; the likely question opens on tap. */}
@@ -650,9 +659,9 @@ function Diagnosis({
           </Link>
           <MentorCard thesis={thesis} onChange={onChange} />
           <PreparationReportCard thesis={thesis} />
-          <Support />
           <AdvisorCard />
           <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
+          <Support />
           <Privacy />
           <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
         </div>
@@ -938,6 +947,33 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     });
   };
 
+  /**
+   * A focused rehearsal pressed from its card. The focus is state, so the
+   * rehearsal starts on the render after it is set rather than in the click,
+   * which would still carry the previous one.
+   */
+  const [pendingFocus, setPendingFocus] = useState<Focus | null>(null);
+  useEffect(() => {
+    if (!pendingFocus || focus !== pendingFocus) return;
+    setPendingFocus(null);
+    begin();
+    // `begin` reads the state this waits for; it is not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFocus, focus]);
+  const startFocus = (entry: Focus) => {
+    resumeAudio();
+    primeVoiceUnlock();
+    setFull(true);
+    setFocus(entry);
+    // Two of them need the student's own material first: the settings open
+    // on the box for it instead of starting an empty rehearsal.
+    if (entry === "estadistica" || entry === "observaciones") {
+      document.getElementById("rehearsal-settings")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setPendingFocus(entry);
+  };
+
   const select =
     "focus-ring w-full rounded-xl bg-surface-card px-3 py-2.5 text-sm text-cream-bright disabled:opacity-50";
   const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
@@ -960,18 +996,24 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
   ]
     .filter(Boolean)
     .join(" · ");
+  const last = progress.at(-1);
+  const gradeText = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+  /** The weakest points first, at most four, placed on the map by page. */
+  const risks = [...thesis.analysis.risks]
+    .sort((a, b) => ["alta", "media", "baja"].indexOf(a.severity) - ["alta", "media", "baja"].indexOf(b.severity))
+    .slice(0, 3);
 
   return (
     <>
-      <Panel variant="raised" className="flex flex-col gap-4 p-4 sm:p-5">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-cream-bright">{t("nextTitle")}</h2>
-          <p className="text-sm text-cream-dim">{summary}</p>
-        </div>
-
-        <div className="grid items-start gap-5 xl:grid-cols-2">
-        <section aria-label={t("careerJuryLabel")} className="flex min-w-0 flex-col gap-3 rounded-xl border border-line p-3">
-          <label htmlFor="career-jury-select" className="text-sm font-semibold text-cream-bright">{t("careerJuryLabel")}</label>
+      {/* The rehearsal as a dashboard: who sits on the panel and where they
+          will press on the left, the next rehearsal and the grade over
+          rehearsals in the middle, how ready and the facts on the right. */}
+      <div className="grid items-start gap-3 lg:grid-cols-12">
+      {/* On a phone the next rehearsal comes first, then how ready, then the
+          panel and the risks; on a wide screen the three sit side by side. */}
+      <div className="order-3 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-4">
+        <DashWidget label={t("assignedJury")}>
+          <label htmlFor="career-jury-select" className="sr-only">{t("careerJuryLabel")}</label>
           <select
             id="career-jury-select"
             value={thesis.careerOverride ?? ""}
@@ -1011,7 +1053,36 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             ))}
           </ul>
           <RealJuryCard thesis={thesis} onChange={onChange} compact />
-        </section>
+        </DashWidget>
+        {risks.length > 0 && (
+          <DashWidget
+            label={t("dashRisks")}
+            action={
+              <button
+                type="button"
+                onClick={() => navigate("/app/tesis/diagnostico")}
+                className="focus-ring shrink-0 whitespace-nowrap rounded-full font-mono text-xs font-medium uppercase tracking-[0.06em] text-accent-text"
+              >
+                {t("dashAllRisks")}
+              </button>
+            }
+          >
+            <ul className="flex flex-col gap-1.5">
+              {risks.slice(0, 2).map((risk, index) => (
+                <li key={index} className="flex items-center gap-2 text-sm text-cream">
+                  <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${risk.severity === "alta" ? "bg-[#F59E0B]" : "bg-[#7C6CF2]"}`} />
+                  <span className="min-w-0 flex-1 truncate">{risk.issue}</span>
+                  {risk.page && <span className="font-mono text-xs text-cream-dim">p. {risk.page}</span>}
+                </li>
+              ))}
+            </ul>
+          </DashWidget>
+        )}
+      </div>
+
+      <div className="order-1 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-5">
+        <DashWidget label={t("nextTitle")}>
+        <p className="-mt-1 text-sm text-cream-dim">{summary}</p>
         <div className="flex min-w-0 flex-col gap-4">
         {/* The two choices that change the rehearsal most, as two big
             options rather than a row of small ones. */}
@@ -1078,11 +1149,11 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
           <span className="font-normal text-cream-dim">{t(DIFFICULTY_HINT[difficulty])}</span>
         </div>
         </div>
-        </div>
 
         {/* Everything else, folded: set once, rarely changed. The line under
             the title says what it is set to, so folding hides nothing. */}
         <details
+          id="rehearsal-settings"
           className="group rounded-2xl bg-surface-lift"
           open={needsMaterial || undefined}
         >
@@ -1261,13 +1332,71 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             </Action>
           <p className="text-sm text-cream-dim">{freeAccessCopy(locale).body}</p>
         </div>
-      </Panel>
+        </DashWidget>
 
-      {progress.length > 0 && (
-        <Panel variant="raised" className="p-5 sm:p-6">
-          <ProgressStrip points={progress} />
-        </Panel>
-      )}
+        <DashWidget
+          label={t("dashGrade")}
+          action={
+            last ? (
+              <ThesisShareCard data={{ grade: last.grade, gradeMax: last.gradeMax, passMark: last.passMark, readiness: last.readiness }} />
+            ) : undefined
+          }
+        >
+          {progress.length > 1 ? (
+            <TrailChart
+              ariaLabel={progress.map((point) => `${gradeText(point.grade)}/${point.gradeMax}`).join(", ")}
+              values={progress.map((point) => point.grade)}
+              min={Math.max(0, Math.min(...progress.map((point) => point.grade), last!.passMark) - 2)}
+              max={last!.gradeMax}
+              mark={{ value: last!.passMark, label: t("progressPass", { mark: gradeText(last!.passMark) }) }}
+              labels={[t("dashFirst"), "", t("dashLatest")]}
+            />
+          ) : (
+            <Well className="text-sm text-cream-dim">
+              {last ? t("dashGradeOne", { grade: gradeText(last.grade), max: last.gradeMax }) : t("dashGradeEmpty")}
+            </Well>
+          )}
+        </DashWidget>
+
+      </div>
+
+      <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-none lg:col-span-3">
+        <DashWidget label={t("dashReady")}>
+          <Gauge
+            value={last?.readiness ?? 0}
+            center={`${last?.readiness ?? 0}%`}
+            caption={t(last && last.readiness >= 70 ? "dashReadyWord" : "dashReadyOnTheWay")}
+            left="0"
+            right="100"
+            className="!bg-transparent !p-0"
+          />
+        </DashWidget>
+      </div>
+      </div>
+
+      {/* The focused rehearsals as cards, each starting its own — the way a
+          catalogue of situations reads, instead of an option in a select. */}
+      <DashWidget label={t("focusTitle")}>
+        <ul className="grid min-w-0 grid-cols-1 gap-x-6 sm:grid-cols-2">
+          {FOCUS_OPTIONS.filter((entry) => entry !== "completa").map((entry) => (
+            <li key={entry} className="min-w-0 border-t border-[color:var(--line)] first:border-t-0 sm:[&:nth-child(2)]:border-t-0">
+              <button
+                type="button"
+                disabled={careerBusy}
+                onClick={() => startFocus(entry)}
+                className="focus-ring group flex w-full items-center gap-3 py-3 text-left transition-transform duration-150 ease-press active:scale-[0.99] disabled:opacity-50"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-medium text-cream-bright">{t(FOCUS_LABEL[entry])}</span>
+                  <span className="block truncate text-sm text-cream-dim">{t(FOCUS_HINT[entry])}</span>
+                </span>
+                <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-cream-dim transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-accent-text" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </DashWidget>
+
     </>
   );
 }
@@ -1321,49 +1450,13 @@ const FOCUS_LABEL = {
   observaciones: "modeObservaciones",
   divulgacion: "modeDivulgacion",
 } as const;
+const FOCUS_HINT = {
+  completa: "focusHintMatriz",
+  matriz: "focusHintMatriz",
+  autoria: "focusHintAutoria",
+  trampa: "focusHintTrampa",
+  estadistica: "focusHintEstadistica",
+  observaciones: "focusHintObservaciones",
+  divulgacion: "focusHintDivulgacion",
+} as const;
 
-/**
- * The last rehearsals as a row of bars, each the grade against the pass
- * mark: one glance says whether the practice is working. A line under it
- * gives the readiness from the first to the latest.
- */
-function ProgressStrip({ points }: { points: DefenseProgressPoint[] }) {
-  const t = useThesisT();
-  const first = points[0]!;
-  const last = points.at(-1)!;
-  const grade = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
-  return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-surface-lift p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="text-sm font-semibold text-cream-bright">{t("progressTitle")}</p>
-          <p className="text-xs text-cream-dim">
-            {t("progressReadiness", { from: first.readiness, to: last.readiness })} · {t("progressPass", { mark: grade(last.passMark) })}
-          </p>
-        </div>
-        <ThesisShareCard
-          data={{
-            grade: last.grade,
-            gradeMax: last.gradeMax,
-            passMark: last.passMark,
-            readiness: last.readiness,
-          }}
-        />
-      </div>
-      <div className="flex h-20 items-end gap-1.5" role="img" aria-label={points.map((p) => `${grade(p.grade)}/${p.gradeMax}`).join(", ")}>
-        {points.map((point) => {
-          const passed = point.grade >= point.passMark;
-          return (
-            <div key={point.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-              <span className="text-xs font-semibold tabular-nums text-cream-dim">{grade(point.grade)}</span>
-              <span
-                className={`block w-full max-w-10 rounded-t-md ${passed ? "bg-grow" : "bg-step"}`}
-                style={{ height: `${Math.max(8, (point.grade / point.gradeMax) * 44)}px` }}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

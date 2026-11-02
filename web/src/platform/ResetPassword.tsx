@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Action, Field, Notice } from "@/design-system";
 import { ApiError, requestPasswordReset, resetPassword } from "@/lib/api";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
 
 /**
  * Both halves of the reset flow. With a `token` in the URL it sets a new
@@ -19,7 +19,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
   const t = useT();
   return (
     <AuthLayout>
-    <h1 className="text-title font-semibold text-cream-bright">{title}</h1>
+    <h1 className="text-title text-cream-bright">{title}</h1>
     {children}
     <Link
       to="/signin"
@@ -33,6 +33,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
 
 function RequestLink() {
   const t = useT();
+  const { locale } = useLocale();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -75,7 +76,7 @@ function RequestLink() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
-            placeholder="you@example.com"
+            placeholder={locale === "es" ? "tu@correo.com" : locale === "pt" ? "voce@email.com" : "you@example.com"}
           />
         </Field>
         <Action type="submit" disabled={busy} className="self-start">

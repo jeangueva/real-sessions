@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { Compass, ExternalLink, Sparkles } from "lucide-react";
+import { Compass, ExternalLink } from "lucide-react";
 import {
   Action,
-  Badge,
   Eyebrow,
   FadeRise,
   Field,
-  Meter,
   Notice,
   Panel,
 } from "@/design-system";
@@ -214,9 +212,9 @@ const CASE_PT: Record<string, { title: string; prompt: string; options: [string,
 
 const COPY = {
   en: {
-    eyebrow: "Professional · Product, Design & Systems Intuition",
-    title: "Deliberate intuition trainer with real-world outcomes",
-    intro: "Commit to a product, design or systems decision, state your confidence and write your reasoning before revealing what actually happened in the documented historical case.",
+    eyebrow: "",
+    title: "Product intuition",
+    intro: "Make the call on a real case, say how sure you are and why, then see what actually happened.",
     filterLabel: "Decision type",
     filterAll: "All cases",
     prioritization: "Prioritization",
@@ -240,49 +238,49 @@ const COPY = {
     loadingCases: "Loading intuition cases…",
   },
   es: {
-    eyebrow: "Profesional · Intuición de Producto, Diseño y Sistemas",
-    title: "Entrenador de intuición de producto y diseño con feedback de realidad",
-    intro: "Compromete tu decisión de priorización, trade-offs o hipótesis, registra tu nivel de confianza y explica tu razonamiento antes de revelar qué ocurrió realmente en el caso histórico documentado.",
+    eyebrow: "",
+    title: "Intuición de producto",
+    intro: "Decides en un caso real, dices qué tan seguro estás y por qué, y después ves qué pasó de verdad.",
     filterLabel: "Tipo de criterio",
     filterAll: "Todos los casos",
     prioritization: "Priorización",
     tradeoffs: "Trade-offs",
     hypotheses: "Hipótesis",
-    stepCommit: "1. Compromete tu criterio antes de ver el desenlace",
+    stepCommit: "1. Decide antes de ver qué pasó",
     optionsLegend: "Elige tu decisión",
     confidenceLabel: "Nivel de confianza en tu decisión",
     reasoningLabel: "¿Por qué eliges esta opción? ¿Qué señal pesa más y qué supuesto podría fallar?",
     reasoningPlaceholder: "Escribe la señal principal en la que te apoyas y qué evidencia te haría cambiar de postura…",
-    revealBtn: "Confirmar decisión y revelar caso real",
+    revealBtn: "Confirmar y ver el caso real",
     revealingBtn: "Revelando caso documentado…",
-    outcomeEyebrow: "Desenlace histórico documentado",
-    yourChoice: "Tu decisión comprometida",
+    outcomeEyebrow: "Lo que pasó",
+    yourChoice: "Tu decisión",
     recommendedChoice: "Enfoque recomendado",
-    alignedBadge: "Alineado con la lección del caso",
-    differsBadge: "Distinto al enfoque recomendado",
+    alignedBadge: "Igual que en el caso real",
+    differsBadge: "Distinto del caso real",
     rationaleHeading: "Por qué se sostiene este criterio",
     sourceLabel: "Consultar fuente original",
     nextCaseBtn: "Practicar siguiente caso",
     loadingCases: "Cargando casos de intuición…",
   },
   pt: {
-    eyebrow: "Profissional · Intuição de Produto, Design e Sistemas",
-    title: "Treinador de intuição de produto e design com feedback da realidade",
-    intro: "Registre sua decisão de priorização, trade-offs ou hipóteses, defina sua confiança e explique seu raciocínio antes de revelar o que realmente aconteceu no caso histórico documentado.",
+    eyebrow: "",
+    title: "Intuição de produto",
+    intro: "Você decide em um caso real, diz o quanto tem certeza e por quê, e depois vê o que aconteceu de verdade.",
     filterLabel: "Tipo de decisão",
     filterAll: "Todos os casos",
     prioritization: "Priorização",
     tradeoffs: "Trade-offs",
     hypotheses: "Hipóteses",
-    stepCommit: "1. Registre seu julgamento antes da revelação",
+    stepCommit: "1. Decida antes de ver o que aconteceu",
     optionsLegend: "Escolha sua decisão",
     confidenceLabel: "Nível de confiança nesta decisão",
     reasoningLabel: "Por que esta opção? Qual sinal mais importa e qual suposição pode falhar?",
     reasoningPlaceholder: "Escreva o sinal principal em que você se apoia e que evidência mudaria sua decisão…",
     revealBtn: "Confirmar decisão e revelar caso real",
     revealingBtn: "Revelando caso documentado…",
-    outcomeEyebrow: "Desfecho histórico documentado",
-    yourChoice: "Sua escolha registrada",
+    outcomeEyebrow: "O que aconteceu",
+    yourChoice: "Sua decisão",
     recommendedChoice: "Abordagem recomendada",
     alignedBadge: "Alinhado com a lição documentada",
     differsBadge: "Diferente da abordagem recomendada",
@@ -292,36 +290,37 @@ const COPY = {
     loadingCases: "Carregando casos de intuição…",
   },
   fr: {
-    eyebrow: "Professionnel · Intuition Produit, Design & Systèmes",
-    title: "Entraîneur d'intuition produit et design avec retour du réel",
-    intro: "Engagez votre décision de priorisation, de compromis ou d'hypothèse, indiquez votre niveau de confiance et expliquez votre raisonnement avant de révéler ce qui s'est réellement passé dans le cas historique documenté.",
+    eyebrow: "",
+    title: "Intuition produit",
+    intro: "Vous tranchez sur un cas réel, dites à quel point vous êtes sûr et pourquoi, puis voyez ce qui s’est vraiment passé.",
     filterLabel: "Type de décision",
     filterAll: "Tous les cas",
     prioritization: "Priorisation",
-    tradeoffs: "Compromis",
+    tradeoffs: "Arbitrages",
     hypotheses: "Hypothèses",
-    stepCommit: "1. Engagez votre jugement avant la révélation",
-    optionsLegend: "Choisissez votre plan d'action",
-    confidenceLabel: "Niveau de confiance dans cette décision",
-    reasoningLabel: "Pourquoi cette option ? Quel signal compte le plus et quelle hypothèse pourrait échouer ?",
-    reasoningPlaceholder: "Décrivez le signal principal sur lequel vous vous appuyez et quelle preuve vous ferait changer d'avis…",
-    revealBtn: "Valider le jugement et révéler le cas réel",
-    revealingBtn: "Révélation du cas documenté…",
-    outcomeEyebrow: "Issue historique documentée",
-    yourChoice: "Votre choix engagé",
+    stepCommit: "1. Décidez avant de voir ce qui s’est passé",
+    optionsLegend: "Votre décision",
+    confidenceLabel: "Votre certitude",
+    reasoningLabel: "Pourquoi cette option ? Quel signal compte le plus, et quelle hypothèse pourrait tomber ?",
+    reasoningPlaceholder: "Écrivez le signal sur lequel vous vous appuyez et ce qui vous ferait changer d’avis…",
+    revealBtn: "Valider et voir le cas réel",
+    revealingBtn: "Ouverture du cas…",
+    outcomeEyebrow: "Ce qui s’est passé",
+    yourChoice: "Votre décision",
     recommendedChoice: "Approche recommandée",
-    alignedBadge: "Aligné avec l'enseignement documenté",
-    differsBadge: "Différent de l'approche recommandée",
-    rationaleHeading: "Pourquoi cette approche tient la route",
-    sourceLabel: "Lire la source primaire",
-    nextCaseBtn: "Pratiquer le cas suivant",
-    loadingCases: "Chargement des cas d'intuition…",
+    alignedBadge: "Comme dans le cas réel",
+    differsBadge: "Différent du cas réel",
+    rationaleHeading: "Pourquoi cette approche tient",
+    sourceLabel: "Lire la source",
+    nextCaseBtn: "Cas suivant",
+    loadingCases: "Chargement des cas…",
   },
 } as const;
 
 export function IntuitionTrainer() {
   const { locale } = useLocale();
   const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : locale === "fr" ? COPY.fr : COPY.en;
+  const tag = (es: string, pt: string, en: string, fr = en) => (locale === "es" ? es : locale === "pt" ? pt : locale === "fr" ? fr : en);
 
   const [cases, setCases] = useState<IntuitionCaseItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -425,19 +424,13 @@ export function IntuitionTrainer() {
       <PageHeader
         title={copy.title}
         meta={copy.intro}
-        actions={
-          <Badge tone="live">
-            <Sparkles className="h-3 w-3" aria-hidden />
-            {copy.eyebrow}
-          </Badge>
-        }
       />
 
       <PageBody className="space-y-6 pt-2">
         {error && <Notice tone="error">{error}</Notice>}
 
         {loading ? (
-          <Widget label="CASES" className="p-6">
+          <Widget label={tag("Casos", "Casos", "Cases", "Cas")} className="p-6">
             <p role="status" className="text-sm text-cream-dim">
               {copy.loadingCases}
             </p>
@@ -474,7 +467,7 @@ export function IntuitionTrainer() {
                 </fieldset>
               </Widget>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {filteredCases.map((item, idx) => {
                   const loc = localizeCase(item);
                   const isSelected = activeCase?.id === item.id;
@@ -484,19 +477,16 @@ export function IntuitionTrainer() {
                         type="button"
                         aria-pressed={isSelected}
                         onClick={() => selectCase(item.id)}
-                        className={`focus-ring flex w-full flex-col justify-between rounded-[1.25rem] border p-4 text-left transition-all ${
+                        className={`focus-ring flex w-full flex-col justify-between rounded-2xl border px-4 py-3 text-left transition-[transform,background-color,border-color] duration-150 ease-press active:scale-[0.99] ${
                           isSelected
-                            ? "border-accent-border bg-surface-lift shadow-card"
+                            ? "border-accent-border bg-surface-lift"
                             : "border-line bg-surface-card hover:border-line-bright hover:bg-surface-lift"
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <MonoLabel>#{String(idx + 1).padStart(2, "0")}</MonoLabel>
-                          <Chip>{kindLabel(item.kind)}</Chip>
-                        </div>
-                        <p className="mt-2 text-sm font-medium tracking-[-0.015em] text-cream-bright">
+                        <p className="text-sm font-medium tracking-[-0.015em] text-cream-bright">
                           {loc.title}
                         </p>
+                        <p className="mt-0.5 text-xs text-cream-dim">{kindLabel(item.kind)}</p>
                       </button>
                     </FadeRise>
                   );
@@ -508,7 +498,7 @@ export function IntuitionTrainer() {
             <div className="space-y-6 xl:col-span-8">
               {activeCase && localizedActive && (
                 <Widget
-                  label={`${activeCase.id.toUpperCase()} · ${kindLabel(activeCase.kind)}`}
+                  label={kindLabel(activeCase.kind)}
                   className="p-6 sm:p-8"
                 >
                   <div className="flex items-center gap-3">
@@ -570,11 +560,8 @@ export function IntuitionTrainer() {
                       disabled={Boolean(result)}
                       value={confidence}
                       onChange={(e) => setConfidence(Number(e.target.value))}
-                      className="mt-3 w-full text-sm"
+                      className="mt-3 w-full accent-[#F6B733]"
                     />
-                    <div className="mt-3">
-                      <Meter value={confidence} label={`${confidence}%`} />
-                    </div>
                   </Inset>
 
                   <div className="mt-5">

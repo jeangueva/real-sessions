@@ -52,14 +52,14 @@ function serve(subscriptionStatus: string | null, plan: "free" | "premium") {
 describe("the billing and support panel", () => {
   it("shows free status and no cancel button once a historical subscription is cancelled", async () => {
     serve("cancelled", "premium");
-    expect(await screen.findByText(/All features remain free/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Cancel existing subscription/i })).toBeNull();
+    expect(await screen.findByText(/Everything stays free/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Cancel subscription/i })).toBeNull();
   });
 
   it("offers to cancel an existing active subscription while keeping all features free", async () => {
     serve("authorized", "premium");
     expect(
-      await screen.findByRole("button", { name: /Cancel existing subscription/i }),
+      await screen.findByRole("button", { name: /Cancel subscription/i }),
     ).toBeInTheDocument();
   });
 });

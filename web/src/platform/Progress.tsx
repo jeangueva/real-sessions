@@ -14,7 +14,7 @@ import {
 import type { TrendPoint } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { Avatar, PopIn } from "@/design-system";
-import { TIER_COUNT, dominantAxis, nextEvolution } from "@/lib/avatar";
+import { dominantAxis, nextEvolution } from "@/lib/avatar";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
 import {
@@ -33,6 +33,8 @@ import type {
 import { formatSessionDate } from "@/lib/format";
 import { badgeText } from "@/lib/badges";
 import { Today } from "./Today";
+import { Welcome } from "./Welcome";
+import { RecentSessions } from "./RecentSessions";
 import { Journey } from "./Journey";
 import { SessionList } from "./SessionList";
 
@@ -167,26 +169,9 @@ export function Progress() {
     return (
       <>
         <PageHeader title={t("progress.title")} meta={t("progress.nothing")} />
-        <PageBody>
+        <PageBody className="flex flex-col gap-4">
           <Journey sessions={[]} />
-          <Panel variant="raised" className="mt-4 flex max-w-2xl flex-col gap-5 p-6 sm:p-8">
-            {/* The first form, shown rather than described. The copy beside
-                this used to promise that the shape starts meaning something
-                around the third session while showing no shape at all, which
-                asked someone to work toward a reward they had never seen.
-                Recessive but not faint: it is what they have rather than what
-                they are heading for, and a shape too pale to make out would
-                fail the one job it has. */}
-            <div className="flex items-center gap-4">
-              <Avatar
-                level={1}
-                size={88}
-                className="shrink-0 text-cream-dim"
-              />
-              <p className="text-xs text-cream-faint">
-                {t("avatar.empty", { count: TIER_COUNT - 1 })}
-              </p>
-            </div>
+          <Panel variant="raised" className="flex max-w-2xl flex-col gap-5 p-6 sm:p-8">
             <p className="text-sm text-cream-dim">
               {t("progress.empty")}
             </p>
@@ -278,6 +263,13 @@ export function Progress() {
         {/* Today, then the path: what to do now before where it leads. Each
             its own card, spaced like the rest — run together they read as one
             block with two titles. */}
+        {/* The first steps, until they are done or dismissed: they moved here
+            from the interviews screen, which is now for picking a job. */}
+        <Welcome sessions={sessions ?? []} />
+        {/* Practise again, from the path: the same cards the interviews
+            screen shows, each loading that setup so the second attempt is
+            one press away from seeing how the first went. */}
+        <RecentSessions sessions={sessions ?? []} genericCompany="" />
         <FadeRise delay={0.03}>
           <Today sessions={sessions ?? []} />
         </FadeRise>

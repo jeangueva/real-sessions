@@ -5,16 +5,70 @@ import { ApiError, cancelSubscription, fetchBilling, reconcileBilling } from "@/
 import type { BillingState } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 import { Support } from "./Support";
+import { useLocale } from "@/hooks/useLocale";
+
+const COPY = {
+  es: {
+    loadError: "No pudimos cargar tu suscripción. Inténtalo de nuevo.",
+    refreshError: "No pudimos consultar al proveedor. Te mostramos el último estado guardado.",
+    cancelError: "No se pudo cancelar. Inténtalo de nuevo.",
+    title: "Tu suscripción anterior",
+    badge: "Todo es gratis",
+    body: "Mockio ahora es gratis. Una suscripción que ya tenías no se cancela sola ni se convierte en aporte.",
+    retry: "Volver a consultar",
+    loading: "Cargando…",
+    status: "Estado",
+    periodEnd: "Termina el",
+    renews: "Puede seguir renovándose hasta que la canceles. Cancelarla no te quita nada de la plataforma.",
+    cancelling: "Cancelando…",
+    cancel: "Cancelar suscripción",
+    cancelled: "Cancelada. Todo sigue siendo gratis.",
+  },
+  pt: {
+    loadError: "Não conseguimos carregar sua assinatura. Tente de novo.",
+    refreshError: "Não conseguimos consultar o provedor. Mostramos o último estado salvo.",
+    cancelError: "Não foi possível cancelar. Tente de novo.",
+    title: "Sua assinatura anterior",
+    badge: "Tudo é grátis",
+    body: "O Mockio agora é grátis. Uma assinatura que você já tinha não é cancelada sozinha nem vira contribuição.",
+    retry: "Consultar de novo",
+    loading: "Carregando…",
+    status: "Status",
+    periodEnd: "Termina em",
+    renews: "Ela pode continuar renovando até você cancelar. Cancelar não tira nada da plataforma.",
+    cancelling: "Cancelando…",
+    cancel: "Cancelar assinatura",
+    cancelled: "Cancelada. Tudo continua grátis.",
+  },
+  en: {
+    loadError: "Could not load your subscription. Please try again.",
+    refreshError: "Could not reach the provider. The last saved status is shown.",
+    cancelError: "Could not cancel. Please try again.",
+    title: "Your earlier subscription",
+    badge: "Everything is free",
+    body: "Mockio is free now. A subscription you already had is not cancelled on its own or turned into a donation.",
+    retry: "Check again",
+    loading: "Loading…",
+    status: "Status",
+    periodEnd: "Ends",
+    renews: "It may keep renewing until you cancel it. Cancelling takes nothing away from the platform.",
+    cancelling: "Cancelling…",
+    cancel: "Cancel subscription",
+    cancelled: "Cancelled. Everything stays free.",
+  },
+};
 
 /** Existing charges remain visible and cancellable after the free transition. */
 export function Billing() {
+  const { locale } = useLocale();
+  const c = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : COPY.en;
   const [state, setState] = useState<BillingState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const read = () =>
     fetchBilling()
       .then(setState)
-      .catch(() => setError("Could not load existing subscriptions. Please try again."));
+      .catch(() => setError(c.loadError));
 
   useEffect(() => {
     void read();
@@ -22,7 +76,7 @@ export function Billing() {
       read,
       () =>
         setError(
-          "Could not refresh the provider status. The last recorded subscription is shown.",
+          c.refreshError,
         ),
     );
   }, []);
@@ -35,7 +89,7 @@ export function Billing() {
       await read();
     } catch (caught) {
       setError(
-        caught instanceof ApiError ? caught.message : "Could not cancel. Please try again.",
+        caught instanceof ApiError ? caught.message : c.cancelError,
       );
     } finally {
       setBusy(false);
@@ -47,15 +101,17 @@ export function Billing() {
   return (
     <div id="plan" className="space-y-6">
       <Support />
+      {/* Only for someone who paid before Mockio went free: everyone else
+          has nothing here, and an empty card is noise. */}
+      {(error || !state || subscription) && (
       <Panel variant="raised" className="p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Eyebrow>Existing subscriptions</Eyebrow>
-          <Badge tone="neutral">100% Free</Badge>
+          <Eyebrow>{c.title}</Eyebrow>
+          <Badge tone="neutral">{c.badge}</Badge>
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-          All platform features are now free. An existing subscription is not automatically
-          cancelled or converted into a donation.
+          {c.body}
         </p>
 
         {error && (
@@ -69,36 +125,29 @@ export function Billing() {
                 void read();
               }}
             >
-              Retry subscription status
+              {c.retry}
             </Action>
           </div>
         )}
 
         {!state && !error && (
           <p role="status" className="mt-4 text-sm text-cream-dim">
-            Loading subscriptions…
+            {c.loading}
           </p>
-        )}
-
-        {state && !subscription && (
-          <Inset className="mt-4 p-4">
-            <p className="text-sm text-cream-bright">No existing subscription.</p>
-          </Inset>
         )}
 
         {subscription && (
           <Inset className="mt-4 space-y-3 p-4">
             <p className="text-sm font-medium text-cream-bright">
-              Status: {subscription.status}
+              {c.status}: {subscription.status}
               {subscription.periodEnd
-                ? ` · Recorded period end: ${formatSessionDate(subscription.periodEnd)}`
+                ? ` · ${c.periodEnd} ${formatSessionDate(subscription.periodEnd)}`
                 : ""}
             </p>
             {subscription.status !== "cancelled" && (
               <>
                 <p className="text-sm text-cream-dim">
-                  Your existing subscription may continue to renew until you cancel it. Cancelling
-                  does not remove any platform features.
+                  {c.renews}
                 </p>
                 <Action
                   type="button"
@@ -106,18 +155,19 @@ export function Billing() {
                   disabled={busy}
                   onClick={() => void cancel()}
                 >
-                  {busy ? "Cancelling…" : "Cancel existing subscription"}
+                  {busy ? c.cancelling : c.cancel}
                 </Action>
               </>
             )}
             {subscription.status === "cancelled" && (
               <p className="text-sm text-cream-dim">
-                All features remain free. No new purchase is needed.
+                {c.cancelled}
               </p>
             )}
           </Inset>
         )}
       </Panel>
+      )}
     </div>
   );
 }

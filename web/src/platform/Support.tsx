@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Badge, Eyebrow, Field, Notice, Panel } from "@/design-system";
+import { Field, Notice } from "@/design-system";
 import { useLocale } from "@/hooks/useLocale";
 
 const COPY = {
@@ -25,10 +25,10 @@ const COPY = {
   es: {
     eyebrow: "Apoyo voluntario",
     badge: "Plataforma 100% gratuita",
-    title: "Gratis para todos. Apoyado por elección.",
-    body: "Todas las herramientas de Educación y Profesional son 100% gratuitas. Apoyar es opcional y nunca desbloquea funciones extra, prioridad ni ventajas.",
+    title: "Gratis para todos.",
+    body: "Todo en Educación y Profesional es gratis. Si quieres apoyar, es opcional y no cambia nada de lo que puedes usar.",
     amountLegend: "Monto sugerido (USD)",
-    customBtn: "Custom",
+    customBtn: "Otro monto",
     customLabel: "Monto personalizado (USD)",
     freqLegend: "Modalidad de apoyo",
     oneTime: "Aporte único (a demanda)",
@@ -37,7 +37,7 @@ const COPY = {
       `Tu preferencia: USD ${val} (${freq === "monthly" ? "mensual" : "aporte único"}). Elige este monto y modalidad al abrir la página de apoyo.`,
     prefInvalid: "Ingresa un monto positivo con hasta dos decimales.",
     providerNote: "Esta selección sirve como referencia rápida y no genera cobros automáticos.",
-    openLink: "Open support page ↗",
+    openLink: "Abrir la página de apoyo ↗",
     unconfigured: "El enlace de apoyo aún no está configurado. Todo sigue siendo 100% gratuito.",
     checking: "Verificando disponibilidad de apoyo…",
   },
@@ -47,7 +47,7 @@ const COPY = {
     title: "Grátis para todos. Apoiado por escolha.",
     body: "Todas as ferramentas de Educação e Profissional são 100% gratuitas. Apoiar é opcional e nunca desbloqueia recursos extras nem prioridade.",
     amountLegend: "Valor sugerido (USD)",
-    customBtn: "Custom",
+    customBtn: "Outro valor",
     customLabel: "Valor personalizado (USD)",
     freqLegend: "Frequência",
     oneTime: "Apoio único",
@@ -56,7 +56,7 @@ const COPY = {
       `Sua preferência: USD ${val} (${freq === "monthly" ? "mensal" : "apoio único"}). Escolha este valor na página de apoio.`,
     prefInvalid: "Digite um valor positivo com até duas casas decimais.",
     providerNote: "Esta seleção é apenas uma referência e não inicia cobranças automáticas.",
-    openLink: "Open support page ↗",
+    openLink: "Abrir a página de apoio ↗",
     unconfigured: "O link de apoio ainda não está configurado. Tudo continua 100% gratuito.",
     checking: "Verificando disponibilidade de apoio…",
   },
@@ -101,17 +101,15 @@ export function Support() {
     Number.isFinite(Number(selected));
 
   return (
-    <Panel variant="raised" className="mt-4 max-w-3xl p-6 sm:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Eyebrow>{c.eyebrow}</Eyebrow>
-        <Badge tone="live">{c.badge}</Badge>
-      </div>
-
-      <h3 className="mt-3 text-2xl font-light tracking-[-0.03em] text-cream-bright sm:text-3xl">
-        {c.title}
-      </h3>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-cream-dim">{c.body}</p>
-
+    <details className="group max-w-3xl rounded-2xl bg-surface-card p-5 shadow-card sm:p-6">
+      <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">
+          <span className="block text-base font-medium text-cream-bright">{c.eyebrow}</span>
+          <span className="block text-sm text-cream-dim">{c.title}</span>
+        </span>
+        <span aria-hidden className="shrink-0 text-cream-dim transition-transform duration-200 ease-out group-open:rotate-180">⌄</span>
+      </summary>
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-cream-dim">{c.body}</p>
       <div className="mt-6 grid gap-5 rounded-2xl bg-surface-lift p-4 sm:p-5 md:grid-cols-[1.3fr_1fr]">
         <fieldset>
           <legend className="mb-2.5 font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim">
@@ -177,6 +175,7 @@ export function Support() {
                     value={value}
                     checked={checked}
                     onChange={() => setFrequency(value)}
+                    className="accent-[#F6B733]"
                   />
                   <span>{value === "monthly" ? c.monthly : c.oneTime}</span>
                 </label>
@@ -209,6 +208,6 @@ export function Support() {
           </Notice>
         )
       )}
-    </Panel>
+    </details>
   );
 }

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Action, Panel, Eyebrow } from "@/design-system";
+import { Action, Panel } from "@/design-system";
 import type { MessageKey } from "@/lib/i18n";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
-import { Briefcase, Plus, Search, Timer, TrendingUp, Users, X } from "lucide-react";
+import { RolePicker, useTuneLabel } from "./RolePicker";
+import { Briefcase, Plus, Search, Timer, TrendingUp, Users } from "lucide-react";
 import { fetchCatalogue, fetchHistory, fetchPreferences, titleInArea } from "@/lib/api";
 import { areaLabel } from "@/lib/areas";
 import type {
@@ -26,28 +27,8 @@ import { Tour } from "./Tour";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import { RecentSessions } from "./RecentSessions";
-import { Today } from "./Today";
-import { Welcome } from "./Welcome";
-import { Journey } from "./Journey";
 import { resumeAudio } from "@/lib/audio-level";
 import { primeVoiceUnlock } from "@/lib/voice";
-
-/**
- * Whether the briefing has been dismissed. Per-device and low stakes, so it
- * lives in the browser rather than in the account's preferences — which hold
- * real settings, not "I have read this".
- */
-const BRIEFING_KEY = "realsessions.briefing.dismissed";
-
-function briefingDismissed(): boolean {
-  try {
-    return localStorage.getItem(BRIEFING_KEY) === "1";
-  } catch {
-    // Private windows and blocked site data both throw. Showing the tips is
-    // the safe answer.
-    return false;
-  }
-}
 
 /**
  * Shown until the catalogue arrives. The server owns both lists — it had six
@@ -140,18 +121,10 @@ export function SessionSetup() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   /** Set by the server when recent scores clear the current level's bar. */
   const [levelUp, setLevelUp] = useState<{ to: string; label: string } | null>(null);
-  const [showBriefing, setShowBriefing] = useState(() => !briefingDismissed());
   /** What a free session is stored under. Never shown; used to hide it. */
   const [genericCompany, setGenericCompany] = useState("");
 
-  const dismissBriefing = () => {
-    setShowBriefing(false);
-    try {
-      localStorage.setItem(BRIEFING_KEY, "1");
-    } catch {
-      // The panel still closes for this visit; it just comes back next time.
-    }
-  };
+
 
   /**
    * Loads a past interview's configuration back into the bar.
@@ -476,6 +449,67 @@ export function SessionSetup() {
 
   const activeSector = sectors.find((entry) => entry.id === sector);
 
+  /**
+   * A job card was pressed: set the role, and start once the rounds have
+   * followed it. The rounds are derived from the role on the next render, so
+   * starting in the click itself would send the previous role's rounds.
+   */
+  const [pendingRole, setPendingRole] = useState<string | null>(null);
+  const tuneLabel = useTuneLabel();
+  const startFor = (picked: Role) => {
+    // The audio unlock needs the press itself, not the effect after it.
+    resumeAudio();
+    primeVoiceUnlock();
+    setRole(picked.label);
+    setPendingRole(picked.label);
+  };
+  useEffect(() => {
+    if (!pendingRole || role !== pendingRole || chosenStages.length === 0) return;
+    if (!chosenStages.every((stage) => visibleStages.some((entry) => entry.id === stage.id))) return;
+    setPendingRole(null);
+    begin();
+    // `begin` reads the state this effect waits for; it is not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingRole, role, chosenStages, visibleStages]);
+
+  const begin = () => {
+    // The shape of the interview, never what was typed into the
+    // company box: that is a name a person chose to tell us.
+    track("interview started", {
+      round: chosenStages.map((entry) => entry.id).join("+"),
+      language: languageId,
+      level: levelId,
+      targeted: company !== "",
+    });
+    resumeAudio();
+    primeVoiceUnlock();
+    navigate("/app/session", {
+      state: {
+        company,
+        role,
+        // Only while it still describes the same job. Changing the
+        // company after arriving means this is no longer a rehearsal
+        // for that application, and filing it there would break the
+        // count the applications screen reports.
+        ...(application &&
+        application.company === company &&
+        application.role === role
+          ? { applicationId: application.id }
+          : {}),
+        stage: chosenStages.map((entry) => entry.label).join(" + "),
+        stages: chosenStages.map((entry) => entry.id),
+        language: languageId,
+        level: levelId,
+        bcp47:
+          languages.find((entry) => entry.id === languageId)?.bcp47 ?? "en-US",
+        mode,
+        personaId,
+        pressure,
+        jobPosting,
+      },
+    });
+  };
+
   return (
     <>
       <PageHeader
@@ -556,6 +590,12 @@ export function SessionSetup() {
           </div>
           <h2 className="text-base font-semibold text-cream-bright">{t(PHASES.find((entry) => entry.id === phase)!.title)}</h2>
 
+          <RolePicker areas={areas} roles={roles} onStart={startFor} />
+
+          <h3 className="mt-2 font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim">
+            <span aria-hidden className="tracking-[-0.1em]">::</span>
+            {tuneLabel}
+          </h3>
           {/* One bar of selectors rather than six rows of pills. The bar
               shows what is chosen — the thing a person rereads before
               pressing Begin — and opens the options only for the field being
@@ -881,47 +921,12 @@ export function SessionSetup() {
                 data-tour="begin"
                 /* The server refuses this anyway. Saying so before the click
                    is the difference between a paywall and a failure. */
-            onClick={() => {
-              // A paid scene on the free plan opens the plans instead of an
-              // interview the server would refuse.
-              // The shape of the interview, never what was typed into the
-              // company box: that is a name a person chose to tell us.
-              track("interview started", {
-                round: chosenStages.map((entry) => entry.id).join("+"),
-                language: languageId,
-                level: levelId,
-                targeted: company !== "",
-              });
-              resumeAudio();
-              primeVoiceUnlock();
-              navigate("/app/session", {
-                state: {
-                  company,
-                  role,
-                  // Only while it still describes the same job. Changing the
-                  // company after arriving means this is no longer a rehearsal
-                  // for that application, and filing it there would break the
-                  // count the applications screen reports.
-                  ...(application &&
-                  application.company === company &&
-                  application.role === role
-                    ? { applicationId: application.id }
-                    : {}),
-                  stage: chosenStages.map((entry) => entry.label).join(" + "),
-                  stages: chosenStages.map((entry) => entry.id),
-                  language: languageId,
-                  level: levelId,
-                  bcp47:
-                    languages.find((entry) => entry.id === languageId)?.bcp47 ?? "en-US",
-                  mode,
-                  personaId,
-                  pressure,
-                  jobPosting,
-                },
-              });
-            }}
+            onClick={begin}
               >
-                {t("setup.begin")}
+                {/* Which interview it starts, since each job card starts its own. */}
+                <span className="min-w-0 truncate">
+                  {t("setup.begin")} <span className="font-normal opacity-80">· {role}</span>
+                </span>
               </Action>
             }
           />
@@ -1018,44 +1023,6 @@ export function SessionSetup() {
           )}
         </div>
 
-        {/* Dismissible: it is a briefing, and a briefing stops being useful on
-            the fourth interview. Closing it is remembered per device. */}
-        {showBriefing && (
-          <Panel className="relative p-6">
-            <button
-              type="button"
-              onClick={dismissBriefing}
-              aria-label={t("setup.dismissBriefing")}
-              className="focus-ring absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface-lift text-cream-dim transition-[color,transform] duration-150 ease-press hover:text-cream-bright active:scale-[0.92]"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-            <Eyebrow>{t("setup.whatToExpect")}</Eyebrow>
-            <ul className="mt-4 grid gap-3 pr-8 text-sm text-cream-dim md:grid-cols-3">
-              <li>
-                {t("setup.expectCharacter")}
-              </li>
-              <li>
-                {t("setup.expectVague")}
-              </li>
-              <li>
-                {/* Promising coaching to someone who will not get it is the
-                    kind of small lie that makes a paywall feel like a bug. */}
-                {mode === "practice"
-                    ? t("setup.expectPractice")
-                    : t("setup.expectReal")}
-              </li>
-            </ul>
-          </Panel>
-        )}
-
-        {/* The game — the checklist, today's ring and missions, the path —
-            after everything that starts an interview. Begin and the setup
-            are what this screen is for, so they are never pushed below the
-            fold by a panel about them. */}
-        <Welcome sessions={sessions} />
-        <Today sessions={sessions} />
-        <Journey sessions={sessions} />
         </div>
       </PageBody>
     </>

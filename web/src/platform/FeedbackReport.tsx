@@ -678,7 +678,7 @@ function FeedbackBody({
             {/* A wash of the accent, not a slab of it: the solid fill belongs
                 to the one button that starts the next rehearsal, and a whole
                 panel in it outshouted that button and took its text to 4.2:1. */}
-            <section className="flex gap-4 rounded-card bg-accent-soft p-6 sm:p-7">
+            <section className="flex gap-4 rounded-card bg-surface-card p-6 ring-1 ring-accent/50 sm:p-7">
               <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-card text-accent-text shadow-card">
                 <Target className="h-6 w-6" />
               </span>
@@ -774,11 +774,9 @@ function FeedbackBody({
                 </p>
               )}
               <ol className="flex flex-col gap-3">
-                {evaluation.actionable_next_steps.slice(1).map((step, index) => (
+                {evaluation.actionable_next_steps.slice(1).map((step) => (
                   <li key={step} className="flex min-w-0 gap-3 text-sm text-cream-bright [overflow-wrap:anywhere]">
-                    <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-semibold tabular-nums text-accent-text">
-                      {index + 2}
-                    </span>
+                    <span aria-hidden className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                     {step}
                   </li>
                 ))}

@@ -10,7 +10,7 @@ export function GiftPage() {
   return (
     <AuthLayout>
       <div className="flex flex-col gap-5">
-        <h1 className="text-balance text-xl font-semibold text-cream-bright">{copy.title}</h1>
+        <h1 className="text-balance text-xl text-cream-bright">{copy.title}</h1>
         <p className="text-sm leading-relaxed text-cream-dim">{copy.gift}</p>
         <p className="text-sm leading-relaxed text-cream-dim">{copy.body}</p>
         <Link to="/app" className="focus-ring self-start rounded-full bg-accent px-5 py-3 font-semibold text-white">{copy.start}</Link>

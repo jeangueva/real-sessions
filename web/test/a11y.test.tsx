@@ -150,7 +150,7 @@ describe("the billing panel", () => {
         <Billing />
       </MemoryRouter>,
     );
-    await findByText(/Existing subscriptions/i);
+    await findByText(/Free for everyone/i);
     expect(await violations(container)).toEqual([]);
   });
 });

@@ -152,8 +152,21 @@
 
   /* Headings carry weight, not size alone: hierarchy is weight, size and
      leading as a set. Screens that need a lighter heading say so. */
-  h1, h2, h3 {
+  h2, h3 {
     font-weight: 600;
+  }
+
+  /* Page titles are the light display cut, tight — the trail-dashboard
+     voice. A screen that needs a heavier one says so. */
+  h1 {
+    font-weight: 300;
+    letter-spacing: -0.035em;
+  }
+
+  /* Native checkboxes, radios and sliders in the accent rather than the
+     browser's blue. */
+  input[type="checkbox"], input[type="radio"], input[type="range"] {
+    accent-color: rgb(var(--accent));
   }
 
   /* Form controls do not inherit type by default. */

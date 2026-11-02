@@ -33,7 +33,9 @@ export function ConfirmEmail() {
 
     if (!token) {
       setState("failed");
-      setError(t("confirm.missingToken"));
+      // A key, not the words: translated when shown, so a locale that loads
+      // after this effect still reaches the message.
+      setError("missing");
       return;
     }
     confirmEmail(token)
@@ -43,15 +45,13 @@ export function ConfirmEmail() {
       })
       .catch((caught: unknown) => {
         setState("failed");
-        setError(
-          caught instanceof ApiError ? caught.message : t("confirm.couldNot"),
-        );
+        setError(caught instanceof ApiError ? caught.message : "couldNot");
       });
   }, [token]);
 
   return (
     <AuthLayout>
-    <h1 className="text-title font-semibold text-cream-bright">
+    <h1 className="text-title text-cream-bright">
       {state === "working"
         ? t("confirm.working")
         : state === "done"
@@ -61,7 +61,8 @@ export function ConfirmEmail() {
 
     {state === "failed" && (
       <Notice tone="error" className="mt-4">
-        {error} {t("confirm.retry")}
+        {error === "missing" ? t("confirm.missingToken") : error === "couldNot" ? t("confirm.couldNot") : error}{" "}
+        {t("confirm.retry")}
       </Notice>
     )}
 

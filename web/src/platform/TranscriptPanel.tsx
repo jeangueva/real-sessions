@@ -158,9 +158,6 @@ export function TranscriptPanel({
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-          <p className="text-xs text-cream-faint">
-            {t("panel.typingNote")}
-          </p>
           <textarea
             value={answer}
             onChange={(event) => onAnswer(event.target.value)}
@@ -175,8 +172,8 @@ export function TranscriptPanel({
             placeholder={t("panel.placeholder")}
             className="field-control min-h-0 flex-1 resize-none text-sm text-cream-bright placeholder:text-cream-faint disabled:opacity-50"
           />
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-cream-faint">{hint}</span>
+          <div className="flex items-center justify-end gap-3 sm:justify-between">
+            <span className="hidden text-xs text-cream-faint sm:inline">{hint}</span>
             <button
               onClick={onSend}
               disabled={!canSend || answer.trim() === ""}
