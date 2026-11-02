@@ -467,7 +467,7 @@ export function IntuitionTrainer() {
                 </fieldset>
               </Widget>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {filteredCases.map((item, idx) => {
                   const loc = localizeCase(item);
                   const isSelected = activeCase?.id === item.id;
@@ -477,19 +477,16 @@ export function IntuitionTrainer() {
                         type="button"
                         aria-pressed={isSelected}
                         onClick={() => selectCase(item.id)}
-                        className={`focus-ring flex w-full flex-col justify-between rounded-[1.25rem] border p-4 text-left transition-all ${
+                        className={`focus-ring flex w-full flex-col justify-between rounded-2xl border px-4 py-3 text-left transition-[transform,background-color,border-color] duration-150 ease-press active:scale-[0.99] ${
                           isSelected
-                            ? "border-accent-border bg-surface-lift shadow-card"
+                            ? "border-accent-border bg-surface-lift"
                             : "border-line bg-surface-card hover:border-line-bright hover:bg-surface-lift"
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <MonoLabel>#{String(idx + 1).padStart(2, "0")}</MonoLabel>
-                          <Chip>{kindLabel(item.kind)}</Chip>
-                        </div>
-                        <p className="mt-2 text-sm font-medium tracking-[-0.015em] text-cream-bright">
+                        <p className="text-sm font-medium tracking-[-0.015em] text-cream-bright">
                           {loc.title}
                         </p>
+                        <p className="mt-0.5 text-xs text-cream-dim">{kindLabel(item.kind)}</p>
                       </button>
                     </FadeRise>
                   );
