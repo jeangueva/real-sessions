@@ -237,25 +237,20 @@ export function RolePicker({
           <RoleGrid roles={current.roles} c={c} onStart={onStart} disabled={disabled} />
         </div>
       ) : (
-        <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
           {grouped.map(({ area, roles: inArea }) => (
             <li key={area.id}>
               <button
                 type="button"
                 onClick={() => setOpen(area.id)}
-                className="focus-ring group flex h-full w-full flex-col items-start gap-4 rounded-[1.375rem] bg-surface-card p-4 text-left ring-1 ring-[color:var(--line)] transition-[transform,box-shadow] duration-150 ease-press hover:ring-[color:var(--line-strong)] active:scale-[0.98] sm:p-5"
+                className="focus-ring group flex h-full w-full items-center gap-3 rounded-2xl bg-surface-card p-3 text-left ring-1 ring-[color:var(--line)] transition-[transform,box-shadow] duration-150 ease-press hover:ring-[color:var(--line-strong)] active:scale-[0.98] sm:p-4"
               >
-                <span className="flex w-full items-start justify-between gap-2">
-                  <AreaIcon id={area.id} />
-                  <span className="rounded-full bg-surface-lift px-2.5 py-1 font-mono text-xs font-medium uppercase tracking-[0.04em] text-cream-dim">
-                    {inArea.length}
-                  </span>
+                <AreaIcon id={area.id} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-base font-medium leading-tight text-cream-bright">{areaName(area)}</span>
+                  <span className="block text-xs text-cream-dim">{fill(c.jobs, { count: inArea.length })}</span>
                 </span>
-                <span className="text-lg font-medium leading-tight tracking-[-0.01em] text-cream-bright">{areaName(area)}</span>
-                <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text">
-                  {c.see}
-                  <ArrowRight aria-hidden className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-                </span>
+                <ArrowRight aria-hidden className="hidden h-4 w-4 shrink-0 text-cream-dim transition-transform duration-150 group-hover:translate-x-0.5 sm:block" />
               </button>
             </li>
           ))}
@@ -270,7 +265,7 @@ function AreaIcon({ id, large = false }: { id: string; large?: boolean }) {
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent-text ${large ? "h-14 w-14" : "h-11 w-11"}`}
+      className={`grid shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text ${large ? "h-14 w-14" : "h-9 w-9 sm:h-11 sm:w-11"}`}
     >
       <Icon className={large ? "h-6 w-6" : "h-5 w-5"} />
     </span>
