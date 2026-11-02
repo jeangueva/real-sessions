@@ -15,13 +15,14 @@ export const ActionContract = defineContract({
       description: "The label. Starts with a verb and says what happens, not what the button is.",
     },
     tone: {
-      type: '"solid" | "neutral" | "glass" | "ghost"',
+      type: '"solid" | "neutral" | "quiet" | "glass" | "ghost"',
       required: false,
       default: '"solid"',
       description: "How loud the button is. Picks the fill, the ink and the press depth.",
       values: {
         solid: "The one primary action of the view. Accent fill, white ink, a darker edge it sinks into on press.",
         neutral: "A confident secondary next to a primary, or the primary on a surface that is already accent-heavy.",
+        quiet: "A secondary at the same volume as the panel it sits on: a hairline and no fill colour, for the rare errand beside the loud action. It scales on press, because it has no edge to sink into.",
         glass: "Over video or imagery, where a solid fill would cover the picture. Translucent, blurred.",
         ghost: "Tertiary actions: cancel, skip, a quiet secondary in a toolbar.",
       },
@@ -59,10 +60,10 @@ export const ActionContract = defineContract({
   slots: [{ name: "children", description: "Text, optionally preceded by a 16px lucide icon with aria-hidden." }],
   states: [
     { name: "default", description: "Resting fill for the tone.", trigger: "Initial render." },
-    { name: "hover", description: "solid brightens 10%; neutral dims to 90%; ghost and glass take the lifted surface. Only on devices that can hover.", trigger: "Pointer over the button (hover: hover)." },
-    { name: "pressed", description: "solid, neutral and glass translate down by their edge height (4px / 3px) and lose the edge; answers in 75ms.", trigger: ":active — pointer down, or Space held." },
+    { name: "hover", description: "solid brightens 10%; neutral dims to 90%; quiet, glass and ghost take the lifted surface. Only on devices that can hover.", trigger: "Pointer over the button (hover: hover)." },
+    { name: "pressed", description: "solid, neutral and glass translate down by their edge height (4px / 3px) and lose the edge; quiet has no edge, so it scales to 97% instead. All answer in 75ms.", trigger: ":active — pointer down, or Space held." },
     { name: "focus-visible", description: "2px accent ring with a 2px offset in the page colour.", trigger: "Keyboard focus." },
-    { name: "disabled", description: "solid becomes the neutral lifted grey with faint ink and no edge; other tones drop to 40% opacity. No pointer events.", trigger: "disabled={true}" },
+    { name: "disabled", description: "solid becomes the neutral lifted grey with faint ink and no edge; quiet dims to 70%; the other tones drop to 40% opacity. No pointer events.", trigger: "disabled={true}" },
   ],
   events: [
     { name: "onClick", signature: "(event: MouseEvent<HTMLButtonElement>) => void", firesWhen: "Click, Enter or Space — never while disabled." },
@@ -70,7 +71,7 @@ export const ActionContract = defineContract({
   motion: [
     "Press: transform and shadow in 75ms with the press ease-out (cubic-bezier(0.23, 1, 0.32, 1)); release in 150ms.",
     "Arrow: translates 2px toward where it points on hover, 200ms.",
-    "Reduced motion: the press translate is instant; colour and opacity changes still run.",
+    "Reduced motion: the press is instant; colour and opacity changes still run.",
   ],
   accessibility: {
     role: "button (native <button>)",
@@ -112,7 +113,7 @@ export const ActionContract = defineContract({
       { situation: "Toggling a setting on and off", instead: "Checkbox." },
     ],
     do: [
-      "One solid Action per view; demote the rest to neutral or ghost.",
+      "One solid Action per view; demote the rest to neutral, quiet or ghost.",
       "Put the primary on the right of a pair on desktop and first in the stack on mobile.",
       "Explain a disabled Action in text next to it.",
     ],
@@ -122,7 +123,7 @@ export const ActionContract = defineContract({
       "Don't use withArrow on secondary or destructive actions.",
     ],
   },
-  tokens: ["--accent", "--accent-ink", "--accent-depth", "--cream-bright", "--surface-base", "--surface-lift", "--line", "--line-strong", "ease-press"],
+  tokens: ["--accent", "--accent-ink", "--accent-depth", "--cream-bright", "--surface-base", "--surface-card", "--surface-lift", "--line", "--line-strong", "ease-press"],
   related: [],
   i18n: {
     rtl: "The trailing arrow mirrors (rtl:-scale-x-100) and its hover nudge reverses; the label aligns by the document direction.",
@@ -146,8 +147,20 @@ export const ActionContract = defineContract({
   appCounterpart: {
     file: "design-system/primitives.tsx",
     exportName: "Action",
-    differences: ["Defaults type to \"button\" so it never submits a form by accident; the app's copy relies on the native default (submit)."],
+    differences: [
+      "Defaults type to \"button\" so it never submits a form by accident; the app's copy relies on the native default (submit).",
+      "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (4px / 3px). The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press.",
+    ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
+  version: "1.1.0",
+  changelog: [
+    {
+      version: "1.1.0",
+      changes: [
+        "New tone: quiet — a hairline on the card surface, for the rare errand that must not compete with the loud action. The product's copy already had it; the contract now says so.",
+        "The press of the quiet tone is a 3% scale rather than a translate: without an edge there is nothing to sink into.",
+      ],
+    },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product."] },
+  ],
 });

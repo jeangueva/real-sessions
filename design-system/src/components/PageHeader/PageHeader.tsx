@@ -18,6 +18,12 @@ export interface PageHeaderProps {
    * every other screen. The title is clamped to two lines at every width.
    */
   compact?: boolean;
+  /**
+   * For a workspace screen that has to hold its own: a small title and little
+   * space above it at every width, 20px on a phone and 24px from sm up. The
+   * body below it does not shrink.
+   */
+  dense?: boolean;
   /** The ceiling, matching the PageBody under it so the title lines up with the content. */
   width?: PageBodyWidth;
 }
@@ -35,19 +41,28 @@ const CEILING: Record<PageBodyWidth, string> = {
  * ceiling as PageBody, so the title starts where the content starts at every
  * width.
  *
+ * The title's own measure is capped even though the container is not. A
+ * heading that can run the full width of a desktop window stops being a
+ * heading and becomes a line of text: the eye has no second line to return
+ * to, and a long one arrives as a single unreadable band across the screen.
+ *
  * The meta is one line. A thesis title of 25 words as meta made the header the
  * longest block of text on the screen and was flagged as cognitive load; the
  * header names the screen, it does not hold the document. The full text stays
  * in the DOM (a screen reader reads all of it) and in a title tooltip.
  */
-export function PageHeader({ title, meta, actions, compact = false, width = "wide" }: PageHeaderProps) {
+export function PageHeader({ title, meta, actions, compact = false, dense = false, width = "wide" }: PageHeaderProps) {
   return (
-    <header className={`px-4 pb-2 sm:px-6 lg:px-10 lg:pt-10 ${compact ? "pt-4 sm:pt-8" : "pt-8"}`}>
+    <header className={`px-4 pb-2 sm:px-6 lg:px-10 ${dense ? "pt-4" : `lg:pt-10 ${compact ? "pt-4 sm:pt-8" : "pt-8"}`}`}>
       <div className={`mx-auto flex w-full ${CEILING[width]} flex-wrap items-end justify-between gap-x-4 gap-y-3`}>
-        <div className="min-w-0">
+        <div className="min-w-0 max-w-[52rem]">
           <h1
-            className={`font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright sm:text-[2.5rem] ${
-              compact ? "line-clamp-2 text-xl" : "text-[2rem]"
+            className={`text-balance font-bold leading-[1.1] tracking-[-0.028em] text-cream-bright ${
+              dense
+                ? "text-xl sm:text-2xl"
+                : compact
+                  ? "line-clamp-2 text-xl sm:text-[2.5rem]"
+                  : "text-[2rem] sm:text-[2.5rem]"
             }`}
           >
             {title}

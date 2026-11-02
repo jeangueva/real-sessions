@@ -37,7 +37,7 @@
         ]
       },
       "do": [
-        "One solid Action per view; demote the rest to neutral or ghost.",
+        "One solid Action per view; demote the rest to neutral, quiet or ghost.",
         "Put the primary on the right of a pair on desktop and first in the stack on mobile.",
         "Explain a disabled Action in text next to it."
       ],

@@ -18,7 +18,7 @@ the next step without reading every label.
 3. **Label** — one line, sentence case, starts with a verb.
 4. **Forward arrow** _(optional, `withArrow`)_ — only on the main path forward.
 5. **Edge** — the darker band under `solid` and `neutral` that the face sinks
-   into on press.
+   into on press. `quiet` has no edge: it scales instead.
 
 ## Tones
 
@@ -26,6 +26,7 @@ the next step without reading every label.
 | --- | --- | --- |
 | `solid` | The single most important next step | A second action on the same view |
 | `neutral` | A confident secondary next to a primary | Destructive actions |
+| `quiet` | A rare errand beside the loud action — sign out, cancel a plan | The main path forward |
 | `glass` | Actions over video or photography | Plain surfaces — it disappears |
 | `ghost` | Cancel, skip, "Ahora no" | The only action on a screen |
 
@@ -35,12 +36,16 @@ the next step without reading every label.
   flow.
 - The single most important next step of a screen — `solid`, often with
   `withArrow`: _Sube tu tesis gratis_, _Empezar ensayo_.
+- A rare errand that must not compete with the loud action — `quiet`:
+  _Cerrar sesión_.
 - A quiet way out of a flow — `ghost`: _Ahora no_, _Cancelar_.
 
 ## Interaction
 
-- **Press, not release.** The press state lands in 75ms: the face moves down
-  by the edge's height and the edge disappears. That is the whole animation.
+- **Press, not release.** The press state lands in 75ms: `solid`, `neutral` and
+  `glass` move down by the edge's height and the edge disappears. `quiet` has
+  no edge, so it scales to 97% — a button that shrinks a hair still answers the
+  finger, without pretending it has depth.
 - **Hover** only on devices that can hover (`hoverOnlyWhenSupported`), so a
   tapped button on a phone never stays tinted.
 - **Keyboard**: Tab to focus (accent ring), Enter or Space to activate.

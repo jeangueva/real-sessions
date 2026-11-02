@@ -20,11 +20,13 @@ export const ActionPreviews = definePreviews([
       <div className="flex flex-wrap items-center gap-3">
         <Action>Ensayar</Action>
         <Action tone="neutral">Ver planes</Action>
+        <Action tone="quiet">Cerrar sesión</Action>
         <Action tone="ghost">Ahora no</Action>
       </div>
     ),
     code: `<Action>Ensayar</Action>
 <Action tone="neutral">Ver planes</Action>
+<Action tone="quiet">Cerrar sesión</Action>
 <Action tone="ghost">Ahora no</Action>`,
   },
   {

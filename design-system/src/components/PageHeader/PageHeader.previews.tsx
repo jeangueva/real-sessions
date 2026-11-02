@@ -70,6 +70,19 @@ export const PageHeaderPreviews = definePreviews([
 <PageBody width="reading" className="flex flex-col gap-4">…</PageBody>`,
   },
   {
+    id: "dense-workspace",
+    title: "Dense: a workspace screen",
+    kind: "variant",
+    description:
+      "The thesis workspace: a small title and 16px above it at every width, so the list below is what the screen is about. The body text does not shrink.",
+    render: () => (
+      <div className="bg-surface-deep">
+        <PageHeader dense title="Mi tesis" meta="Súbela una vez. El jurado la lee antes de cada ensayo." />
+      </div>
+    ),
+    code: `<PageHeader dense title="Mi tesis" meta={…} />`,
+  },
+  {
     id: "portuguese-phone",
     title: "Portuguese at 320px",
     kind: "edge",
