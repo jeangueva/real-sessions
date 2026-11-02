@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
 import {
   TOUR_STEPS,
   firstVisible,
@@ -10,6 +10,7 @@ import {
   tourSeen,
   type TourStep,
 } from "@/lib/tour";
+import { tourText } from "@/lib/tour-copy";
 
 /**
  * The first-run walkthrough.
@@ -68,6 +69,7 @@ export function clampSpot(spot: Spot, viewportHeight: number): Spot {
 
 export function Tour() {
   const t = useT();
+  const { locale } = useLocale();
   const [steps, setSteps] = useState<TourStep[] | null>(null);
   const [index, setIndex] = useState(0);
   const [spot, setSpot] = useState<Spot | null>(null);
@@ -92,6 +94,8 @@ export function Tour() {
   }, []);
 
   const step = steps?.[index];
+  /** The step's words, in the reader's language. */
+  const words = step ? tourText(locale, step.id) : { title: "", body: "" };
 
   useLayoutEffect(() => {
     if (!step) return;
@@ -198,7 +202,7 @@ export function Tour() {
         className="pop-in absolute rounded-3xl bg-surface-raised p-5 shadow-float"
       >
         <div className="flex items-start justify-between gap-4">
-          <p className="text-base font-semibold text-cream-bright">{step.title}</p>
+          <p className="text-base font-semibold text-cream-bright">{words.title}</p>
           <button
             onClick={close}
             aria-label={t("tour.close")}
@@ -207,7 +211,7 @@ export function Tour() {
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-cream-dim">{step.body}</p>
+        <p className="mt-2 text-sm leading-relaxed text-cream-dim">{words.body}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="text-xs text-cream-faint">

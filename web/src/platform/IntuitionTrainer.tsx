@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { Compass, ExternalLink, Sparkles } from "lucide-react";
+import { Compass, ExternalLink } from "lucide-react";
 import {
   Action,
-  Badge,
   Eyebrow,
   FadeRise,
   Field,
-  Meter,
   Notice,
   Panel,
 } from "@/design-system";
@@ -214,8 +212,7 @@ const CASE_PT: Record<string, { title: string; prompt: string; options: [string,
 
 const COPY = {
   en: {
-    eyebrow: "Professional · Product, Design & Systems Intuition",
-    title: "Deliberate intuition trainer with real-world outcomes",
+    title: "Deliberate intuition trainer",
     intro: "Commit to a product, design or systems decision, state your confidence and write your reasoning before revealing what actually happened in the documented historical case.",
     filterLabel: "Decision type",
     filterAll: "All cases",
@@ -240,8 +237,7 @@ const COPY = {
     loadingCases: "Loading intuition cases…",
   },
   es: {
-    eyebrow: "Profesional · Intuición de Producto, Diseño y Sistemas",
-    title: "Entrenador de intuición de producto y diseño con feedback de realidad",
+    title: "Entrenador de intuición",
     intro: "Compromete tu decisión de priorización, trade-offs o hipótesis, registra tu nivel de confianza y explica tu razonamiento antes de revelar qué ocurrió realmente en el caso histórico documentado.",
     filterLabel: "Tipo de criterio",
     filterAll: "Todos los casos",
@@ -266,8 +262,7 @@ const COPY = {
     loadingCases: "Cargando casos de intuición…",
   },
   pt: {
-    eyebrow: "Profissional · Intuição de Produto, Design e Sistemas",
-    title: "Treinador de intuição de produto e design com feedback da realidade",
+    title: "Treinador de intuição",
     intro: "Registre sua decisão de priorização, trade-offs ou hipóteses, defina sua confiança e explique seu raciocínio antes de revelar o que realmente aconteceu no caso histórico documentado.",
     filterLabel: "Tipo de decisão",
     filterAll: "Todos os casos",
@@ -292,8 +287,7 @@ const COPY = {
     loadingCases: "Carregando casos de intuição…",
   },
   fr: {
-    eyebrow: "Professionnel · Intuition Produit, Design & Systèmes",
-    title: "Entraîneur d'intuition produit et design avec retour du réel",
+    title: "Entraîneur d'intuition",
     intro: "Engagez votre décision de priorisation, de compromis ou d'hypothèse, indiquez votre niveau de confiance et expliquez votre raisonnement avant de révéler ce qui s'est réellement passé dans le cas historique documenté.",
     filterLabel: "Type de décision",
     filterAll: "Tous les cas",
@@ -425,12 +419,6 @@ export function IntuitionTrainer() {
       <PageHeader
         title={copy.title}
         meta={copy.intro}
-        actions={
-          <Badge tone="live">
-            <Sparkles className="h-3 w-3" aria-hidden />
-            {copy.eyebrow}
-          </Badge>
-        }
       />
 
       <PageBody className="space-y-6 pt-2">
@@ -492,7 +480,11 @@ export function IntuitionTrainer() {
                       >
                         <div className="flex items-center justify-between gap-2">
                           <MonoLabel>#{String(idx + 1).padStart(2, "0")}</MonoLabel>
-                          <Chip>{kindLabel(item.kind)}</Chip>
+                          {/* The kind as words, not a chip. Six cases in a
+                              narrow column used to carry six peach blocks
+                              for one word each; the word is what the reader
+                              needs and the colour was decoration. */}
+                          <span className="text-xs text-cream-dim">{kindLabel(item.kind)}</span>
                         </div>
                         <p className="mt-2 text-sm font-medium tracking-[-0.015em] text-cream-bright">
                           {loc.title}
@@ -572,9 +564,9 @@ export function IntuitionTrainer() {
                       onChange={(e) => setConfidence(Number(e.target.value))}
                       className="mt-3 w-full text-sm"
                     />
-                    <div className="mt-3">
-                      <Meter value={confidence} label={`${confidence}%`} />
-                    </div>
+                    {/* No second meter. The slider already shows where the
+                        value sits and the label already says what it is; the
+                        bar underneath repeated both a third time. */}
                   </Inset>
 
                   <div className="mt-5">

@@ -590,11 +590,14 @@ export function Settings() {
 
         {/* Signing out lives in the sidebar on a wide screen, but the phone's
             bottom bar has no room for it, so it was nowhere at all there.
-            Here it is findable on both — Account is where people look. */}
+            Here it is findable on both — Account is where people look.
+            Quiet, not solid: signing out is a rare, reversible-in-context
+            errand, and a filled black button made it the loudest thing on a
+            screen whose loudest thing should be Save. */}
         <Panel className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8">
           <p className="text-sm text-cream-dim">{t("settings.signOutHint")}</p>
           <Action
-            tone="neutral"
+            tone="quiet"
             onClick={() => void signOut().then(() => window.location.assign("/"))}
           >
             <LogOut aria-hidden className="h-4 w-4" />

@@ -15,37 +15,22 @@ export interface TourStep {
   id: string;
   /** CSS selector for the element to point at. Missing targets are skipped. */
   target: string;
-  title: string;
-  body: string;
 }
 
 export const TOUR_KEY = "realsessions.tour.seen";
 
+/**
+ * Where each step points, and nothing else.
+ *
+ * The words live in `tour-copy.ts`, one set per language: the walkthrough is
+ * the first thing a new reader meets, and it was the one place in the product
+ * that spoke English to everybody.
+ */
 export const TOUR_STEPS: TourStep[] = [
-  {
-    id: "search",
-    target: "[data-tour='search']",
-    title: "Start here if you know what you want",
-    body: "Type a company, a role, or a past session. Picking an old session sets every field back the way it was, which is the only way two attempts are worth comparing.",
-  },
-  {
-    id: "setup",
-    target: "[data-tour='setup']",
-    title: "Six choices, one bar",
-    body: "Role decides which rounds exist. A round decides what gets asked and who asks it — a recruiter takes the screen, an architect takes the system design. Pick more than one round and the interview covers both.",
-  },
-  {
-    id: "begin",
-    target: "[data-tour='begin']",
-    title: "Then it is a call",
-    body: "Microphone, camera and screen share, with the transcript down the side. You can type instead if you would rather not speak yet.",
-  },
-  {
-    id: "progress",
-    target: "[data-tour='progress']",
-    title: "The point is the second attempt",
-    body: "Every session is scored and kept. Progress is where the same interview, run twice, becomes a number that moved.",
-  },
+  { id: "search", target: "[data-tour='search']" },
+  { id: "setup", target: "[data-tour='setup']" },
+  { id: "begin", target: "[data-tour='begin']" },
+  { id: "progress", target: "[data-tour='progress']" },
 ];
 
 export function tourSeen(): boolean {

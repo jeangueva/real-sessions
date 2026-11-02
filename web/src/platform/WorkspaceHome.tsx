@@ -1,5 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
+  ArrowRight,
   BookOpenCheck,
   Briefcase,
   Compass,
@@ -11,30 +12,33 @@ import {
   Play,
   Presentation,
   Route,
-  Sparkles,
 } from "lucide-react";
-import { Action, Badge, FadeRise } from "@/design-system";
-import { Chip, IconTile, Inset, MonoLabel, Widget } from "@/components/marketing";
 import { usePracticeCopy } from "@/lib/practice-copy";
+import { useLocale } from "@/hooks/useLocale";
 import { thesisPath, type Space } from "@/lib/spaces";
 import { PageBody, PageHeader } from "./AppShell";
 
-/** Workspace entry points designed with the trail-dashboard Widget & Inset architecture. */
+const homeCopy = {
+  es: { open: "Abrir", thesis: "Practica con un jurado que conoce tu tesis.", academic: "Prepara exámenes orales, trabajos grupales y conversaciones con tu asesor.", conversations: "Conversaciones difíciles", conversationsBody: "Practica cómo negociar, dar feedback y poner límites en el trabajo o en familia.", intuition: "Criterio de producto y diseño", intuitionBody: "Toma una decisión y compárala con el desenlace de un caso real." },
+  en: { open: "Open", thesis: "Practise with a jury that knows your thesis.", academic: "Prepare for oral exams, group projects and conversations with your advisor.", conversations: "Difficult conversations", conversationsBody: "Practise negotiating, giving feedback and setting boundaries at work or with family.", intuition: "Product and design judgment", intuitionBody: "Make a decision, then compare it with a real case's outcome." },
+  pt: { open: "Abrir", thesis: "Pratique com uma banca que conhece seu trabalho.", academic: "Prepare provas orais, trabalhos em grupo e conversas com seu orientador.", conversations: "Conversas difíceis", conversationsBody: "Pratique negociar, dar feedback e estabelecer limites no trabalho ou na família.", intuition: "Critério de produto e design", intuitionBody: "Tome uma decisão e compare com o resultado de um caso real." },
+  fr: { open: "Ouvrir", thesis: "Entraînez-vous avec un jury qui connaît votre mémoire.", academic: "Préparez vos examens oraux, travaux de groupe et échanges avec votre directeur.", conversations: "Conversations difficiles", conversationsBody: "Entraînez-vous à négocier, donner du feedback et poser vos limites au travail ou en famille.", intuition: "Jugement produit et design", intuitionBody: "Prenez une décision, puis comparez-la au résultat d’un cas réel." },
+};
+
+/** Keep activity selection separate from the detailed setup inside each activity. */
 export function WorkspaceHome({ space }: { space: Space }) {
   const c = usePracticeCopy();
-  const navigate = useNavigate();
+  const { locale } = useLocale();
+  const t = homeCopy[locale as keyof typeof homeCopy] ?? homeCopy.en;
   const education = space === "defense";
 
   const cards = education
     ? [
         {
           to: thesisPath("ensayar"),
-          label: "01",
-          tag: "TESIS · JURADO EN VIVO",
           icon: Mic,
           title: c.thesis,
-          body: c.thesisBody,
-          chips: ["UNMSM · PUCP · UNI · UNAM · USP", "Escala 0–20", "Acta del jurado"],
+          body: t.thesis,
           subLinks: [
             { to: thesisPath("diagnostico"), label: "Diagnóstico", icon: FileSearch },
             { to: thesisPath("repaso"), label: "Repaso espaciado", icon: BookOpenCheck },
@@ -43,44 +47,32 @@ export function WorkspaceHome({ space }: { space: Space }) {
         },
         {
           to: "/app/training/education",
-          label: "02",
-          tag: "SIMULACIONES ACADÉCIAS",
           icon: GraduationCap,
           title: c.academic,
-          body: c.academicBody,
-          chips: ["Trabajos grupales", "Rúbricas y notas", "Alcance con asesor", "Examen oral"],
+          body: t.academic,
           subLinks: [],
         },
       ]
     : [
         {
           to: "/app/training/professional",
-          label: "01",
-          tag: "HARDTALK TECH & LATAM",
           icon: MessagesSquare,
-          title: c.conversations,
-          body: c.conversationsBody,
-          chips: ["Decir no a un founder", "Alcance de ingeniería", "Feedback diseño senior", "Familia · Latam & NA"],
+          title: t.conversations,
+          body: t.conversationsBody,
           subLinks: [],
         },
         {
           to: "/app/intuition",
-          label: "02",
-          tag: "INTUICIÓN · CASOS REALES",
           icon: Compass,
-          title: c.intuition,
-          body: c.intuitionBody,
-          chips: ["Priorización", "Trade-offs", "Hipótesis", "Desenlace histórico"],
+          title: t.intuition,
+          body: t.intuitionBody,
           subLinks: [],
         },
         {
           to: "/app/practice",
-          label: "03",
-          tag: "ENTREVISTAS DE TRABAJO",
           icon: Play,
           title: c.interviews,
           body: c.interviewsBody,
-          chips: ["Voz en vivo", "Preguntas por rol", "Informe de respuesta"],
           subLinks: [
             { to: "/app/progress", label: c.progress, icon: Route },
             { to: "/app/applications", label: c.applications, icon: Briefcase },
@@ -93,77 +85,66 @@ export function WorkspaceHome({ space }: { space: Space }) {
     <main>
       <PageHeader
         title={c.welcome}
-        meta={education ? c.educationBody : c.professionalBody}
-        actions={
-          <Badge tone="live">
-            <Sparkles className="h-3 w-3" aria-hidden />
-            {education ? c.education : c.professional} · {c.free}
-          </Badge>
-        }
+        dense
       />
 
-      <PageBody className="space-y-6 pt-2">
-        <div className={`grid gap-5 ${education ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}>
-          {cards.map((card, i) => {
+      <PageBody className="!pt-5">
+        <div className="max-w-4xl divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface-card">
+          {cards.map((card) => {
             const CardIcon = card.icon;
             return (
-              <FadeRise key={card.to} delay={i * 0.05}>
-                <Widget
-                  label={`${card.label} · ${card.tag}`}
-                  className="flex h-full flex-col justify-between p-6 sm:p-7"
-                >
+                <section key={card.to} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
                   <div>
-                    <div className="flex items-center gap-3">
-                      <IconTile>
-                        <CardIcon className="h-4 w-4" aria-hidden />
-                      </IconTile>
-                      <h2 className="text-xl font-medium tracking-[-0.025em] text-cream-bright">
+                    {/* The title is the link. A row that opens something is
+                        named by the thing it opens, not by a button that
+                        repeats it three times down the page. */}
+                    <Link
+                      to={card.to}
+                      className="focus-ring group inline-flex items-center gap-3 rounded-md"
+                    >
+                      <CardIcon className="h-5 w-5 shrink-0 text-accent-text" aria-hidden />
+                      <h2 className="text-base font-medium text-cream-bright transition-colors group-hover:text-accent-text sm:text-lg">
                         {card.title}
                       </h2>
-                    </div>
+                    </Link>
 
-                    <p className="mt-3 text-sm leading-relaxed text-cream-dim">{card.body}</p>
-
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {card.chips.map((chip) => (
-                        <Chip key={chip}>{chip}</Chip>
-                      ))}
-                    </div>
+                    <p className="mt-2 max-w-prose text-sm leading-relaxed text-cream-dim">{card.body}</p>
 
                     {card.subLinks.length > 0 && (
-                      <Inset className="mt-4 p-3">
-                        <MonoLabel>{c.tools}</MonoLabel>
-                        <div className="mt-2 flex flex-wrap gap-2">
+                      <nav aria-label={c.tools} className="mt-2 flex flex-wrap gap-x-4">
                           {card.subLinks.map((sub) => {
                             const SubIcon = sub.icon;
                             return (
                               <Link
                                 key={sub.to}
                                 to={sub.to}
-                                className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-card px-3 py-1.5 text-xs font-medium text-cream-bright transition-colors hover:border-accent-border hover:text-accent-text"
+                                className="focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-md text-sm text-cream-dim transition-colors hover:text-accent-text"
                               >
                                 <SubIcon className="h-3.5 w-3.5 text-accent-text" aria-hidden />
                                 {sub.label}
                               </Link>
                             );
                           })}
-                        </div>
-                      </Inset>
+                      </nav>
                     )}
                   </div>
 
-                  <div className="mt-6 pt-2">
-                    <Action
-                      type="button"
-                      withArrow
-                      onClick={() => navigate(card.to)}
-                      className="w-full justify-center"
-                    >
-                      {c.start}
-                    </Action>
-                  </div>
-                </Widget>
-              </FadeRise>
+                  {/* Quiet, not filled. Three solid mustard pills down a list
+                      read as three equal demands; the list is a set of
+                      siblings and the accent belongs to the one the reader
+                      chooses. Right-aligned on a phone so it cannot be
+                      mistaken for one more link in the row's link list. */}
+                  <Link
+                    to={card.to}
+                    className="focus-ring group inline-flex min-h-11 shrink-0 items-center gap-2 self-end rounded-full px-4 text-sm font-semibold text-cream-dim transition-colors duration-150 hover:bg-surface-lift hover:text-cream-bright sm:ml-auto sm:self-auto"
+                  >
+                    {t.open}
+                    <ArrowRight
+                      className="h-4 w-4 text-accent-text transition-transform duration-200 ease-press group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+                      aria-hidden
+                    />
+                  </Link>
+                </section>
             );
           })}
         </div>
