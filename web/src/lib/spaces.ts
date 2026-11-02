@@ -1,11 +1,4 @@
-/**
- * The main thesis workspace and the secondary career tools.
- *
- * Sustentación is the thesis and everything around it; Profesional is what
- * comes after the defence — interviews, the path, applications. They were one
- * rail of seven entries. Each has its own navigation; Sustentación is the
- * default and Profesional is available in the workspace menu.
- */
+/** Education and professional workspaces. Internal IDs preserve saved preferences. */
 
 export type Space = "defense" | "career";
 
@@ -24,12 +17,15 @@ export function thesisPath(section: ThesisSection): string {
 
 /** Where each space opens. */
 export const SPACE_HOME: Record<Space, string> = {
-  defense: "/app",
-  career: "/app/practice",
+  defense: "/app/education",
+  career: "/app/professional",
 };
 
-const DEFENSE_PREFIXES = ["/app/tesis", "/app/thesis", "/app/advisor"];
+const DEFENSE_PREFIXES = ["/app/education", "/app/training/education", "/app/tesis", "/app/thesis", "/app/advisor"];
 const CAREER_PREFIXES = [
+  "/app/professional",
+  "/app/training/professional",
+  "/app/intuition",
   "/app/practice",
   "/app/session",
   "/app/feedback",
@@ -69,6 +65,6 @@ export function rememberSpace(space: Space): void {
     localStorage.setItem(SPACE_KEY, space);
     window.dispatchEvent(new CustomEvent("mockio:space", { detail: space }));
   } catch {
-    // Private mode: the shared screens fall back to Sustentación.
+    // Private mode: the shared screens fall back to Education.
   }
 }

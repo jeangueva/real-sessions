@@ -14,10 +14,8 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   CalendarDays,
   Check,
-  Copy,
   Download,
   FileText,
-  Gift,
   Lock,
   MessageCircle,
   PlayCircle,
@@ -26,13 +24,12 @@ import {
   Video,
 } from "lucide-react";
 import { Action, Panel, DisclosureMark } from "@/design-system";
+import type { Evaluation } from "@/lib/evaluation";
 import {
   analyzeObservations,
   ApiError,
-  buyDefensePack,
   clearObservations,
   countRealQuestions,
-  fetchGiftLink,
   fetchThesis,
   markObservation,
   requestMentor,
@@ -49,7 +46,6 @@ import type {
 import { useThesisT, type ThesisKey } from "@/lib/thesis-copy";
 import { buildPlan, daysBetween, localToday, type PlanTask } from "@/lib/defense-plan";
 import { deleteRecording, loadRecording, type StoredRecording } from "@/lib/recordings";
-import type { Evaluation } from "@/lib/evaluation";
 import { thesisPath } from "@/lib/spaces";
 import { useLocale } from "@/hooks/useLocale";
 import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
@@ -115,15 +111,6 @@ function CardHead({ icon: Icon, title, body }: { icon: typeof Lock; title: strin
         {body && <p className="mt-1 text-pretty text-sm leading-relaxed text-cream-dim">{body}</p>}
       </div>
     </div>
-  );
-}
-
-function LockedNote({ children }: { children: string }) {
-  return (
-    <p className="flex items-center gap-2 rounded-xl bg-surface-lift px-3 py-2 text-sm text-cream-dim">
-      <Lock aria-hidden className="h-4 w-4 shrink-0" />
-      {children}
-    </p>
   );
 }
 
@@ -489,21 +476,6 @@ export function RealQuestionsCard() {
               </span>
             )}
           </p>
-          {result.locked ? (
-            <>
-              {/* Shapes of questions rather than their text: what is locked
-                  is not in the page at all. */}
-              <ul aria-hidden className="flex flex-col gap-2">
-                {Array.from({ length: Math.min(3, result.verified) }, (_, index) => (
-                  <li key={index} className="rounded-2xl bg-surface-card p-3 shadow-card">
-                    <span className="block h-3 w-11/12 rounded-full bg-cream-faint/25 blur-[2px]" />
-                    <span className="mt-2 block h-3 w-2/3 rounded-full bg-cream-faint/25 blur-[2px]" />
-                  </li>
-                ))}
-              </ul>
-              <LockedNote>{t("realLocked")}</LockedNote>
-            </>
-          ) : (
             <ul className="flex flex-col gap-2">
               {result.questions.map((entry, index) => (
                 <li key={index} className="flex flex-col gap-1 rounded-2xl bg-surface-card p-3 text-sm text-cream-bright shadow-card">
@@ -516,7 +488,6 @@ export function RealQuestionsCard() {
                 </li>
               ))}
             </ul>
-          )}
         </div>
       )}
     </Panel>
@@ -549,9 +520,7 @@ export function ObservationsSection({
 }) {
   const t = useThesisT();
   const navigate = useNavigate();
-  const status = useDefenseStatus();
-  const paid = status?.allowance.paid === true;
-  const modes = status?.allowance.modes === true;
+  const modes = true;
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -601,27 +570,21 @@ export function ObservationsSection({
         <CardHead icon={FileText} title={t("obsTitle")} body={t("obsBody")} />
         {!saved && (
           <>
-            {!paid && status && <LockedNote>{t("obsLocked")}</LockedNote>}
             <textarea
               value={text}
               onChange={(event) => setText(event.target.value)}
               rows={7}
               maxLength={20_000}
               placeholder={t("obsPlaceholder")}
-              disabled={!paid || busy}
+              disabled={busy}
               className={`${field} resize-y disabled:opacity-60`}
             />
             <ErrorNote error={error} />
             <div className="flex flex-wrap items-center gap-3">
-              <Action disabled={!paid || busy || text.trim().length < 40} onClick={() => void run(() => analyzeObservations(text))}>
+              <Action disabled={busy || text.trim().length < 40} onClick={() => void run(() => analyzeObservations(text))}>
                 {t("obsAnalyze")}
               </Action>
               {busy && <span className="text-sm text-cream-dim">{t("obsAnalyzing")}</span>}
-              {!paid && status && (
-                <Link to={thesisPath("ensayar")} className="text-sm font-semibold text-accent-text underline underline-offset-4">
-                  {t("teaserCta")}
-                </Link>
-              )}
             </div>
           </>
         )}
@@ -780,20 +743,11 @@ export function ObservationsSection({
 export function MentorCard({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
   const t = useThesisT();
   const { locale } = useLocale();
-  const status = useDefenseStatus();
   const [availability, setAvailability] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  if (!status) return null;
-  const offer = status.offers.find((entry) => entry.kind === "docente");
-  const included = status.allowance.mentor === true;
-  if (!included && (!offer || !status.payments)) return null;
-
-  const money = (amount: number, currency: string) =>
-    new Intl.NumberFormat(currency === "PEN" ? "es-PE" : undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
-
   const send = async () => {
     setBusy(true);
     setError(null);
@@ -806,26 +760,14 @@ export function MentorCard({ thesis, onChange }: { thesis: StoredThesis; onChang
     }
   };
 
-  const buy = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      refreshDefenseStatus();
-      window.location.assign((await buyDefensePack("docente")).initPoint);
-    } catch (caught) {
-      setError(message(caught, t("error")));
-      setBusy(false);
-    }
-  };
-
   return (
     <Panel variant="raised" className={card}>
-      <CardHead icon={Video} title={t("mentorTitle")} body={included ? t("mentorBody") : t("mentorUpsell")} />
-      {included && thesis.mentor ? (
+      <CardHead icon={Video} title={t("mentorTitle")} body={t("mentorBody")} />
+      {thesis.mentor ? (
         <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">
           {t("mentorRequested", { date: new Date(thesis.mentor.requestedAt).toLocaleDateString(locale) })}
         </p>
-      ) : included ? (
+      ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className={`${label} sm:col-span-2`}>
             {t("mentorAvailability")}
@@ -845,21 +787,6 @@ export function MentorCard({ thesis, onChange }: { thesis: StoredThesis; onChang
             </Action>
           </div>
         </div>
-      ) : (
-        offer && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void buy()}
-            className="focus-ring flex items-center justify-between gap-3 rounded-xl bg-surface-card px-4 py-3 text-left shadow-card transition-transform duration-150 ease-press active:scale-[0.98] disabled:opacity-60"
-          >
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold text-cream-bright">{t("offerDocente")}</span>
-              <span className="block text-xs text-cream-dim">{t("offerDocenteBody")}</span>
-            </span>
-            <span className="shrink-0 text-base font-bold tabular-nums text-cream-bright">{money(offer.amount, offer.currency)}</span>
-          </button>
-        )
       )}
       <ErrorNote error={error} />
     </Panel>
@@ -869,80 +796,6 @@ export function MentorCard({ thesis, onChange }: { thesis: StoredThesis; onChang
 /* ------------------------------------------------------------------------- */
 /* 6. Someone else pays                                                      */
 /* ------------------------------------------------------------------------- */
-
-export function GiftCard({ compact = false }: { compact?: boolean }) {
-  const t = useThesisT();
-  const [url, setUrl] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const create = async () => {
-    setError(null);
-    try {
-      setUrl((await fetchGiftLink()).url);
-    } catch (caught) {
-      setError(message(caught, t("error")));
-    }
-  };
-
-  const copy = async () => {
-    if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1_600);
-    } catch {
-      // No clipboard permission: the link is on screen to select.
-    }
-  };
-
-  const body = (
-    <>
-      {url ? (
-        <div className="flex flex-col gap-2">
-          <p className="break-all rounded-xl bg-surface-lift px-3 py-2 font-mono text-xs text-cream-bright">{url}</p>
-          <div className="flex flex-wrap gap-2">
-            <Action tone="neutral" onClick={() => void copy()}>
-              {copied ? <Check aria-hidden className="h-4 w-4" /> : <Copy aria-hidden className="h-4 w-4" />}
-              {copied ? t("giftCopied") : t("giftCopy")}
-            </Action>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${t("giftMessage")} ${url}`)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="focus-ring inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white transition-[filter,transform] duration-150 ease-press hover:brightness-105 active:scale-[0.97] sm:text-base"
-            >
-              <MessageCircle aria-hidden className="h-4 w-4" />
-              {t("giftWhatsapp")}
-            </a>
-          </div>
-        </div>
-      ) : (
-        <Action tone="neutral" onClick={() => void create()} className="self-start">
-          <Gift aria-hidden className="h-4 w-4" />
-          {t("giftCreate")}
-        </Action>
-      )}
-      <ErrorNote error={error} />
-    </>
-  );
-
-  if (compact) {
-    return (
-      <div className="flex flex-col gap-2 rounded-2xl bg-surface-lift p-3">
-        <p className="text-sm font-semibold text-cream-bright">{t("giftTitle")}</p>
-        <p className="text-xs text-cream-dim">{t("giftBody")}</p>
-        {body}
-      </div>
-    );
-  }
-  return (
-    <Panel variant="raised" className={card}>
-      <CardHead icon={Gift} title={t("giftTitle")} body={t("giftBody")} />
-      {body}
-    </Panel>
-  );
-}
 
 /* ------------------------------------------------------------------------- */
 /* 7. The readiness report                                                   */
@@ -1144,90 +997,13 @@ export function RehearsalReplay({ sessionId, evaluation }: { sessionId: string; 
   );
 }
 
-/* ------------------------------------------------------------------------- */
-/* 9. What the full panel would have asked                                   */
-/* ------------------------------------------------------------------------- */
-
-/**
- * Shown after a defence rehearsed without a plan — the free express one.
- *
- * Not a list of features: the student's own weak points that the express
- * rehearsal did not reach, by page, with what the full panel would ask about
- * them drawn as shapes rather than text. The pitch is their thesis.
- */
-export function FullPanelTeaser({ evaluation }: { evaluation: Evaluation }) {
-  const t = useThesisT();
-  const status = useDefenseStatus();
-  const [risks, setRisks] = useState<StoredThesis["analysis"]["risks"]>([]);
-  const [buying, setBuying] = useState(false);
-
-  useEffect(() => {
-    fetchThesis()
-      .then((result) => setRisks(result.thesis?.analysis.risks ?? []))
-      .catch(() => setRisks([]));
-  }, []);
-
-  if (!status || status.allowance.paid || status.allowance.unlimited || (status.allowance.credits ?? 0) > 0 || risks.length === 0) return null;
-  // A risk counts as asked when a question named its page.
-  const said = (evaluation.answer_feedback ?? []).map((entry) => entry.question).join(" ");
-  const asked = risks.filter((risk) => risk.page !== null && new RegExp(`\\b${risk.page}\\b`).test(said));
-  const order = { alta: 0, media: 1, baja: 2 };
-  const missed = risks
-    .filter((risk) => !asked.includes(risk))
-    .sort((a, b) => order[a.severity] - order[b.severity])
-    .slice(0, 3);
-  if (missed.length === 0) return null;
-  const pack = status.offers.find((offer) => offer.kind === "sustentacion");
-
-  const buy = async () => {
-    setBuying(true);
-    try {
-      refreshDefenseStatus();
-      window.location.assign((await buyDefensePack("sustentacion")).initPoint);
-    } catch {
-      setBuying(false);
-    }
-  };
-
-  return (
-    <Panel variant="raised" className={`${card} ring-2 ring-accent`}>
-      <CardHead
-        icon={Users}
-        title={t("teaserTitle")}
-        body={t("teaserBody", { asked: asked.length, total: risks.length })}
-      />
-      <ul className="flex flex-col gap-2">
-        {missed.map((risk, index) => (
-          <li key={index} className="flex items-start gap-3 rounded-2xl bg-surface-card p-3 shadow-card">
-            <span
-              className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                risk.severity === "alta" ? "bg-step-soft text-step-text" : "bg-accent-soft text-accent-text"
-              }`}
-            >
-              {risk.page ? `p. ${risk.page}` : risk.area}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm text-cream-bright">{risk.issue}</span>
-              <span aria-hidden className="mt-2 block h-3 w-10/12 rounded-full bg-cream-faint/25 blur-[2px]" />
-              <span aria-hidden className="mt-1.5 block h-3 w-1/2 rounded-full bg-cream-faint/25 blur-[2px]" />
-            </span>
-            <Lock aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-cream-faint" />
-          </li>
-        ))}
-      </ul>
-      {status.payments && pack ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <Action withArrow disabled={buying} onClick={() => void buy()}>
-            {t("teaserCta")}
-          </Action>
-          <span className="text-xs text-cream-dim">{t("teaserNote")}</span>
-        </div>
-      ) : (
-        <Link to={thesisPath("ensayar")} className="self-start">
-          <Action withArrow>{t("teaserCta")}</Action>
-        </Link>
-      )}
-      <GiftCard compact />
-    </Panel>
-  );
+/** Kept as a no-op because the full panel is now unlocked for everyone. */
+export function FullPanelTeaser(_props: { evaluation?: Evaluation }) {
+  return null;
 }
+
+/** Kept as a no-op because plans are free for everyone. */
+export function GiftCard(_props: { compact?: boolean }) {
+  return null;
+}
+

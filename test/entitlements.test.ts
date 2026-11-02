@@ -22,21 +22,21 @@ describe("capabilities", () => {
     expect(free.historyLimit).toBeGreaterThan(0);
   });
 
-  it("gives the free plan every interview feature, capped by the week", () => {
+  it("gives the free plan every interview feature without a weekly cap", () => {
     const free = capabilitiesFor("free");
     expect(free.targetCompany).toBe(true);
     expect(free.candidateProfile).toBe(true);
     expect(free.liveCoaching).toBe(true);
     expect(free.advancedFeedback).toBe(true);
-    expect(free.weeklySessions).toBe(5);
-    expect(free.workScenes).toBe(false);
+    expect(free.weeklySessions).toBeNull();
+    expect(free.workScenes).toBe(true);
   });
 
-  it("puts the job itself, and no weekly cap, on premium", () => {
+  it("gives the same full capabilities on historical premium grants", () => {
     const premium = capabilitiesFor("premium");
     expect(premium.workScenes).toBe(true);
     expect(premium.weeklySessions).toBeNull();
-    expect(premium.historyLimit).toBeGreaterThan(capabilitiesFor("free").historyLimit);
+    expect(premium.historyLimit).toBe(capabilitiesFor("free").historyLimit);
   });
 });
 

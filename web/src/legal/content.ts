@@ -85,7 +85,7 @@ export function isDraft(): boolean {
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
-export const UPDATED = "2026-10-15";
+export const UPDATED = "2026-11-02";
 
 export interface LegalSection {
   heading: string;
@@ -496,25 +496,25 @@ const TERMS: Record<Locale, LegalDocument> = {
         ],
       },
       {
-        heading: "The free plan",
+        heading: "Free access",
         body: [
-          "The free plan has limits, shown on the pricing page, so that we can keep offering it: each rehearsal costs us real money. We may change those limits; a change never takes away a rehearsal you have already paid for.",
+          "Education and Professional are free. No donation is required to use any feature. Technical availability and abuse-prevention limits apply equally to everyone; supporting Mockio does not buy priority or additional access.",
         ],
       },
       {
-        heading: "Paying",
+        heading: "Optional support and previous purchases",
         body: [
-          "In Peru, payments go through Mercado Pago. Elsewhere, through Paddle, which acts as the seller of record and handles taxes. We never see or store your card details.",
-          "Subscriptions renew until you cancel. You can cancel at any time from Settings; you keep the paid plan until the end of the period already paid, and we do not refund partial periods.",
-          "Defence packs and passes are one-off payments, not subscriptions. The rehearsals in a pack expire at the end of the stated period, and unused ones are not refunded after that date.",
+          "When enabled, optional support is collected on Ko-fi through its payment providers. You choose the final amount and whether it is a one-time or monthly payment there. We never see or store your card details. Monthly support is recurring until cancelled with the provider; deleting a Mockio account does not cancel an independent Ko-fi payment.",
+          "New paid plans and defence packs are no longer sold. Previous Mercado Pago or Paddle subscriptions are not automatically cancelled or converted to donations by this change. Manage or cancel them from Settings. Previous purchase terms and applicable refund rights continue to apply.",
+          "Support does not unlock features or guarantee an outcome. Contact hello@getmockio.com about support refunds or a previous purchase.",
           "If a pack or pass did not help you, ask within 7 days of purchase at hello@getmockio.com and we refund it, no questions asked. This does not limit any right the consumer law of your country gives you.",
-          "Early-access benefits are exactly what they say: a free period of the paid plan, tied to the address you gave us. They are not transferable and have no cash value.",
+          "Previous access grants remain in your account history but are no longer needed to unlock features.",
         ],
       },
       {
-        heading: "Prices",
+        heading: "Support amounts",
         body: [
-          "We may change prices. If we do, we email you at least 30 days before it applies to you, and you can cancel before then. A price change never applies retroactively to a period already paid.",
+          "Suggested support amounts are US$1, 2, 5, 8 and 10, or a custom amount from US$1. Confirm the currency, amount and recurrence on the provider's checkout before paying. No support amount changes your access to Mockio.",
         ],
       },
       {
@@ -650,25 +650,25 @@ const TERMS: Record<Locale, LegalDocument> = {
         ],
       },
       {
-        heading: "El plan gratuito",
+        heading: "Acceso gratuito",
         body: [
-          "El plan gratuito tiene límites, que se muestran en la página de precios, para poder seguir ofreciéndolo: cada ensayo nos cuesta dinero real. Podemos cambiar esos límites; un cambio nunca te quita un ensayo que ya pagaste.",
+          "Educación y Profesional son gratuitos. Ninguna función requiere una donación. La disponibilidad técnica y los límites para evitar abusos se aplican a todos por igual; apoyar a Mockio no compra prioridad ni acceso adicional.",
         ],
       },
       {
-        heading: "Pagar",
+        heading: "Apoyo opcional y compras anteriores",
         body: [
-          "En Perú, los pagos se hacen con Mercado Pago. Fuera de Perú, con Paddle, que actúa como vendedor registrado y se encarga de los impuestos. Nunca vemos ni guardamos los datos de tu tarjeta.",
-          "Las suscripciones se renuevan hasta que canceles. Puedes cancelar cuando quieras desde Ajustes; conservas el plan pago hasta el final del período ya pagado, y no devolvemos períodos parciales.",
-          "Los packs y pases de sustentación son pagos únicos, no suscripciones. Los ensayos de un pack vencen al final del periodo indicado, y los no usados no se reembolsan después de esa fecha.",
+          "Cuando esté habilitado, el apoyo opcional se cobra en Ko-fi mediante sus proveedores de pago. Allí eliges el monto final y si es un aporte único o mensual. Nunca vemos ni guardamos los datos de tu tarjeta. El apoyo mensual se renueva hasta que lo canceles con el proveedor; eliminar tu cuenta de Mockio no cancela un pago independiente de Ko-fi.",
+          "Ya no se venden nuevos planes ni packs de sustentación. Este cambio no cancela automáticamente las suscripciones anteriores de Mercado Pago o Paddle ni las convierte en donaciones. Puedes gestionarlas o cancelarlas desde Ajustes. Se mantienen las condiciones de las compras anteriores y los derechos de reembolso aplicables.",
+          "Apoyar no desbloquea funciones ni garantiza resultados. Escríbenos a hello@getmockio.com por reembolsos de aportes o compras anteriores.",
           "Si un pack o pase no te sirvió, pídelo dentro de los 7 días de la compra a hello@getmockio.com y te devolvemos el dinero, sin preguntas. Esto no limita ningún derecho que te dé la ley de protección al consumidor de tu país.",
-          "Los beneficios de acceso anticipado son exactamente lo que dicen: un período gratis del plan pago, atado a la dirección que nos diste. No son transferibles y no tienen valor en efectivo.",
+          "Los accesos concedidos anteriormente permanecen en el historial de tu cuenta, pero ya no son necesarios para desbloquear funciones.",
         ],
       },
       {
-        heading: "Precios",
+        heading: "Montos de apoyo",
         body: [
-          "Podemos cambiar el precio. Si lo hacemos, te avisamos por correo al menos 30 días antes de que te aplique, y puedes cancelar antes. Un cambio de precio nunca se aplica retroactivamente a un período que ya pagaste.",
+          "Los montos sugeridos son US$1, 2, 5, 8 y 10, u otro monto desde US$1. Confirma la moneda, el monto y la frecuencia en la página del proveedor antes de pagar. Ningún monto cambia tu acceso a Mockio.",
         ],
       },
       {
@@ -804,25 +804,25 @@ const TERMS: Record<Locale, LegalDocument> = {
         ],
       },
       {
-        heading: "O plano gratuito",
+        heading: "Acesso gratuito",
         body: [
-          "O plano gratuito tem limites, mostrados na página de preços, para que possamos continuar oferecendo-o: cada ensaio nos custa dinheiro de verdade. Podemos mudar esses limites; uma mudança nunca tira um ensaio que você já pagou.",
+          "Educação e Profissional são gratuitos. Nenhum recurso exige uma doação. A disponibilidade técnica e os limites contra abuso se aplicam igualmente a todos; apoiar o Mockio não compra prioridade nem acesso adicional.",
         ],
       },
       {
-        heading: "Pagamento",
+        heading: "Apoio opcional e compras anteriores",
         body: [
-          "No Peru, os pagamentos são feitos pelo Mercado Pago. Fora do Peru, pela Paddle, que atua como vendedora registrada e cuida dos impostos. Nunca vemos nem guardamos os dados do seu cartão.",
-          "As assinaturas se renovam até você cancelar. Você pode cancelar quando quiser em Ajustes; mantém o plano pago até o fim do período já pago, e não reembolsamos períodos parciais.",
-          "Os pacotes e passes de defesa são pagamentos únicos, não assinaturas. Os ensaios de um pacote vencem no fim do período indicado, e os não usados não são reembolsados depois dessa data.",
+          "Quando habilitado, o apoio opcional é recebido no Ko-fi por seus provedores de pagamento. Lá você escolhe o valor final e se o pagamento é único ou mensal. Nunca vemos nem guardamos os dados do seu cartão. O apoio mensal se renova até ser cancelado no provedor; excluir a conta do Mockio não cancela um pagamento independente no Ko-fi.",
+          "Novos planos pagos e pacotes de defesa não são mais vendidos. Esta mudança não cancela automaticamente assinaturas anteriores do Mercado Pago ou Paddle nem as converte em doações. Gerencie ou cancele em Configurações. As condições das compras anteriores e os direitos de reembolso aplicáveis continuam válidos.",
+          "Apoiar não desbloqueia recursos nem garante resultados. Fale com hello@getmockio.com sobre reembolsos de apoio ou compras anteriores.",
           "Se um pacote ou passe não serviu para você, peça em até 7 dias da compra em hello@getmockio.com e devolvemos o dinheiro, sem perguntas. Isso não limita nenhum direito que a lei de defesa do consumidor do seu país lhe dá.",
-          "Os benefícios de acesso antecipado são exatamente o que dizem: um período grátis do plano pago, vinculado ao endereço que você nos deu. Não são transferíveis e não têm valor em dinheiro.",
+          "Os acessos concedidos anteriormente continuam no histórico da conta, mas não são mais necessários para desbloquear recursos.",
         ],
       },
       {
-        heading: "Preços",
+        heading: "Valores de apoio",
         body: [
-          "Podemos mudar o preço. Se mudarmos, avisamos por e-mail pelo menos 30 dias antes de ele se aplicar a você, e você pode cancelar antes. Uma mudança de preço nunca se aplica retroativamente a um período já pago.",
+          "Os valores sugeridos são US$1, 2, 5, 8 e 10, ou outro valor a partir de US$1. Confirme a moeda, o valor e a frequência na página do provedor antes de pagar. Nenhum valor altera seu acesso ao Mockio.",
         ],
       },
       {

@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { ScreenBoundary } from "./ScreenBoundary";
 import { WorkspaceNav } from "./WorkspaceNav";
 import {
+  Home,
+  MessagesSquare,
+  Compass,
   BookOpenCheck,
   Briefcase,
   ClipboardCheck,
@@ -39,8 +42,7 @@ import {
 /**
  * The signed-in shell, in two workspaces.
  *
- * Sustentación is the main workspace. Professional tools are reachable through
- * the workspace menu, with their own navigation and contextual settings.
+ * Education and Professional have equal entry points and contextual navigation.
  *
  * Three layouts, not one squeezed three ways. Below `md` the sections are a
  * bottom bar and the account is the avatar in the top bar. At `md` the rail is
@@ -67,19 +69,24 @@ function useSpaceEntries(space: Space): Entry[] {
   const tt = useThesisT();
   if (space === "defense") {
     return [
+      { to: SPACE_HOME.defense, label: t("nav.home"), short: t("nav.home"), icon: Home, end: true, tour: "education" },
+      { to: "/app/training/education", label: t("nav.academicScenarios"), short: t("nav.scenariosShort"), icon: GraduationCap, end: false, tour: "academic" },
       { to: thesisPath("ensayar"), label: tt("tabRehearse"), short: tt("shortRehearse"), icon: Mic, end: true, tour: "ensayar" },
       { to: thesisPath("diagnostico"), label: tt("tabDiagnosis"), short: tt("shortDiagnosis"), icon: FileSearch, end: false, tour: "diagnostico" },
-      { to: thesisPath("repaso"), label: tt("tabStudy"), short: tt("shortStudy"), icon: BookOpenCheck, end: false, tour: "repaso" },
-      { to: thesisPath("diapositivas"), label: tt("tabSlides"), short: tt("shortSlides"), icon: Presentation, end: false, tour: "diapositivas" },
+      { to: thesisPath("repaso"), label: tt("tabStudy"), short: tt("shortStudy"), icon: BookOpenCheck, end: false, tour: "repaso", wide: true },
+      { to: thesisPath("diapositivas"), label: tt("tabSlides"), short: tt("shortSlides"), icon: Presentation, end: false, tour: "diapositivas", wide: true },
       { to: thesisPath("observaciones"), label: tt("tabObservations"), short: tt("shortObservations"), icon: ClipboardCheck, end: false, tour: "observaciones", wide: true },
       { to: thesisPath("mas"), label: tt("railMore"), short: tt("shortMore"), icon: Sparkles, end: false, tour: "mas" },
     ];
   }
   return [
+    { to: SPACE_HOME.career, label: t("nav.home"), short: t("nav.home"), icon: Home, end: true, tour: "professional" },
+    { to: "/app/training/professional", label: t("nav.conversations"), short: t("nav.conversations"), icon: MessagesSquare, end: false, tour: "conversations" },
+    { to: "/app/intuition", label: t("nav.intuition"), short: t("nav.intuition"), icon: Compass, end: false, tour: "intuition" },
     { to: "/app/practice", label: t("nav.interviews"), short: t("nav.interviewsShort"), icon: Play, end: false, tour: "practice" },
     { to: "/app/progress", label: t("nav.progress"), short: t("nav.progressShort"), icon: Route, end: false, tour: "progress" },
-    { to: "/app/applications", label: t("nav.applications"), short: t("nav.applicationsShort"), icon: Briefcase, end: false, tour: "applications" },
-    { to: "/app/profile", label: t("nav.context"), short: t("nav.contextShort"), icon: FileUser, end: false, tour: "profile" },
+    { to: "/app/applications", label: t("nav.applications"), short: t("nav.applicationsShort"), icon: Briefcase, end: false, tour: "applications", wide: true },
+    { to: "/app/profile", label: t("nav.context"), short: t("nav.contextShort"), icon: FileUser, end: false, tour: "profile", wide: true },
   ];
 }
 
@@ -224,7 +231,7 @@ export function AppShell() {
             changes when the tab above it does. */}
         <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-60 lg:items-stretch lg:px-3">
           <p className="hidden px-3 pb-1.5 text-xs font-semibold text-cream-faint lg:block">
-            {space === "defense" ? t("nav.spaceDefense") : t("nav.spaceCareer")}
+            {space === "defense" ? t("nav.education") : t("nav.spaceCareer")}
           </p>
           {/* Keyed by space so the new list arrives as a list, not as the old
               one's rows relabelled in place. */}

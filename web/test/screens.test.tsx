@@ -17,68 +17,29 @@ import { Pricing } from "@/components/Pricing";
  */
 
 describe("Billing", () => {
-  it("says payments are off rather than showing a button that cannot work", async () => {
+  it("shows voluntary support options and states that all features are free", async () => {
     stubApi({
+      "/api/support": { url: "https://ko-fi.com/mockio" },
+      "/api/billing/reconcile": { plan: "free" },
       "/api/billing": { configured: false, plan: null, subscription: null },
       "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
       "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
     });
     renderScreen(<Billing />);
 
-    await screen.findByText(/payments are not switched on/i);
+    await screen.findByText(/Free for everyone\. Supported by choice\./i);
+    await screen.findByText(/No existing subscription\./i);
+    expect(screen.getByRole("button", { name: "$5" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /upgrade/i })).not.toBeInTheDocument();
   });
 
-  /**
-   * This panel used to have a branch for guests: Mercado Pago needs a payer
-   * email, a guest had none, and offering an account beat a button that
-   * failed at the last step.
-   *
-   * Nobody reaches this screen without an account now — the shell turns them
-   * away first — so the branch is gone and so is the test for it. What is
-   * worth keeping is that a session the server does not recognise never
-   * produces a pay button.
-   */
-  it("offers no checkout when the server does not recognise the session", async () => {
+  it("shows a cancelled historical subscription without a cancel button", async () => {
     stubApi({
+      "/api/support": { url: null },
+      "/api/billing/reconcile": { plan: "premium" },
       "/api/billing": {
-        configured: true,
-        plan: { amount: 9000, currency: "ARS" },
-        subscription: null,
-        publicKey: "TEST-key",
-      },
-      "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
-      "/api/auth/me": { kind: null, email: null },
-    });
-    renderScreen(<Billing />);
-
-    await waitFor(() =>
-      expect(screen.queryByRole("button", { name: /9000 ARS/i })).not.toBeInTheDocument(),
-    );
-  });
-
-  it("shows the price it will actually charge", async () => {
-    stubApi({
-      "/api/billing": {
-        configured: true,
-        plan: { amount: 9000, currency: "ARS" },
-        subscription: null,
-      },
-      "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
-      "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
-    });
-    renderScreen(<Billing />);
-
-    // The amount and currency come from the server, because Mercado Pago
-    // charges in the seller's currency and the client must not guess.
-    await screen.findByRole("button", { name: /9000 ARS/i });
-  });
-
-  it("says a cancelled subscription still has time left on it", async () => {
-    stubApi({
-      "/api/billing": {
-        configured: true,
-        plan: { amount: 9, currency: "BRL" },
+        configured: false,
+        plan: null,
         subscription: {
           externalId: "mp-1",
           status: "cancelled",
@@ -91,30 +52,30 @@ describe("Billing", () => {
     });
     renderScreen(<Billing />);
 
-    // They paid for the period; cutting them off early would be theft and
-    // saying nothing would look like a bug.
-    await screen.findByText(/you keep the paid plan until/i);
-    expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
+    await screen.findByText(/All features remain free\. No new purchase is needed\./i);
+    expect(screen.queryByRole("button", { name: /Cancel existing subscription/i })).not.toBeInTheDocument();
   });
 
-  it("names a failing payment instead of showing the plan as fine", async () => {
+  it("lets a user cancel an existing subscription while keeping all features free", async () => {
     stubApi({
+      "/api/support": { url: null },
+      "/api/billing/reconcile": { plan: "premium" },
       "/api/billing": {
-        configured: true,
-        plan: { amount: 9, currency: "BRL" },
+        configured: false,
+        plan: null,
         subscription: {
           externalId: "mp-1",
-          status: "paused",
-          periodEnd: null,
+          status: "authorized",
+          periodEnd: "2027-03-01T00:00:00.000Z",
           updatedAt: "2026-09-01T00:00:00.000Z",
         },
       },
-      "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
+      "/api/plan": { plan: "premium", capabilities: {}, reviewer: false },
       "/api/auth/me": { kind: "user", email: "a@b.com", emailVerified: true },
     });
     renderScreen(<Billing />);
 
-    await screen.findByText(/payment did not go through/i);
+    await screen.findByRole("button", { name: /Cancel existing subscription/i });
   });
 });
 

@@ -158,11 +158,11 @@ describe("the routes", () => {
     await api.stop();
   });
 
-  it("answers a gift link that does not exist the same way as a malformed one", async () => {
+  it("answers a gift link that does not exist with 404 and retires gift checkout with 410", async () => {
     const unknown = await api.call(`/api/gift/${newGiftToken()}`);
     expect(unknown.status).toBe(404);
     expect((await api.call("/api/gift/nope")).status).toBe(404);
-    expect((await api.call(`/api/gift/${newGiftToken()}/checkout`, post({ kind: "sustentacion", email: "a@b.co" }))).status).toBe(404);
+    expect((await api.call(`/api/gift/${newGiftToken()}/checkout`, post({ kind: "sustentacion", email: "a@b.co" }))).status).toBe(410);
   });
 
   it("asks for the thesis before the jury, the observations, the teacher or the gift link", async () => {
@@ -173,26 +173,26 @@ describe("the routes", () => {
     expect((await api.call("/api/thesis/gift")).status).toBe(409);
   });
 
-  it("gives everyone the count of real questions and keeps the text for the paid plans", async () => {
+  it("gives everyone both the count and text of real questions without locking", async () => {
     await api.authenticate();
     const result = await api.json<{ verified: number; questions: unknown[]; locked: boolean }>(
       "/api/thesis/questions?university=Universidad%20de%20Lima",
     );
-    expect(result).toMatchObject({ verified: 0, questions: [], locked: true });
+    expect(result).toMatchObject({ verified: 0, questions: [], locked: false });
   });
 
-  it("grants 1 weekly full video-call defense (1:1 or group) on Free and unlimited on Premium", async () => {
+  it("grants unlimited full video-call defense (1:1 or group) and all modes on Free and Premium", async () => {
     await api.authenticate();
     const freeState = await api.json<{
       allowance: { credits: number | null; unlimited?: boolean; freeLeft: number; group: boolean; modes: boolean; paid: boolean };
     }>("/api/thesis");
     expect(freeState.allowance).toMatchObject({
-      credits: 0,
-      unlimited: false,
-      freeLeft: 1,
+      credits: null,
+      unlimited: true,
+      freeLeft: 0,
       group: true,
-      modes: false,
-      paid: false,
+      modes: true,
+      paid: true,
     });
 
     await api.makePremium();
@@ -202,7 +202,7 @@ describe("the routes", () => {
     expect(premiumState.allowance).toMatchObject({
       credits: null,
       unlimited: true,
-      freeLeft: 1,
+      freeLeft: 0,
       group: true,
       modes: true,
       paid: true,

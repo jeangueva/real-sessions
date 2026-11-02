@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Building2, Copy, Crown, Users, Wallet } from "lucide-react";
+import { Building2, Copy, Users, Wallet } from "lucide-react";
 import { Action, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
-import { ApiError, becomeAdvisor, buyDefensePack, fetchAdvisor, saveAffiliatePayout, syncDefensePack } from "@/lib/api";
+import { ApiError, becomeAdvisor, fetchAdvisor, saveAffiliatePayout } from "@/lib/api";
 import type { PayoutMethod } from "@/lib/api";
 import type { AdvisorDashboard } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
@@ -28,28 +28,8 @@ export function Advisor() {
       .catch((caught) => setError(caught instanceof ApiError ? caught.message : t("error")));
   useEffect(() => {
     void load();
-    // Back from paying for Asesor Pro: settle it here, then forget the query.
-    const params = new URLSearchParams(window.location.search);
-    const paymentId = params.get("payment_id") ?? params.get("collection_id");
-    if (paymentId && /^\d+$/.test(paymentId)) {
-      syncDefensePack(paymentId)
-        .then(() => load())
-        .catch(() => undefined)
-        .finally(() => window.history.replaceState(null, "", window.location.pathname));
-    }
-  }, []);
 
-  const [buying, setBuying] = useState(false);
-  const buyPro = async () => {
-    setBuying(true);
-    setError(null);
-    try {
-      window.location.assign((await buyDefensePack("asesor_pro")).initPoint);
-    } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : t("error"));
-      setBuying(false);
-    }
-  };
+  }, []);
 
   const create = async () => {
     setError(null);
@@ -127,33 +107,6 @@ export function Advisor() {
               )}
               <p className="max-w-prose text-sm text-cream-dim">{t("advisorHow")}</p>
             </Panel>
-
-            {data.pro && (
-              <Panel className="flex flex-col gap-3 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">
-                  <Crown aria-hidden className="h-5 w-5 text-premium" />
-                  {t("proTitle")}
-                </h2>
-                <p className="text-sm text-cream-dim">
-                  {t("proBody", { seats: data.pro.seats, credits: data.pro.creditsPerStudent })}
-                </p>
-                {data.pro.active && data.pro.expiresAt ? (
-                  <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">
-                    {t("proActive", {
-                      date: new Date(data.pro.expiresAt).toLocaleDateString(),
-                      used: data.pro.used,
-                      seats: data.pro.seats,
-                    })}
-                  </p>
-                ) : (
-                  <div>
-                    <Action withArrow disabled={buying} onClick={() => void buyPro()}>
-                      {t("proBuy", { price: money(data.pro.amount, data.pro.currency) })}
-                    </Action>
-                  </div>
-                )}
-              </Panel>
-            )}
 
             <Panel className="flex flex-col gap-3 p-6 sm:p-8">
               <h2 className="flex items-center gap-2 text-base font-semibold text-cream-bright">

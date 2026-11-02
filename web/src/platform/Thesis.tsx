@@ -1,3 +1,4 @@
+import { freeAccessCopy } from "@/lib/free-access-copy";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, FileText, Loader2, Mic, ShieldCheck, Square, Trash2, Upload } from "lucide-react";
@@ -5,17 +6,15 @@ import { Action, Panel, DisclosureMark, PopIn } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import {
   ApiError,
-  buyDefensePack,
   countRealQuestions,
   deleteThesis,
   fetchCareers,
   fetchThesis,
   practiceThesisQuestion,
   saveCareer,
-  syncDefensePack,
   uploadThesis,
 } from "@/lib/api";
-import type { CareerCatalogue, CareerResolution, DefenseAllowance, DefenseFormatInfo, DefenseProgressPoint, PackKind, PackOffer, PackOfferDetail } from "@/lib/api";
+import type { CareerCatalogue, CareerResolution, DefenseFormatInfo, DefenseProgressPoint } from "@/lib/api";
 import type { StoredThesis, ThesisAnalysis, ThesisCited } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
 import { useLocale } from "@/hooks/useLocale";
@@ -33,14 +32,13 @@ import { ThesisPageDrawer, type PageDrawerTarget } from "./ThesisPageDrawer";
 import { ThesisShareCard } from "./ThesisShareCard";
 import {
   DefensePlanCard,
-  GiftCard,
   MentorCard,
   ObservationsSection,
   PreparationReportCard,
   RealJuryCard,
   RealQuestionsCard,
-  refreshDefenseStatus,
 } from "./DefenseExtras";
+import { Support } from "./Support";
 import { canRecord } from "@/lib/recordings";
 import { resumeAudio } from "@/lib/audio-level";
 import { primeVoiceUnlock } from "@/lib/voice";
@@ -652,7 +650,7 @@ function Diagnosis({
           </Link>
           <MentorCard thesis={thesis} onChange={onChange} />
           <PreparationReportCard thesis={thesis} />
-          <GiftCard />
+          <Support />
           <AdvisorCard />
           <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
           <Privacy />
@@ -775,12 +773,10 @@ const DIFFICULTY_HINT = {
 export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange: (next: StoredThesis) => void }) {
   const t = useThesisT();
   const navigate = useNavigate();
+  const { locale } = useLocale();
   /** Sent here from the observations, with the mode and the material set. */
   const arrived = (useLocation().state ?? null) as { focus?: Focus; material?: string } | null;
-  const [allowance, setAllowance] = useState<DefenseAllowance | null>(null);
-  const [pack, setPack] = useState<PackOffer | null>(null);
   const [formats, setFormats] = useState<DefenseFormatInfo[]>([]);
-  const [offers, setOffers] = useState<PackOfferDetail[]>([]);
   const [progress, setProgress] = useState<DefenseProgressPoint[]>([]);
   const [catalogue, setCatalogue] = useState<CareerCatalogue | null>(null);
   const [careerRes, setCareerRes] = useState<CareerResolution | null>(null);
@@ -818,9 +814,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     }
     return thesis.analysis.language === "pt" ? "BR" : "PE";
   });
-  const [buying, setBuying] = useState(false);
-  const [packNotice, setPackNotice] = useState<string | null>(null);
-  const [packError, setPackError] = useState<string | null>(null);
   const [university, setUniversity] = useState(() => {
     try {
       return localStorage.getItem("mockio.university") ?? "";
@@ -851,91 +844,29 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
 
   useEffect(() => {
     let cancelled = false;
-    const apply = (next: DefenseAllowance) => {
-      if (cancelled) return;
-      setAllowance(next);
-      setFull(next.unlimited === true || (next.credits ?? 0) > 0 || next.freeLeft > 0);
-    };
     fetchThesis()
       .then((result) => {
-        if (result.pack && !cancelled) setPack(result.pack);
         if (result.formats && !cancelled) setFormats(result.formats);
-        if (result.offers && !cancelled) setOffers(result.offers);
         if (result.progress && !cancelled) setProgress(result.progress);
         if (result.career !== undefined && !cancelled) setCareerRes(result.career);
-        if (result.allowance) apply(result.allowance);
       })
-      .catch(() => apply({ credits: 0, freeLeft: 0 }));
+      .catch(() => undefined);
     fetchCareers()
       .then((result) => {
         if (!cancelled) setCatalogue(result);
       })
       .catch(() => { if (!cancelled) setCareerError(t("careerJuryLoadError")); });
 
-    /**
-     * Back from Mercado Pago. The payment is settled from here as well as by
-     * the webhook, which can be late — and the payer is looking at this
-     * screen now. The query is then removed, so a reload does not ask again.
-     */
-    const params = new URLSearchParams(window.location.search);
-    const paymentId = params.get("payment_id") ?? params.get("collection_id");
-    if (paymentId && /^\d+$/.test(paymentId)) {
-      syncDefensePack(paymentId)
-        .then((result) => {
-          refreshDefenseStatus();
-          apply(result.allowance);
-          if (!cancelled) setPackNotice(t(result.outcome === "not-yet" ? "packPending" : "packDone"));
-        })
-        .catch((caught) => {
-          if (!cancelled) setPackError(caught instanceof ApiError ? caught.message : t("error"));
-        })
-        .finally(() => window.history.replaceState(null, "", window.location.pathname));
-    }
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const buy = async (kind: PackKind) => {
-    setBuying(true);
-    setPackError(null);
-    try {
-      window.location.assign((await buyDefensePack(kind)).initPoint);
-    } catch (caught) {
-      setPackError(caught instanceof ApiError ? caught.message : t("error"));
-      setBuying(false);
-    }
-  };
-
-  const isUnlimited = allowance?.unlimited === true || allowance?.credits === null;
-  const hasCredits = isUnlimited || (allowance?.credits ?? 0) > 0;
   /** The replay is for the full panel: the express one is three questions. */
   const filmable = canRecord() && (full || focus !== "completa");
   const needsMaterial = focus === "estadistica" || focus === "observaciones";
-  const canBegin = (hasCredits || (allowance?.freeLeft ?? 0) > 0) && (!needsMaterial || material.trim().length >= 40);
+  const canBegin = formats.length > 0 && (!needsMaterial || material.trim().length >= 40);
   const named = members.map((entry) => entry.trim()).filter(Boolean);
-  /** The offers that would add something to what they hold. */
-  const worthOffering = isUnlimited
-    ? []
-    : offers.filter((offer) => offer.kind !== "asesor_pro").filter((offer) =>
-        !hasCredits
-          ? true
-          : offer.kind === "docente"
-            ? !allowance?.mentor
-            : offer.group
-              ? !allowance?.group
-              : offer.modes
-                ? !allowance?.modes
-                : false,
-      );
-  const money = (amount: number, currency: string) =>
-    new Intl.NumberFormat(currency === "PEN" ? "es-PE" : undefined, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-
   const begin = () => {
     const place = university.trim();
     try {
@@ -995,7 +926,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
   const select =
     "focus-ring w-full rounded-xl bg-surface-card px-3 py-2.5 text-sm text-cream-bright disabled:opacity-50";
   const label = "flex min-w-0 flex-col gap-1 text-xs font-semibold text-cream-dim";
-  const locked = (entry: string) => entry !== "completa" && !allowance?.modes;
 
   const formatName = formats.find((entry) => entry.country === country);
   const activeFamily = catalogue?.families.find((entry) => entry.id === (thesis.careerOverride ?? careerRes?.family));
@@ -1015,7 +945,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
   ]
     .filter(Boolean)
     .join(" · ");
-  const cheapest = offers.find((offer) => offer.kind === "sustentacion");
 
   return (
     <>
@@ -1073,7 +1002,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
             options rather than a row of small ones. */}
         <div role="radiogroup" aria-label={t("panelChoice")} className="grid gap-2 sm:grid-cols-2">
           {([false, true] as const).map((option) => {
-            const lockedPanel = option && allowance !== null && !hasCredits && (allowance.freeLeft ?? 0) === 0;
             const chosen = full === option;
             return (
               <button
@@ -1081,7 +1009,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
                 type="button"
                 role="radio"
                 aria-checked={chosen}
-                disabled={lockedPanel}
                 onClick={() => setFull(option)}
                 className={`focus-ring flex flex-col items-start gap-1 rounded-xl px-3 py-2.5 text-left transition-[background-color,box-shadow,transform] duration-150 ease-press active:scale-[0.98] disabled:cursor-not-allowed ${
                   chosen ? "bg-surface-card shadow-card ring-2 ring-accent" : "bg-surface-lift hover:bg-cream/10"
@@ -1089,7 +1016,6 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
               >
                 <span className="flex w-full items-center justify-between gap-2">
                   <span className="text-base font-semibold text-cream-bright">{t(option ? "fullShort" : "expressShort")}</span>
-                  {lockedPanel && <span className="text-xs font-semibold text-cream-dim">🔒 {t("panelLocked")}</span>}
                 </span>
                 <span className="text-sm text-cream-dim">
                   {option
@@ -1189,8 +1115,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
                 {t("mode")}
                 <select value={focus} onChange={(event) => setFocus(event.target.value as Focus)} className={select}>
                   {FOCUS_OPTIONS.map((entry) => (
-                    <option key={entry} value={entry} disabled={locked(entry)}>
-                      {locked(entry) ? "🔒 " : ""}
+                    <option key={entry} value={entry}>
                       {t(FOCUS_LABEL[entry])}
                     </option>
                   ))}
@@ -1204,12 +1129,10 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
                   className={select}
                 >
                   <option value="">{t("settingAny")}</option>
-                  <option value="presencial" disabled={!allowance?.modes}>
-                    {!allowance?.modes ? "🔒 " : ""}
+                  <option value="presencial">
                     {t("settingPresencial")}
                   </option>
-                  <option value="virtual" disabled={!allowance?.modes}>
-                    {!allowance?.modes ? "🔒 " : ""}
+                  <option value="virtual">
                     {t("settingVirtual")}
                   </option>
                 </select>
@@ -1287,72 +1210,15 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
           </div>
         </details>
 
-        {packNotice && <p className="rounded-xl bg-grow-soft px-3 py-2 text-sm text-grow-text">{packNotice}</p>}
-        {packError && (
-          <p role="alert" className="rounded-xl bg-step-soft px-3 py-2 text-sm text-step-text">
-            {packError}
-          </p>
-        )}
-
         {/* The way in, with what it will spend beside it. On a phone it stays
             pinned above the tab bar, so it is never a scroll away. */}
         <div data-rehearsal-actions className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-30 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-surface-card/95 px-4 py-3 backdrop-blur md:left-[4.5rem] md:bottom-0 md:px-6 md:pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:left-60 lg:px-10">
             <Action withArrow onClick={begin} disabled={!canBegin || careerBusy} className="w-full px-5 py-2.5 text-base sm:w-auto">
               {t("rehearse")}
             </Action>
-          {allowance && (
-            <p className="text-sm text-cream-dim">
-              {isUnlimited
-                ? t("unlimitedAvailable")
-                : hasCredits
-                  ? `${t("creditsLeft", { count: allowance.credits ?? 0 })}${allowance.sponsor ? ` (${t("sponsoredBy", { name: allowance.sponsor.name })})` : ""}`
-                  : allowance.freeLeft > 0
-                    ? t("freeAvailable")
-                    : t("freeUsed")}
-            </p>
-          )}
+          <p className="text-sm text-cream-dim">{freeAccessCopy(locale).body}</p>
         </div>
       </Panel>
-
-      {/* The plans, as one line until the student asks to see them. */}
-      {allowance && pack?.available && worthOffering.length > 0 && (
-        <details className="group rounded-card bg-surface-raised shadow-card">
-          <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 rounded-card px-5 py-4 sm:px-7">
-            <span className="min-w-0">
-              <span className="block text-base font-semibold text-cream-bright">
-                {hasCredits ? t("upgradeTitle") : t("plansTitle")}
-              </span>
-              {!hasCredits && cheapest && (
-                <span className="block text-sm text-cream-dim">
-                  {t("plansBody", { price: money(cheapest.amount, cheapest.currency) })}
-                </span>
-              )}
-            </span>
-            <DisclosureMark label={t("plansShow")} openLabel={t("plansHide")} />
-          </summary>
-          <div className="flex flex-col gap-3 px-5 pb-5 sm:px-7 sm:pb-6">
-            <div className="grid gap-2 sm:grid-cols-3">
-              {worthOffering.map((offer) => (
-                <button
-                  key={offer.kind}
-                  type="button"
-                  disabled={buying}
-                  onClick={() => void buy(offer.kind)}
-                  className="focus-ring flex flex-col items-start gap-1 rounded-xl bg-surface-card px-4 py-3 text-left shadow-card transition-transform duration-150 ease-press active:scale-[0.98] disabled:opacity-60"
-                >
-                  <span className="flex w-full items-baseline justify-between gap-2">
-                    <span className="text-sm font-semibold text-cream-bright">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].name)}</span>
-                    <span className="text-base font-bold tabular-nums text-cream-bright">{money(offer.amount, offer.currency)}</span>
-                  </span>
-                  <span className="text-xs text-cream-dim">{t(OFFER_LABEL[offer.kind as Exclude<PackKind, "asesor_pro">].body)}</span>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-cream-dim">{buying ? t("buying") : t("beforePay")}</p>
-            {!allowance.paid && <GiftCard compact />}
-          </div>
-        </details>
-      )}
 
       {progress.length > 0 && (
         <Panel variant="raised" className="p-5 sm:p-6">
@@ -1411,12 +1277,6 @@ const FOCUS_LABEL = {
   estadistica: "modeEstadistica",
   observaciones: "modeObservaciones",
   divulgacion: "modeDivulgacion",
-} as const;
-const OFFER_LABEL: Record<Exclude<PackKind, "asesor_pro">, { name: Parameters<ReturnType<typeof useThesisT>>[0]; body: Parameters<ReturnType<typeof useThesisT>>[0] }> = {
-  sustentacion: { name: "offerSustentacion", body: "offerSustentacionBody" },
-  intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
-  grupal: { name: "offerGrupal", body: "offerGrupalBody" },
-  docente: { name: "offerDocente", body: "offerDocenteBody" },
 } as const;
 
 /**

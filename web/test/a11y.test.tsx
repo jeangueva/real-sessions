@@ -133,12 +133,13 @@ describe("the applications screen", () => {
 describe("the billing panel", () => {
   it("has no WCAG A or AA violations", async () => {
     stubApi({
+      "/api/support": { url: "https://ko-fi.com/mockio" },
       "/api/billing/reconcile": { plan: "free" },
       "/api/billing": {
-        configured: true,
-        mode: "live",
+        configured: false,
+        mode: null,
         publicKey: null,
-        plan: { amount: 29.9, currency: "PEN" },
+        plan: null,
         subscription: null,
       },
       "/api/plan": { plan: "free", capabilities: {}, reviewer: false },
@@ -149,8 +150,7 @@ describe("the billing panel", () => {
         <Billing />
       </MemoryRouter>,
     );
-    // The promotion field is part of what is being checked.
-    await findByText(/Have a promotion code/i);
+    await findByText(/Existing subscriptions/i);
     expect(await violations(container)).toEqual([]);
   });
 });

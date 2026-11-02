@@ -69,6 +69,8 @@
  */
 // Must come first: see the note in env.ts.
 import "./env.js";
+import { supportConfig, isRetiredPurchase } from "./support.js";
+import { trainingRoute } from "./training/routes.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 import process from "node:process";
@@ -234,7 +236,6 @@ import {
   createDefensePackStore,
   isPackKind,
   PACK_KINDS,
-  remainingCredits,
   unlocks,
   ADVISOR_PRO_CREDITS,
   ADVISOR_PRO_SEATS,
@@ -244,7 +245,6 @@ import {
 } from "./defense-packs.js";
 
 /** Free rehearsals of a defence per week on the free plan. */
-const FREE_WEEKLY_DEFENSES = 1;
 
 /** The currency every pack is sold in: the Mercado Pago account's own. */
 const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPAGO_CURRENCY ?? "PEN";
@@ -256,12 +256,6 @@ const PACK_CURRENCY = process.env.DEFENSE_PACK_CURRENCY ?? process.env.MERCADOPA
 /** Whether the top pack, with a real teacher, is on sale. Off until there are teachers. */
 const DOCENTE_ENABLED = process.env.DEFENSE_DOCENTE_ENABLED === "1";
 
-/** The kinds a student can buy right now. */
-function studentOffers(): PackKind[] {
-  return (Object.keys(PACK_KINDS) as PackKind[]).filter(
-    (kind) => !PACK_KINDS[kind].advisor && (kind !== "docente" || DOCENTE_ENABLED),
-  );
-}
 
 /**
  * A rehearsal's grade, to the gradebook of the course it was launched from.
@@ -334,32 +328,21 @@ async function defenseAllowance(ownerId: string): Promise<{
    */
   paid: boolean;
 }> {
-  const [plan, packs, past, sponsored] = await Promise.all([
-    readQuietly(PLANS.planFor(ownerId), "free" as Plan),
+  const [packs, sponsored] = await Promise.all([
     readQuietly(PACKS.active(ownerId), []),
-    readQuietly(PROGRESS.listSessions(ownerId), []),
     readQuietly(sponsorship(ownerId), null),
   ]);
-  const premium = plan === "premium";
-  const full = past.filter((entry) => entry.stage === "Sustentación de tesis").map((entry) => entry.startedAt);
-  const sinceMonday = weekStart(new Date()).getTime();
-  const weeklyDefenses = past.filter(
-    (entry) => entry.stage.startsWith("Sustentación") && Date.parse(entry.startedAt) >= sinceMonday,
-  ).length;
-  // A sponsor's rehearsals count as one more grant: whatever is used is
-  // used from all of them together, so nobody is charged twice for one.
-  const grants = sponsored ? [...packs, sponsored.grant] : packs;
-  const own = unlocks(packs);
   return {
-    credits: premium ? null : remainingCredits(grants, full),
-    freeLeft: Math.max(0, FREE_WEEKLY_DEFENSES - weeklyDefenses),
-    unlimited: premium,
-    modes: premium || own.modes || sponsored?.modes === true,
+    credits: null,
+    freeLeft: 0,
+    unlimited: true,
+    modes: true,
     group: true,
     sponsor: sponsored ? { kind: sponsored.kind, name: sponsored.name } : null,
     rubric: sponsored?.rubric ?? null,
-    mentor: own.mentor,
-    paid: premium || grants.length > 0,
+    mentor: unlocks(packs).mentor,
+    // Compatibility flag for older clients' report gates; no purchase required.
+    paid: true,
   };
 }
 
@@ -552,7 +535,6 @@ import {
 } from "./lifecycle.js";
 import { createLifecycleStore, type LifecycleStore } from "./lifecycle-store.js";
 import { AREAS, ROLES, interviewerTitle, roleIdFor } from "./roles.js";
-import { ratesFrom } from "./fx.js";
 import { normaliseCountry, regionFor } from "./billing/regions.js";
 import {
   cancelPaddleSubscription,
@@ -593,12 +575,10 @@ import {
   MercadoPagoError,
   mercadoPagoConfigured,
   planConfig,
-  planOffer,
   planForCycle,
   isBillingCycle,
   type BillingCycle,
   createCardSubscription,
-  publicKey,
   readAmount,
   verifySignature,
   type PreapprovalStatus,
@@ -1834,6 +1814,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
   const path = url.pathname;
 
+  // Retired before provider calls, including public gift checkout links.
+  if (isRetiredPurchase(req.method, path)) {
+    return json(res, 410, { code: "platformFree", error: "All platform features are free. New purchases are disabled; support is optional." });
+  }
+  if (req.method === "GET" && path === "/api/support") {
+    return json(res, 200, supportConfig());
+  }
+
+
   /**
    * Gone: this handed out an anonymous identity to anyone who asked, and
    * every protected route accepted it. An interview now belongs to an
@@ -2202,20 +2191,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   }
 
   if (req.method === "GET" && path === "/api/pricing") {
-    // In front of the authentication gate: the landing page asks before anyone
-    // has an identity, and it is the same `planConfig()` the checkout charges
-    // from. A price written into the page instead would be a second source of
-    // truth, and the one people read before deciding.
-    // The rates come along so the page can show the price in the reader's
-    // currency beside the one the card is charged. Null when the provider is
-    // unreachable — the page then shows only what is charged.
-    const plan = planConfig();
-    const rates = plan ? await ratesFrom(plan.currency) : null;
-    // Which checkout and price this reader gets. Peru — and every country
-    // while Paddle is not configured — is Mercado Pago in soles, exactly as
-    // before; elsewhere it is the regional price in local currency.
-    const region = regionFor(readerCountry(req, url), paddleConfig() !== null);
-    json(res, 200, { plan, offer: planOffer(), rates, region });
+    json(res, 200, {
+      free: true, plan: null, offer: null, rates: null,
+      region: regionFor(readerCountry(req, url), false),
+      support: supportConfig(),
+    });
     return;
   }
 
@@ -2648,8 +2628,8 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
         name: preferences?.candidateName?.trim().split(/\s+/)[0] || null,
         thesis: thesis?.analysis.title ?? null,
         defenseDate: thesis?.defenseDate ?? null,
-        offers,
-        available: mercadoPagoConfigured(),
+        offers: [],
+        available: false,
       });
     }
     // Back from Mercado Pago: settled now rather than when the webhook comes,
@@ -2784,6 +2764,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     return json(res, 401, { error: "Please sign in again." });
   }
 
+  // Free practice uses the existing auth, revocation and shared rate limiter.
+  if (path.startsWith("/api/training/")) {
+    return trainingRoute(req, res, path, {
+      owner: identity.id, ip: clientIp(req), provider: PROVIDER,
+      json, readJson, limited,
+    });
+  }
+
   /**
    * What this identity is allowed to do.
    *
@@ -2833,42 +2821,11 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   };
 
   if (req.method === "GET" && path === "/api/billing") {
-    // `configured` is what the UI branches on to show the upgrade button, so
-    // a deployment that would refuse the checkout reports itself unconfigured
-    // rather than offering a button that 503s.
-    const configured =
-      mercadoPagoConfigured() && planConfig() !== null && checkoutBlockReason() === null;
     json(res, 200, {
-      configured,
-      plan: planConfig(),
-      offer: planOffer(),
-      // Safe to serve: this key can tokenise a card and nothing else. Null
-      // when unset, and the client falls back to the redirect checkout.
-      publicKey: configured ? publicKey() : null,
-      // Said out loud, because Mercado Pago's sandbox and production
-      // credentials are indistinguishable: a deployment left in the wrong one
-      // looks exactly like the right one until money does or does not move.
-      mode: billingMode(),
+      configured: false, free: true, plan: null, offer: null,
+      publicKey: null, paddle: null, mode: billingMode(),
       subscription: await SUBSCRIPTIONS.forOwner(identity.id),
-      // Where this reader is sold from, and what the browser needs to open
-      // Paddle's checkout. The client token and price ids are public by
-      // design; the API key and webhook secret never leave the server.
-      region: regionFor(readerCountry(req, url), paddleConfig() !== null),
-      paddle: (() => {
-        const paddle = paddleConfig();
-        return paddle
-          ? {
-              env: paddle.env,
-              clientToken: paddle.clientToken,
-              priceMonthly: paddle.priceMonthly,
-              priceYearly: paddle.priceYearly,
-              // Round-trips through Paddle as custom_data so the webhook
-              // knows whose subscription it is. Someone editing it can only
-              // pay for another account's premium.
-              ownerId: identity.id,
-            }
-          : null;
-      })(),
+      support: supportConfig(),
     });
     return;
   }
@@ -3437,17 +3394,9 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       // student's own choice — so the screen can show it and offer another.
       career: thesis ? resolveCareer(thesis.analysis, thesis.careerOverride) : null,
       allowance: await defenseAllowance(identity.id),
-      pack: { amount: PACK_KINDS.sustentacion.amount, currency: PACK_CURRENCY, available: mercadoPagoConfigured() },
+      pack: { amount: 0, currency: PACK_CURRENCY, available: false },
       // What a student can buy; the advisor plan is offered on the advisor page.
-      offers: studentOffers().map((kind) => ({
-        kind,
-        amount: PACK_KINDS[kind].amount,
-        currency: PACK_CURRENCY,
-        credits: PACK_KINDS[kind].credits,
-        days: PACK_KINDS[kind].days,
-        modes: PACK_KINDS[kind].modes,
-        group: PACK_KINDS[kind].group,
-      })),
+      offers: [],
       formats: publicFormats(),
       progress: await defenseProgress(identity.id),
     });
@@ -3910,16 +3859,15 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const links = await ADVISORS.students(advisor.code);
     const students = await Promise.all(links.filter((link) => link.share).map((link) => studentSummary(link.studentId)));
     const earned = await ADVISORS.commissions(advisor.code);
-    const pro = (await readQuietly(PACKS.active(identity.id), [])).find((pack) => pack.kind === "asesor_pro") ?? null;
     json(res, 200, {
       cohort,
       pro: {
-        active: pro !== null,
-        expiresAt: pro?.expiresAt ?? null,
+        active: true,
+        expiresAt: null,
         seats: ADVISOR_PRO_SEATS,
         creditsPerStudent: ADVISOR_PRO_CREDITS,
         used: Math.min(ADVISOR_PRO_SEATS, students.length),
-        amount: PACK_KINDS.asesor_pro.amount,
+        amount: 0,
         currency: PACK_CURRENCY,
       },
       advisor,

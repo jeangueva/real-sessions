@@ -1,10 +1,21 @@
 # Mockio
 
-An AI interview simulator for Latin American tech professionals practising job
-interviews in English. A simulated hiring manager from a real company asks one
-question at a time; afterwards you get a structured evaluation of your English
-— vocabulary, structure, and the grammar errors that Spanish speakers actually
-make.
+A free practice platform for important conversations and decisions, with two
+workspaces: **Education** and **Professional**. Education includes thesis
+defence and academic conversations. Professional includes interviews,
+difficult conversations in tech and everyday life, and product/design judgment
+practice with documented historical outcomes.
+
+Conversation practice offers selectable Latin American and North American
+contexts without treating nationality as personality. Simulated feedback is
+not a prediction of a real conversation. Historical case outcomes are sourced
+separately from AI feedback and revealed after the learner commits a judgment.
+
+All product features are free. Optional one-time or monthly support starts at
+US$1 and never unlocks features or preferential access. Existing payment
+records and subscription cancellation remain available for historical accounts;
+new support is separate from the former paid plans. See `DEPLOY.md` for support
+configuration.
 
 Built from the prompt architecture in
 [`gemini-code-1787546966301.md`](./gemini-code-1787546966301.md): a live

@@ -39,8 +39,8 @@ const seed = async (
 };
 
 describe("the allowance", () => {
-  it("is three on free and unmetered on premium", () => {
-    expect(capabilitiesFor("free").weeklySessions).toBe(5);
+  it("is unmetered on both free and premium", () => {
+    expect(capabilitiesFor("free").weeklySessions).toBeNull();
     // Null rather than a large number: a cap of 9999 is still a cap, and the
     // server branches on null to skip the count entirely.
     expect(capabilitiesFor("premium").weeklySessions).toBeNull();
@@ -77,10 +77,10 @@ describe("sessionsSince", () => {
     expect(await store.sessionsSince(owner, tomorrow)).toBe(0);
   });
 
-  it("reaches the free limit on the fourth start", async () => {
+  it("counts multiple starts across the window", async () => {
     const store = await createProgressStore(null);
     const owner = `owner-${randomUUID()}`;
-    const limit = capabilitiesFor("free").weeklySessions!;
+    const limit = 5;
     for (let i = 0; i < limit; i++) {
       expect(await store.sessionsSince(owner, monthStart())).toBeLessThan(limit);
       await seed(store, owner);
