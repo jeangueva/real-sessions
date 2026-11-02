@@ -162,6 +162,7 @@ const PT: Record<MessageKey, string> = {
   "nav.academicScenarios": "Cenários acadêmicos",
   "nav.scenariosShort": "Cenários",
   "nav.conversations": "Conversas",
+  "nav.conversationsShort": "Conversas",
   "nav.intuition": "Intuição",
   "nav.spaces": "Espaços",
   "lang.frLabel": "Français · em breve",
@@ -342,7 +343,7 @@ const PT: Record<MessageKey, string> = {
   "feedback.speaking": "Falando",
 
   "progress.title": "Seu caminho",
-  "progress.nothing": "Ainda não há o que traçar",
+  "progress.nothing": "Seu progresso aparece aqui depois da sua primeira entrevista.",
   "progress.score": "Nota",
 
   "profile.title": "Seu contexto",
@@ -717,7 +718,7 @@ const PT: Record<MessageKey, string> = {
   "apps.title": "Suas candidaturas",
   "apps.meta": "As vagas que você está buscando, e o treino por trás de cada uma.",
   "apps.loading": "Carregando…",
-  "apps.none": "Nada por aqui ainda",
+  "apps.none": "Suas candidaturas aparecem aqui quando você adiciona uma.",
   "apps.count": "{count} acompanhadas",
   "apps.add": "Adicionar uma vaga",
   "apps.cancel": "Cancelar",

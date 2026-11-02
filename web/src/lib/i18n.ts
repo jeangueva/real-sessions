@@ -226,6 +226,7 @@ const EN = {
   "nav.academicScenarios": "Academic scenarios",
   "nav.scenariosShort": "Scenarios",
   "nav.conversations": "Conversations",
+  "nav.conversationsShort": "Chats",
   "nav.intuition": "Intuition",
   "nav.spaces": "Workspaces",
   "lang.frLabel": "Français · coming soon",
@@ -406,7 +407,7 @@ const EN = {
   "feedback.speaking": "Speaking",
 
   "progress.title": "Your path",
-  "progress.nothing": "Nothing to plot yet",
+  "progress.nothing": "Your progress appears here after your first interview.",
   "progress.score": "Score",
 
   "profile.title": "Your context",
@@ -781,7 +782,7 @@ const EN = {
   "apps.title": "Your applications",
   "apps.meta": "The jobs you are going after, and the practice behind each one.",
   "apps.loading": "Loading…",
-  "apps.none": "Nothing tracked yet",
+  "apps.none": "Your applications appear here once you add one.",
   "apps.count": "{count} tracked",
   "apps.add": "Add a job",
   "apps.cancel": "Cancel",

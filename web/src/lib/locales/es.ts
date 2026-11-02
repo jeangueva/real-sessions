@@ -172,6 +172,7 @@ const ES: Record<MessageKey, string> = {
   "nav.academicScenarios": "Escenarios académicos",
   "nav.scenariosShort": "Escenarios",
   "nav.conversations": "Conversaciones",
+  "nav.conversationsShort": "Diálogos",
   "nav.intuition": "Intuición",
   "nav.spaces": "Espacios",
   "lang.frLabel": "Français · próximamente",
@@ -352,7 +353,7 @@ const ES: Record<MessageKey, string> = {
   "feedback.speaking": "Hablando",
 
   "progress.title": "Tu camino",
-  "progress.nothing": "Todavía no hay nada que graficar",
+  "progress.nothing": "Tu progreso aparece aquí después de tu primera entrevista.",
   "progress.score": "Puntaje",
 
   "profile.title": "Tu contexto",
@@ -727,7 +728,7 @@ const ES: Record<MessageKey, string> = {
   "apps.title": "Tus postulaciones",
   "apps.meta": "Los puestos que estás buscando, y la práctica detrás de cada uno.",
   "apps.loading": "Cargando…",
-  "apps.none": "Todavía no hay nada",
+  "apps.none": "Tus postulaciones aparecen aquí cuando agregas una.",
   "apps.count": "{count} en seguimiento",
   "apps.add": "Agregar un puesto",
   "apps.cancel": "Cancelar",

@@ -757,12 +757,6 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                         : item.personal
                           ? Globe2
                           : Terminal;
-                    const badgeLabel =
-                      item.domain === "education"
-                        ? copy.academicBadge
-                        : item.personal
-                          ? copy.personalBadge
-                          : copy.techBadge;
                     return (
                       <FadeRise key={item.id} delay={idx * 0.03}>
                         <button
@@ -776,15 +770,18 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                           }`}
                         >
                           <div>
-                            <div className="flex items-center justify-between gap-2">
-                              <IconTile>
-                                <Icon className="h-4 w-4" aria-hidden />
-                              </IconTile>
-                              <Chip>{badgeLabel}</Chip>
+                            {/* The domain badge is gone on purpose. Every card
+                                on this screen carried the same word in the
+                                same place — five chips saying "académico"
+                                where the heading already says it. The icon
+                                stays, next to the title, because it is the
+                                one mark that still separates the tracks. */}
+                            <div className="flex items-center gap-2.5">
+                              <Icon className="h-4 w-4 shrink-0 text-accent-text" aria-hidden />
+                              <h3 className="text-base font-medium tracking-[-0.02em] text-cream-bright">
+                                {localized.title}
+                              </h3>
                             </div>
-                            <h3 className="mt-3 text-base font-medium tracking-[-0.02em] text-cream-bright">
-                              {localized.title}
-                            </h3>
                             <p className="mt-1.5 text-xs leading-relaxed text-cream-dim">
                               {localized.brief}
                             </p>
@@ -806,9 +803,13 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
 
             {/* Right column: Cultural context + Language + Objective + Start */}
             <div className="xl:col-span-4">
+              {/* Not sticky. The panel is taller than a laptop screen, and a
+                  sticky panel taller than the viewport pins its top while its
+                  primary button stays out of reach — the reader has to scroll
+                  past the very thing the panel is holding still. */}
               <Widget
                 label="SETUP · LIVE ROLEPLAY"
-                className="sticky top-24 space-y-6 p-6"
+                className="space-y-6 p-6"
               >
                 <fieldset>
                   <legend className="text-sm font-medium text-cream-bright">
@@ -877,12 +878,15 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
 
                 {activeScenario && (
                   <Inset className="p-4">
+                    {/* The goal goes straight under its own label. It used to
+                        sit below the scenario's name, so a panel called "your
+                        objective" opened with the name of something else. */}
                     <MonoLabel>{copy.goal}</MonoLabel>
-                    <p className="mt-1.5 text-sm font-medium text-cream-bright">
-                      {localizeScenario(activeScenario).title}
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-cream-dim">
+                    <p className="mt-1.5 text-sm leading-relaxed text-cream-bright">
                       {localizeScenario(activeScenario).goal}
+                    </p>
+                    <p className="mt-2 text-xs text-cream-dim">
+                      {localizeScenario(activeScenario).title}
                     </p>
                   </Inset>
                 )}

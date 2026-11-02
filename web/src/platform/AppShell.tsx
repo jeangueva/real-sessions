@@ -81,7 +81,7 @@ function useSpaceEntries(space: Space): Entry[] {
   }
   return [
     { to: SPACE_HOME.career, label: t("nav.home"), short: t("nav.home"), icon: Home, end: true, tour: "professional" },
-    { to: "/app/training/professional", label: t("nav.conversations"), short: t("nav.conversations"), icon: MessagesSquare, end: false, tour: "conversations" },
+    { to: "/app/training/professional", label: t("nav.conversations"), short: t("nav.conversationsShort"), icon: MessagesSquare, end: false, tour: "conversations" },
     { to: "/app/intuition", label: t("nav.intuition"), short: t("nav.intuition"), icon: Compass, end: false, tour: "intuition" },
     { to: "/app/practice", label: t("nav.interviews"), short: t("nav.interviewsShort"), icon: Play, end: false, tour: "practice" },
     { to: "/app/progress", label: t("nav.progress"), short: t("nav.progressShort"), icon: Route, end: false, tour: "progress" },
@@ -421,7 +421,10 @@ function RailLink({
             }`}
             aria-hidden
           />
-          <span className="hidden truncate lg:inline">{label}</span>
+          {/* Two lines rather than one ellipsis. "Escenarios académicos" is
+              the longest label in the rail and a truncated word tells the
+              reader nothing about a screen they may not recognise. */}
+          <span className="hidden leading-snug lg:inline">{label}</span>
           {locked && <PremiumMark label={locked} className="ml-auto hidden lg:inline-grid" />}
         </>
       )}
@@ -529,15 +532,20 @@ export function PageHeader({
       {/* Same container as PageBody, so the title lines up with the content
           under it at every width. */}
       <div className="mx-auto flex w-full max-w-[110rem] flex-wrap items-end justify-between gap-x-4 gap-y-3">
-        <div className="min-w-0">
+        {/* The title's own measure is capped even though the container is not.
+            A heading that can run the full width of a desktop window stops
+            being a heading and becomes a line of text: the eye has no second
+            line to return to, and a long one arrives as a single unreadable
+            band across the screen. */}
+        <div className="min-w-0 max-w-[52rem]">
           <h1
-            className={`font-light leading-[1.05] tracking-[-0.045em] text-cream-bright ${
+            className={`text-balance font-light leading-[1.05] tracking-[-0.045em] text-cream-bright ${
               dense ? "text-xl sm:text-2xl" : compact ? "line-clamp-2 text-xl sm:text-[2.5rem]" : "text-[2rem] sm:text-[2.5rem]"
             }`}
           >
             {title}
           </h1>
-          {meta && <p className="mt-1.5 text-sm text-cream-dim">{meta}</p>}
+          {meta && <p className="mt-1.5 max-w-[46rem] text-pretty text-sm leading-relaxed text-cream-dim">{meta}</p>}
         </div>
         {actions}
       </div>
