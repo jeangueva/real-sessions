@@ -28,7 +28,8 @@ describe("Billing", () => {
     renderScreen(<Billing />);
 
     await screen.findByText(/Free for everyone\. Supported by choice\./i);
-    await screen.findByText(/No existing subscription\./i);
+    // Someone who never subscribed sees only the support card.
+    await waitFor(() => expect(screen.queryByText(/Your earlier subscription/i)).not.toBeInTheDocument());
     expect(screen.getByRole("button", { name: "$5" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /upgrade/i })).not.toBeInTheDocument();
   });
@@ -52,8 +53,8 @@ describe("Billing", () => {
     });
     renderScreen(<Billing />);
 
-    await screen.findByText(/All features remain free\. No new purchase is needed\./i);
-    expect(screen.queryByRole("button", { name: /Cancel existing subscription/i })).not.toBeInTheDocument();
+    await screen.findByText(/Cancelled\. Everything stays free\./i);
+    expect(screen.queryByRole("button", { name: /Cancel subscription/i })).not.toBeInTheDocument();
   });
 
   it("lets a user cancel an existing subscription while keeping all features free", async () => {
@@ -75,7 +76,7 @@ describe("Billing", () => {
     });
     renderScreen(<Billing />);
 
-    await screen.findByRole("button", { name: /Cancel existing subscription/i });
+    await screen.findByRole("button", { name: /Cancel subscription/i });
   });
 });
 
