@@ -38,9 +38,10 @@
       ],
       "cssVars": {
         "theme": {
-          "font-sans": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Almarai\", system-ui, sans-serif",
-          "font-serif": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Almarai\", system-ui, sans-serif",
-          "font-mark": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Almarai\", system-ui, sans-serif",
+          "font-sans": "\"Inter Tight\", \"Inter\", -apple-system, BlinkMacSystemFont, \"Almarai\", system-ui, sans-serif",
+          "font-serif": "\"Inter Tight\", \"Inter\", -apple-system, BlinkMacSystemFont, \"Almarai\", system-ui, sans-serif",
+          "font-mark": "\"Inter Tight\", \"Inter\", -apple-system, BlinkMacSystemFont, \"Almarai\", system-ui, sans-serif",
+          "font-mono": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, monospace",
           "text-xs": "0.875rem",
           "text-xs--line-height": "1.5",
           "text-sm": "1rem",
@@ -50,9 +51,11 @@
           "text-display": "clamp(3rem, 9vw, 8rem)",
           "text-display--line-height": "0.95",
           "text-display--letter-spacing": "-0.045em",
+          "text-display--font-weight": "300",
           "text-headline": "clamp(2rem, 4.6vw, 4rem)",
           "text-headline--line-height": "1.04",
-          "text-headline--letter-spacing": "-0.032em",
+          "text-headline--letter-spacing": "-0.04em",
+          "text-headline--font-weight": "300",
           "text-title": "clamp(1.25rem, 2vw, 1.75rem)",
           "text-title--line-height": "1.18",
           "text-title--letter-spacing": "-0.018em",
@@ -102,68 +105,68 @@
         "light": {
           "ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
           "ease-drawer": "cubic-bezier(0.32, 0.72, 0, 1)",
-          "cream": "29 29 31",
-          "cream-bright": "17 17 19",
-          "surface-base": "255 255 255",
-          "surface-raised": "255 255 255",
-          "surface-card": "255 255 255",
-          "surface-deep": "245 245 247",
-          "surface-sunken": "29 29 31",
+          "cream": "34 33 30",
+          "cream-bright": "26 25 23",
+          "surface-base": "239 235 227",
+          "surface-raised": "244 240 233",
+          "surface-card": "244 240 233",
+          "surface-deep": "234 230 222",
+          "surface-sunken": "46 45 42",
           "surface-sunken-alpha": "0.04",
-          "surface-lift": "29 29 31",
-          "surface-lift-alpha": "0.05",
-          "line": "rgba(29, 29, 31, 0.11)",
-          "line-strong": "rgba(29, 29, 31, 0.49)",
-          "scrim": "rgba(29, 29, 31, 0.32)",
-          "shadow-card": "0 0 0 1px rgba(29, 29, 31, 0.06), 0 2px 4px rgba(29, 29, 31, 0.04), 0 8px 24px rgba(29, 29, 31, 0.06)",
-          "shadow-lift": "0 0 0 1px rgba(29, 29, 31, 0.06), 0 6px 12px rgba(29, 29, 31, 0.06), 0 18px 40px rgba(29, 29, 31, 0.1)",
-          "shadow-float": "0 0 0 1px rgba(29, 29, 31, 0.05), 0 12px 24px rgba(29, 29, 31, 0.08), 0 32px 72px rgba(29, 29, 31, 0.14)",
-          "accent": "88 86 214",
-          "accent-ink": "255 255 255",
-          "accent-text": "88 86 214",
-          "accent-soft": "238 238 252",
-          "accent-depth": "62 60 170",
+          "surface-lift": "46 45 42",
+          "surface-lift-alpha": "0.06",
+          "line": "rgba(46, 45, 42, 0.11)",
+          "line-strong": "rgba(46, 45, 42, 0.58)",
+          "scrim": "rgba(46, 45, 42, 0.32)",
+          "shadow-card": "0 0 0 1px rgba(46, 45, 42, 0.06)",
+          "shadow-lift": "0 0 0 1px rgba(46, 45, 42, 0.09)",
+          "shadow-float": "0 0 0 1px rgba(46, 45, 42, 0.06), 0 12px 32px rgba(46, 45, 42, 0.12)",
+          "accent": "246 183 51",
+          "accent-ink": "46 45 42",
+          "accent-text": "138 92 0",
+          "accent-soft": "251 232 186",
+          "accent-depth": "214 150 20",
           "grow": "52 199 89",
           "grow-text": "30 123 52",
           "grow-soft": "226 246 231",
           "step": "255 159 10",
           "step-text": "178 80 0",
           "step-soft": "255 243 224",
-          "premium": "161 106 0",
-          "premium-soft": "255 244 204"
+          "premium": "124 108 242",
+          "premium-soft": "234 231 253"
         },
         "dark": {
           "ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
           "ease-drawer": "cubic-bezier(0.32, 0.72, 0, 1)",
-          "cream": "245 245 247",
-          "cream-bright": "250 250 252",
-          "surface-base": "0 0 0",
-          "surface-raised": "22 22 24",
-          "surface-card": "28 28 30",
-          "surface-deep": "12 12 13",
+          "cream": "240 236 228",
+          "cream-bright": "250 247 241",
+          "surface-base": "20 19 17",
+          "surface-raised": "32 31 28",
+          "surface-card": "38 37 33",
+          "surface-deep": "14 13 12",
           "surface-sunken": "0 0 0",
           "surface-sunken-alpha": "0.32",
           "surface-lift": "255 255 255",
           "surface-lift-alpha": "0.07",
-          "line": "rgba(245, 245, 247, 0.12)",
-          "line-strong": "rgba(245, 245, 247, 0.42)",
+          "line": "rgba(240, 236, 228, 0.12)",
+          "line-strong": "rgba(240, 236, 228, 0.42)",
           "scrim": "rgba(0, 0, 0, 0.6)",
           "shadow-card": "0 0 0 1px rgba(255, 255, 255, 0.06)",
-          "shadow-lift": "0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.5)",
+          "shadow-lift": "0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.45)",
           "shadow-float": "0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 64px rgba(0, 0, 0, 0.6)",
-          "accent": "94 92 230",
-          "accent-ink": "255 255 255",
-          "accent-text": "125 122 255",
-          "accent-soft": "30 30 62",
-          "accent-depth": "58 56 168",
+          "accent": "246 183 51",
+          "accent-ink": "46 45 42",
+          "accent-text": "251 208 106",
+          "accent-soft": "62 47 14",
+          "accent-depth": "196 138 18",
           "grow": "48 209 88",
           "grow-text": "48 209 88",
           "grow-soft": "16 44 26",
           "step": "255 159 10",
           "step-text": "255 159 10",
           "step-soft": "56 38 8",
-          "premium": "255 204 0",
-          "premium-soft": "58 46 8"
+          "premium": "160 150 255",
+          "premium-soft": "40 36 70"
         }
       },
       "css": {
@@ -546,20 +549,7 @@
             "--line-strong",
             "ease-press"
           ],
-          "related": [
-            {
-              "name": "HoldButton",
-              "difference": "For irreversible actions: must be held, not tapped."
-            },
-            {
-              "name": "Checkbox",
-              "difference": "Turns a setting on or off; Action does something once."
-            },
-            {
-              "name": "Segmented",
-              "difference": "Chooses a value; Action performs an action."
-            }
-          ],
+          "related": [],
           "i18n": {
             "rtl": "The trailing arrow mirrors (rtl:-scale-x-100) and its hover nudge reverses; the label aligns by the document direction.",
             "textExpansion": "The pill grows with its label and wraps only inside a w-full container; keep labels short enough to stay on one line in Portuguese and German.",
@@ -783,10 +773,6 @@
             "animate-drift-counter"
           ],
           "related": [
-            {
-              "name": "HeroVideo",
-              "difference": "The hero's footage. It composes Backdrop underneath and falls back to it when there is no video."
-            },
             {
               "name": "Section",
               "difference": "Owns a marketing section's rhythm and ground; Backdrop is the light inside one."
@@ -1939,14 +1925,6 @@
             {
               "name": "Mark",
               "difference": "The reduced, fixed logo; Mascot is the full character and changes with progress."
-            },
-            {
-              "name": "InterviewerPresence",
-              "difference": "The interviewer during a call; Mascot is the candidate's own character outside it."
-            },
-            {
-              "name": "PopIn",
-              "difference": "The entrance to wrap Mocki in when it appears as a reward; Mascot itself does not move."
             }
           ],
           "i18n": {
@@ -2077,7 +2055,7 @@
               "type": "string",
               "required": false,
               "default": "\"\"",
-              "description": "Extra classes on the element that holds the children: the screen's layout (flex flex-col gap-4, grid lg:grid-cols-2, flex-1) and vertical padding overrides with pt-* / pb-*, which always win over the built-in py-*. Not a max-w-* — use width."
+              "description": "Extra classes on the element that holds the children: the screen's layout (flex flex-col gap-4, grid lg:grid-cols-2, flex-1) and vertical padding overrides with pt-* / pb-*, which win over the built-in py-* at the same breakpoint (a base pb-4 still yields to the built-in lg:py-10 from 1024px). Not a max-w-* — use width."
             },
             "id": {
               "type": "string",
@@ -2103,20 +2081,25 @@
             "None of its own. Blocks inside enter with FadeRise; the app keeps motion restrained, so the container never animates between screens."
           ],
           "accessibility": {
-            "role": "generic (a plain <div>); the app shell's <main> is the landmark around it",
+            "role": "generic (a plain <div>); the landmark is the <main> the app shell wraps around PageHeader and PageBody",
             "keyboard": [],
             "aria": [
               {
                 "attribute": "aria-busy / aria-live / id / data-*",
                 "managedBy": "consumer",
                 "note": "Every other <div> attribute is spread onto the container. A loading screen marks its own status Panel with role=\"status\" rather than the whole body."
+              },
+              {
+                "attribute": "<main> around the screen",
+                "managedBy": "consumer",
+                "note": "PageBody is not a landmark. The app shell provides one <main> around PageHeader and PageBody; the product's shell renders screens without one today."
               }
             ],
             "reducedMotion": "Nothing moves, so nothing changes.",
             "contrast": "PageBody draws no ink or fill: it sits on the app shell's ground (surface-deep), where the faintest ink, cream-faint, is 7.8:1 on dark and 5.1:1 on light.",
             "focus": "Not focusable. With an id it can be the target of a skip link.",
             "targetSize": "not interactive",
-            "screenReader": "Nothing is announced for the container; its content is read in source order inside the shell's main landmark."
+            "screenReader": "Nothing is announced for the container; its content is read in source order, inside the main landmark when the shell provides one."
           },
           "content": {
             "voice": [
@@ -2204,7 +2187,7 @@
               "width",
               "className"
             ],
-            "placement": "Directly below a PageHeader, inside the app shell's <main>. One per screen; never inside a Section or a Panel."
+            "placement": "Directly below a PageHeader, inside the screen's <main> (provided by the app shell). One per screen; never inside a Section or a Panel."
           },
           "appCounterpart": {
             "file": "platform/AppShell.tsx",
@@ -2341,13 +2324,18 @@
             "None. The header is the fixed point a screen changes under; it never animates in."
           ],
           "accessibility": {
-            "role": "generic (<header> inside the shell's <main> is not a banner landmark), containing heading level 1",
+            "role": "<header> containing heading level 1. Inside a <main> it is generic; outside any <main>, <article>, <aside>, <nav> or <section> it is a banner landmark",
             "keyboard": [],
             "aria": [
               {
                 "attribute": "h1",
                 "managedBy": "component",
                 "note": "The title is the page's only h1. One PageHeader per screen; headings below start at h2."
+              },
+              {
+                "attribute": "<main> around the screen",
+                "managedBy": "consumer",
+                "note": "The app shell wraps PageHeader and PageBody in one <main>, so the header is not a second banner next to the shell's and the screen is a main landmark. The product's shell renders screens without a <main> today."
               },
               {
                 "attribute": "title (meta)",
@@ -2449,7 +2437,7 @@
           },
           "responsive": {
             "behaviour": [
-              "Phones: 16px gutters; 32px above (16px when compact); title 32px (20px when compact); actions wrap onto their own line under the title.",
+              "Phones: 16px gutters; 32px above (16px when compact); title 32px (20px when compact); actions wrap onto their own line under the title when the row runs out of room.",
               "From sm (640px): 24px gutters, title 40px, 32px above in both modes.",
               "From lg (1024px): 40px gutters, 40px above. The row stops at the width's ceiling and centres."
             ],
@@ -2465,7 +2453,7 @@
               "compact",
               "width"
             ],
-            "placement": "The first child of the app shell's <main>, directly above PageBody. One per screen."
+            "placement": "The first child of the screen's <main> (provided by the app shell), directly above PageBody. One per screen."
           },
           "appCounterpart": {
             "file": "platform/AppShell.tsx",
@@ -2558,7 +2546,7 @@
               "values": {
                 "card": "bg-surface-card + shadow-card. The lighter fill on the dark theme (#1C1C1E); white on the light one. For panels side by side in a grid: pricing tiers, settings sections, list rows.",
                 "raised": "bg-surface-raised + shadow-card. A step darker than card on the dark theme (#161618), identical to card on the light one. For one block on the page ground: an upload step, an empty state, a wait.",
-                "glass": ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on six screens) and for two tabbed sheets (the Settings account tab, the Billing plan)."
+                "glass": ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on five screens) and for two tabbed sheets (the Settings account tab, the Billing plan)."
               }
             },
             "className": {

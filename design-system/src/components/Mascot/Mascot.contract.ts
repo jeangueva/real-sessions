@@ -105,8 +105,6 @@ export const MascotContract = defineContract({
   tokens: [],
   related: [
     { name: "Mark", difference: "The reduced, fixed logo; Mascot is the full character and changes with progress." },
-    { name: "InterviewerPresence", difference: "The interviewer during a call; Mascot is the candidate's own character outside it." },
-    { name: "PopIn", difference: "The entrance to wrap Mocki in when it appears as a reward; Mascot itself does not move." },
   ],
   i18n: {
     rtl: "Does not mirror. The six illustrations are drawn once and are never flipped in Arabic or Hebrew: a character is not a direction, and a flipped Mocki is a different drawing.",

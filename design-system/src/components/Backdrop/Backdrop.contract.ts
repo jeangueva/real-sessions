@@ -90,7 +90,6 @@ export const BackdropContract = defineContract({
   },
   tokens: ["--cream", ".on-media", ".backdrop-field", ".noise-overlay", "animate-drift-slow", "animate-drift-wide", "animate-drift-counter"],
   related: [
-    { name: "HeroVideo", difference: "The hero's footage. It composes Backdrop underneath and falls back to it when there is no video." },
     { name: "Section", difference: "Owns a marketing section's rhythm and ground; Backdrop is the light inside one." },
     { name: "Panel", difference: "A surface that holds content; Backdrop holds nothing and sits behind." },
   ],

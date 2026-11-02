@@ -123,11 +123,7 @@ export const ActionContract = defineContract({
     ],
   },
   tokens: ["--accent", "--accent-ink", "--accent-depth", "--cream-bright", "--surface-base", "--surface-lift", "--line", "--line-strong", "ease-press"],
-  related: [
-    { name: "HoldButton", difference: "For irreversible actions: must be held, not tapped." },
-    { name: "Checkbox", difference: "Turns a setting on or off; Action does something once." },
-    { name: "Segmented", difference: "Chooses a value; Action performs an action." },
-  ],
+  related: [],
   i18n: {
     rtl: "The trailing arrow mirrors (rtl:-scale-x-100) and its hover nudge reverses; the label aligns by the document direction.",
     textExpansion: "The pill grows with its label and wraps only inside a w-full container; keep labels short enough to stay on one line in Portuguese and German.",
