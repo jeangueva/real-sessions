@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { catalog, filesOf, folders } from "../src/catalog";
+import { codeDefault, codePropValues, componentRegion, unionLiterals } from "./helpers/props";
 
 /**
  * The contract tests: a contract is a promise, so every field is checked
@@ -56,6 +57,53 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
     if (!iface) return;
     const declared = [...iface[1]!.matchAll(/^\s{2}(?:readonly\s+)?["']?([A-Za-z][\w-]*)["']?\??:/gm)].map((m) => m[1]!);
     for (const prop of declared) expect(Object.keys(contract.props), `${name}.${prop} is accepted but undocumented`).toContain(prop);
+  });
+
+  it("promises exactly the values the code accepts", () => {
+    // The names of the props are checked above; the values are checked here.
+    // A tone added to the component and not to the contract is a promise the
+    // contract does not keep, and the one nobody notices: the code works, the
+    // previews render, the registry is regenerated from the contract and
+    // quietly loses the new value.
+    const file = path.join(ROOT, contract.source);
+    for (const [prop, spec] of Object.entries(contract.props)) {
+      const inCode = codePropValues(file, name, prop);
+      if (!inCode) continue;
+
+      const promised = spec.values ? Object.keys(spec.values).sort() : null;
+      if (promised) {
+        expect(
+          [...inCode].sort(),
+          `${name}.${prop}: the code accepts [${[...inCode].sort().join(", ")}] and the contract promises [${promised.join(", ")}].`,
+        ).toEqual(promised);
+      }
+
+      const declared = unionLiterals(spec.type);
+      if (declared) {
+        expect(
+          [...inCode].sort(),
+          `${name}.${prop}: the contract's type is ${spec.type} and the code accepts [${[...inCode].sort().join(", ")}].`,
+        ).toEqual([...declared].sort());
+      }
+    }
+  });
+
+  it("promises the default the code uses", () => {
+    // A contract that says a button defaults to "solid" while the code
+    // defaults it to "ghost" describes a component that does not exist.
+    // Props the component leaves to the element (disabled, onClick) have no
+    // default of their own, so only the ones the code pulls out are compared.
+    const region = componentRegion(source, name);
+    if (!region) return;
+    for (const [prop, spec] of Object.entries(contract.props)) {
+      const inCode = codeDefault(region, prop);
+      if (!inCode || spec.default === undefined) continue;
+      const promised = spec.default.replace(/^["']|["']$/g, "");
+      expect(
+        inCode.replace(/^["']|["']$/g, ""),
+        `${name}.${prop}: the contract promises the default ${spec.default} and the code uses ${inCode}.`,
+      ).toBe(promised);
+    }
   });
 
   it("gives required props no default and optional props one, or says why not", () => {
