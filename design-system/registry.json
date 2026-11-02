@@ -1290,6 +1290,254 @@
       }
     },
     {
+      "name": "disclosure-mark",
+      "type": "registry:ui",
+      "title": "DisclosureMark",
+      "description": "The pill at the end of a <details> summary that says the card opens — a chevron that turns over when open and, on larger disclosures, the word for what clicking does.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/meter",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/DisclosureMark/DisclosureMark.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/DisclosureMark/DisclosureMark.tsx"
+        },
+        {
+          "path": "src/components/DisclosureMark/DisclosureMark.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/DisclosureMark/DisclosureMark.contract.ts"
+        },
+        {
+          "path": "src/components/DisclosureMark/DisclosureMark.md",
+          "type": "registry:file",
+          "target": "mockio/components/DisclosureMark/DisclosureMark.md"
+        },
+        {
+          "path": "src/components/DisclosureMark/DisclosureMark.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/DisclosureMark/DisclosureMark.previews.tsx"
+        },
+        {
+          "path": "src/components/DisclosureMark/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/DisclosureMark/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "DisclosureMark",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The pill at the end of a <details> summary that says the card opens — a chevron that turns over when open and, on larger disclosures, the word for what clicking does.",
+          "source": "src/components/DisclosureMark/DisclosureMark.tsx",
+          "composes": [],
+          "dependencies": [
+            "lucide-react"
+          ],
+          "props": {
+            "label": {
+              "type": "string",
+              "required": false,
+              "description": "What opening does, a verb: \"Ver\", \"Ver planes\", \"Completar\". Shown while closed. Absent, the mark is the chevron alone in a 32px circle."
+            },
+            "openLabel": {
+              "type": "string",
+              "required": false,
+              "default": "\"Cerrar\"",
+              "description": "What the pill says once its <details> is open. Only rendered when label is set; \"Ocultar\" where the product hides a list rather than closing a card."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For layout (-my-1 in a tight row) or, on a summary that is already on the lifted surface, a fill that separates the pill from it (bg-surface-card)."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "Closed: the lifted pill with the chevron pointing down, and the label when there is one.",
+              "trigger": "The ancestor <details> is closed."
+            },
+            {
+              "name": "open",
+              "description": "The chevron is turned 180° (pointing up) and the label is swapped for openLabel.",
+              "trigger": "The ancestor <details> has the open attribute: the user opened it, or <details open>."
+            },
+            {
+              "name": "hover",
+              "description": "The pill lifts to cream at 14% while the pointer is anywhere on the summary, which is what tells a disclosure from a plain card.",
+              "trigger": "The pointer hovers the summary (hover: hover and pointer: fine)."
+            },
+            {
+              "name": "pressed",
+              "description": "The pill scales to 0.95 while the summary is pressed.",
+              "trigger": "The summary is :active (pointer down, or Space held)."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "Chevron: rotates 0 → 180° over 200ms on the out curve (var(--ease-out)) when the <details> opens, and back when it closes. It turns rather than swaps, so the change reads as the same control answering.",
+            "Pill: background-color and transform transition over 150ms on ease-press (cubic-bezier(0.23, 1, 0.32, 1)) for the hover tint and the 0.95 press.",
+            "Label: the closed and open words swap instantly (display), never cross-fade.",
+            "Reduced motion: the package's global rule drops transform from transitions, so the chevron and the press change at once; the hover tint still fades."
+          ],
+          "accessibility": {
+            "role": "none (the whole mark is aria-hidden); the disclosure's role belongs to the native <summary>",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden",
+                "managedBy": "component",
+                "note": "Always on, and not overridable: the pill and its words repeat what the summary already exposes. The browser announces the summary as expanded or collapsed."
+              },
+              {
+                "attribute": "summary text",
+                "managedBy": "consumer",
+                "note": "The <summary> must carry its own visible text that names what opens (\"Ajustes del ensayo\"); the mark adds nothing a screen reader hears."
+              }
+            ],
+            "reducedMotion": "The chevron flips to its new direction at once and the press does not scale (transform is dropped from transitions by styles.css). The words swap instantly in every case.",
+            "contrast": "Words and chevron: cream-bright on the lifted pill, ≥ 11.6:1 in both themes over any surface (tightest: the dark theme on surface-card). The pill against the summary is decoration; the chevron's direction and the words carry the state.",
+            "focus": "Not focusable itself. The <summary> takes focus and shows the ring (pass focus-ring on it); the mark sits inside the ring.",
+            "targetSize": "not interactive itself; the whole <summary> is the target, which the caller sizes with its padding; the 32px mark sets the floor of its height.",
+            "screenReader": "Hears nothing from the mark. \"Ver\"/\"Cerrar\" are visual: a screen-reader user hears the summary's text and its expanded or collapsed state instead."
+          },
+          "content": {
+            "voice": [
+              "label is a verb for what opening does, sentence case, no period: \"Ver\", \"Ver planes\", \"Completar\", \"Editar\".",
+              "openLabel says how to undo it: \"Cerrar\" for a card, \"Ocultar\" for a list.",
+              "The summary's own text names the thing; the label never repeats it (\"Ver\", not \"Ver ajustes del ensayo\")."
+            ],
+            "limits": [
+              "label and openLabel: 1–2 words, ≤ 12 characters. The pill never wraps; a long word pushes the summary's text instead."
+            ],
+            "examples": [
+              "Ver",
+              "Cerrar",
+              "Ver planes",
+              "Ocultar",
+              "Completar",
+              "Editar"
+            ]
+          },
+          "usage": {
+            "when": [
+              "At the end of a <summary> drawn as a card or a row, so it reads as something that opens: \"La conversación\", \"Ver el detalle completo\".",
+              "With a label on the larger disclosures, where the summary is a title and a line of body: \"Tu plan hasta el día D\" with \"Ver\"/\"Cerrar\", the plans with \"Ver planes\"/\"Ocultar\".",
+              "Icon only on rows in a list and on summaries whose text already says \"Ver…\"."
+            ],
+            "whenNot": [
+              {
+                "situation": "A button that opens a menu, a sheet or a dialog",
+                "instead": "Action (ghost or neutral) with its own words; the mark only follows a <details>."
+              },
+              {
+                "situation": "A card that navigates somewhere",
+                "instead": "A link, with Action's arrow if it needs a sign. A chevron down promises the content opens in place."
+              },
+              {
+                "situation": "Choosing between views",
+                "instead": "Segmented."
+              },
+              {
+                "situation": "A status of the card",
+                "instead": "Badge, beside the summary's text."
+              }
+            ],
+            "do": [
+              "Put it inside a <summary>, last, with the summary's text before it.",
+              "Give the summary list-none, focus-ring and cursor-pointer, so it looks and behaves like the product's disclosures.",
+              "Use a label only where the summary is a title and a line of body."
+            ],
+            "dont": [
+              "Don't put it on a button or a link: outside <summary> it never turns and its words never swap.",
+              "Don't use it to promise content that loads on a new screen.",
+              "Don't repeat the summary's text in the label."
+            ]
+          },
+          "tokens": [
+            "--surface-lift",
+            "--cream",
+            "--cream-bright",
+            "--ease-out",
+            "ease-press",
+            "disclosure-pill",
+            "disclosure-mark",
+            "disclosure-when-open",
+            "disclosure-when-closed"
+          ],
+          "related": [
+            {
+              "name": "Action",
+              "difference": "A control with its own role and focus; DisclosureMark is a decoration inside a native <summary>, which is the control."
+            },
+            {
+              "name": "Badge",
+              "difference": "A static status pill; DisclosureMark answers its <details>'s open state."
+            }
+          ],
+          "i18n": {
+            "rtl": "Sits at the end of the summary's row, so on the left in Arabic and Hebrew. The chevron points down and up, so it is never mirrored.",
+            "textExpansion": "The pill grows with its word and never wraps (Portuguese \"Preencher\", \"Fechar\"; German runs similar). The summary's text, being min-w-0 flex-1, wraps first.",
+            "formatting": "None: the words are plain strings.",
+            "strings": [
+              {
+                "text": "Cerrar",
+                "prop": "openLabel"
+              }
+            ]
+          },
+          "responsive": {
+            "behaviour": [
+              "The same size at every width: a 32px circle icon-only, a pill of 14px text with a label.",
+              "In a summary with flex-wrap (the plans row) it may drop under the text on a 320px phone; elsewhere the text wraps and the mark stays at the end."
+            ],
+            "minWidth": "32px"
+          },
+          "designTool": {
+            "registryItem": "disclosure-mark",
+            "importStatement": "import { DisclosureMark } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label",
+              "openLabel"
+            ],
+            "placement": "Only as the last child of a <summary> inside a <details>, typically a flex row with justify-between and gap-3 or gap-4."
+          },
+          "appCounterpart": {
+            "file": "design-system/disclosure.tsx",
+            "exportName": "DisclosureMark",
+            "differences": [
+              "openLabel defaults to \"Cerrar\"; in the app's copy it falls back to label, so a labelled mark without openLabel says the same word open and closed. Every labelled use in the product passes openLabel, so nothing it renders changes.",
+              "Accepts native span attributes (id, data-*) beyond className; aria-hidden is applied after them and cannot be turned off."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "eyebrow",
       "type": "registry:ui",
       "title": "Eyebrow",
@@ -1482,6 +1730,259 @@
             "exportName": "Eyebrow",
             "differences": [
               "Spreads native paragraph attributes (id, lang, data-*) onto the <p>; the app's copy accepts children and className only."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "field",
+      "type": "registry:ui",
+      "title": "Field",
+      "description": "A form control with its label above and an optional hint below, at the spacing every form in the product shares.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/mockio-contract",
+        "@mockio/notice",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/Field/Field.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Field/Field.tsx"
+        },
+        {
+          "path": "src/components/Field/Field.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Field/Field.contract.ts"
+        },
+        {
+          "path": "src/components/Field/Field.md",
+          "type": "registry:file",
+          "target": "mockio/components/Field/Field.md"
+        },
+        {
+          "path": "src/components/Field/Field.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Field/Field.previews.tsx"
+        },
+        {
+          "path": "src/components/Field/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Field/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Field",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "A form control with its label above and an optional hint below, at the spacing every form in the product shares.",
+          "source": "src/components/Field/Field.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "description": "What the control asks for, in a few words. Rendered as a <label> above the control: \"Email\", \"Contraseña\", \"Modo por defecto\"."
+            },
+            "hint": {
+              "type": "string",
+              "required": false,
+              "description": "One or two sentences under the control: what the value is used for or the rule it must meet. Omitted, nothing is drawn below the control."
+            },
+            "htmlFor": {
+              "type": "string",
+              "required": false,
+              "description": "The id of the control inside, so the label names it and a click on the label focuses it. Leave it off only when the control names itself (a radiogroup or a Segmented with its own aria-label)."
+            },
+            "hintId": {
+              "type": "string",
+              "required": false,
+              "description": "An id for the hint paragraph. Put the same value in the control's aria-describedby so a screen reader reads the hint when the control takes focus."
+            },
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The control: an <input>, <select> or <textarea> carrying the field-control class and the id named in htmlFor, or a control that names itself."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended to the column. For layout, such as lg:col-span-2 for a field that spans two cells of a settings grid."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "One control. Native controls take className=\"field-control text-sm text-cream-bright\" (plus placeholder:text-cream-faint when they have a placeholder, resize-none on a textarea). A self-naming control (radiogroup, Segmented) goes in without htmlFor."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "Label in cream, the control's well (surface-card fill, line-strong border, rounded-xl) and, if given, the hint in cream-faint, 8px apart in a column.",
+              "trigger": "Initial render."
+            },
+            {
+              "name": "focus-visible",
+              "description": "Drawn by the control's field-control class, not by Field: the border takes the accent and a soft accent halo (4px at 18%) spreads around the well. The label and hint do not change.",
+              "trigger": "The control inside receives keyboard focus."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "Field itself does not move.",
+            "The control's border colour and halo ease in over 200ms on the UI ease-out (var(--ease-out), cubic-bezier(0.23, 1, 0.32, 1)) when it gains focus; this is the field-control class in styles.css.",
+            "Reduced motion: unchanged. The global reduced-motion rule in styles.css keeps colour and box-shadow transitions, and this one moves nothing: it only recolours the border and fades the halo in."
+          ],
+          "accessibility": {
+            "role": "generic (native <div>) holding a native <label>; the control keeps its own role",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "for / id",
+                "managedBy": "consumer",
+                "note": "Pass htmlFor and give the control the same id. Without it the label names nothing: clicking it does not focus the control and a screen reader reads the control unnamed."
+              },
+              {
+                "attribute": "aria-describedby",
+                "managedBy": "consumer",
+                "note": "The hint is not linked to the control on its own. Pass hintId and set aria-describedby on the control to the same value when the hint carries a rule the person needs while typing (\"Al menos 8 caracteres\")."
+              },
+              {
+                "attribute": "aria-label (self-naming controls)",
+                "managedBy": "consumer",
+                "note": "A radiogroup or a Segmented placed without htmlFor must carry its own aria-label, usually the same words as the Field's label."
+              }
+            ],
+            "reducedMotion": "Nothing in Field animates. The control's 200ms focus transition is a border colour and a halo, with no movement, so the global reduced-motion rule leaves it running as it is.",
+            "contrast": "Label: cream on any surface is ≥ 12.9:1 in both themes. Hint: cream-faint is ≥ 6.3:1 on dark surfaces and ≥ 4.6:1 on light ones (tightest: light theme on surface-deep, 4.61:1). The control's line-strong border is ≥ 3.5:1 against its own fill in both themes (WCAG 1.4.11), the only thing saying \"this is a field\" on white.",
+            "focus": "Field is not focusable. The control inside takes focus in document order and shows the field-control focus treatment: accent border and accent halo, no separate outline.",
+            "targetSize": "The label is a click target that focuses the control. The native control is full width and at least 44px tall with field-control's py-3 and text-sm.",
+            "screenReader": "The control is announced with the label's words as its name. The hint is read with it only when wired through hintId and aria-describedby; otherwise a screen-reader user meets it only by reading on past the control."
+          },
+          "content": {
+            "voice": [
+              "Label: a noun phrase, sentence case, no colon and no period: \"Tu nombre\", \"Modo por defecto\", \"Rol al que apuntas\".",
+              "Hint: full sentences with a period, saying what the value is for or the rule it must meet: \"Se usa para precargar las sesiones nuevas.\"",
+              "An optional field says so at the start of its hint: \"Opcional. Nos dice qué empleador construir después.\"",
+              "Tú, never usted: \"Empresa que tienes en mente\"."
+            ],
+            "limits": [
+              "Label: 1–5 words, ≤ 32 characters; it does not wrap at 320px.",
+              "Hint: ≤ 2 sentences, about 140 characters."
+            ],
+            "examples": [
+              "Email",
+              "Contraseña — Al menos 8 caracteres. Una frase funciona bien.",
+              "Modo por defecto — El modo real retiene el coaching hasta el informe, como hace una entrevista de verdad. Vale más XP.",
+              "Uno por línea",
+              "Empresa que tienes en mente — Opcional. Nos dice qué empleador construir después."
+            ]
+          },
+          "usage": {
+            "when": [
+              "Any form control that needs a visible label: sign-in, reset password, settings, the early-access form.",
+              "A setting in a settings grid whose effect needs a sentence of explanation, in the hint.",
+              "A self-naming control (a radiogroup of languages, a theme Segmented) that still wants the label and hint layout."
+            ],
+            "whenNot": [
+              {
+                "situation": "A message about what just happened after submitting",
+                "instead": "Notice, below the fields and above the Action."
+              },
+              {
+                "situation": "A heading over a group of fields or a block",
+                "instead": "Eyebrow, then the Fields under it."
+              },
+              {
+                "situation": "A checkbox or toggle whose label sits beside it",
+                "instead": "A native <label> wrapping the checkbox; Field stacks the label above."
+              },
+              {
+                "situation": "A list of what a plan includes",
+                "instead": "CheckItem."
+              }
+            ],
+            "do": [
+              "Always pass htmlFor and the matching id on a native control.",
+              "Give the control the field-control class so it matches every other field.",
+              "Put the rule a value must meet in the hint, before the person types, and wire it with hintId."
+            ],
+            "dont": [
+              "Don't use the placeholder as the label: it disappears as soon as someone types.",
+              "Don't put an error in the hint; the outcome of a submit is a Notice.",
+              "Don't draw a box or border around the Field; the control's well is the field."
+            ]
+          },
+          "tokens": [
+            "--cream",
+            "--line-strong",
+            "--surface-card",
+            "--accent",
+            "--ease-out",
+            "field-control"
+          ],
+          "related": [
+            {
+              "name": "Notice",
+              "difference": "Says what happened after a submit; Field labels a control and explains it before."
+            },
+            {
+              "name": "Eyebrow",
+              "difference": "Names a whole group or block; Field's label names one control."
+            }
+          ],
+          "i18n": {
+            "rtl": "The column aligns to the start edge, so label and hint sit on the right in Arabic and Hebrew. Nothing is mirrored; the control handles its own text direction.",
+            "textExpansion": "Label and hint wrap inside the column at any length; the column grows downward. Portuguese and German run about 20–30% longer (\"Pelo menos 8 caracteres. Uma frase funciona bem.\") and still fit two lines at 320px.",
+            "formatting": "None. A label with a number in it (\"Duración de la entrevista — 5 turnos\") arrives already formatted by the caller.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Full width of its container at every size; field-control's w-full min-w-0 keeps a long <select> from pushing a 320px phone wider.",
+              "In a settings grid it fills one cell; className=\"lg:col-span-2\" lets a wide field span two from the lg breakpoint."
+            ],
+            "minWidth": "240px"
+          },
+          "designTool": {
+            "registryItem": "field",
+            "importStatement": "import { Field } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label",
+              "hint",
+              "htmlFor"
+            ],
+            "placement": "In a form or a settings Panel, stacked in a flex column with gap-5, or in a grid with gap-6. The one solid Action comes after the last Field."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Field",
+            "differences": [
+              "Accepts native div attributes (id, data-*, aria-*) spread onto the column; the app's copy takes label, hint, children, htmlFor and className only.",
+              "Adds hintId, which puts an id on the hint so the control can reference it with aria-describedby; the app's hint has no id."
             ]
           },
           "version": "1.0.0",
@@ -1990,6 +2491,709 @@
               "version": "0.1.0",
               "changes": [
                 "First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "meter",
+      "type": "registry:ui",
+      "title": "Meter",
+      "description": "A measured amount on a known scale — a score out of ten, a percentage, the XP into a level — as a label, the number and a bar that fills to it.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/Meter/Meter.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Meter/Meter.tsx"
+        },
+        {
+          "path": "src/components/Meter/Meter.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/Meter.contract.ts"
+        },
+        {
+          "path": "src/components/Meter/Meter.md",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/Meter.md"
+        },
+        {
+          "path": "src/components/Meter/Meter.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/Meter.previews.tsx"
+        },
+        {
+          "path": "src/components/Meter/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Meter",
+          "level": "atom",
+          "status": "stable",
+          "summary": "A measured amount on a known scale — a score out of ten, a percentage, the XP into a level — as a label, the number and a bar that fills to it.",
+          "source": "src/components/Meter/Meter.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "value": {
+              "type": "number",
+              "required": true,
+              "description": "The measured amount, on the same scale as max. Printed exactly as passed; the bar clamps to 0–100% of the scale, the number does not."
+            },
+            "max": {
+              "type": "number",
+              "required": false,
+              "default": "100",
+              "description": "The top of the scale: 100 for a percentage, 10 for a score out of ten, the XP the next level needs. A max of 0 or less draws an empty bar."
+            },
+            "label": {
+              "type": "string",
+              "required": true,
+              "description": "What is measured, in a word or two (\"Vocabulario\"). Shown above the bar on the start side and used as the meter's accessible name."
+            },
+            "suffix": {
+              "type": "string",
+              "required": false,
+              "default": "\"%\"",
+              "description": "Written right after the number with no space: \"%\" for a percentage, \"/10\" for a score out of ten, \"\" for a bare count such as XP."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended to the wrapper. For layout (width, a grid span, margin) — not for recolouring the bar."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "The label and the number on one row; under them the lifted track with the accent fill scaled to value / max.",
+              "trigger": "Initial render with 0 < value < max."
+            },
+            {
+              "name": "empty",
+              "description": "The track with no fill and the number 0 beside the label. Still a meter: zero is a measurement, not a missing one.",
+              "trigger": "value={0}, or max ≤ 0."
+            },
+            {
+              "name": "complete",
+              "description": "The fill covers the whole track. A value above max prints as passed (12/10) while the bar stops at full.",
+              "trigger": "value ≥ max."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "Fill: when value changes, the bar's scaleX eases to the new proportion over 700ms on the cinematic curve (cubic-bezier(0.16, 1, 0.3, 1)) — a slow settle, so a new score lands rather than jumps. A transform, so it stays on the compositor.",
+            "First render: the bar is drawn at its value with no entrance. An entrance, if the screen wants one, is the caller's (FadeRise in the product).",
+            "Reduced motion: the package's global prefers-reduced-motion rule (styles.css) drops transform from every transition, so the bar changes to its new length at once. The number never animates."
+          ],
+          "accessibility": {
+            "role": "meter (on the track); the wrapper is a generic <div>",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "role=\"meter\"",
+                "managedBy": "component",
+                "note": "On the track, not the wrapper: a bounded measurement, not a task in progress (that is progressbar)."
+              },
+              {
+                "attribute": "aria-valuenow / aria-valuemin / aria-valuemax",
+                "managedBy": "component",
+                "note": "value, 0 and max, unclamped: a screen reader hears the same number a sighted reader sees."
+              },
+              {
+                "attribute": "aria-label",
+                "managedBy": "component",
+                "note": "Set from label, so the meter is named by what it measures."
+              }
+            ],
+            "reducedMotion": "The fill's length changes at once: styles.css removes transform from transitions under prefers-reduced-motion: reduce. Nothing else moves.",
+            "contrast": "Number: cream-bright, ≥ 14:1 on every page and card surface in both themes (tightest: 14.3:1 on the dark card, 14.1:1 on the light surface-deep). Label: cream-dim, ≥ 9.2:1 in both themes on any surface. The accent fill on the lifted track is 2.8–5.1:1, a graphic that is never the only signal: the number is always printed.",
+            "focus": "Not focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "The visible label and number are read as text, then the meter is announced with its name and value (\"Vocabulario, 7\"). The suffix is not part of the value, so \"/10\" is heard only in the printed text."
+          },
+          "content": {
+            "voice": [
+              "The label names the dimension, a noun in sentence case, no period: \"Vocabulario\", \"Estructura\", \"General\".",
+              "A label may carry its own count, formatted by the caller: \"1240 XP en total\" with suffix \"\".",
+              "Never a verdict in the label (\"Mal vocabulario\"): the number says how it went; the words around the meter say what to do next."
+            ],
+            "limits": [
+              "Label: 1–4 words, ≤ 28 characters, so it stays on one line beside the number at 280px.",
+              "Number and suffix: ≤ 6 characters (\"100%\", \"10/10\")."
+            ],
+            "examples": [
+              "Vocabulario",
+              "Estructura",
+              "General",
+              "{xp} XP en total"
+            ]
+          },
+          "usage": {
+            "when": [
+              "A score on a fixed scale in a report: vocabulary and structure out of ten in the feedback detail.",
+              "How far into a level someone is: XP into the next level on the progress screen.",
+              "A proportion with a known top, printed as a number, where the bar helps comparing a few side by side."
+            ],
+            "whenNot": [
+              {
+                "situation": "Something loading or being evaluated, with no real total",
+                "instead": "A sentence that names what is happening (\"Evaluando…\")."
+              },
+              {
+                "situation": "A status in words, not a quantity",
+                "instead": "Badge."
+              },
+              {
+                "situation": "The one headline score of a report",
+                "instead": "The number itself in display type; a Meter is for the supporting scores beside it."
+              },
+              {
+                "situation": "A choice between options",
+                "instead": "Segmented."
+              }
+            ],
+            "do": [
+              "Pass the suffix that matches the scale: \"/10\" with max 10, \"\" for XP.",
+              "Put related meters in one grid or column so the bars compare.",
+              "Say in words, near the meters, what the scores mean for the next step."
+            ],
+            "dont": [
+              "Don't use a Meter as a loading bar.",
+              "Don't recolour the fill to mark a low score: nothing in this product marks a person wrong.",
+              "Don't show a meter without its number by hiding it with className."
+            ]
+          },
+          "tokens": [
+            "--surface-lift",
+            "--accent",
+            "--cream",
+            "--cream-bright",
+            "ease-cinematic"
+          ],
+          "related": [
+            {
+              "name": "Badge",
+              "difference": "States a status in words; Meter shows a quantity on a scale."
+            }
+          ],
+          "i18n": {
+            "rtl": "The row follows the document direction: the label starts on the right and the number sits at the left end. The fill grows from the start of the line (origin-right under dir=\"rtl\"). Numbers are not mirrored.",
+            "textExpansion": "The label wraps under its own width while the number keeps its place at the end (shrink-0); German and Portuguese labels (\"Wortschatz\", \"Vocabulário\") fit on one line at 280px.",
+            "formatting": "The component prints value with no locale formatting. A caller showing large or decimal numbers formats them first (Intl.NumberFormat) and builds the label; the suffix is passed as written.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Fills its container's width; the bar stretches, the type does not change size.",
+              "Side by side on wide screens (grid sm:grid-cols-2), stacked on phones: the caller's grid decides."
+            ],
+            "minWidth": "160px"
+          },
+          "designTool": {
+            "registryItem": "meter",
+            "importStatement": "import { Meter } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label",
+              "value",
+              "max",
+              "suffix"
+            ],
+            "placement": "Inside a Panel, in a column (flex-col gap-4) or a grid (sm:grid-cols-2 gap-4) of related scores. Needs at least 160px of width."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Meter",
+            "differences": [
+              "Accepts className and native div attributes (id, lang, data-*) on the wrapper; the app's copy takes value, max, label and suffix only.",
+              "The label/number row has gap-3, the label min-w-0 and the number shrink-0, so a long label wraps instead of touching or pushing the number at phone width.",
+              "A max of 0 or less draws an empty bar; the app's copy divides by zero and the invalid transform leaves the bar full.",
+              "The fill grows from the right under dir=\"rtl\" (rtl:origin-right); the app's copy always fills from the left."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "mono-label",
+      "type": "registry:ui",
+      "title": "MonoLabel",
+      "description": "The \"::LABEL\" that names a card or a section in the instrument voice — mono, spaced caps, cream-dim, led by two colons.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/check-item",
+        "@mockio/mockio-contract",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/MonoLabel/MonoLabel.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/MonoLabel/MonoLabel.tsx"
+        },
+        {
+          "path": "src/components/MonoLabel/MonoLabel.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/MonoLabel/MonoLabel.contract.ts"
+        },
+        {
+          "path": "src/components/MonoLabel/MonoLabel.md",
+          "type": "registry:file",
+          "target": "mockio/components/MonoLabel/MonoLabel.md"
+        },
+        {
+          "path": "src/components/MonoLabel/MonoLabel.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/MonoLabel/MonoLabel.previews.tsx"
+        },
+        {
+          "path": "src/components/MonoLabel/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/MonoLabel/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "MonoLabel",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The \"::LABEL\" that names a card or a section in the instrument voice — mono, spaced caps, cream-dim, led by two colons.",
+          "source": "src/components/MonoLabel/MonoLabel.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The name, in 1–3 words, written in sentence case: the style uppercases it. Plain text; no icon, no link."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For layout (margin, shrink-0 beside a row of chips) — not for colour, size or case."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "Text only. The two colons are drawn by the component; do not type them."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "Two tight colons, then the name in uppercase JetBrains Mono at text-xs with 0.06em tracking, in cream-dim.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The label is static; an entrance is the caller's (FadeRise on the block it names)."
+          ],
+          "accessibility": {
+            "role": "paragraph (native <p>)",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden (colons)",
+                "managedBy": "component",
+                "note": "The \"::\" is drawing; hidden so a screen reader does not read \"colon colon\" before every card."
+              },
+              {
+                "attribute": "lang",
+                "managedBy": "consumer",
+                "note": "Pass lang on the label (or an ancestor) when its language differs from the page, so the uppercased word is pronounced, not spelled."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "cream-dim ≥ 9.8:1 on every page and card surface in both themes (tightest: the light theme on surface-deep, 9.89:1); ≥ 9.2:1 on a lifted inset.",
+            "focus": "Not focusable.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as its text, as a paragraph, without the colons. The uppercase is CSS (text-transform), so the source text stays in sentence case and is read as words, not as letters."
+          },
+          "content": {
+            "voice": [
+              "A noun phrase that names the block, sentence case in the source, no period: \"Cómo funciona\", \"Precios\", \"Además\".",
+              "The name of a thing, not a pitch: the heading under it says the claim (\"De tu PDF a tu acta en una tarde.\").",
+              "A plan's name may be the label of its card: \"Pack Sustentación\", \"Pase Intensivo\"."
+            ],
+            "limits": [
+              "1–4 words, ≤ 28 characters. Spaced mono caps run wider than body text; past that the label wraps and stops reading as a label."
+            ],
+            "examples": [
+              "Cómo funciona",
+              "Precios",
+              "Además",
+              "Pack Sustentación",
+              "Pase Intensivo",
+              "Con el formato de jurado de"
+            ]
+          },
+          "usage": {
+            "when": [
+              "The name of a card on the landing's instrument look: a pricing tier (\"Pack Sustentación\"), a widget.",
+              "A section's kicker above its title on the landing: \"Cómo funciona\" over \"De tu PDF a tu acta en una tarde.\"",
+              "A short lead-in at the start of a row of chips: \"Con el formato de jurado de\" before the countries."
+            ],
+            "whenNot": [
+              {
+                "situation": "The line above a heading inside the signed-in product",
+                "instead": "Eyebrow, the product's kicker in the accent."
+              },
+              {
+                "situation": "The name of the block in a screen reader's heading list",
+                "instead": "A heading (h2/h3) under the label. The label is a paragraph."
+              },
+              {
+                "situation": "A status of the current screen",
+                "instead": "Badge."
+              },
+              {
+                "situation": "A sentence or a message",
+                "instead": "Body text, or Notice."
+              }
+            ],
+            "do": [
+              "Write the label in sentence case and let the style uppercase it.",
+              "Keep a real heading under a section label.",
+              "One label per card, at its top."
+            ],
+            "dont": [
+              "Don't type the colons: the component draws them.",
+              "Don't write a sentence in spaced caps.",
+              "Don't use it inside the signed-in product, where the kicker is Eyebrow."
+            ]
+          },
+          "tokens": [
+            "--cream",
+            "font-mono"
+          ],
+          "related": [
+            {
+              "name": "Eyebrow",
+              "difference": "The product's kicker above a heading, in the accent and in weight; MonoLabel is the landing's instrument voice, mono caps in cream-dim."
+            },
+            {
+              "name": "Badge",
+              "difference": "A pill stating the status of a screen; MonoLabel names a block and has no surface of its own."
+            }
+          ],
+          "i18n": {
+            "rtl": "Follows the document direction: the colons lead the text, so they sit on the right in Arabic and Hebrew. Nothing is mirrored. Scripts without case (Arabic, Hebrew, CJK) are unaffected by the uppercase.",
+            "textExpansion": "The label wraps inside its container; Portuguese and German names run about as long (\"Como funciona\", \"Pacote Defesa\"). A label that wraps is the sign to shorten it.",
+            "formatting": "None: the label is text from the caller.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "The same size at every width.",
+              "Beside a row of chips, give it shrink-0 so it keeps its words together while the chips wrap (flex-col on phones, flex-row from md)."
+            ],
+            "minWidth": "120px"
+          },
+          "designTool": {
+            "registryItem": "mono-label",
+            "importStatement": "import { MonoLabel } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "children"
+            ],
+            "placement": "At the top of a card (first child, gap-4 to the content) or above a section title (mt-3 to the heading). Landing and marketing surfaces only."
+          },
+          "appCounterpart": {
+            "file": "components/marketing.tsx",
+            "exportName": "MonoLabel",
+            "differences": [
+              "Spreads native paragraph attributes (id, lang, data-*) onto the <p>; the app's copy accepts children and className only."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "notice",
+      "type": "registry:ui",
+      "title": "Notice",
+      "description": "A message about what just happened, in a tinted box with its mark: it did not work and what to do next, it worked, or something neutral.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/action",
+        "@mockio/field",
+        "@mockio/mockio-contract",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/Notice/Notice.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Notice/Notice.tsx"
+        },
+        {
+          "path": "src/components/Notice/Notice.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/Notice.contract.ts"
+        },
+        {
+          "path": "src/components/Notice/Notice.md",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/Notice.md"
+        },
+        {
+          "path": "src/components/Notice/Notice.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/Notice.previews.tsx"
+        },
+        {
+          "path": "src/components/Notice/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Notice",
+          "level": "atom",
+          "status": "stable",
+          "summary": "A message about what just happened, in a tinted box with its mark: it did not work and what to do next, it worked, or something neutral.",
+          "source": "src/components/Notice/Notice.tsx",
+          "composes": [],
+          "dependencies": [
+            "lucide-react"
+          ],
+          "props": {
+            "tone": {
+              "type": "\"error\" | \"success\" | \"info\"",
+              "required": false,
+              "default": "\"info\"",
+              "description": "What kind of outcome it reports. Sets the wash, the icon and the live-region role.",
+              "values": {
+                "error": "It did not work, and what to do next (\"No funcionó. Prueba de nuevo con el enlace del correo.\"). The orange step wash with an alert-circle icon, never red; role=\"alert\".",
+                "success": "It worked (\"Guardado\"). The green grow wash with a check-circle icon; role=\"status\".",
+                "info": "Something happened that is neither (\"Si esa dirección tiene una cuenta, el enlace ya está en camino.\"). The lifted surface with an info icon; role=\"status\"."
+              }
+            },
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The message: one or two sentences of inline text, links allowed. It renders inside a <p>, so no blocks, lists or headings."
+            },
+            "role": {
+              "type": "string",
+              "required": false,
+              "description": "Native role, spread onto the paragraph after the tone's own, so it overrides it. The default is \"alert\" for error and \"status\" otherwise; override only when the Notice sits inside a region that already announces."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For layout (margin such as mt-4, width) — not for recolouring the box."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "Inline text, optionally with a link. The icon is drawn by the component; do not pass one."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "A rounded-2xl box in the tone's wash, a 16px icon in the tone's text colour at the start, and the message in cream-bright beside it, top-aligned.",
+              "trigger": "Rendered by the caller after something happens (a submit, a request returning)."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The Notice appears and disappears with the caller's render; it does not fade, slide or shake. Something that went wrong is told calmly."
+          ],
+          "accessibility": {
+            "role": "alert (tone error) or status (tones success and info), on a native <p>",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "role=\"alert\" / role=\"status\"",
+                "managedBy": "component",
+                "note": "Set from the tone: an error interrupts with an assertive announcement, success and info wait politely. A consumer's role prop overrides it."
+              },
+              {
+                "attribute": "aria-hidden (icon)",
+                "managedBy": "component",
+                "note": "The icon is decoration; the words say whether it worked."
+              },
+              {
+                "attribute": "mounting",
+                "managedBy": "consumer",
+                "note": "Render the Notice when the outcome is known, with its text, and keep a single one per outcome. Swapping the text of a mounted Notice is announced again; re-mounting a status region with the same text may not be announced by every screen reader."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes under prefers-reduced-motion: reduce.",
+            "contrast": "Text: cream-bright is ≥ 11.6:1 on all three washes in both themes. Icons: step-text on step-soft 7.0:1 (dark) / 4.7:1 (light); grow-text on grow-soft 7.4:1 / 4.7:1; cream-dim on the lifted surface ≥ 7.8:1. The icon is never the only signal: the words say what happened.",
+            "focus": "Not focusable. A link inside takes focus in document order with its own focus-ring.",
+            "targetSize": "not interactive",
+            "screenReader": "Read as its text, with no prefix: the tone's colour and icon are not announced, so the words must say whether it worked (\"No funcionó.\", \"Listo.\"). An error is announced at once, interrupting; the other tones when the reader is idle."
+          },
+          "content": {
+            "voice": [
+              "Say what happened, then what to do next: \"No funcionó. Prueba de nuevo con el enlace del correo.\"",
+              "Calm and blameless: the thing did not work, the person did nothing wrong. No \"Error:\", no \"inválido\", no exclamation marks.",
+              "Success can be one word: \"Guardado\". A longer one says what changed: \"Listo. No vas a recibir recordatorios ni resúmenes en esta dirección.\"",
+              "Tú, never usted: \"Inténtalo otra vez\"."
+            ],
+            "limits": [
+              "1–2 sentences, ≤ 160 characters. More than that is a page, not a notice."
+            ],
+            "examples": [
+              "No funcionó. Inténtalo otra vez, o entra con tu correo y contraseña.",
+              "No funcionó. Prueba de nuevo con el enlace del correo.",
+              "No se pudo restablecer la contraseña.",
+              "Guardado",
+              "Listo. No vas a recibir recordatorios ni resúmenes en esta dirección.",
+              "Si esa dirección tiene una cuenta, el enlace ya está en camino."
+            ]
+          },
+          "usage": {
+            "when": [
+              "The outcome of a form submit: under the fields, above the Action (sign in, reset password).",
+              "The result of a request the page made on its own (confirming an email, unsubscribing).",
+              "A save that worked, beside the Action that saved it (\"Guardado\")."
+            ],
+            "whenNot": [
+              {
+                "situation": "A rule a value must meet, before anyone types",
+                "instead": "Field's hint."
+              },
+              {
+                "situation": "A standing fact about the screen, such as its mode",
+                "instead": "Badge."
+              },
+              {
+                "situation": "A whole block of explanation or an empty state",
+                "instead": "Panel with body text."
+              },
+              {
+                "situation": "The way forward after an error",
+                "instead": "An Action after the Notice; the Notice names it, the Action does it."
+              }
+            ],
+            "do": [
+              "Say what happened and what to do next, in that order.",
+              "One Notice per outcome, placed where the person was looking when they acted.",
+              "Use tone error for anything that did not work; it is orange, never red."
+            ],
+            "dont": [
+              "Don't use a Notice for instructions that were true before anything happened.",
+              "Don't stack several Notices; merge them into one message.",
+              "Don't recolour it red or add a second icon."
+            ]
+          },
+          "tokens": [
+            "--step-soft",
+            "--step-text",
+            "--grow-soft",
+            "--grow-text",
+            "--surface-lift",
+            "--surface-lift-alpha",
+            "--cream",
+            "--cream-bright"
+          ],
+          "related": [
+            {
+              "name": "Field",
+              "difference": "Labels and explains a control before input; Notice reports what happened after."
+            },
+            {
+              "name": "Badge",
+              "difference": "States a standing status in a pill; Notice reports a one-time outcome in a sentence."
+            }
+          ],
+          "i18n": {
+            "rtl": "The icon leads the text in reading order, so it sits on the right in Arabic and Hebrew. The icons are symmetric and are not mirrored.",
+            "textExpansion": "The text wraps inside the box and the box grows downward; the icon stays top-aligned with the first line. Portuguese runs about 10–20% longer (\"Não funcionou. Tente novamente com o link do e-mail.\") and fits at 320px.",
+            "formatting": "None inside the component. Any email address, date or count arrives already formatted in the message.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Fills the width of its container at every size; the message wraps beside the icon.",
+              "At 320px a two-sentence message takes three or four lines; the icon stays on the first."
+            ],
+            "minWidth": "240px"
+          },
+          "designTool": {
+            "registryItem": "notice",
+            "importStatement": "import { Notice } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "tone",
+              "children"
+            ],
+            "placement": "In a form's flex column, between the last Field and the Action, or under a page heading with mt-4. One per outcome."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Notice",
+            "differences": [
+              "Accepts native paragraph attributes (id, data-*, aria-*), spread onto the <p>; a role passed in overrides the tone's alert/status. The app's copy takes tone, children and className only."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, extracted from the product."
               ]
             }
           ]
@@ -3193,6 +4397,306 @@
               "changes": [
                 "First documented version, extracted from the product.",
                 "Native <section> attributes are passed through, so a band can be named with aria-labelledby."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "segmented",
+      "type": "registry:ui",
+      "title": "Segmented",
+      "description": "A pill of two to five options where exactly one is chosen, with a thumb that slides to the choice. A radio group to assistive technology.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract",
+        "@mockio/panel"
+      ],
+      "files": [
+        {
+          "path": "src/components/Segmented/Segmented.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Segmented/Segmented.tsx"
+        },
+        {
+          "path": "src/components/Segmented/Segmented.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Segmented/Segmented.contract.ts"
+        },
+        {
+          "path": "src/components/Segmented/Segmented.md",
+          "type": "registry:file",
+          "target": "mockio/components/Segmented/Segmented.md"
+        },
+        {
+          "path": "src/components/Segmented/Segmented.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Segmented/Segmented.previews.tsx"
+        },
+        {
+          "path": "src/components/Segmented/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Segmented/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Segmented",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "A pill of two to five options where exactly one is chosen, with a thumb that slides to the choice. A radio group to assistive technology.",
+          "source": "src/components/Segmented/Segmented.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "options": {
+              "type": "readonly { value: T; label: ReactNode }[]",
+              "required": true,
+              "description": "The choices, in reading order: two to five, each with a unique value. Every option gets an equal share of the track, so the widest label sets the width of all of them."
+            },
+            "value": {
+              "type": "T",
+              "required": true,
+              "description": "The chosen option's value. Controlled: the thumb sits under it and moves when it changes. A value that matches no option leaves nothing checked and hides the thumb."
+            },
+            "onChange": {
+              "type": "(value: T) => void",
+              "required": true,
+              "description": "Receives the new value when the person picks a different option — by pointer, arrows, Home or End. Store it and pass it back as value."
+            },
+            "label": {
+              "type": "string",
+              "required": true,
+              "description": "The group's accessible name (aria-label), usually the visible heading or field label beside it: \"Tema\", \"Tiempo de exposición\". Not rendered."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended to the track. For layout (self-start, w-full, margin) — not for recolouring the track or the thumb."
+            }
+          },
+          "slots": [
+            {
+              "name": "options[].label",
+              "description": "Each option's label: text of one to three words. An icon before the words is allowed only with aria-hidden; the words name the option."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The lifted-surface pill; unselected labels in cream-dim, semibold.",
+              "trigger": "Initial render."
+            },
+            {
+              "name": "hover",
+              "description": "An unselected label brightens to full cream. Only on devices that can hover.",
+              "trigger": "Pointer over an unselected option (hover: hover)."
+            },
+            {
+              "name": "focus-visible",
+              "description": "The 2px accent focus-ring around the focused option, offset in the page colour.",
+              "trigger": "Keyboard focus (Tab into the group, or an arrow key)."
+            },
+            {
+              "name": "selected",
+              "description": "The surface-card thumb sits under the option and its label turns cream-bright; aria-checked is true.",
+              "trigger": "value equals that option's value."
+            }
+          ],
+          "events": [
+            {
+              "name": "onChange",
+              "signature": "(value: T) => void",
+              "firesWhen": "The person picks an option other than the current one: click or tap, an arrow key, Home or End. Never for the option already chosen, and never on render."
+            }
+          ],
+          "motion": [
+            "Thumb: slides to the chosen option with transform (translateX) only, 200ms on the press ease-out (cubic-bezier(0.23, 1, 0.32, 1)). Nothing is measured and nothing reflows: slots are equal widths, so the thumb moves by whole slots.",
+            "Labels: colour crossfades in 200ms on the same curve as the thumb arrives.",
+            "Reduced motion: the slide is behind motion-safe:, so the thumb appears under the new option at once; the label colour change still runs, so the choice is still acknowledged.",
+            "First paint: the thumb is already in place (it is positioned in CSS, not after a measurement), so there is no jump on load."
+          ],
+          "accessibility": {
+            "role": "radiogroup, with one radio (native <button role=\"radio\">) per option",
+            "keyboard": [
+              {
+                "key": "Tab",
+                "effect": "Moves focus into the group, onto the chosen option (the only one in the tab order), and out again on the next Tab."
+              },
+              {
+                "key": "ArrowRight / ArrowDown",
+                "effect": "Moves focus to the next option and chooses it; wraps from the last to the first. In right-to-left documents ArrowRight goes to the previous option instead."
+              },
+              {
+                "key": "ArrowLeft / ArrowUp",
+                "effect": "Moves focus to the previous option and chooses it; wraps from the first to the last. In right-to-left documents ArrowLeft goes to the next option instead."
+              },
+              {
+                "key": "Home / End",
+                "effect": "Moves focus to the first / last option and chooses it."
+              },
+              {
+                "key": "Space / Enter",
+                "effect": "On the focused option, which is already chosen: nothing changes."
+              }
+            ],
+            "aria": [
+              {
+                "attribute": "aria-label",
+                "managedBy": "component",
+                "note": "Set from the required label prop, so the group is always named."
+              },
+              {
+                "attribute": "aria-checked",
+                "managedBy": "component",
+                "note": "true on the chosen option, false on the others."
+              },
+              {
+                "attribute": "tabindex (roving)",
+                "managedBy": "component",
+                "note": "0 on the chosen option (or the first, when nothing matches value), -1 on the rest."
+              },
+              {
+                "attribute": "aria-hidden (thumb)",
+                "managedBy": "component",
+                "note": "The sliding thumb is decoration; aria-checked carries the state."
+              }
+            ],
+            "reducedMotion": "The thumb's slide only runs under prefers-reduced-motion: no-preference (motion-safe:); otherwise it moves instantly. No provider is needed and a change of the setting applies at once.",
+            "contrast": "Labels: cream-dim (cream at 0.85) on surface-lift and cream-bright on surface-card both clear 4.5:1 in both themes. The thumb is not the only signal of the choice: the label also turns cream-bright, and aria-checked states it.",
+            "focus": "focus-ring on the focused option: 2px accent ring, 2px offset in surface-base, keyboard focus only. One tab stop for the whole group; arrows move within it.",
+            "targetSize": "Each option is the track's full 44px height (min-h-11) and at least 48px wide (min-w-12); the 4px inset is drawn by the thumb, not taken from the target.",
+            "screenReader": "Announced as a radio group with the label, then each option as \"radio button, checked / not checked, n of m\". The thumb is not announced."
+          },
+          "content": {
+            "voice": [
+              "Option labels are nouns or short values, not actions: \"Oscuro\", \"Con informe\", \"20 min\". A verb in a label means it wanted to be an Action.",
+              "Sentence case, no final period, no exclamation marks.",
+              "Parallel wording across the options, so they read as one set: \"Hoja de defensa\" / \"Tarjetas\".",
+              "Numbers as digits, formatted by the caller: \"15 min\"."
+            ],
+            "limits": [
+              "2–5 options.",
+              "Each label 1–3 words, ≤ 20 characters; every slot is as wide as the longest, so one long label widens them all.",
+              "The group label: the field's name in 1–4 words (\"Tema\", \"Tiempo de exposición\")."
+            ],
+            "examples": [
+              "Sistema · Oscuro · Claro",
+              "Todas · Con informe",
+              "15 min · 20 min · 30 min",
+              "Hoja de defensa · Tarjetas"
+            ]
+          },
+          "usage": {
+            "when": [
+              "Choosing one of two to five mutually exclusive options whose effect is immediate: the theme, a filter on a list, the length of the exposition.",
+              "Switching between two or three views of the same content in place, such as the study sheet and the cards."
+            ],
+            "whenNot": [
+              {
+                "situation": "Six or more options, or options that need a sentence each",
+                "instead": "A radio list (stacked radios with descriptions) or a select."
+              },
+              {
+                "situation": "Moving between sections of a page that each have their own panel and heading",
+                "instead": "A tablist (role=\"tab\" + tabpanel), as the settings screen does."
+              },
+              {
+                "situation": "Running an action — copy, download, send",
+                "instead": "Action, one per action."
+              },
+              {
+                "situation": "A single setting that is on or off",
+                "instead": "A checkbox."
+              },
+              {
+                "situation": "Showing a status the person is not changing",
+                "instead": "Badge."
+              }
+            ],
+            "do": [
+              "Keep the labels short and parallel so the slots stay narrow.",
+              "Pass a label that matches the visible field name next to it.",
+              "Apply the choice at once; a Segmented never needs a Save."
+            ],
+            "dont": [
+              "Don't put actions in it: each option is a value, not a command.",
+              "Don't use it for more than five options or for long labels — it gets wider than a phone.",
+              "Don't recolour the thumb to mark one option as right or recommended."
+            ]
+          },
+          "tokens": [
+            "--surface-lift",
+            "--surface-lift-alpha",
+            "--surface-card",
+            "--cream",
+            "--cream-bright",
+            "--accent",
+            "--surface-base",
+            "ease-press",
+            "focus-ring"
+          ],
+          "related": [
+            {
+              "name": "Action",
+              "difference": "Does something when pressed; Segmented holds which of a few values is chosen."
+            },
+            {
+              "name": "Badge",
+              "difference": "States a status the person is not changing; Segmented is the control that changes it."
+            }
+          ],
+          "i18n": {
+            "rtl": "The options follow the document order, so the first sits on the right in Arabic and Hebrew; the thumb slides the mirrored way (the rail starts at the inline start and its translate flips with dir=\"rtl\"), and ArrowLeft / ArrowRight swap so the arrow you press is the way the thumb moves. ArrowUp / ArrowDown, Home and End are not mirrored. Digits in labels are not mirrored.",
+            "textExpansion": "Slots are equal and grow with the longest label; a label that does not fit the container wraps inside its slot (balanced, centred) and every slot grows taller together. Portuguese and German run 30–40% longer (\"Folha de defesa\", \"Tempo de apresentação\"); a label that wraps is the sign to shorten it.",
+            "formatting": "None inside the component: labels such as \"15 min\" arrive formatted by the caller.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Inline: as wide as its options need, never wider than its container (max-w-full).",
+              "Pass w-full through className to make it fill a phone's column; the slots stay equal.",
+              "On a 320px phone up to three short options sit on one line; four or five wrap their labels inside the slots."
+            ],
+            "minWidth": "240px"
+          },
+          "designTool": {
+            "registryItem": "segmented",
+            "importStatement": "import { Segmented } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "options",
+              "value",
+              "label"
+            ],
+            "placement": "Under or beside the field label it answers, in a settings panel, a form or a list's header. Usually self-start inside a flex column so it does not stretch."
+          },
+          "appCounterpart": {
+            "file": "design-system/segmented.tsx",
+            "exportName": "Segmented",
+            "differences": [
+              "Does not use React Bits' RubberSegment: its licence forbids redistribution, and the registry hands this package's files to other tools. This is an original implementation with the same props and the same track, thumb and label colours.",
+              "The thumb slides by transform only, with no rubber stretch and no drag to change the option; the app's copy stretches the thumb as it travels and can be dragged.",
+              "Options are equal widths (the widest label sets them all), so the slide needs no measurement; the app's copy sizes each option to its label and measures them.",
+              "Each option is the track's full 44px height, so the hit target is 44px; in the app's copy (size lg) the option is 36px inside the 4px inset.",
+              "Long labels wrap inside their slot instead of staying on one line, so it never overflows a phone.",
+              "The focus ring is the system's focus-ring class (accent ring); the app's copy draws an outline in the thumb colour."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version: an original implementation with the product's props and look, without React Bits."
               ]
             }
           ]

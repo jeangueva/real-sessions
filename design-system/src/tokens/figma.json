@@ -762,6 +762,36 @@
       "properties": [
         "Mark"
       ]
+    },
+    {
+      "name": "Field",
+      "node": null,
+      "reason": "Batch 1: being drawn."
+    },
+    {
+      "name": "Notice",
+      "node": null,
+      "reason": "Batch 1: being drawn."
+    },
+    {
+      "name": "Segmented",
+      "node": null,
+      "reason": "Batch 1: being drawn."
+    },
+    {
+      "name": "DisclosureMark",
+      "node": null,
+      "reason": "Batch 1: being drawn."
+    },
+    {
+      "name": "Meter",
+      "node": null,
+      "reason": "Batch 1: being drawn."
+    },
+    {
+      "name": "MonoLabel",
+      "node": null,
+      "reason": "Batch 1: being drawn."
     }
   ],
   "effectStyles": [

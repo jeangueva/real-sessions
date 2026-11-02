@@ -160,6 +160,12 @@ export const COMPONENTS = {
   PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface.", aliases: ["page container", "layout", "content area", "contenedor"] },
   Mark: { figma: "17:112", properties: [], aliases: ["logo", "isologo", "app icon", "favicon", "logotipo"] },
   Wordmark: { figma: "17:113", properties: ["Mark"], aliases: ["logo", "lockup", "brand", "logotype", "marca", "logotipo con nombre"] },
+  Field: { figma: null, reason: "Batch 1: being drawn.", aliases: ["input", "text field", "form field", "select", "textarea", "campo", "campo de formulario"] },
+  Notice: { figma: null, reason: "Batch 1: being drawn.", aliases: ["alert", "banner", "callout", "message", "aviso", "mensaje", "toast inline"] },
+  Segmented: { figma: null, reason: "Batch 1: being drawn.", aliases: ["segmented control", "tabs", "toggle group", "radio group", "pestañas", "selector"] },
+  DisclosureMark: { figma: null, reason: "Batch 1: being drawn.", aliases: ["chevron", "expand", "accordion toggle", "disclosure", "ver más", "desplegable"] },
+  Meter: { figma: null, reason: "Batch 1: being drawn.", aliases: ["progress bar", "gauge", "score bar", "barra de progreso", "medidor"] },
+  MonoLabel: { figma: null, reason: "Batch 1: being drawn.", aliases: ["card label", "overline", "instrument label", "caption", "etiqueta mono", "::LABEL"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
