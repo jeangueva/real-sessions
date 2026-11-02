@@ -1,7 +1,7 @@
 /**
  * tokens.css → tokens.json and theme.css.
  *
- * tokens.css is the source. Two files are generated from it, for consumers
+ * tokens.css is the source. Three files are generated from it, for consumers
  * that cannot use it directly:
  *
  *   tokens.json   the W3C Design Tokens (DTCG) format, for tools that do not
@@ -12,13 +12,15 @@
  *                 the v3 preset does, for v4 projects and shadcn-style tools.
  *                 The names come from tailwind-preset.js, so the two versions
  *                 cannot drift apart.
+ *   figma.json    the values the Figma library must hold, paired by
+ *                 src/tokens/figma-map.js (see docs/guides/figma.md).
  *
- *   node scripts/build-tokens.mjs           write both
- *   node scripts/build-tokens.mjs --check   fail if either is out of date
+ *   node scripts/build-tokens.mjs           write all three
+ *   node scripts/build-tokens.mjs --check   fail if any is out of date
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { keyframeRules, readPreset, readTokens, rulesToCss, themeVariables } from "./token-sources.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -86,6 +88,100 @@ out.motion = {
 };
 
 const tokensJson = JSON.stringify(out, null, 2) + "\n";
+
+// ── figma.json ──────────────────────────────────────────────────────────────
+//
+// What the Figma library must hold, resolved from figma-map.js against the
+// same tokens.css and preset. An agent pushes it into the file and reads the
+// file back against it (docs/guides/figma.md); neither side is edited by hand.
+
+const figmaMap = await import(pathToFileURL(path.join(root, "src/tokens/figma-map.js")).href);
+
+/** "246 183 51" or "rgba(46, 45, 42, 0.11)" → [r, g, b, a]. */
+function channels(value) {
+  if (/^\d+ \d+ \d+$/.test(value)) return [...value.split(" ").map(Number), 1];
+  const m = value.match(/^rgba?\(([^)]+)\)$/);
+  if (!m) throw new Error(`figma.json: cannot read colour "${value}"`);
+  const [r, g, b, a = "1"] = m[1].split(",").map((s) => s.trim());
+  return [Number(r), Number(g), Number(b), Number(a)];
+}
+const hex = ([r, g, b, a]) =>
+  `#${[r, g, b, Math.round(a * 255)].map((n) => n.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+
+function resolveColor(entry, theme) {
+  if (!theme.has(entry.css)) throw new Error(`figma-map.js: ${entry.figma} names ${entry.css}, which tokens.css does not declare`);
+  const color = channels(theme.get(entry.css));
+  if (typeof entry.alpha === "number") color[3] = entry.alpha;
+  else if (entry.alpha) color[3] = Number(theme.get(entry.alpha));
+  return hex(color);
+}
+
+const rem = (value) => Math.round(parseFloat(value) * (value.endsWith("rem") ? 16 : 1) * 100) / 100;
+const em = (value) => (value ? parseFloat(value) : 0);
+const family = (name) => preset.theme.extend.fontFamily[name][0].replace(/"/g, "");
+
+function textStyles(style) {
+  const [size, extra = {}] = style.preset ? [].concat(preset.theme.extend.fontSize[style.preset]) : [`${style.px}px`];
+  const base = {
+    family: family(style.family),
+    weight: style.weight ?? Number(extra.fontWeight ?? 400),
+    lineHeight: Number(style.lineHeight ?? extra.lineHeight ?? 1.5),
+    letterSpacing: em(style.letterSpacing ?? extra.letterSpacing),
+    uppercase: Boolean(style.uppercase),
+    tailwind: style.tailwind,
+  };
+  const clamp = size.match(/^clamp\(([^,]+),[^,]+,([^)]+)\)$/);
+  if (!clamp) return [{ name: style.figma, size: rem(size), ...base }];
+  return [
+    { name: `Desktop/${style.figma}`, size: rem(clamp[2].trim()), ...base },
+    { name: `Mobile/${style.figma}`, size: rem(clamp[1].trim()), ...base },
+  ];
+}
+
+/** "0 0 0 1px rgba(…), 0 12px 32px rgba(…)" → [{ x, y, blur, spread, color }]. */
+const shadows = (value) =>
+  value.split(/,(?![^(]*\))/).map((layer) => {
+    const color = layer.match(/rgba?\([^)]+\)/)[0];
+    const [x, y, blur = 0, spread = 0] = layer.replace(color, "").trim().split(/\s+/).map((n) => parseFloat(n));
+    return { x, y, blur, spread, color: hex(channels(color)) };
+  });
+
+const figmaJson =
+  JSON.stringify(
+    {
+      $description:
+        "What the Figma library must hold. Generated from src/tokens/figma-map.js, tokens.css and the preset by scripts/build-tokens.mjs — edit those, not this file. Colours are #RRGGBBAA.",
+      file: figmaMap.FIGMA_FILE,
+      colors: figmaMap.COLORS.map((entry) => ({
+        name: entry.figma,
+        css: entry.alpha ? `${entry.css} @ ${entry.alpha}` : entry.css,
+        tailwind: entry.tailwind,
+        scopes: entry.scopes,
+        light: resolveColor(entry, light),
+        dark: resolveColor(entry, dark),
+      })),
+      radii: figmaMap.RADII.map((entry) => ({
+        name: entry.figma,
+        px: entry.px ?? rem(preset.theme.extend.borderRadius[entry.preset]),
+        tailwind: entry.tailwind,
+      })),
+      spacing: figmaMap.SPACING.map((entry) => ({ name: entry.figma, px: entry.px, tailwind: entry.tailwind })),
+      textStyles: figmaMap.TEXT_STYLES.flatMap(textStyles),
+      components: Object.entries(figmaMap.COMPONENTS).map(([name, entry]) =>
+        entry.figma
+          ? { name, node: entry.figma, url: `${figmaMap.FIGMA_FILE.url}?node-id=${entry.figma.replace(":", "-")}`, properties: entry.properties }
+          : { name, node: null, reason: entry.reason },
+      ),
+      effectStyles: figmaMap.SHADOWS.flatMap((entry) =>
+        [
+          ["Light", light],
+          ["Dark", dark],
+        ].map(([mode, theme]) => ({ name: `${entry.figma}/${mode}`, css: entry.css, tailwind: entry.tailwind, shadows: shadows(theme.get(entry.css)) })),
+      ),
+    },
+    null,
+    2,
+  ) + "\n";
 
 // ── theme.css ───────────────────────────────────────────────────────────────
 
@@ -158,6 +254,7 @@ const themeCss = [
 const targets = [
   ["src/tokens/tokens.json", tokensJson],
   ["src/tokens/theme.css", themeCss],
+  ["src/tokens/figma.json", figmaJson],
 ];
 
 if (process.argv.includes("--check")) {
@@ -166,11 +263,11 @@ if (process.argv.includes("--check")) {
     return !existsSync(target) || readFileSync(target, "utf8") !== text;
   });
   if (stale.length > 0) {
-    console.error(`${stale.map(([file]) => file).join(" and ")} out of date: run npm run tokens`);
+    console.error(`${stale.map(([file]) => file).join(", ")} out of date: run npm run tokens`);
     process.exit(1);
   }
-  console.log(`tokens.json and theme.css up to date (${dark.size} variables)`);
+  console.log(`tokens.json, theme.css and figma.json up to date (${dark.size} variables)`);
 } else {
   for (const [file, text] of targets) writeFileSync(path.join(root, file), text);
-  console.log(`tokens.json: ${dark.size} variables; theme.css: ${theme.length} theme variables`);
+  console.log(`tokens.json: ${dark.size} variables; theme.css: ${theme.length} theme variables; figma.json: ${JSON.parse(figmaJson).colors.length} colours`);
 }

@@ -1,0 +1,804 @@
+{
+  "$description": "What the Figma library must hold. Generated from src/tokens/figma-map.js, tokens.css and the preset by scripts/build-tokens.mjs — edit those, not this file. Colours are #RRGGBBAA.",
+  "file": {
+    "key": "jmdQwNqGso3sQoUpcME5g8",
+    "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8"
+  },
+  "colors": [
+    {
+      "name": "background/page",
+      "css": "--surface-base",
+      "tailwind": "bg-surface-base",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#EFEBE3FF",
+      "dark": "#141311FF"
+    },
+    {
+      "name": "background/surface",
+      "css": "--surface-card",
+      "tailwind": "bg-surface-card",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#F4F0E9FF",
+      "dark": "#262521FF"
+    },
+    {
+      "name": "background/raised",
+      "css": "--surface-raised",
+      "tailwind": "bg-surface-raised",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#F4F0E9FF",
+      "dark": "#201F1CFF"
+    },
+    {
+      "name": "background/deep",
+      "css": "--surface-deep",
+      "tailwind": "bg-surface-deep",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#EAE6DEFF",
+      "dark": "#0E0D0CFF"
+    },
+    {
+      "name": "background/hover",
+      "css": "--surface-lift @ --surface-lift-alpha",
+      "tailwind": "bg-surface-lift",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#2E2D2A0F",
+      "dark": "#FFFFFF12"
+    },
+    {
+      "name": "background/sunken",
+      "css": "--surface-sunken @ --surface-sunken-alpha",
+      "tailwind": "bg-surface-sunken",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#2E2D2A0A",
+      "dark": "#00000052"
+    },
+    {
+      "name": "text/primary",
+      "css": "--cream-bright",
+      "tailwind": "text-cream-bright",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#1A1917FF",
+      "dark": "#FAF7F1FF"
+    },
+    {
+      "name": "text/body",
+      "css": "--cream",
+      "tailwind": "text-cream",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#22211EFF",
+      "dark": "#F0ECE4FF"
+    },
+    {
+      "name": "text/secondary",
+      "css": "--cream @ 0.85",
+      "tailwind": "text-cream-dim",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#22211ED9",
+      "dark": "#F0ECE4D9"
+    },
+    {
+      "name": "text/tertiary",
+      "css": "--cream @ 0.65",
+      "tailwind": "text-cream-faint",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#22211EA6",
+      "dark": "#F0ECE4A6"
+    },
+    {
+      "name": "text/on-accent",
+      "css": "--accent-ink",
+      "tailwind": "text-accent-ink",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#2E2D2AFF",
+      "dark": "#2E2D2AFF"
+    },
+    {
+      "name": "text/accent",
+      "css": "--accent-text",
+      "tailwind": "text-accent-text",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#8A5C00FF",
+      "dark": "#FBD06AFF"
+    },
+    {
+      "name": "text/positive",
+      "css": "--grow-text",
+      "tailwind": "text-grow-text",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#1E7B34FF",
+      "dark": "#30D158FF"
+    },
+    {
+      "name": "text/attention",
+      "css": "--step-text",
+      "tailwind": "text-step-text",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#B25000FF",
+      "dark": "#FF9F0AFF"
+    },
+    {
+      "name": "text/premium",
+      "css": "--premium",
+      "tailwind": "text-premium",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#7C6CF2FF",
+      "dark": "#A096FFFF"
+    },
+    {
+      "name": "interactive/primary/default",
+      "css": "--accent",
+      "tailwind": "bg-accent",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL",
+        "STROKE_COLOR"
+      ],
+      "light": "#F6B733FF",
+      "dark": "#F6B733FF"
+    },
+    {
+      "name": "interactive/primary/depth",
+      "css": "--accent-depth",
+      "tailwind": "shadow-[0_3px_0_rgb(var(--accent-depth))]",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL",
+        "STROKE_COLOR"
+      ],
+      "light": "#D69614FF",
+      "dark": "#C48A12FF"
+    },
+    {
+      "name": "interactive/primary/soft",
+      "css": "--accent-soft",
+      "tailwind": "bg-accent-soft",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#FBE8BAFF",
+      "dark": "#3E2F0EFF"
+    },
+    {
+      "name": "feedback/positive/default",
+      "css": "--grow",
+      "tailwind": "bg-grow",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL",
+        "STROKE_COLOR"
+      ],
+      "light": "#34C759FF",
+      "dark": "#30D158FF"
+    },
+    {
+      "name": "feedback/positive/soft",
+      "css": "--grow-soft",
+      "tailwind": "bg-grow-soft",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#E2F6E7FF",
+      "dark": "#102C1AFF"
+    },
+    {
+      "name": "feedback/attention/default",
+      "css": "--step",
+      "tailwind": "bg-step",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL",
+        "STROKE_COLOR"
+      ],
+      "light": "#FF9F0AFF",
+      "dark": "#FF9F0AFF"
+    },
+    {
+      "name": "feedback/attention/soft",
+      "css": "--step-soft",
+      "tailwind": "bg-step-soft",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#FFF3E0FF",
+      "dark": "#382608FF"
+    },
+    {
+      "name": "premium/default",
+      "css": "--premium",
+      "tailwind": "bg-premium",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL",
+        "STROKE_COLOR"
+      ],
+      "light": "#7C6CF2FF",
+      "dark": "#A096FFFF"
+    },
+    {
+      "name": "premium/soft",
+      "css": "--premium-soft",
+      "tailwind": "bg-premium-soft",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#EAE7FDFF",
+      "dark": "#282446FF"
+    },
+    {
+      "name": "border/subtle",
+      "css": "--line",
+      "tailwind": "border-line",
+      "scopes": [
+        "STROKE_COLOR"
+      ],
+      "light": "#2E2D2A1C",
+      "dark": "#F0ECE41F"
+    },
+    {
+      "name": "border/control",
+      "css": "--line-strong",
+      "tailwind": "border-line-strong",
+      "scopes": [
+        "STROKE_COLOR"
+      ],
+      "light": "#2E2D2A94",
+      "dark": "#F0ECE46B"
+    },
+    {
+      "name": "overlay/scrim",
+      "css": "--scrim",
+      "tailwind": "bg-scrim",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#2E2D2A52",
+      "dark": "#00000099"
+    },
+    {
+      "name": "icon/primary",
+      "css": "--cream-bright",
+      "tailwind": "text-cream-bright",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#1A1917FF",
+      "dark": "#FAF7F1FF"
+    },
+    {
+      "name": "icon/secondary",
+      "css": "--cream @ 0.65",
+      "tailwind": "text-cream-faint",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#22211EA6",
+      "dark": "#F0ECE4A6"
+    },
+    {
+      "name": "icon/accent",
+      "css": "--accent-text",
+      "tailwind": "text-accent-text",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#8A5C00FF",
+      "dark": "#FBD06AFF"
+    },
+    {
+      "name": "icon/on-accent",
+      "css": "--accent-ink",
+      "tailwind": "text-accent-ink",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#2E2D2AFF",
+      "dark": "#2E2D2AFF"
+    },
+    {
+      "name": "icon/positive",
+      "css": "--grow-text",
+      "tailwind": "text-grow-text",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#1E7B34FF",
+      "dark": "#30D158FF"
+    },
+    {
+      "name": "icon/attention",
+      "css": "--step-text",
+      "tailwind": "text-step-text",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#B25000FF",
+      "dark": "#FF9F0AFF"
+    },
+    {
+      "name": "icon/premium",
+      "css": "--premium",
+      "tailwind": "text-premium",
+      "scopes": [
+        "STROKE_COLOR",
+        "SHAPE_FILL"
+      ],
+      "light": "#7C6CF2FF",
+      "dark": "#A096FFFF"
+    }
+  ],
+  "radii": [
+    {
+      "name": "radius/xs",
+      "px": 2,
+      "tailwind": "rounded-sm"
+    },
+    {
+      "name": "radius/sm",
+      "px": 8,
+      "tailwind": "rounded-lg"
+    },
+    {
+      "name": "radius/field",
+      "px": 12,
+      "tailwind": "rounded-xl"
+    },
+    {
+      "name": "radius/tile",
+      "px": 16,
+      "tailwind": "rounded-2xl"
+    },
+    {
+      "name": "radius/card",
+      "px": 20,
+      "tailwind": "rounded-card"
+    },
+    {
+      "name": "radius/inset",
+      "px": 28,
+      "tailwind": "rounded-inset"
+    },
+    {
+      "name": "radius/pill",
+      "px": 9999,
+      "tailwind": "rounded-full"
+    }
+  ],
+  "spacing": [
+    {
+      "name": "space/2",
+      "px": 2,
+      "tailwind": "p-0.5 / gap-0.5"
+    },
+    {
+      "name": "space/4",
+      "px": 4,
+      "tailwind": "p-1 / gap-1"
+    },
+    {
+      "name": "space/8",
+      "px": 8,
+      "tailwind": "p-2 / gap-2"
+    },
+    {
+      "name": "space/12",
+      "px": 12,
+      "tailwind": "p-3 / gap-3"
+    },
+    {
+      "name": "space/16",
+      "px": 16,
+      "tailwind": "p-4 / gap-4"
+    },
+    {
+      "name": "space/20",
+      "px": 20,
+      "tailwind": "p-5 / gap-5"
+    },
+    {
+      "name": "space/24",
+      "px": 24,
+      "tailwind": "p-6 / gap-6"
+    },
+    {
+      "name": "space/32",
+      "px": 32,
+      "tailwind": "p-8 / gap-8"
+    },
+    {
+      "name": "space/40",
+      "px": 40,
+      "tailwind": "p-10 / gap-10"
+    },
+    {
+      "name": "space/48",
+      "px": 48,
+      "tailwind": "p-12 / gap-12"
+    },
+    {
+      "name": "space/64",
+      "px": 64,
+      "tailwind": "p-16 / gap-16"
+    },
+    {
+      "name": "space/80",
+      "px": 80,
+      "tailwind": "p-20 / gap-20"
+    }
+  ],
+  "textStyles": [
+    {
+      "name": "Desktop/Display",
+      "size": 128,
+      "family": "Inter Tight",
+      "weight": 300,
+      "lineHeight": 0.95,
+      "letterSpacing": -0.045,
+      "uppercase": false,
+      "tailwind": "text-display"
+    },
+    {
+      "name": "Mobile/Display",
+      "size": 48,
+      "family": "Inter Tight",
+      "weight": 300,
+      "lineHeight": 0.95,
+      "letterSpacing": -0.045,
+      "uppercase": false,
+      "tailwind": "text-display"
+    },
+    {
+      "name": "Desktop/Headline",
+      "size": 64,
+      "family": "Inter Tight",
+      "weight": 300,
+      "lineHeight": 1.04,
+      "letterSpacing": -0.04,
+      "uppercase": false,
+      "tailwind": "text-headline"
+    },
+    {
+      "name": "Mobile/Headline",
+      "size": 32,
+      "family": "Inter Tight",
+      "weight": 300,
+      "lineHeight": 1.04,
+      "letterSpacing": -0.04,
+      "uppercase": false,
+      "tailwind": "text-headline"
+    },
+    {
+      "name": "Page title",
+      "size": 40,
+      "family": "Inter Tight",
+      "weight": 700,
+      "lineHeight": 1.1,
+      "letterSpacing": -0.028,
+      "uppercase": false,
+      "tailwind": "text-[2.5rem] font-bold"
+    },
+    {
+      "name": "Desktop/Title",
+      "size": 28,
+      "family": "Inter Tight",
+      "weight": 600,
+      "lineHeight": 1.18,
+      "letterSpacing": -0.018,
+      "uppercase": false,
+      "tailwind": "text-title font-semibold"
+    },
+    {
+      "name": "Mobile/Title",
+      "size": 20,
+      "family": "Inter Tight",
+      "weight": 600,
+      "lineHeight": 1.18,
+      "letterSpacing": -0.018,
+      "uppercase": false,
+      "tailwind": "text-title font-semibold"
+    },
+    {
+      "name": "Body L",
+      "size": 17,
+      "family": "Inter Tight",
+      "weight": 400,
+      "lineHeight": 1.6,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "text-base"
+    },
+    {
+      "name": "Body",
+      "size": 16,
+      "family": "Inter Tight",
+      "weight": 400,
+      "lineHeight": 1.55,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "text-sm"
+    },
+    {
+      "name": "Small",
+      "size": 14,
+      "family": "Inter Tight",
+      "weight": 400,
+      "lineHeight": 1.5,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "text-xs"
+    },
+    {
+      "name": "Label",
+      "size": 14,
+      "family": "JetBrains Mono",
+      "weight": 500,
+      "lineHeight": 1.5,
+      "letterSpacing": 0.06,
+      "uppercase": true,
+      "tailwind": "font-mono text-xs uppercase tracking-[0.06em]"
+    }
+  ],
+  "components": [
+    {
+      "name": "Action",
+      "node": "14:103",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-103",
+      "properties": [
+        "Label",
+        "With arrow",
+        "Icon",
+        "Tone",
+        "State"
+      ]
+    },
+    {
+      "name": "Badge",
+      "node": "14:109",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-109",
+      "properties": [
+        "Label",
+        "Tone"
+      ]
+    },
+    {
+      "name": "CheckItem",
+      "node": "14:110",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-110",
+      "properties": [
+        "Label"
+      ]
+    },
+    {
+      "name": "Eyebrow",
+      "node": "14:115",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-115",
+      "properties": [
+        "Label"
+      ]
+    },
+    {
+      "name": "Panel",
+      "node": "15:54",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=15-54",
+      "properties": [
+        "Content",
+        "Variant"
+      ]
+    },
+    {
+      "name": "PremiumMark",
+      "node": "14:117",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=14-117",
+      "properties": []
+    },
+    {
+      "name": "PageHeader",
+      "node": "15:91",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=15-91",
+      "properties": [
+        "Title",
+        "Meta",
+        "Show meta",
+        "Show actions",
+        "Size",
+        "Compact"
+      ]
+    },
+    {
+      "name": "Backdrop",
+      "node": null,
+      "reason": "Animated CSS light behind a hero; it has no static form worth a component."
+    },
+    {
+      "name": "Mascot",
+      "node": "17:133",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=17-133",
+      "properties": [
+        "Level"
+      ]
+    },
+    {
+      "name": "ShimmerText",
+      "node": null,
+      "reason": "An animation on a word; in Figma it is the word."
+    },
+    {
+      "name": "Section",
+      "node": null,
+      "reason": "Page rhythm and gutters, not a drawable surface."
+    },
+    {
+      "name": "PageBody",
+      "node": null,
+      "reason": "Page rhythm and gutters, not a drawable surface."
+    },
+    {
+      "name": "Mark",
+      "node": "17:112",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=17-112",
+      "properties": []
+    },
+    {
+      "name": "Wordmark",
+      "node": "17:113",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=17-113",
+      "properties": [
+        "Mark"
+      ]
+    }
+  ],
+  "effectStyles": [
+    {
+      "name": "Elevation/Card/Light",
+      "css": "--shadow-card",
+      "tailwind": "shadow-card",
+      "shadows": [
+        {
+          "x": 0,
+          "y": 0,
+          "blur": 0,
+          "spread": 1,
+          "color": "#2E2D2A0F"
+        }
+      ]
+    },
+    {
+      "name": "Elevation/Card/Dark",
+      "css": "--shadow-card",
+      "tailwind": "shadow-card",
+      "shadows": [
+        {
+          "x": 0,
+          "y": 0,
+          "blur": 0,
+          "spread": 1,
+          "color": "#FFFFFF0F"
+        }
+      ]
+    },
+    {
+      "name": "Elevation/Lift/Light",
+      "css": "--shadow-lift",
+      "tailwind": "shadow-lift",
+      "shadows": [
+        {
+          "x": 0,
+          "y": 0,
+          "blur": 0,
+          "spread": 1,
+          "color": "#2E2D2A17"
+        }
+      ]
+    },
+    {
+      "name": "Elevation/Lift/Dark",
+      "css": "--shadow-lift",
+      "tailwind": "shadow-lift",
+      "shadows": [
+        {
+          "x": 0,
+          "y": 0,
+          "blur": 0,
+          "spread": 1,
+          "color": "#FFFFFF1A"
+        },
+        {
+          "x": 0,
+          "y": 12,
+          "blur": 32,
+          "spread": 0,
+          "color": "#00000073"
+        }
+      ]
+    },
+    {
+      "name": "Elevation/Float/Light",
+      "css": "--shadow-float",
+      "tailwind": "shadow-float",
+      "shadows": [
+        {
+          "x": 0,
+          "y": 0,
+          "blur": 0,
+          "spread": 1,
+          "color": "#2E2D2A0F"
+        },
+        {
+          "x": 0,
+          "y": 12,
+          "blur": 32,
+          "spread": 0,
+          "color": "#2E2D2A1F"
+        }
+      ]
+    },
+    {
+      "name": "Elevation/Float/Dark",
+      "css": "--shadow-float",
+      "tailwind": "shadow-float",
+      "shadows": [
+        {
+          "x": 0,
+          "y": 0,
+          "blur": 0,
+          "spread": 1,
+          "color": "#FFFFFF14"
+        },
+        {
+          "x": 0,
+          "y": 24,
+          "blur": 64,
+          "spread": 0,
+          "color": "#00000099"
+        }
+      ]
+    }
+  ]
+}

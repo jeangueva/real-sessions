@@ -274,6 +274,11 @@
           "target": "mockio/docs/guides/contributing.md"
         },
         {
+          "path": "docs/guides/figma.md",
+          "type": "registry:file",
+          "target": "mockio/docs/guides/figma.md"
+        },
+        {
           "path": "docs/guides/getting-started.md",
           "type": "registry:file",
           "target": "mockio/docs/guides/getting-started.md"

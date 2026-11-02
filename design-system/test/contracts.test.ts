@@ -147,6 +147,20 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
   });
 });
 
+// figma-map.js says where each component lives in the Figma library, or why
+// it is not drawn there. A folder without an entry is a component the library
+// silently lacks; an entry without a folder points designers at nothing.
+describe("the Figma library", () => {
+  it("accounts for every component folder, and only those", async () => {
+    const { COMPONENTS } = await import("../src/tokens/figma-map.js");
+    expect(Object.keys(COMPONENTS).sort()).toEqual([...folders].sort());
+    for (const [name, entry] of Object.entries(COMPONENTS)) {
+      if (entry.figma === null) expect(entry.reason.length, `${name} needs a reason to stay out of Figma`).toBeGreaterThan(10);
+      else expect(entry.figma, `${name}: a Figma node id like "14:103"`).toMatch(/^\d+:\d+$/);
+    }
+  });
+});
+
 // The brand art is the one place the system keeps literals instead of tokens,
 // so the token tests cannot see it drift. Compare it with the product's own
 // copy directly: the same colours in the mark, the same bytes in Mocki.
