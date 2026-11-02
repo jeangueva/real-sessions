@@ -188,3 +188,21 @@ describe("the brand art", () => {
     }
   });
 });
+
+// What the Figma agent reads to pick a component: a description written from
+// the contract, with the names people search for.
+describe("the Figma descriptions", () => {
+  it("cover every drawn component, with aliases and a doc link", async () => {
+    const { COMPONENTS } = await import("../src/tokens/figma-map.js");
+    const docs = JSON.parse(readFileSync(path.resolve(__dirname, "../src/tokens/figma-components.json"), "utf8")) as {
+      components: { name: string; description: string; docUrl: string }[];
+    };
+    const drawn = Object.entries(COMPONENTS).filter(([, entry]) => entry.figma).map(([name]) => name).sort();
+    expect(docs.components.map((c) => c.name).sort()).toEqual(drawn);
+    for (const [name, entry] of Object.entries(COMPONENTS)) expect(entry.aliases.length, `${name} needs at least three aliases`).toBeGreaterThanOrEqual(3);
+    for (const c of docs.components) {
+      expect(c.description, c.name).toMatch(/\*\*Also known as:\*\*/);
+      expect(existsSync(path.resolve(__dirname, `../src/components/${c.name}/${c.name}.md`)), `${c.name} doc link`).toBe(true);
+    }
+  });
+});

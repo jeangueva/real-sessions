@@ -423,9 +423,19 @@
       "tailwind": "p-1 / gap-1"
     },
     {
+      "name": "space/6",
+      "px": 6,
+      "tailwind": "p-1.5 / gap-1.5"
+    },
+    {
       "name": "space/8",
       "px": 8,
       "tailwind": "p-2 / gap-2"
+    },
+    {
+      "name": "space/10",
+      "px": 10,
+      "tailwind": "p-2.5 / gap-2.5"
     },
     {
       "name": "space/12",
@@ -515,14 +525,34 @@
       "tailwind": "text-headline"
     },
     {
-      "name": "Page title",
+      "name": "Desktop/Page title",
       "size": 40,
       "family": "Inter Tight",
       "weight": 700,
       "lineHeight": 1.1,
       "letterSpacing": -0.028,
       "uppercase": false,
-      "tailwind": "text-[2.5rem] font-bold"
+      "tailwind": "sm:text-[2.5rem] font-bold"
+    },
+    {
+      "name": "Mobile/Page title",
+      "size": 32,
+      "family": "Inter Tight",
+      "weight": 700,
+      "lineHeight": 1.1,
+      "letterSpacing": -0.028,
+      "uppercase": false,
+      "tailwind": "text-[2rem] font-bold"
+    },
+    {
+      "name": "Mobile/Page title compact",
+      "size": 20,
+      "family": "Inter Tight",
+      "weight": 700,
+      "lineHeight": 1.1,
+      "letterSpacing": -0.028,
+      "uppercase": false,
+      "tailwind": "text-xl font-bold"
     },
     {
       "name": "Desktop/Title",
@@ -573,6 +603,46 @@
       "letterSpacing": 0,
       "uppercase": false,
       "tailwind": "text-xs"
+    },
+    {
+      "name": "Button",
+      "size": 16,
+      "family": "Inter Tight",
+      "weight": 600,
+      "lineHeight": 1.55,
+      "letterSpacing": -0.01,
+      "uppercase": false,
+      "tailwind": "text-sm font-semibold tracking-[-0.01em]"
+    },
+    {
+      "name": "Body strong",
+      "size": 16,
+      "family": "Inter Tight",
+      "weight": 600,
+      "lineHeight": 1.55,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "text-sm font-semibold"
+    },
+    {
+      "name": "Small strong",
+      "size": 14,
+      "family": "Inter Tight",
+      "weight": 500,
+      "lineHeight": 1.5,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "text-xs font-medium"
+    },
+    {
+      "name": "Wordmark",
+      "size": 20,
+      "family": "Inter Tight",
+      "weight": 600,
+      "lineHeight": 1.4,
+      "letterSpacing": -0.03,
+      "uppercase": false,
+      "tailwind": "text-xl font-semibold tracking-[-0.03em]"
     },
     {
       "name": "Label",

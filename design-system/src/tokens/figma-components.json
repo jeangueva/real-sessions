@@ -1,0 +1,239 @@
+{
+  "$description": "What each component's Figma node must say about itself. Generated from the contracts and src/tokens/figma-map.js by scripts/build-figma-docs.ts — edit those, not this file.",
+  "rules": [
+    "**One solid `Action` per view.** It is the next step. Everything else is `neutral`, `ghost` or, over imagery, `glass`.",
+    "**Tokens only.** Colours, radii, shadows and curves come from the Tailwind preset (`bg-surface-card`, `text-cream`, `text-cream-dim`, `border-line`, `bg-accent`, `rounded-card`, `shadow-lift`, `ease-press`, `text-title`). No hex, no `rgb()`, no arbitrary values for anything a token covers. Never red: nothing in this product marks a person wrong.",
+    "**No app imports.** Nothing from `@/…`, nothing from `../web`, no `useT`, `useLocale` or `useThesisT`. Imports inside the package are relative (`../Action`). Default strings are props with Spanish defaults.",
+    "**Contracts stay true.** Change the code and you change the contract, the previews and the guidance in the same edit. A new or removed prop or state means a `version` bump and a `changelog` entry (major for breaking, minor for additions, patch for fixes); the newest changelog entry equals `version`.",
+    "**Real copy.** Spanish first, tú (never vos or usted, outside the simulated jury), sentence case, actions start with a verb, no exclamation marks, gender-neutral, calm. Example copy is quoted from the product (`web/src/lib/thesis-copy.ts`, `web/src/lib/i18n.ts`), never invented: \"Ensayar mi sustentación\", \"Sube tu tesis\", \"Ver planes\", \"Ahora no\".",
+    "**Generated files are generated.** Do not edit `src/tokens/tokens.json`, `src/tokens/theme.css`, `src/tokens/figma.json` or `registry.json`. Edit `src/tokens/tokens.css`, the preset or `src/tokens/figma-map.js` and run `npm run tokens`; change components and run `npm run registry`.",
+    "**Run `npm run check` before you finish.** It checks generated files, types, contracts, previews (rendered and run through axe) and tokens. Do not report work as done while it fails.",
+    "**Nothing with a redistribution-restricted licence** (React Bits and similar). The registry hands these files to other tools. Code comments, contract descriptions and Markdown guidance are in English. Strings a person reads are in Spanish."
+  ],
+  "components": [
+    {
+      "name": "Action",
+      "node": "14:103",
+      "properties": [
+        "Label",
+        "With arrow",
+        "Icon",
+        "Tone",
+        "State"
+      ],
+      "description": "The button. One primary per view, in the accent; everything else steps down in tone.\n\n**Use it for:** Any action the user takes on purpose: start, save, send, confirm, open a flow; The single most important next step of a screen (tone solid, often withArrow).\n\n**Not for:** Navigating to another page as plain navigation → A link (<a> / router Link) styled as a link; wrap an Action in a Link only when the destination is a step forward; Choosing one option among several → Segmented (2–5 options) or a radio group.\n\n**Also known as:** button, botón, CTA, call to action, primary button, secondary button, ghost button, link button.\n\n`import { Action } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Action/Action.md",
+      "preferred": {
+        "Icon": [
+          "icon/arrow-right",
+          "icon/arrow-up-right",
+          "icon/download",
+          "icon/upload",
+          "icon/send",
+          "icon/mic",
+          "icon/play",
+          "icon/plus",
+          "icon/rotate-ccw"
+        ]
+      },
+      "do": [
+        "One solid Action per view; demote the rest to neutral or ghost.",
+        "Put the primary on the right of a pair on desktop and first in the stack on mobile.",
+        "Explain a disabled Action in text next to it."
+      ],
+      "dont": [
+        "Don't put two solid Actions side by side — the user has to read both to know which matters.",
+        "Don't restyle the tone with className colours; add a tone to the contract instead.",
+        "Don't use withArrow on secondary or destructive actions."
+      ]
+    },
+    {
+      "name": "Badge",
+      "node": "14:109",
+      "properties": [
+        "Label",
+        "Tone"
+      ],
+      "description": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.\n\n**Use it for:** A short fact about the current screen that the user is not changing right now: the mode of a call, a setting in force; A status happening at this moment, with tone live: the call connecting, the interviewer's turn.\n\n**Not for:** Something the user can press or toggle → Action (ghost) or Segmented. A Badge is not focusable and has no press; Marking an option as part of the paid plan → PremiumMark.\n\n**Also known as:** tag, chip, pill, status, estado, etiqueta, live indicator.\n\n`import { Badge } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Badge/Badge.md",
+      "do": [
+        "Say the state in words; let the dot only add \"right now\".",
+        "One live badge per view at most.",
+        "Add role=\"status\" when the text changes in place."
+      ],
+      "dont": [
+        "Don't use a Badge as a button or a filter chip.",
+        "Don't make every badge live.",
+        "Don't recolour it to mean error or success."
+      ]
+    },
+    {
+      "name": "CheckItem",
+      "node": "14:110",
+      "properties": [
+        "Label"
+      ],
+      "description": "One row of a checklist of what a plan or an offer includes: a check in the accent, then the words.\n\n**Use it for:** Listing what a plan or an offer includes: the pricing cards, the early-access offer; A short list of things the reader gets, where every row is a yes.\n\n**Not for:** Something the user ticks or unticks → Checkbox; Steps to follow in order → An ordered list (<ol>) with numbers; a check says done or included, not next.\n\n**Also known as:** checklist item, feature list item, benefit row, bullet, ítem con check, lista de beneficios.\n\n`import { CheckItem } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/CheckItem/CheckItem.md",
+      "do": [
+        "Put it inside a <ul> with a label before it, such as \"Qué incluye\".",
+        "Keep rows of one list to the same shape and length.",
+        "Lay rows out with flex-col gap-3 on the list."
+      ],
+      "dont": [
+        "Don't render a CheckItem outside a list.",
+        "Don't use a check for something that is not included.",
+        "Don't recolour the check to rank rows."
+      ]
+    },
+    {
+      "name": "Eyebrow",
+      "node": "14:115",
+      "properties": [
+        "Label"
+      ],
+      "description": "The short line in the accent above a heading or a value: it says where the reader is, the heading says what it means.\n\n**Use it for:** Above a landing section's heading, to place it: \"Precios\", \"Acceso anticipado\"; Above a value in a platform card: \"Nivel\" over the level, \"Acta simulada\" over the grade.\n\n**Not for:** The name of a section or a page → A heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it; A status or a mode on an item → Badge.\n\n**Also known as:** kicker, overline, pre-title, section label, antetítulo.\n\n`import { Eyebrow } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Eyebrow/Eyebrow.md",
+      "do": [
+        "Pair it with a heading that says something.",
+        "One eyebrow per block.",
+        "Use className for spacing and grid placement only."
+      ],
+      "dont": [
+        "Don't make it the only title of a section.",
+        "Don't set it in spaced capitals or another colour.",
+        "Don't end it with a period or a colon."
+      ]
+    },
+    {
+      "name": "Panel",
+      "node": "15:54",
+      "properties": [
+        "Content",
+        "Variant"
+      ],
+      "description": "The surface every card, block and sheet sits on: a rounded fill with the card shadow, or glass over imagery. No padding, no states.\n\n**Use it for:** Any block of content that belongs together on a page: a step, a form section, an empty state, a wait, a tier; A grid of equal items: give them all variant=\"card\" and h-full so the row lines up.\n\n**Not for:** A card the person presses as a whole (a session row, a nav tile) → A link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift), as RecentSessions does. Panel has no hover, focus or pressed state; A group inside a panel → An inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius.\n\n**Also known as:** card, tarjeta, surface, container, box, sheet, tile.\n\n`import { Panel } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Panel/Panel.md",
+      "preferred": {
+        "Content": [
+          "Eyebrow",
+          "CheckItem",
+          "Action",
+          "Badge",
+          "Pack Sustentación_example"
+        ]
+      },
+      "slot": {
+        "Content": "Whatever the card holds, padded by its own content (the Panel adds none). Usually an Eyebrow, a title in Title, CheckItems and one row of Actions."
+      },
+      "do": [
+        "Use card for siblings in a grid and raised for a single block on the page.",
+        "Give the panel its padding through className: p-6 sm:p-8.",
+        "Give a wait role=\"status\" and a failure role=\"alert\".",
+        "Mark the recommended one of a set with ring-2 ring-accent, not a glow."
+      ],
+      "dont": [
+        "Don't put hover:shadow-lift on a panel nothing happens on — it promises a press.",
+        "Don't nest a Panel in a Panel.",
+        "Don't recolour it with bg-* or border-*; pick the variant.",
+        "Don't reach for glass on a plain page for a grid of ordinary cards: on the dark theme it is near-transparent and reads as empty; use card."
+      ]
+    },
+    {
+      "name": "PremiumMark",
+      "node": "14:117",
+      "properties": [],
+      "description": "The gold crown on an option that belongs to the paid plan, named for screen readers; the option itself stays usable.\n\n**Use it for:** Next to any option the free plan cannot use: a rail entry, a practice tab, a share template, a section of the report; Wherever the option appears, the same mark — so it is learnt once.\n\n**Not for:** Saying the paid plan is active for this person → ShimmerText in the top bar's \"Premium\" chip; A status of the current screen → Badge.\n\n**Also known as:** premium badge, crown, pro badge, paid indicator, corona, insignia premium.\n\n`import { PremiumMark } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/PremiumMark/PremiumMark.md",
+      "do": [
+        "Keep the marked option visible and pressable; let the press explain or open the plans.",
+        "Put it at the end of the option's label (ms-auto in a full-width row).",
+        "Use the default label unless the place needs \"Del plan pago\"."
+      ],
+      "dont": [
+        "Don't disable an option because it carries the mark.",
+        "Don't use the crown or the gold for anything else.",
+        "Don't resize or recolour it through className."
+      ]
+    },
+    {
+      "name": "PageHeader",
+      "node": "15:91",
+      "properties": [
+        "Title",
+        "Meta",
+        "Show meta",
+        "Show actions",
+        "Size",
+        "Compact"
+      ],
+      "description": "The title block of every app screen: the page's only h1, one line of meta and the screen's actions, on the same container as PageBody.\n\n**Use it for:** At the top of every screen in the signed-in app, once, directly above its PageBody; compact for a screen whose content needs the height on a phone: the live call.\n\n**Not for:** A marketing page's headline → The hero's own h1, then Sections with h2; A heading inside the screen → An h2 in a Panel.\n\n**Also known as:** page title, screen header, title bar, h1, encabezado de página.\n\n`import { PageHeader } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/PageHeader/PageHeader.md",
+      "do": [
+        "Pass the same width to PageHeader and PageBody.",
+        "Put the point of the meta in its first 35 characters: that is what a 320px phone shows.",
+        "Keep one Action in actions, and make it solid only when it is the screen's way forward."
+      ],
+      "dont": [
+        "Don't render a second PageHeader (or any other h1) on a screen.",
+        "Don't put something the person must read to act in meta: on touch, the clamped part cannot be revealed.",
+        "Don't draw a rule or a background under the header."
+      ]
+    },
+    {
+      "name": "Mascot",
+      "node": "17:133",
+      "properties": [
+        "Level"
+      ],
+      "description": "Mocki, the parrot of the interview product, in one of six illustrated growth stages — from egg to crowned.\n\n**Use it for:** The interview product's gamified layer: progress, a level-up, the habit section of the landing; A first-run moment in the interview space, where a face lowers the stakes (the welcome checklist).\n\n**Not for:** Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan → No character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states; The brand logo, in a header, a favicon or a footer → Mark (the reduced isologo) or Wordmark (the lockup with the name).\n\n**Also known as:** Mocki, avatar, character, mascota, loro, parrot, level avatar.\n\n`import { Mascot } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Mascot/Mascot.md",
+      "do": [
+        "Pass decorative when a heading or a message beside it already says what is happening.",
+        "Pass a translated alt for every locale other than Spanish.",
+        "Keep it at 100px or less where it must look sharp; it is a 200px master."
+      ],
+      "dont": [
+        "Don't use Mocki in Sustentación, or as the logo.",
+        "Don't recolour, crop or flip it; it carries its own colour.",
+        "Don't pair it with exclamation marks or anglicisms (\"¡Mocki evolucionó! Mira su nuevo look.\" is the product string to fix, not to copy)."
+      ]
+    },
+    {
+      "name": "Mark",
+      "node": "17:112",
+      "properties": [],
+      "description": "The isologo: Mocki the parrot as three shapes on the mustard tile, in the brand's fixed colours, legible down to 16px.\n\n**Use it for:** The product's corner of the app shell, beside or instead of the written name (the top bar at 30px); Any place the brand must be recognisable in a square: an icon tile, a compact header.\n\n**Not for:** The brand needs to be read, not only recognised (landing nav, footer, sign-in) → Wordmark — the mark and the name as one lockup; Showing the user's progress or a friendly face in an empty state, an error or a level-up → Mascot — the full illustrated Mocki, in one of its six stages.\n\n**Also known as:** logo, isologo, app icon, favicon, logotipo.\n\n`import { Mark } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Mark/Mark.md",
+      "do": [
+        "Leave it decorative when the name is written next to it, and name the link instead.",
+        "Give the tile's corner to the shadow with a matching rounded class when you add shadow-card.",
+        "Keep it at 16px or larger: it is drawn to read at favicon size and no smaller."
+      ],
+      "dont": [
+        "Don't recolour it with className, filters or currentColor: the colours are the brand.",
+        "Don't rotate, stretch, outline or mirror it, in any direction or locale.",
+        "Don't put text on top of it or crop the tile."
+      ]
+    },
+    {
+      "name": "Wordmark",
+      "node": "17:113",
+      "properties": [
+        "Mark"
+      ],
+      "description": "The brand lockup: the Mark and the lowercase name \"mockio\", sized together by font-size so the logo never drifts between places.\n\n**Use it for:** Where the brand is read, not only recognised: the landing nav, the site footer, the sign-in and unsubscribe pages; Beside the Mark in the app's top bar on wide screens, with mark={false}.\n\n**Not for:** A square place or a tight space where the name will not fit (phone top bar, icon tile) → Mark alone, inside a link named \"Mockio\"; The brand inside a sentence → Plain text \"Mockio\", capitalised, in the sentence's own font.\n\n**Also known as:** logo, lockup, brand, logotype, marca, logotipo con nombre.\n\n`import { Wordmark } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Wordmark/Wordmark.md",
+      "do": [
+        "Size it with a text-* class and let the mark follow.",
+        "Use mark={false} when a Mark or a Mascot is already next to it.",
+        "Name the home link once (aria-label on the link) and keep the lockup inside it."
+      ],
+      "dont": [
+        "Don't build the lockup by hand with a Mark and a text node: the size relation and the lowercase drift.",
+        "Don't capitalise it, translate it or route it through a translation function.",
+        "Don't add a tagline or a second word inside the lockup."
+      ]
+    }
+  ]
+}

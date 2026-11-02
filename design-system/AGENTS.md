@@ -116,6 +116,11 @@ what the code already says. Drift that starts in Figma is a designer's
 proposal: bring it to the code in a PR, never overwrite it silently. The full
 procedure is in `docs/guides/figma.md`.
 
+Three Claude Code skills in `.claude/skills/` run the recurring work the same
+way every time: `ds-figma-sync` (measure, decide, push, measure),
+`ds-library-audit` (audit and fix until it is empty) and
+`ds-component-to-figma` (draw a component from its contract and register it).
+
 ## Adding or changing a component
 
 1. Create or edit the five files (see above, and `docs/guides/contributing.md`).
@@ -134,4 +139,6 @@ procedure is in `docs/guides/figma.md`.
 | `npm run registry` | Regenerates `registry.json` |
 | `npm run figma:drift` | Prints the read-only script that compares the Figma library with the code (`docs/guides/figma.md`) |
 | `npm run figma:push` | Prints the script that makes the Figma library match the code |
+| `npm run figma:audit` | Prints the read-only agent-readiness audit of the Figma library |
+| `npm run figma:docs` | Regenerates `src/tokens/figma-components.json` (descriptions, aliases, guidelines) from the contracts |
 | `npm run build` | The static site, in `dist/` |
