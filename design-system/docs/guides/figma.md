@@ -72,6 +72,11 @@ the map names. It does not compare pixels: a component is drawn and reviewed
 by a person, not pushed. When a contract gains or loses a prop, update the
 component in Figma and its `properties` here in the same PR.
 
+Brand art is the exception to "bind everything": Mark draws with its four
+fixed colours, as `Mark.tsx` does, and Mascot holds the package's own six
+PNGs. The contracts test compares both with the product's copies, so a
+recolour in `web/` fails until the system and then the library follow.
+
 A Panel has no padding of its own; its `Content` slot swaps in a component
 you build for the content (see `Ejemplo/Pack Sustentación`, the fragment
 from AGENTS.md made only of instances).

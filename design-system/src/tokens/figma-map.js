@@ -132,12 +132,12 @@ export const COMPONENTS = {
   PremiumMark: { figma: "14:117", properties: [] },
   PageHeader: { figma: "15:91", properties: ["Title", "Meta", "Show meta", "Show actions", "Size", "Compact"] },
   Backdrop: { figma: null, reason: "Animated CSS light behind a hero; it has no static form worth a component." },
-  Mascot: { figma: null, reason: "Six illustrated PNG stages; place the image itself." },
+  Mascot: { figma: "17:133", properties: ["Level"] },
   ShimmerText: { figma: null, reason: "An animation on a word; in Figma it is the word." },
   Section: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
   PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
-  Mark: { figma: null, reason: "Brand artwork, not drawn yet: four fixed colours on a 64px tile (see Mark.md); draw it from Mark.tsx's SVG." },
-  Wordmark: { figma: null, reason: "Composes Mark; drawn after it." },
+  Mark: { figma: "17:112", properties: [] },
+  Wordmark: { figma: "17:113", properties: ["Mark"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
