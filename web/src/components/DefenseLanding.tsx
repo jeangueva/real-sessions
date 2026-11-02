@@ -656,7 +656,7 @@ export function DefenseLanding() {
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-black/70 md:bg-gradient-to-r md:from-black/85 md:via-black/40 md:to-transparent" />
         <Wrap className="relative z-10 flex flex-1 flex-col justify-between gap-12 pb-10 pt-[clamp(2.5rem,10svh,7rem)]">
           <FadeRise className="max-w-2xl">
-            <h1 className="text-balance text-[clamp(2.75rem,7vw,5.75rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white">
+            <h1 className="text-balance text-[clamp(2.75rem,7vw,5.75rem)] leading-[0.98] tracking-[-0.045em] text-white">
               {/* Word by word, out of a blur, once: the headline is the one
                   sentence worth a moment of motion. Screen readers get the
                   sentence whole. */}

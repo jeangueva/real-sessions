@@ -7,11 +7,9 @@ import { DefenseLanding } from "@/components/DefenseLanding";
 import { Journey } from "@/components/Journey";
 import { Privacy, Terms } from "@/legal/LegalPage";
 import { InterviewPreview } from "@/components/InterviewPreview";
-import { Habit } from "@/components/Habit";
 import { CompanyPicker } from "@/components/CompanyPicker";
 import { Features } from "@/components/Features";
 import { Pricing } from "@/components/Pricing";
-import { Contribute } from "@/components/Contribute";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
@@ -106,12 +104,11 @@ function Landing() {
           line. */}
       <Pricing />
       <InterviewPreview />
-      <Habit />
       <CompanyPicker />
       <Features />
-      {/* The question bank closes the page: it asks for something rather than
-          offering something, so it belongs after the case has been made. */}
-      <Contribute />
+      {/* `Habit` and `Contribute` are unmounted, not deleted: the streaks and
+          XP belong inside the product, and a stranger asked to fill in a
+          question form before trying anything was the page's longest detour. */}
       <SiteFooter />
     </main>
   );

@@ -63,7 +63,7 @@ export function Hero() {
         />
 
         <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-[clamp(2rem,6svh,5rem)]">
-          <h1 className="text-balance text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.032em] text-cream-bright [text-shadow:0_1px_24px_rgb(0_0_0/0.35)]">
+          <h1 className="text-balance text-[clamp(2rem,4vw,3.5rem)] leading-[1.05] tracking-[-0.032em] text-cream-bright [text-shadow:0_1px_24px_rgb(0_0_0/0.35)]">
             <WordsPullUp align="center" className="w-full">{t("land.heroBlurb")}</WordsPullUp>
           </h1>
           {/* Who it is for, said once, so the right reader knows in a line. */}

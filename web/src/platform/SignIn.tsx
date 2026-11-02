@@ -59,7 +59,7 @@ export function SignIn() {
 
   return (
     <AuthLayout>
-    <h1 className="text-title font-semibold text-cream-bright">
+    <h1 className="text-title text-cream-bright">
       {mode === "in"
         ? t("auth.signInTitle")
         : pending
@@ -93,7 +93,7 @@ export function SignIn() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           className="field-control text-sm text-cream-bright placeholder:text-cream-faint"
-          placeholder="you@example.com"
+          placeholder={locale === "es" ? "tu@correo.com" : locale === "pt" ? "voce@email.com" : "you@example.com"}
         />
       </Field>
 

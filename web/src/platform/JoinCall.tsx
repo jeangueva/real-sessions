@@ -150,7 +150,7 @@ export function JoinCall() {
       ) : (
         <div className="flex flex-col gap-5">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-cream-bright">
+            <h1 className="text-2xl tracking-tight text-cream-bright">
               {t("joinTitle", { host: preview.hostName })}
             </h1>
             <p className="mt-2 text-base text-cream-dim">{t("joinBody", { host: preview.hostName })}</p>
@@ -322,7 +322,7 @@ function InCall({
     <main className="flex min-h-dvh flex-col gap-3 bg-surface-deep px-4 py-4 sm:gap-4 sm:px-6 sm:py-6">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight text-cream-bright sm:text-2xl">
+          <h1 className="truncate text-xl tracking-tight text-cream-bright sm:text-2xl">
             {room?.university ?? hostName}
           </h1>
           {answeringName && <p className="text-sm text-cream-dim">{t("answeringNow", { name: answeringName })}</p>}
@@ -501,7 +501,7 @@ function CallEnded({
     return (
       <main className="min-h-dvh bg-surface-deep px-4 py-8 sm:px-6">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-cream-bright sm:text-3xl">
+          <h1 className="text-2xl tracking-tight text-cream-bright sm:text-3xl">
             {t("sharedDefenseTitle", { university: report.university })}
           </h1>
           {member && (

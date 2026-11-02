@@ -79,7 +79,7 @@ export function SharedReport() {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-surface-base px-6">
         <Panel variant="raised" className="flex w-full max-w-md flex-col gap-5 p-8">
-          <h1 className="text-title font-semibold text-cream-bright">
+          <h1 className="text-title text-cream-bright">
             {t("shared.goneTitle")}
           </h1>
           {/* Not "wrong link". It may have been taken down on purpose, and
@@ -108,7 +108,7 @@ export function SharedReport() {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
         <FadeRise>
           <div className="flex flex-col gap-2">
-            <h1 className="text-balance text-headline font-semibold text-cream-bright">
+            <h1 className="text-balance text-headline text-cream-bright">
               {t("shared.title", { role: report.role, company: report.company })}
             </h1>
             <p className="text-sm text-cream-dim">
@@ -270,7 +270,7 @@ function SharedDefense({
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <FadeRise>
           <div className="flex flex-col gap-2">
-            <h1 className="text-balance text-headline font-semibold text-cream-bright">
+            <h1 className="text-balance text-headline text-cream-bright">
               {tt("sharedDefenseTitle", { university: report.company })}
             </h1>
           </div>

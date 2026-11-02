@@ -457,11 +457,10 @@ function Diagnosis({
 
   return (
     <>
-      {/* The thesis in one compact card: what was read, when it is defended,
-          and the two file actions as small buttons — not a page of its own. */}
       {/* The thesis as one quiet line: which file, the date it all counts
-          down to, and the two file actions. Its title is the page's own
-          subtitle already; its summary belongs to the diagnosis. */}
+          down to, and the two file actions. Only where they are used — the
+          rehearsal and "more" — rather than repeated over every section. */}
+      {(tab === "ensayar" || tab === "mas") && (
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-2xl bg-surface-card px-4 py-2.5 shadow-card sm:flex sm:flex-wrap">
         <span className="flex min-w-0 items-center gap-2 text-sm text-cream-dim">
           <FileText aria-hidden className="h-4 w-4 shrink-0 text-accent-text" />
@@ -493,6 +492,7 @@ function Diagnosis({
           </button>
         </div>
       </div>
+      )}
 
       {tab === "diagnostico" && <p className="max-w-prose text-sm leading-relaxed text-cream">{a.summary}</p>}
 
@@ -525,7 +525,8 @@ function Diagnosis({
       {tab === "diagnostico" && (
         <div className="flex flex-col gap-4">
           <section aria-labelledby="risks" className="flex flex-col gap-2">
-            <p id="risks" className="text-sm font-semibold text-cream-bright">
+            <p id="risks" className="font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim">
+              <span aria-hidden className="tracking-[-0.1em]">::</span>
               {t("risksTitle")}
             </p>
             {/* One line per risk; the likely question opens on tap. */}

@@ -435,7 +435,7 @@ const ES: Record<MessageKey, string> = {
   "auth.createAccount": "Crear una cuenta",
   "auth.signInTitle": "Inicia sesión para seguir donde lo dejaste.",
   "auth.signUpTitle": "Guarda tu historial en todos tus dispositivos.",
-  "auth.email": "Email",
+  "auth.email": "Correo",
   "auth.password": "Contraseña",
   "auth.passwordHint": "Al menos 8 caracteres. Una frase funciona bien.",
   "auth.signIn": "Iniciar sesión",

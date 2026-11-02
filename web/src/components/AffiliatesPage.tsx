@@ -253,7 +253,7 @@ export function AffiliatesPage() {
       <section className="pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
         <Wrap className="grid items-center gap-14 py-16 md:py-24 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-20">
           <FadeRise>
-            <h1 className="text-balance text-headline font-semibold text-cream-bright">
+            <h1 className="text-balance text-headline text-cream-bright">
               {c.title}
             </h1>
             <Lede className="mt-6 max-w-xl">{c.sub}</Lede>

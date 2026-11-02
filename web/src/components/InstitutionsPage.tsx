@@ -500,7 +500,7 @@ export function InstitutionsPage() {
       <section className="pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
         <Wrap className="py-16 md:py-28">
           <FadeRise className="max-w-4xl">
-            <h1 className="text-balance text-headline font-semibold text-cream-bright">
+            <h1 className="text-balance text-headline text-cream-bright">
               {c.title}
             </h1>
             <Lede className="mt-6 max-w-2xl">{c.sub}</Lede>

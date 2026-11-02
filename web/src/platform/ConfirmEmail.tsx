@@ -51,7 +51,7 @@ export function ConfirmEmail() {
 
   return (
     <AuthLayout>
-    <h1 className="text-title font-semibold text-cream-bright">
+    <h1 className="text-title text-cream-bright">
       {state === "working"
         ? t("confirm.working")
         : state === "done"

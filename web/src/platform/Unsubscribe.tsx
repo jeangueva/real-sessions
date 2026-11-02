@@ -57,7 +57,7 @@ export function Unsubscribe() {
     <main className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-surface-deep px-6">
       <Wordmark className="text-2xl font-semibold text-cream-bright" />
       <Panel variant="raised" className="flex w-full max-w-md flex-col gap-5 p-8 shadow-float sm:p-10">
-        <h1 className="text-title font-semibold text-cream-bright">{t("unsub.title")}</h1>
+        <h1 className="text-title text-cream-bright">{t("unsub.title")}</h1>
 
         {state === "done" || state === "failed" ? (
           <Notice tone={state === "done" ? "success" : "error"}>{message}</Notice>

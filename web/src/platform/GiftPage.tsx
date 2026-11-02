@@ -76,7 +76,7 @@ export function GiftPage() {
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text">
               <Gift aria-hidden className="h-[1.125rem] w-[1.125rem]" />
             </span>
-            <h1 className="text-balance text-xl font-semibold leading-snug text-cream-bright">
+            <h1 className="text-balance text-xl leading-snug text-cream-bright">
               {gift.name ? t("giftPageTitle", { name: gift.name }) : t("giftPageTitleAnon")}
             </h1>
           </div>
