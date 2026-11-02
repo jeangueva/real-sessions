@@ -33,6 +33,7 @@ import type {
 import { formatSessionDate } from "@/lib/format";
 import { badgeText } from "@/lib/badges";
 import { Today } from "./Today";
+import { Welcome } from "./Welcome";
 import { Journey } from "./Journey";
 import { SessionList } from "./SessionList";
 
@@ -167,9 +168,10 @@ export function Progress() {
     return (
       <>
         <PageHeader title={t("progress.title")} meta={t("progress.nothing")} />
-        <PageBody>
+        <PageBody className="flex flex-col gap-4">
+          <Welcome sessions={[]} />
           <Journey sessions={[]} />
-          <Panel variant="raised" className="mt-4 flex max-w-2xl flex-col gap-5 p-6 sm:p-8">
+          <Panel variant="raised" className="flex max-w-2xl flex-col gap-5 p-6 sm:p-8">
             {/* The first form, shown rather than described. The copy beside
                 this used to promise that the shape starts meaning something
                 around the third session while showing no shape at all, which
@@ -278,6 +280,9 @@ export function Progress() {
         {/* Today, then the path: what to do now before where it leads. Each
             its own card, spaced like the rest — run together they read as one
             block with two titles. */}
+        {/* The first steps, until they are done or dismissed: they moved here
+            from the interviews screen, which is now for picking a job. */}
+        <Welcome sessions={sessions ?? []} />
         <FadeRise delay={0.03}>
           <Today sessions={sessions ?? []} />
         </FadeRise>

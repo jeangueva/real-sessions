@@ -82,7 +82,7 @@ const EN = {
 
   "setup.title": "Get it wrong here, not in the interview",
   "setup.meta": "Seven turns, about ten minutes. You can stop at any point.",
-  "setup.eyebrow": "Run an interview",
+  "setup.eyebrow": "Pick the job you are interviewing for",
   "setup.begin": "Begin",
   "cta.seePlans": "See the plans",
   "cta.subscribe": "Subscribe",
@@ -400,7 +400,7 @@ const EN = {
   "feedback.speaking": "Speaking",
 
   "progress.title": "Your path",
-  "progress.nothing": "Nothing to plot yet",
+  "progress.nothing": "No interviews yet",
   "progress.score": "Score",
 
   "profile.title": "Your context",
@@ -413,7 +413,7 @@ const EN = {
 
   "cta.startInterview": "Start an interview",
 
-  "progress.empty": "Finish an interview and this fills in. One session gives you a baseline; the shape starts meaning something around the third.",
+  "progress.empty": "Your first interview is the starting point. By the third you can see where you are heading.",
   "progress.level": "Level",
   "progress.xpTotal": "{xp} XP total",
   "progress.xpToLevel": "{xp} XP to level {level}",
@@ -903,7 +903,7 @@ const EN = {
   "legal.terms": "Terms",
   "legal.privacy": "Privacy",
   "legal.languageNote": "This document is published in English, Spanish and Portuguese. You are reading the English text, which is the one that governs.",
-  "avatar.empty": "This is you at level 1. It takes on a new form {count} times on the way up \u2014 the first arrives within a couple of interviews.",
+  "avatar.empty": "This is Mocki. It changes shape {count} times as you practise; the first within a couple of interviews.",
   "unsub.title": "Stop these emails",
   "unsub.body": "This stops reminders and weekly summaries for {email}.",
   "unsub.noAddress": "This link is missing an address, so there is nothing to stop. Use the link in the email itself.",

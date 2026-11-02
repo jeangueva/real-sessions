@@ -28,7 +28,7 @@ const ES: Record<MessageKey, string> = {
 
   "setup.title": "Equivócate aquí, no en la entrevista",
   "setup.meta": "Siete turnos, unos diez minutos. Puedes parar cuando quieras.",
-  "setup.eyebrow": "Realizar una entrevista",
+  "setup.eyebrow": "Elige el puesto al que postulas",
   "setup.begin": "Empezar",
   "cta.seePlans": "Ver los planes",
   "cta.subscribe": "Suscribirme",
@@ -346,7 +346,7 @@ const ES: Record<MessageKey, string> = {
   "feedback.speaking": "Hablando",
 
   "progress.title": "Tu camino",
-  "progress.nothing": "Todavía no hay nada que graficar",
+  "progress.nothing": "Aún no tienes entrevistas",
   "progress.score": "Puntaje",
 
   "profile.title": "Tu contexto",
@@ -359,7 +359,7 @@ const ES: Record<MessageKey, string> = {
 
   "cta.startInterview": "Empezar una entrevista",
 
-  "progress.empty": "Termina una entrevista y esto se completa. Una sesión te da una base; la forma empieza a significar algo cerca de la tercera.",
+  "progress.empty": "Tu primera entrevista es el punto de partida. Desde la tercera ya se ve hacia dónde vas.",
   "progress.level": "Nivel",
   "progress.xpTotal": "{xp} XP en total",
   "progress.xpToLevel": "{xp} XP para el nivel {level}",
@@ -849,7 +849,7 @@ const ES: Record<MessageKey, string> = {
   "legal.terms": "Términos",
   "legal.privacy": "Privacidad",
   "legal.languageNote": "Este documento se publica en inglés, español y portugués. Estás leyendo el texto en español; el que rige es el inglés.",
-  "avatar.empty": "Este eres tú en el nivel 1. Toma una forma nueva {count} veces en el camino — la primera llega en un par de entrevistas.",
+  "avatar.empty": "Este es Mocki. Cambia de forma {count} veces mientras practicas; la primera, en un par de entrevistas.",
   "unsub.title": "Dejar de recibir estos correos",
   "unsub.body": "Esto detiene los recordatorios y los resúmenes semanales para {email}.",
   "unsub.noAddress": "A este enlace le falta la dirección, así que no hay nada que detener. Usa el enlace del correo.",
