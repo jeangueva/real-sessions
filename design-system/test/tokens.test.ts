@@ -42,6 +42,15 @@ describe("tokens", () => {
     }
   });
 
+  // styles.css is what the previews and the documentation site render with.
+  // It promises to be the product stylesheet under a three-line header; a
+  // stale copy shows every component in an old palette while tokens pass.
+  it.runIf(existsSync(WEB_CSS))("ship the product stylesheet unchanged in styles.css", () => {
+    const styles = readFileSync(path.join(ROOT, "src/styles.css"), "utf8");
+    const body = styles.split("\n").slice(3).join("\n");
+    expect(body === readFileSync(WEB_CSS, "utf8"), "src/styles.css differs from web/src/index.css below its header").toBe(true);
+  });
+
   it("declare the same variables in dark and light", () => {
     const dark = [...variables(tokens, ":root {").keys()].filter((k) => !k.startsWith("--ease"));
     const light = [...variables(tokens, ':root[data-theme="light"] {').keys()];
