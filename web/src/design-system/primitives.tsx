@@ -83,7 +83,7 @@ export function Action({
  * tracking, with a tight "::" in front. Ink at reading strength rather than
  * the accent, so the colour that means "the way forward" stays on the action.
  */
-export function Eyebrow({
+export function MonoLabel({
   children,
   className = "",
 }: {

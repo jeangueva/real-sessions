@@ -17,6 +17,7 @@ export * from "./components/InsetFrame";
 export * from "./components/Mark";
 export * from "./components/Mascot";
 export * from "./components/Meter";
+export * from "./components/MonoLabel";
 export * from "./components/Notice";
 export * from "./components/PageBody";
 export * from "./components/PageHeader";

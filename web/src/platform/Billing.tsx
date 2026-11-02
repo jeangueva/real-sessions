@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Action, Badge, Eyebrow, Notice, Panel } from "@/design-system";
+import { Action, Badge, MonoLabel, Notice, Panel } from "@/design-system";
 import { Inset } from "@/components/marketing";
 import { ApiError, cancelSubscription, fetchBilling, reconcileBilling } from "@/lib/api";
 import type { BillingState } from "@/lib/api";
@@ -49,7 +49,7 @@ export function Billing() {
       <Support />
       <Panel variant="raised" className="p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Eyebrow>Existing subscriptions</Eyebrow>
+          <MonoLabel>Existing subscriptions</MonoLabel>
           <Badge tone="neutral">100% Free</Badge>
         </div>
 

@@ -779,6 +779,11 @@
       "reason": "Not drawn in the library yet: the three tones are the same box with a different ground, and Figma would draw three of them."
     },
     {
+      "name": "MonoLabel",
+      "node": null,
+      "reason": "Not drawn in the library yet: the label is a mono uppercase line with two colons in front of it, and Figma would draw it as a text style instead."
+    },
+    {
       "name": "InsetFrame",
       "node": null,
       "reason": "Page rhythm and gutters, not a drawable surface: it is the window the public site's page sits in."

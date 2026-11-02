@@ -4,6 +4,7 @@
  * one column width, one title size, one way of showing the product.
  */
 import type { ReactNode } from "react";
+import { MonoLabel } from "@/design-system";
 
 /** The page's one column: 1200px of content, the same gutters everywhere. */
 export function Wrap({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -58,16 +59,6 @@ export function Screen({
  * signed-in product share. Cream cards with no shadow, darker inset panels
  * inside them, mono "::LABELS", amber-tint icon tiles and peach chips.
  * ------------------------------------------------------------------------- */
-
-/** "::LABEL", the card's own name, in the instrument voice. */
-export function MonoLabel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <p className={`font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim ${className}`}>
-      <span aria-hidden className="tracking-[-0.1em]">::</span>
-      {children}
-    </p>
-  );
-}
 
 /** A cream card floating on the page: no shadow, a hairline at most. */
 export function Widget({

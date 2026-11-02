@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Action, Panel, Eyebrow } from "@/design-system";
+import { Action, Panel, MonoLabel } from "@/design-system";
 import type { MessageKey } from "@/lib/i18n";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
@@ -1030,7 +1030,7 @@ export function SessionSetup() {
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
-            <Eyebrow>{t("setup.whatToExpect")}</Eyebrow>
+            <MonoLabel>{t("setup.whatToExpect")}</MonoLabel>
             <ul className="mt-4 grid gap-3 pr-8 text-sm text-cream-dim md:grid-cols-3">
               <li>
                 {t("setup.expectCharacter")}

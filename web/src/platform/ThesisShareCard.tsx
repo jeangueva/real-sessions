@@ -55,7 +55,7 @@ export function ThesisShareCard({ data }: { data: ThesisShareData }) {
     ctx.roundRect(72, 120, 936, 1110, 48);
     ctx.fill();
 
-    // Eyebrow
+    // MonoLabel
     ctx.fillStyle = "#9ca3af";
     ctx.font = "600 28px system-ui, -apple-system, sans-serif";
     ctx.fillText("MOCKIO · ENSAYO DE SUSTENTACIÓN", 144, 230);

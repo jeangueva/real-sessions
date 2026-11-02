@@ -4,19 +4,10 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
-import {
-  Action,
-  AnimatedCounter,
-  EASE_OUT,
-  FadeRise,
-  HeroVideo,
-  InterviewerPresence,
-  Meter,
-  Waveform,
-} from "@/design-system";
+import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo, InterviewerPresence, Meter, MonoLabel, Waveform } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
-import { Chip, IconTile, Inset, Lede, MonoLabel, Screen, Title, Widget, Wrap } from "./marketing";
+import { Chip, IconTile, Inset, Lede, Screen, Title, Widget, Wrap } from "./marketing";
 import { useLocale } from "@/hooks/useLocale";
 import { usePracticeCopy } from "@/lib/practice-copy";
 import { scrollToSection } from "@/lib/scroll-to-section";

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Panel, PremiumMark } from "@/design-system";
+import { Action, MonoLabel, FadeRise, Panel, PremiumMark } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import { fetchHistory, fetchPlan, recordShared } from "@/lib/api";
@@ -482,7 +482,7 @@ export function ShareCard() {
         <div className="flex w-full flex-col gap-4 lg:max-w-sm">
           {step === "ground" && (
             <Panel className="flex flex-col gap-4 p-5">
-              <Eyebrow>{t("share.background")}</Eyebrow>
+              <MonoLabel>{t("share.background")}</MonoLabel>
               <div className="flex flex-wrap gap-2">
                 {BACKGROUNDS.map((entry) => (
                   <Action
@@ -534,7 +534,7 @@ export function ShareCard() {
 
           {step === "crop" && (
             <Panel className="flex flex-col gap-4 p-5">
-              <Eyebrow>{t("share.crop")}</Eyebrow>
+              <MonoLabel>{t("share.crop")}</MonoLabel>
               <div className="flex flex-wrap gap-2">
                 {CROPS.map((option) => (
                   <Action
@@ -592,7 +592,7 @@ export function ShareCard() {
           {step === "ready" && (
             <>
               <Panel className="flex flex-col gap-3 p-5">
-                <Eyebrow>{t("share.template")}</Eyebrow>
+                <MonoLabel>{t("share.template")}</MonoLabel>
                 <div className="grid grid-cols-2 gap-2">
                   {gallery.map((entry) => (
                     <button
@@ -620,7 +620,7 @@ export function ShareCard() {
               </Panel>
 
               <Panel className="flex flex-col gap-4 p-5">
-                <Eyebrow>{t("share.look")}</Eyebrow>
+                <MonoLabel>{t("share.look")}</MonoLabel>
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="flex items-center gap-2 text-xs text-cream-faint">
                     {t("share.colour")}

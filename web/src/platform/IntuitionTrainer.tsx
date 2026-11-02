@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { Compass, ExternalLink } from "lucide-react";
-import {
-  Action,
-  Eyebrow,
-  FadeRise,
-  Field,
-  Notice,
-  Panel,
-} from "@/design-system";
-import { Chip, IconTile, Inset, MonoLabel, Widget } from "@/components/marketing";
+import { Action, FadeRise, Field, MonoLabel, Notice, Panel } from "@/design-system";
+import { Chip, IconTile, Inset, Widget } from "@/components/marketing";
 import { useLocale } from "@/hooks/useLocale";
 import { PageBody, PageHeader } from "./AppShell";
 
@@ -602,7 +595,7 @@ export function IntuitionTrainer() {
               {result && activeCase && localizedActive && (
                 <Panel variant="raised" className="p-6 sm:p-8">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Eyebrow>{copy.outcomeEyebrow}</Eyebrow>
+                    <MonoLabel>{copy.outcomeEyebrow}</MonoLabel>
                     <Chip>
                       {result.judgment.choice === result.recommended
                         ? copy.alignedBadge

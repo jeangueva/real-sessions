@@ -4,14 +4,14 @@ import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
-import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo } from "@/design-system";
+import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo, MonoLabel } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { savePendingThesis } from "@/lib/pending-thesis";
 import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
-import { Chip, IconTile, Inset, Lede, MonoLabel, Screen, Title, Widget, Wrap } from "./marketing";
+import { Chip, IconTile, Inset, Lede, Screen, Title, Widget, Wrap } from "./marketing";
 
 /** The same footage as the interview landing; `VITE_HERO_VIDEO` overrides both. */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";

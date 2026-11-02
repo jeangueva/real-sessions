@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
-import { Action, Eyebrow, Panel } from "@/design-system";
+import { Action, MonoLabel, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import { ApiError, decideQuestion, fetchReviewQueue } from "@/lib/api";
@@ -109,7 +109,7 @@ export function Review() {
 
       <PageBody className="flex flex-col gap-4">
         <Panel className="max-w-3xl p-6">
-          <Eyebrow>{t("review.deciding")}</Eyebrow>
+          <MonoLabel>{t("review.deciding")}</MonoLabel>
           <p className="mt-2 text-sm text-cream-dim">
             {t("review.decidingBody")}
           </p>

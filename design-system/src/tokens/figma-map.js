@@ -163,6 +163,7 @@ export const COMPONENTS = {
   Field: { figma: null, reason: "Not drawn in the library yet: the label, the control and the hint are a form pattern, and the control itself is drawn by whoever writes the form.", aliases: ["form field", "labelled input", "input group", "campo", "campo de formulario", "etiqueta de campo"] },
   Meter: { figma: null, reason: "Not drawn in the library yet: the meter is a number and a bar, and the bar is a different component the moment somebody wants it animated.", aliases: ["progress bar", "score bar", "gauge", "medidor", "barra de progreso", "puntaje"] },
   Notice: { figma: null, reason: "Not drawn in the library yet: the three tones are the same box with a different ground, and Figma would draw three of them.", aliases: ["alert", "message", "toast", "banner", "aviso", "mensaje", "alerta"] },
+  MonoLabel: { figma: null, reason: "Not drawn in the library yet: the label is a mono uppercase line with two colons in front of it, and Figma would draw it as a text style instead.", aliases: ["mono label", "instrument label", "::label", "etiqueta mono", "rótulo"] },
   InsetFrame: { figma: null, reason: "Page rhythm and gutters, not a drawable surface: it is the window the public site's page sits in.", aliases: ["frame", "window", "browser frame", "marco", "ventana"] },
 };
 
