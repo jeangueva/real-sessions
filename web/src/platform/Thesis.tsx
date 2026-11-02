@@ -801,6 +801,15 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     arrived?.focus && FOCUS_OPTIONS.includes(arrived.focus) ? arrived.focus : "completa",
   );
   const [setting, setSetting] = useState<"presencial" | "virtual" | null>(null);
+  /** The language the panel speaks; null follows the country's. Remembered. */
+  const [juryLanguage, setJuryLanguage] = useState<"es" | "pt" | "en" | "fr" | null>(() => {
+    try {
+      const saved = localStorage.getItem("mockio.juryLanguage");
+      return saved === "es" || saved === "pt" || saved === "en" || saved === "fr" ? saved : null;
+    } catch {
+      return null;
+    }
+  });
   const [material, setMaterial] = useState(() => arrived?.material?.slice(0, 20_000) ?? "");
   /** Filmed on this device for the replay; remembered, and off by default. */
   const [record, setRecord] = useState(() => {
@@ -900,7 +909,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
     }
     // The country's language wins over the thesis's: a thesis written in
     // Spanish and defended at a Brazilian university is defended in Portuguese.
-    const language = format?.language ?? thesis.analysis.language;
+    const language = juryLanguage ?? format?.language ?? thesis.analysis.language;
     // Unlock the browser's audio graph and speech synthesiser while the user
     // click gesture is active, before navigating to the session screen.
     resumeAudio();
@@ -912,7 +921,7 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
         stage,
         stages: [stage],
         language,
-        bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : `es-${country}`,
+        bcp47: language === "pt" ? "pt-BR" : language === "en" ? "en-US" : language === "fr" ? "fr-FR" : `es-${country}`,
         mode: "real",
         defense: {
           university: place || (language === "pt" ? "a universidade" : "la universidad"),
@@ -1209,6 +1218,29 @@ export function Rehearse({ thesis, onChange }: { thesis: StoredThesis; onChange:
                       {t(FOCUS_LABEL[entry])}
                     </option>
                   ))}
+                </select>
+              </label>
+              <label className={label}>
+                {t("juryLanguage")}
+                <select
+                  value={juryLanguage ?? ""}
+                  onChange={(event) => {
+                    const next = (event.target.value || null) as typeof juryLanguage;
+                    setJuryLanguage(next);
+                    try {
+                      if (next) localStorage.setItem("mockio.juryLanguage", next);
+                      else localStorage.removeItem("mockio.juryLanguage");
+                    } catch {
+                      // Private mode: chosen again next time.
+                    }
+                  }}
+                  className={select}
+                >
+                  <option value="">{t("juryLanguageAuto")}</option>
+                  <option value="es">Español</option>
+                  <option value="pt">Português</option>
+                  <option value="en">English</option>
+                  <option value="fr">Français</option>
                 </select>
               </label>
               <label className={label}>

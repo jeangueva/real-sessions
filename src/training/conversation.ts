@@ -10,7 +10,7 @@ export class TrainingError extends Error {
 export const SetupSchema = z.object({
   scenarioId: z.string().max(80),
   culture: z.enum(['neutral', 'latam', 'north-america']).default('neutral'),
-  language: z.enum(['en', 'es', 'pt']).default('en'),
+  language: z.enum(['en', 'es', 'pt', 'fr']).default('en'),
 });
 const StateSchema = SetupSchema.extend({
   owner: z.string(), expires: z.number(),
@@ -52,7 +52,7 @@ function scenarioFor(id: string) {
   return scenario;
 }
 function languageName(language: State['language']) {
-  return language === 'es' ? 'Spanish' : language === 'pt' ? 'Portuguese' : 'English';
+  return language === 'es' ? 'Spanish' : language === 'pt' ? 'Portuguese' : language === 'fr' ? 'French' : 'English';
 }
 function systemFor(state: State) {
   const scenario = scenarioFor(state.scenarioId);

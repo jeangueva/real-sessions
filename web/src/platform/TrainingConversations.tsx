@@ -302,7 +302,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
   const [track, setTrack] = useState<TrackFilter>("all");
   const [selectedId, setSelectedId] = useState<string>("");
   const [culture, setCulture] = useState<CultureItem["id"]>(domain === "professional" ? "latam" : "neutral");
-  const [language, setLanguage] = useState<"es" | "en" | "pt">(
+  const [language, setLanguage] = useState<"es" | "en" | "pt" | "fr">(
     locale === "es" ? "es" : locale === "pt" ? "pt" : "en",
   );
 
@@ -600,6 +600,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                         ["es", copy.langEs],
                         ["en", copy.langEn],
                         ["pt", copy.langPt],
+                        ["fr", "Français"],
                       ] as const
                     ).map(([code, label]) => (
                       <button

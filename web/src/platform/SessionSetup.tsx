@@ -55,24 +55,7 @@ export function SessionSetup() {
   const [sectors, setSectors] = useState<Sector[]>([]);
   /** The search opens on demand, from the recent setups' heading. */
   const [searchOpen, setSearchOpen] = useState(false);
-  /** French interviews are a fake door for now; see the language picker. */
-  const [frenchAsked, setFrenchAsked] = useState(() => {
-    try {
-      return localStorage.getItem("mockio.frenchAsked") === "1";
-    } catch {
-      return false;
-    }
-  });
-  const askForFrench = () => {
-    if (frenchAsked) return;
-    setFrenchAsked(true);
-    track("language requested", { language: "fr" });
-    try {
-      localStorage.setItem("mockio.frenchAsked", "1");
-    } catch {
-      // Private mode: counted anyway, just asked again next visit.
-    }
-  };
+
   const [roles, setRoles] = useState<Role[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [stagesByRole, setStagesByRole] = useState<
@@ -702,15 +685,6 @@ export function SessionSetup() {
                             }}
                           />
                         ))}
-                        {/* Not built yet. Listed to learn whether it should
-                            be: a press is counted and answered in place,
-                            and the panel stays open so the answer is seen. */}
-                        <FilterOption
-                          label={t("lang.frLabel")}
-                          detail={t(frenchAsked ? "lang.frAsked" : "lang.frSoon")}
-                          selected={false}
-                          onSelect={askForFrench}
-                        />
                       </>
                     )}
                   </FilterSegment>

@@ -38,6 +38,7 @@ describe("findLanguage", () => {
     expect(findLanguage("en").id).toBe("en");
     expect(findLanguage("es").id).toBe("es");
     expect(findLanguage("pt").id).toBe("pt");
+    expect(findLanguage("fr").id).toBe("fr");
   });
 
   it("falls back to English rather than throwing", () => {
@@ -67,6 +68,12 @@ describe("transcription follows the language", () => {
   it("does the same for Portuguese", () => {
     const query = new URLSearchParams(liveQuery("pt"));
     expect(query.get("language")).toBe("pt-BR");
+    expect(query.get("model")).toBe("nova-2");
+  });
+
+  it("hears French with a model that knows it", () => {
+    const query = new URLSearchParams(liveQuery("fr"));
+    expect(query.get("language")).toBe("fr");
     expect(query.get("model")).toBe("nova-2");
   });
 
@@ -106,6 +113,14 @@ describe("voiceFor", () => {
     }
   });
 
+  it("gives every interviewer a French voice the speak route accepts", () => {
+    for (const persona of PERSONAS) {
+      const voice = voiceFor(persona.id, persona.voice.model, findLanguage("fr"));
+      expect(voice, persona.id).toContain("-fr");
+      expect(AURA_VOICES.has(voice!), persona.id).toBe(true);
+    }
+  });
+
   it("names a voice the allowlist has not been told about", () => {
     // The Spanish voices are not in AURA_VOICES, which only lists the English
     // set — a reminder that the allowlist has to grow with this map or the
@@ -117,6 +132,11 @@ describe("voiceFor", () => {
 });
 
 describe("the prompts are told which language", () => {
+  it("tells the interviewer to conduct it in French", () => {
+    const prompt = buildInterviewerPrompt(context(), { personaId: "measured", language: "fr" });
+    expect(prompt).toContain("entire interview in French");
+  });
+
   it("tells the interviewer to conduct it in Spanish", () => {
     const prompt = buildInterviewerPrompt(context(), {
       personaId: "measured",
