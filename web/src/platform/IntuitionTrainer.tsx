@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
-import { Eyebrow, Panel } from "@/design-system";
+import { Compass, ExternalLink, Sparkles } from "lucide-react";
+import {
+  Action,
+  Badge,
+  Eyebrow,
+  FadeRise,
+  Field,
+  Meter,
+  Notice,
+  Panel,
+} from "@/design-system";
+import { Chip, IconTile, Inset, MonoLabel, Widget } from "@/components/marketing";
 import { useLocale } from "@/hooks/useLocale";
+import { PageBody, PageHeader } from "./AppShell";
 
 export interface IntuitionCaseItem {
   id: string;
@@ -268,230 +280,257 @@ export function IntuitionTrainer() {
   const localizedActive = activeCase ? localizeCase(activeCase) : null;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-6 text-cream-bright sm:p-8">
-      <Eyebrow>{copy.eyebrow}</Eyebrow>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">{copy.title}</h1>
-      <p className="mt-3 max-w-3xl text-sm text-cream-dim">{copy.intro}</p>
+    <main>
+      <PageHeader
+        title={copy.title}
+        meta={copy.intro}
+        actions={
+          <Badge tone="live">
+            <Sparkles className="h-3 w-3" aria-hidden />
+            {copy.eyebrow}
+          </Badge>
+        }
+      />
 
-      {error && (
-        <div
-          role="alert"
-          className="mt-4 rounded-card border border-step-border bg-step-soft p-4 text-sm text-cream-bright"
-        >
-          {error}
-        </div>
-      )}
+      <PageBody className="space-y-6 pt-2">
+        {error && <Notice tone="error">{error}</Notice>}
 
-      {loading ? (
-        <p role="status" className="mt-6 text-sm text-cream-dim">
-          {copy.loadingCases}
-        </p>
-      ) : (
-        <div className="mt-6 space-y-6">
-          <fieldset className="flex flex-wrap gap-2">
-            <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-cream-faint">
-              {copy.filterLabel}
-            </legend>
-            {(
-              [
-                ["all", copy.filterAll],
-                ["prioritization", copy.prioritization],
-                ["tradeoffs", copy.tradeoffs],
-                ["hypotheses", copy.hypotheses],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={kindFilter === id}
-                onClick={() => {
-                  setKindFilter(id);
-                  const nextList = cases.filter((c) => id === "all" || c.kind === id);
-                  if (nextList[0]) selectCase(nextList[0].id);
-                }}
-                className="focus-ring rounded-full border border-line px-4 py-2 text-xs font-medium text-cream-bright aria-pressed:border-accent-border aria-pressed:bg-accent-soft aria-pressed:text-accent-text"
-              >
-                {label}
-              </button>
-            ))}
-          </fieldset>
+        {loading ? (
+          <Widget label="CASES" className="p-6">
+            <p role="status" className="text-sm text-cream-dim">
+              {copy.loadingCases}
+            </p>
+          </Widget>
+        ) : (
+          <div className="grid gap-6 xl:grid-cols-12">
+            {/* Left column: Filter + Case rail */}
+            <div className="space-y-4 xl:col-span-4">
+              <Widget label={copy.filterLabel} className="p-5">
+                <fieldset className="flex flex-wrap gap-2">
+                  <legend className="sr-only">{copy.filterLabel}</legend>
+                  {(
+                    [
+                      ["all", copy.filterAll],
+                      ["prioritization", copy.prioritization],
+                      ["tradeoffs", copy.tradeoffs],
+                      ["hypotheses", copy.hypotheses],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={kindFilter === id}
+                      onClick={() => {
+                        setKindFilter(id);
+                        const nextList = cases.filter((c) => id === "all" || c.kind === id);
+                        if (nextList[0]) selectCase(nextList[0].id);
+                      }}
+                      className="focus-ring rounded-full border border-line bg-surface-base px-3.5 py-1.5 text-sm font-medium text-cream-bright transition-colors hover:border-line-bright aria-pressed:border-accent-border aria-pressed:bg-accent-soft aria-pressed:text-accent-text"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </fieldset>
+              </Widget>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCases.map((item) => {
-              const loc = localizeCase(item);
-              const isSelected = activeCase?.id === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => selectCase(item.id)}
-                  className="focus-ring flex flex-col justify-between rounded-card border border-line bg-surface-card p-4 text-left transition-colors hover:bg-surface-lift aria-pressed:border-accent-border aria-pressed:bg-surface-lift"
+              <div className="space-y-2.5">
+                {filteredCases.map((item, idx) => {
+                  const loc = localizeCase(item);
+                  const isSelected = activeCase?.id === item.id;
+                  return (
+                    <FadeRise key={item.id} delay={idx * 0.03}>
+                      <button
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => selectCase(item.id)}
+                        className={`focus-ring flex w-full flex-col justify-between rounded-[1.25rem] border p-4 text-left transition-all ${
+                          isSelected
+                            ? "border-accent-border bg-surface-lift shadow-card"
+                            : "border-line bg-surface-card hover:border-line-bright hover:bg-surface-lift"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <MonoLabel>#{String(idx + 1).padStart(2, "0")}</MonoLabel>
+                          <Chip>{kindLabel(item.kind)}</Chip>
+                        </div>
+                        <p className="mt-2 text-sm font-medium tracking-[-0.015em] text-cream-bright">
+                          {loc.title}
+                        </p>
+                      </button>
+                    </FadeRise>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right column: Active case decision + Historical reveal */}
+            <div className="space-y-6 xl:col-span-8">
+              {activeCase && localizedActive && (
+                <Widget
+                  label={`${activeCase.id.toUpperCase()} · ${kindLabel(activeCase.kind)}`}
+                  className="p-6 sm:p-8"
                 >
-                  <div>
-                    <span className="inline-block rounded-full bg-surface-lift px-2.5 py-0.5 text-xs font-medium text-accent-text">
-                      {kindLabel(item.kind)}
-                    </span>
-                    <p className="mt-2 text-sm font-semibold text-cream-bright">{loc.title}</p>
+                  <div className="flex items-center gap-3">
+                    <IconTile>
+                      <Compass className="h-4 w-4" aria-hidden />
+                    </IconTile>
+                    <h2 className="text-xl font-medium tracking-[-0.025em] text-cream-bright sm:text-2xl">
+                      {localizedActive.title}
+                    </h2>
                   </div>
-                </button>
-              );
-            })}
-          </div>
 
-          {activeCase && localizedActive && (
-            <Panel className="p-6">
-              <span className="inline-block rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-text">
-                {kindLabel(activeCase.kind)}
-              </span>
-              <h2 className="mt-3 text-xl font-semibold text-cream-bright">
-                {localizedActive.title}
-              </h2>
-              <p className="mt-2 text-sm text-cream-dim">{localizedActive.prompt}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-cream-dim">
+                    {localizedActive.prompt}
+                  </p>
 
-              <fieldset className="mt-5 space-y-2.5" disabled={Boolean(result)}>
-                <legend className="text-sm font-semibold text-cream-bright">
-                  {copy.optionsLegend}
-                </legend>
-                {localizedActive.options.map((opt, idx) => (
-                  <label
-                    key={idx}
-                    className="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface-base p-3.5 text-sm hover:bg-surface-lift"
-                  >
+                  <fieldset className="mt-5 space-y-2.5" disabled={Boolean(result)}>
+                    <legend className="text-sm font-medium text-cream-bright">
+                      {copy.optionsLegend}
+                    </legend>
+                    {localizedActive.options.map((opt, idx) => {
+                      const checked = choice === idx;
+                      return (
+                        <label
+                          key={idx}
+                          className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 text-sm transition-colors ${
+                            checked
+                              ? "border-accent-border bg-accent-soft text-cream-bright"
+                              : "border-line bg-surface-base text-cream-bright hover:bg-surface-lift"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="intuition-choice"
+                            value={idx}
+                            checked={checked}
+                            onChange={() => setChoice(idx)}
+                            className="mt-1 text-sm"
+                          />
+                          <span className="leading-relaxed">{opt}</span>
+                        </label>
+                      );
+                    })}
+                  </fieldset>
+
+                  <Inset className="mt-5 p-4">
+                    <label
+                      htmlFor="confidence-range"
+                      className="flex items-center justify-between text-sm font-medium text-cream-bright"
+                    >
+                      <span>{copy.confidenceLabel}</span>
+                      <span className="font-mono text-accent-text">{confidence}%</span>
+                    </label>
                     <input
-                      type="radio"
-                      name="intuition-choice"
-                      value={idx}
-                      checked={choice === idx}
-                      onChange={() => setChoice(idx)}
-                      className="mt-1"
+                      id="confidence-range"
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      disabled={Boolean(result)}
+                      value={confidence}
+                      onChange={(e) => setConfidence(Number(e.target.value))}
+                      className="mt-3 w-full text-sm"
                     />
-                    <span className="text-cream-bright">{opt}</span>
-                  </label>
-                ))}
-              </fieldset>
+                    <div className="mt-3">
+                      <Meter value={confidence} label={`${confidence}%`} />
+                    </div>
+                  </Inset>
 
-              <div className="mt-5">
-                <label
-                  htmlFor="confidence-range"
-                  className="flex items-center justify-between text-sm font-semibold text-cream-bright"
-                >
-                  <span>{copy.confidenceLabel}</span>
-                  <span className="text-accent-text">{confidence}%</span>
-                </label>
-                <input
-                  id="confidence-range"
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  disabled={Boolean(result)}
-                  value={confidence}
-                  onChange={(e) => setConfidence(Number(e.target.value))}
-                  className="mt-2 w-full"
-                />
-              </div>
+                  <div className="mt-5">
+                    <Field label={copy.reasoningLabel} htmlFor="intuition-reasoning">
+                      <textarea
+                        id="intuition-reasoning"
+                        rows={3}
+                        maxLength={2000}
+                        disabled={Boolean(result)}
+                        value={reasoning}
+                        onChange={(e) => setReasoning(e.target.value)}
+                        placeholder={copy.reasoningPlaceholder}
+                        className="focus-ring mt-1 w-full rounded-xl border border-line bg-surface-base p-3.5 text-sm text-cream-bright"
+                      />
+                    </Field>
+                  </div>
 
-              <div className="mt-5">
-                <label
-                  htmlFor="intuition-reasoning"
-                  className="block text-sm font-semibold text-cream-bright"
-                >
-                  {copy.reasoningLabel}
-                </label>
-                <textarea
-                  id="intuition-reasoning"
-                  rows={3}
-                  maxLength={2000}
-                  disabled={Boolean(result)}
-                  value={reasoning}
-                  onChange={(e) => setReasoning(e.target.value)}
-                  placeholder={copy.reasoningPlaceholder}
-                  className="focus-ring mt-2 w-full rounded-lg border border-line bg-surface-base p-3 text-sm text-cream-bright"
-                />
-              </div>
-
-              {!result && (
-                <button
-                  type="button"
-                  disabled={choice === null || !reasoning.trim() || submitting}
-                  onClick={handleReveal}
-                  className="focus-ring mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-accent-ink disabled:opacity-50"
-                >
-                  {submitting ? copy.revealingBtn : copy.revealBtn}
-                </button>
+                  {!result && (
+                    <div className="mt-5">
+                      <Action
+                        type="button"
+                        withArrow
+                        disabled={choice === null || !reasoning.trim() || submitting}
+                        onClick={handleReveal}
+                      >
+                        {submitting ? copy.revealingBtn : copy.revealBtn}
+                      </Action>
+                    </div>
+                  )}
+                </Widget>
               )}
-            </Panel>
-          )}
 
-          {result && activeCase && localizedActive && (
-            <Panel className="p-6">
-              <Eyebrow>{copy.outcomeEyebrow}</Eyebrow>
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-xl font-semibold text-cream-bright">{result.reveal.name}</h3>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    result.judgment.choice === result.recommended
-                      ? "bg-ok-soft text-ok"
-                      : "bg-step-soft text-step"
-                  }`}
-                >
-                  {result.judgment.choice === result.recommended
-                    ? copy.alignedBadge
-                    : copy.differsBadge}
-                </span>
-              </div>
+              {result && activeCase && localizedActive && (
+                <Panel variant="raised" className="p-6 sm:p-8">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Eyebrow>{copy.outcomeEyebrow}</Eyebrow>
+                    <Chip>
+                      {result.judgment.choice === result.recommended
+                        ? copy.alignedBadge
+                        : copy.differsBadge}
+                    </Chip>
+                  </div>
 
-              <p className="mt-3 text-sm text-cream-bright">{result.reveal.outcome}</p>
-
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-line bg-surface-base p-4 text-xs">
-                  <p className="font-semibold text-cream-faint">
-                    {copy.yourChoice} ({result.judgment.confidence}%)
+                  <h3 className="mt-2.5 text-xl font-medium tracking-[-0.02em] text-cream-bright">
+                    {result.reveal.name}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-cream-bright">
+                    {result.reveal.outcome}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-cream-bright">
-                    {localizedActive.options[result.judgment.choice]}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-line bg-surface-base p-4 text-xs">
-                  <p className="font-semibold text-accent-text">{copy.recommendedChoice}</p>
-                  <p className="mt-1 text-sm font-medium text-cream-bright">
-                    {localizedActive.options[result.recommended]}
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-4 rounded-lg border border-line bg-surface-base p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-accent-text">
-                  {copy.rationaleHeading}
-                </h4>
-                <p className="mt-1.5 text-sm text-cream-dim">{result.rationale}</p>
-              </div>
+                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                    <Inset className="p-4">
+                      <MonoLabel>
+                        {copy.yourChoice} ({result.judgment.confidence}%)
+                      </MonoLabel>
+                      <p className="mt-2 text-sm font-medium text-cream-bright">
+                        {localizedActive.options[result.judgment.choice]}
+                      </p>
+                    </Inset>
+                    <Inset className="p-4">
+                      <MonoLabel className="text-accent-text">{copy.recommendedChoice}</MonoLabel>
+                      <p className="mt-2 text-sm font-medium text-cream-bright">
+                        {localizedActive.options[result.recommended]}
+                      </p>
+                    </Inset>
+                  </div>
 
-              <p className="mt-4 text-xs text-cream-dim">{result.reflection}</p>
-              <p className="mt-1 text-xs text-cream-faint">{result.presentation}</p>
+                  <Inset className="mt-4 p-4">
+                    <MonoLabel>{copy.rationaleHeading}</MonoLabel>
+                    <p className="mt-2 text-sm leading-relaxed text-cream-dim">
+                      {result.rationale}
+                    </p>
+                  </Inset>
 
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-                <a
-                  href={result.reveal.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="focus-ring text-xs font-medium text-accent-text underline underline-offset-4"
-                >
-                  {copy.sourceLabel}: {result.reveal.source} ↗
-                </a>
-                <button
-                  type="button"
-                  onClick={handleNextCase}
-                  className="focus-ring inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-5 py-2 text-sm font-semibold text-accent-ink"
-                >
-                  {copy.nextCaseBtn}
-                </button>
-              </div>
-            </Panel>
-          )}
-        </div>
-      )}
+                  <p className="mt-4 text-xs text-cream-dim">{result.reflection}</p>
+                  <p className="mt-1 text-xs text-cream-faint">{result.presentation}</p>
+
+                  <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
+                    <a
+                      href={result.reveal.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="focus-ring inline-flex items-center gap-1.5 text-xs font-medium text-accent-text underline underline-offset-4"
+                    >
+                      {copy.sourceLabel}: {result.reveal.source}
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                    </a>
+                    <Action type="button" withArrow onClick={handleNextCase}>
+                      {copy.nextCaseBtn}
+                    </Action>
+                  </div>
+                </Panel>
+              )}
+            </div>
+          </div>
+        )}
+      </PageBody>
     </main>
   );
 }

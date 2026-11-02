@@ -1,6 +1,21 @@
 import { useEffect, useState } from "react";
-import { Eyebrow, Panel } from "@/design-system";
+import { Globe2, GraduationCap, MessagesSquare, RotateCcw, Sparkles, Terminal } from "lucide-react";
+import {
+  Action,
+  Badge,
+  CheckItem,
+  Eyebrow,
+  FadeRise,
+  Field,
+  InterviewerPresence,
+  Meter,
+  Notice,
+  Panel,
+  Waveform,
+} from "@/design-system";
+import { Chip, IconTile, Inset, MonoLabel, Widget } from "@/components/marketing";
 import { useLocale } from "@/hooks/useLocale";
+import { PageBody, PageHeader } from "./AppShell";
 
 export interface ScenarioItem {
   id: string;
@@ -414,140 +429,177 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-6 text-cream-bright sm:p-8">
-      <Eyebrow>{domain === "education" ? copy.eduEyebrow : copy.proEyebrow}</Eyebrow>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-        {domain === "education" ? copy.eduTitle : copy.proTitle}
-      </h1>
-      <p className="mt-3 max-w-3xl text-sm text-cream-dim">
-        {domain === "education" ? copy.eduIntro : copy.proIntro}
-      </p>
+    <main>
+      <PageHeader
+        title={domain === "education" ? copy.eduTitle : copy.proTitle}
+        meta={domain === "education" ? copy.eduIntro : copy.proIntro}
+        actions={
+          <Badge tone="live">
+            <Sparkles className="h-3 w-3" aria-hidden />
+            {domain === "education" ? copy.eduEyebrow : copy.proEyebrow}
+          </Badge>
+        }
+      />
 
-      {error && (
-        <div
-          role="alert"
-          className="mt-4 rounded-card border border-step-border bg-step-soft p-4 text-sm text-cream-bright"
-        >
-          {error}
-        </div>
-      )}
+      <PageBody className="space-y-6 pt-2">
+        {error && <Notice tone="error">{error}</Notice>}
 
-      {loading ? (
-        <p role="status" className="mt-6 text-sm text-cream-dim">
-          {copy.loadingCatalogue}
-        </p>
-      ) : !session ? (
-        <div className="mt-6 space-y-6">
-          {domain === "professional" && (
-            <fieldset className="flex flex-wrap gap-2">
-              <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-cream-faint">
-                {copy.trackLabel}
-              </legend>
-              {(
-                [
-                  ["all", copy.trackAll],
-                  ["tech", copy.trackTech],
-                  ["personal", copy.trackPersonal],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={track === id}
-                  onClick={() => {
-                    setTrack(id);
-                    const nextList = scenarios.filter((s) =>
-                      id === "all" ? true : id === "personal" ? Boolean(s.personal) : !s.personal,
-                    );
-                    if (nextList[0]) setSelectedId(nextList[0].id);
-                  }}
-                  className="focus-ring rounded-full border border-line px-4 py-2 text-xs font-medium text-cream-bright transition-colors aria-pressed:border-accent-border aria-pressed:bg-accent-soft aria-pressed:text-accent-text"
-                >
-                  {label}
-                </button>
-              ))}
-            </fieldset>
-          )}
-
-          <section aria-labelledby="scenario-picker-heading">
-            <h2 id="scenario-picker-heading" className="text-base font-semibold text-cream-bright">
-              {copy.scenarioHeading}
-            </h2>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              {filteredScenarios.map((item) => {
-                const localized = localizeScenario(item);
-                const selected = activeScenario?.id === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => setSelectedId(item.id)}
-                    className="focus-ring flex flex-col justify-between rounded-card border border-line bg-surface-card p-5 text-left transition-colors hover:bg-surface-lift aria-pressed:border-accent-border aria-pressed:bg-surface-lift"
-                  >
-                    <div>
-                      <span className="inline-block rounded-full bg-surface-lift px-2.5 py-0.5 text-xs font-medium text-accent-text">
-                        {item.domain === "education"
-                          ? copy.academicBadge
-                          : item.personal
-                            ? copy.personalBadge
-                            : copy.techBadge}
-                      </span>
-                      <h3 className="mt-2 text-base font-semibold text-cream-bright">
-                        {localized.title}
-                      </h3>
-                      <p className="mt-1.5 text-xs text-cream-dim">{localized.brief}</p>
-                    </div>
-                    <p className="mt-3 text-xs text-cream-faint">
-                      <span className="font-semibold text-cream-dim">{copy.partnerRole}:</span>{" "}
-                      {localized.role}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <Panel className="p-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <fieldset>
-                <legend className="text-sm font-semibold text-cream-bright">
-                  {copy.cultureHeading}
-                </legend>
-                <div className="mt-3 space-y-2">
-                  {cultures.map((cItem) => {
-                    const loc = localizeCulture(cItem);
-                    return (
-                      <label
-                        key={cItem.id}
-                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3 text-xs hover:bg-surface-lift"
+        {loading ? (
+          <Widget label="CATALOGUE" className="p-6">
+            <p role="status" className="text-sm text-cream-dim">
+              {copy.loadingCatalogue}
+            </p>
+          </Widget>
+        ) : !session ? (
+          <div className="grid gap-6 xl:grid-cols-12">
+            {/* Left column: Track filter + Scenario catalogue */}
+            <div className="space-y-5 xl:col-span-8">
+              {domain === "professional" && (
+                <Widget label={copy.trackLabel} className="p-5">
+                  <fieldset className="flex flex-wrap gap-2">
+                    <legend className="sr-only">{copy.trackLabel}</legend>
+                    {(
+                      [
+                        ["all", copy.trackAll],
+                        ["tech", copy.trackTech],
+                        ["personal", copy.trackPersonal],
+                      ] as const
+                    ).map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        aria-pressed={track === id}
+                        onClick={() => {
+                          setTrack(id);
+                          const nextList = scenarios.filter((s) =>
+                            id === "all" ? true : id === "personal" ? Boolean(s.personal) : !s.personal,
+                          );
+                          if (nextList[0]) setSelectedId(nextList[0].id);
+                        }}
+                        className="focus-ring rounded-full border border-line bg-surface-base px-4 py-2 text-sm font-medium text-cream-bright transition-colors hover:border-line-bright aria-pressed:border-accent-border aria-pressed:bg-accent-soft aria-pressed:text-accent-text"
                       >
-                        <input
-                          type="radio"
-                          name="culture-context"
-                          value={cItem.id}
-                          checked={culture === cItem.id}
-                          onChange={() => setCulture(cItem.id)}
-                          className="mt-1"
-                        />
-                        <span>
-                          <strong className="block text-sm font-medium text-cream-bright">
-                            {loc.label}
-                          </strong>
-                          <span className="text-cream-dim">{loc.detail}</span>
-                        </span>
-                      </label>
+                        {label}
+                      </button>
+                    ))}
+                  </fieldset>
+                </Widget>
+              )}
+
+              <section aria-labelledby="scenario-picker-heading" className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <h2 id="scenario-picker-heading" className="text-base font-medium text-cream-bright">
+                    {copy.scenarioHeading}
+                  </h2>
+                  <MonoLabel>{String(filteredScenarios.length).padStart(2, "0")} SCENARIOS</MonoLabel>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  {filteredScenarios.map((item, idx) => {
+                    const localized = localizeScenario(item);
+                    const selected = activeScenario?.id === item.id;
+                    const Icon =
+                      item.domain === "education"
+                        ? GraduationCap
+                        : item.personal
+                          ? Globe2
+                          : Terminal;
+                    const badgeLabel =
+                      item.domain === "education"
+                        ? copy.academicBadge
+                        : item.personal
+                          ? copy.personalBadge
+                          : copy.techBadge;
+                    return (
+                      <FadeRise key={item.id} delay={idx * 0.03}>
+                        <button
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => setSelectedId(item.id)}
+                          className={`focus-ring flex h-full w-full flex-col justify-between rounded-[1.25rem] border p-5 text-left transition-all ${
+                            selected
+                              ? "border-accent-border bg-surface-lift shadow-card"
+                              : "border-line bg-surface-card hover:border-line-bright hover:bg-surface-lift"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2">
+                              <IconTile>
+                                <Icon className="h-4 w-4" aria-hidden />
+                              </IconTile>
+                              <Chip>{badgeLabel}</Chip>
+                            </div>
+                            <h3 className="mt-3 text-base font-medium tracking-[-0.02em] text-cream-bright">
+                              {localized.title}
+                            </h3>
+                            <p className="mt-1.5 text-xs leading-relaxed text-cream-dim">
+                              {localized.brief}
+                            </p>
+                          </div>
+
+                          <Inset className="mt-4 px-3 py-2">
+                            <p className="text-xs text-cream-dim">
+                              <span className="font-medium text-cream-bright">{copy.partnerRole}:</span>{" "}
+                              {localized.role}
+                            </p>
+                          </Inset>
+                        </button>
+                      </FadeRise>
                     );
                   })}
                 </div>
-              </fieldset>
+              </section>
+            </div>
 
-              <div className="flex flex-col justify-between gap-4">
+            {/* Right column: Cultural context + Language + Objective + Start */}
+            <div className="xl:col-span-4">
+              <Widget
+                label="SETUP · LIVE ROLEPLAY"
+                className="sticky top-24 space-y-6 p-6"
+              >
                 <fieldset>
-                  <legend className="text-sm font-semibold text-cream-bright">
+                  <legend className="text-sm font-medium text-cream-bright">
+                    {copy.cultureHeading}
+                  </legend>
+                  <div className="mt-3 space-y-2">
+                    {cultures.map((cItem) => {
+                      const loc = localizeCulture(cItem);
+                      const checked = culture === cItem.id;
+                      return (
+                        <label
+                          key={cItem.id}
+                          className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors ${
+                            checked
+                              ? "border-accent-border bg-accent-soft"
+                              : "border-line bg-surface-base hover:bg-surface-lift"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="culture-context"
+                            value={cItem.id}
+                            checked={checked}
+                            onChange={() => setCulture(cItem.id)}
+                            className="mt-1 text-sm"
+                          />
+                          <span>
+                            <strong className="block text-sm font-medium text-cream-bright">
+                              {loc.label}
+                            </strong>
+                            <span className="mt-0.5 block text-xs leading-relaxed text-cream-dim">
+                              {loc.detail}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="text-sm font-medium text-cream-bright">
                     {copy.languageHeading}
                   </legend>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2.5 flex flex-wrap gap-2">
                     {(
                       [
                         ["es", copy.langEs],
@@ -560,7 +612,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                         type="button"
                         aria-pressed={language === code}
                         onClick={() => setLanguage(code)}
-                        className="focus-ring rounded-full border border-line px-4 py-2 text-xs font-medium aria-pressed:border-accent-border aria-pressed:bg-accent-soft aria-pressed:text-accent-text"
+                        className="focus-ring rounded-full border border-line bg-surface-base px-4 py-1.5 text-sm font-medium text-cream-bright transition-colors aria-pressed:border-accent-border aria-pressed:bg-accent-soft aria-pressed:text-accent-text"
                       >
                         {label}
                       </button>
@@ -569,164 +621,209 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                 </fieldset>
 
                 {activeScenario && (
-                  <div className="rounded-lg border border-line bg-surface-base p-4 text-xs">
-                    <p className="font-semibold text-cream-bright">
+                  <Inset className="p-4">
+                    <MonoLabel>{copy.goal}</MonoLabel>
+                    <p className="mt-1.5 text-sm font-medium text-cream-bright">
                       {localizeScenario(activeScenario).title}
                     </p>
-                    <p className="mt-1 text-cream-dim">
-                      <strong>{copy.goal}:</strong> {localizeScenario(activeScenario).goal}
+                    <p className="mt-1 text-xs leading-relaxed text-cream-dim">
+                      {localizeScenario(activeScenario).goal}
                     </p>
-                  </div>
+                  </Inset>
                 )}
 
-                <button
+                <Action
                   type="button"
+                  withArrow
                   disabled={!activeScenario || busy === "start"}
                   onClick={handleStart}
-                  className="focus-ring inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-accent-ink disabled:opacity-50"
+                  className="w-full justify-center"
                 >
                   {busy === "start" ? copy.startingBtn : copy.startBtn}
-                </button>
-              </div>
+                </Action>
+              </Widget>
             </div>
-          </Panel>
-        </div>
-      ) : (
-        <div className="mt-6 space-y-6">
-          {activeScenario && (
-            <Panel className="p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold text-accent-text">
-                    {copy.turnCount(session.answers, session.maxAnswers)}
-                  </p>
-                  <h2 className="mt-1 text-lg font-semibold text-cream-bright">
-                    {localizeScenario(activeScenario).title}
-                  </h2>
-                  <p className="mt-1 text-xs text-cream-dim">
-                    <strong>{copy.goal}:</strong> {localizeScenario(activeScenario).goal}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSession(null);
-                    setFeedback(null);
-                    setError(null);
-                  }}
-                  className="focus-ring rounded-full border border-line px-4 py-2 text-xs text-cream-dim hover:bg-surface-lift"
-                >
-                  {copy.resetBtn}
-                </button>
-              </div>
-            </Panel>
-          )}
-
-          <div className="space-y-3" aria-live="polite">
-            {session.messages.map((turn, idx) => (
-              <div
-                key={idx}
-                className={`rounded-card border p-4 text-sm ${
-                  turn.role === "assistant"
-                    ? "border-line bg-surface-card text-cream-bright"
-                    : "border-accent-border bg-accent-soft text-cream-bright"
-                }`}
-              >
-                <p className="text-xs font-semibold text-accent-text">
-                  {turn.role === "assistant" ? copy.partnerTag : copy.youTag}
-                </p>
-                <p className="mt-1.5 whitespace-pre-wrap">{turn.text}</p>
-              </div>
-            ))}
           </div>
+        ) : (
+          <div className="space-y-6">
+            {activeScenario && (
+              <Panel variant="raised" className="p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <InterviewerPresence
+                      initials="AI"
+                      speaking={busy === "answer"}
+                      size={52}
+                    />
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Chip>
+                          {copy.turnCount(session.answers, session.maxAnswers)}
+                        </Chip>
+                        <Waveform
+                          active={busy === "answer"}
+                          level={() => (busy === "answer" ? 0.55 : 0.12)}
+                          measured={() => false}
+                          label={copy.partnerTag}
+                          className="h-4 text-accent-text"
+                        />
+                      </div>
+                      <h2 className="mt-1.5 text-lg font-medium text-cream-bright">
+                        {localizeScenario(activeScenario).title}
+                      </h2>
+                      <p className="mt-0.5 text-xs text-cream-dim">
+                        <strong className="text-cream-bright">{copy.goal}:</strong>{" "}
+                        {localizeScenario(activeScenario).goal}
+                      </p>
+                    </div>
+                  </div>
 
-          {!session.complete && (
-            <Panel className="p-5">
-              <label htmlFor="conversation-reply" className="block text-sm font-semibold text-cream-bright">
-                {copy.replyLabel}
-              </label>
-              <textarea
-                id="conversation-reply"
-                rows={3}
-                maxLength={2000}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder={copy.replyPlaceholder}
-                className="focus-ring mt-2 w-full rounded-lg border border-line bg-surface-base p-3 text-sm text-cream-bright"
-              />
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <button
-                  type="button"
-                  disabled={!draft.trim() || busy !== null}
-                  onClick={handleSend}
-                  className="focus-ring inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-5 py-2 text-sm font-semibold text-accent-ink disabled:opacity-50"
+                  <div className="flex items-center gap-4">
+                    <div className="hidden w-36 sm:block">
+                      <Meter
+                        value={Math.round((session.answers / Math.max(1, session.maxAnswers)) * 100)}
+                        label={copy.turnCount(session.answers, session.maxAnswers)}
+                      />
+                    </div>
+                    <Action
+                      type="button"
+                      tone="quiet"
+                      onClick={() => {
+                        setSession(null);
+                        setFeedback(null);
+                        setError(null);
+                      }}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                      {copy.resetBtn}
+                    </Action>
+                  </div>
+                </div>
+              </Panel>
+            )}
+
+            <div className="space-y-3" aria-live="polite">
+              {session.messages.map((turn, idx) => (
+                <Widget
+                  key={idx}
+                  label={`${turn.role === "assistant" ? copy.partnerTag : copy.youTag} · #${String(idx + 1).padStart(2, "0")}`}
+                  className={`p-5 ${
+                    turn.role === "user" ? "border-accent-border bg-accent-soft" : ""
+                  }`}
                 >
-                  {busy === "answer" ? copy.sendingBtn : copy.sendBtn}
-                </button>
-                {session.answers >= 1 && (
-                  <button
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={handleFeedback}
-                    className="focus-ring inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-surface-lift px-5 py-2 text-sm font-medium text-cream-bright disabled:opacity-50"
-                  >
-                    {busy === "feedback" ? copy.feedbackLoading : copy.feedbackBtn}
-                  </button>
-                )}
-              </div>
-            </Panel>
-          )}
-
-          {session.complete && !feedback && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                disabled={busy !== null}
-                onClick={handleFeedback}
-                className="focus-ring inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-5 py-2 text-sm font-semibold text-accent-ink disabled:opacity-50"
-              >
-                {busy === "feedback" ? copy.feedbackLoading : copy.feedbackBtn}
-              </button>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-cream-bright">
+                    {turn.text}
+                  </p>
+                </Widget>
+              ))}
             </div>
-          )}
 
-          {feedback && (
-            <Panel className="p-6">
-              <Eyebrow>{copy.feedbackEyebrow}</Eyebrow>
-              <h3 className="mt-2 text-xl font-semibold text-cream-bright">{copy.feedbackTitle}</h3>
-              <p className="mt-2 text-sm text-cream-dim">{feedback.summary}</p>
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-line bg-surface-base p-4">
-                  <h4 className="text-sm font-semibold text-ok">{copy.strengths}</h4>
-                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-xs text-cream-dim">
-                    {feedback.strengths.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
+            {!session.complete && (
+              <Widget
+                label="RESPONSE"
+                className="p-5 sm:p-6"
+              >
+                <div className="flex items-center gap-2.5">
+                  <IconTile>
+                    <MessagesSquare className="h-3.5 w-3.5" aria-hidden />
+                  </IconTile>
+                  <MonoLabel>{copy.replyLabel}</MonoLabel>
                 </div>
-                <div className="rounded-lg border border-line bg-surface-base p-4">
-                  <h4 className="text-sm font-semibold text-step">{copy.improvements}</h4>
-                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-xs text-cream-dim">
-                    {feedback.improvements.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
+
+                <Field label={copy.replyLabel} htmlFor="conversation-reply">
+                  <textarea
+                    id="conversation-reply"
+                    rows={3}
+                    maxLength={2000}
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder={copy.replyPlaceholder}
+                    className="focus-ring mt-1 w-full rounded-xl border border-line bg-surface-base p-3.5 text-sm text-cream-bright"
+                  />
+                </Field>
+
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <Action
+                    type="button"
+                    withArrow
+                    disabled={!draft.trim() || busy !== null}
+                    onClick={handleSend}
+                  >
+                    {busy === "answer" ? copy.sendingBtn : copy.sendBtn}
+                  </Action>
+                  {session.answers >= 1 && (
+                    <Action
+                      type="button"
+                      tone="quiet"
+                      disabled={busy !== null}
+                      onClick={handleFeedback}
+                    >
+                      {busy === "feedback" ? copy.feedbackLoading : copy.feedbackBtn}
+                    </Action>
+                  )}
                 </div>
+              </Widget>
+            )}
+
+            {session.complete && !feedback && (
+              <div className="flex justify-end">
+                <Action
+                  type="button"
+                  withArrow
+                  disabled={busy !== null}
+                  onClick={handleFeedback}
+                >
+                  {busy === "feedback" ? copy.feedbackLoading : copy.feedbackBtn}
+                </Action>
               </div>
-              <div className="mt-4 rounded-lg border border-line bg-surface-base p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-accent-text">
-                  {copy.suggestedReply}
-                </h4>
-                <p className="mt-1.5 text-sm text-cream-bright">{feedback.suggestedReply}</p>
-              </div>
-              <p className="mt-4 text-xs text-cream-dim">
-                <strong className="text-cream-bright">{copy.nextPractice}:</strong>{" "}
-                {feedback.nextPractice}
-              </p>
-            </Panel>
-          )}
-        </div>
-      )}
+            )}
+
+            {feedback && (
+              <Widget
+                label="COACHING REPORT"
+                className="p-6 sm:p-7"
+              >
+                <Eyebrow>{copy.feedbackEyebrow}</Eyebrow>
+                <h3 className="mt-2 text-xl font-medium tracking-[-0.02em] text-cream-bright">
+                  {copy.feedbackTitle}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-cream-dim">{feedback.summary}</p>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <Inset className="p-4">
+                    <MonoLabel className="text-ok">{copy.strengths}</MonoLabel>
+                    <ul className="mt-3 space-y-2">
+                      {feedback.strengths.map((item, i) => (
+                        <CheckItem key={i}>{item}</CheckItem>
+                      ))}
+                    </ul>
+                  </Inset>
+                  <Inset className="p-4">
+                    <MonoLabel className="text-step">{copy.improvements}</MonoLabel>
+                    <ul className="mt-3 space-y-2">
+                      {feedback.improvements.map((item, i) => (
+                        <CheckItem key={i}>{item}</CheckItem>
+                      ))}
+                    </ul>
+                  </Inset>
+                </div>
+
+                <Inset className="mt-4 p-4">
+                  <MonoLabel>{copy.suggestedReply}</MonoLabel>
+                  <p className="mt-2 text-sm leading-relaxed text-cream-bright">
+                    {feedback.suggestedReply}
+                  </p>
+                </Inset>
+
+                <p className="mt-4 text-xs text-cream-dim">
+                  <strong className="text-cream-bright">{copy.nextPractice}:</strong>{" "}
+                  {feedback.nextPractice}
+                </p>
+              </Widget>
+            )}
+          </div>
+        )}
+      </PageBody>
     </main>
   );
 }
