@@ -879,7 +879,7 @@ export function LiveInterview() {
               <div className="hidden sm:block">
                 <div className="flex items-start justify-between gap-3">
                   <p
-                    className="min-h-[3.5rem] flex-1 text-[clamp(1rem,1.6vw,1.5rem)] leading-snug text-cream-bright"
+                    className="min-h-[3.5rem] flex-1 text-lg leading-snug text-cream-bright"
                     aria-live="polite"
                     aria-busy={busy}
                   >
@@ -1055,6 +1055,8 @@ function CoachPanel({
   answered: boolean;
 }) {
   const t = useT();
+  // Before the first answer there is nothing to read: no placeholder panel.
+  if (!working && !answered && tips.length === 0) return null;
   return (
     <aside
       aria-label={t("coach.label")}
@@ -1076,12 +1078,6 @@ function CoachPanel({
           // answer look like a broken feature.
           <p className="text-sm text-cream-dim">
             {t("coach.nothing")}
-          </p>
-        )}
-
-        {!working && tips.length === 0 && !answered && (
-          <p className="text-sm text-cream-faint">
-            {t("coach.intro")}
           </p>
         )}
 

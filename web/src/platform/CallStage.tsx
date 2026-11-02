@@ -300,7 +300,7 @@ export function CallStage({
 
       {/* Subtitles on mobile inside the stage container */}
       {turnText && (
-        <div className="absolute inset-x-3 bottom-3 z-10 max-h-40 overflow-y-auto rounded-2xl bg-black/60 p-3 ring-1 ring-white/10 backdrop-blur-xl sm:hidden">
+        <div className="absolute inset-x-3 bottom-3 z-10 max-h-28 overflow-y-auto rounded-2xl bg-black/60 p-3 ring-1 ring-white/10 backdrop-blur-xl sm:hidden">
           <p className="text-xs leading-relaxed text-cream-bright" aria-live="polite">
             {turnText}
           </p>
