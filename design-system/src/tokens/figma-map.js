@@ -91,9 +91,13 @@ export const RADII = [
   { figma: "radius/pill", px: 9999, tailwind: "rounded-full" },
 ];
 
-/** Tailwind's default spacing steps the product uses, named by pixels in Figma. */
+/**
+ * Tailwind's default spacing steps the product uses, named by pixels in Figma.
+ * 6 and 10 are here because components use them (Action's py-2.5, CheckItem's
+ * gap-2.5, PageHeader's mt-1.5); the Figma audit flags any other value.
+ */
 export const SPACING = [
-  ["0.5", 2], ["1", 4], ["2", 8], ["3", 12], ["4", 16], ["5", 20], ["6", 24],
+  ["0.5", 2], ["1", 4], ["1.5", 6], ["2", 8], ["2.5", 10], ["3", 12], ["4", 16], ["5", 20], ["6", 24],
   ["8", 32], ["10", 40], ["12", 48], ["16", 64], ["20", 80],
 ].map(([step, px]) => ({ figma: `space/${px}`, px, tailwind: `p-${step} / gap-${step}` }));
 
@@ -106,11 +110,21 @@ export const SPACING = [
 export const TEXT_STYLES = [
   { figma: "Display", preset: "display", family: "sans", tailwind: "text-display" },
   { figma: "Headline", preset: "headline", family: "sans", tailwind: "text-headline" },
-  { figma: "Page title", px: 40, lineHeight: "1.1", letterSpacing: "-0.028em", weight: 700, family: "sans", tailwind: "text-[2.5rem] font-bold" },
+  // PageHeader's h1: text-[2rem] (text-xl when compact) on a phone, sm:text-[2.5rem] above.
+  { figma: "Desktop/Page title", px: 40, lineHeight: "1.1", letterSpacing: "-0.028em", weight: 700, family: "sans", tailwind: "sm:text-[2.5rem] font-bold" },
+  { figma: "Mobile/Page title", px: 32, lineHeight: "1.1", letterSpacing: "-0.028em", weight: 700, family: "sans", tailwind: "text-[2rem] font-bold" },
+  { figma: "Mobile/Page title compact", px: 20, lineHeight: "1.1", letterSpacing: "-0.028em", weight: 700, family: "sans", tailwind: "text-xl font-bold" },
   { figma: "Title", preset: "title", weight: 600, family: "sans", tailwind: "text-title font-semibold" },
   { figma: "Body L", preset: "base", weight: 400, family: "sans", tailwind: "text-base" },
   { figma: "Body", preset: "sm", weight: 400, family: "sans", tailwind: "text-sm" },
   { figma: "Small", preset: "xs", weight: 400, family: "sans", tailwind: "text-xs" },
+  // The weights components set at the call site, named so Figma text can use a
+  // style instead of loose values: Action's label, Eyebrow, Badge.
+  { figma: "Button", preset: "sm", weight: 600, letterSpacing: "-0.01em", family: "sans", tailwind: "text-sm font-semibold tracking-[-0.01em]" },
+  { figma: "Body strong", preset: "sm", weight: 600, family: "sans", tailwind: "text-sm font-semibold" },
+  { figma: "Small strong", preset: "xs", weight: 500, family: "sans", tailwind: "text-xs font-medium" },
+  // The lockup's name at the product's usual size (Wordmark className="text-xl font-semibold").
+  { figma: "Wordmark", px: 20, lineHeight: "1.4", letterSpacing: "-0.03em", weight: 600, family: "sans", tailwind: "text-xl font-semibold tracking-[-0.03em]" },
   { figma: "Label", preset: "xs", weight: 500, letterSpacing: "0.06em", uppercase: true, family: "mono", tailwind: "font-mono text-xs uppercase tracking-[0.06em]" },
 ];
 
@@ -120,24 +134,32 @@ export const TEXT_STYLES = [
  * reason it is not drawn there. A new folder fails the tests until it has an
  * entry, so the library cannot quietly fall behind the package.
  *
- * Figma component properties mirror the contract's `designTool.canvasProps`;
- * the node's description carries the import and the contract's path.
+ * Figma component properties mirror the contract's `designTool.canvasProps`.
+ * `aliases` are the other names people and agents search for; they end up in
+ * the component's description, written by scripts/build-figma-docs.ts from
+ * the contract (summary, usage) so the Figma text cannot drift from the code.
  */
 export const COMPONENTS = {
-  Action: { figma: "14:103", properties: ["Label", "With arrow", "Icon", "Tone", "State"] },
-  Badge: { figma: "14:109", properties: ["Label", "Tone"] },
-  CheckItem: { figma: "14:110", properties: ["Label"] },
-  Eyebrow: { figma: "14:115", properties: ["Label"] },
-  Panel: { figma: "15:54", properties: ["Content", "Variant"] },
-  PremiumMark: { figma: "14:117", properties: [] },
-  PageHeader: { figma: "15:91", properties: ["Title", "Meta", "Show meta", "Show actions", "Size", "Compact"] },
-  Backdrop: { figma: null, reason: "Animated CSS light behind a hero; it has no static form worth a component." },
-  Mascot: { figma: "17:133", properties: ["Level"] },
-  ShimmerText: { figma: null, reason: "An animation on a word; in Figma it is the word." },
-  Section: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
-  PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
-  Mark: { figma: "17:112", properties: [] },
-  Wordmark: { figma: "17:113", properties: ["Mark"] },
+  Action: { figma: "14:103", properties: ["Label", "With arrow", "Icon", "Tone", "State"], preferred: { Icon: ["icon/arrow-right", "icon/arrow-up-right", "icon/download", "icon/upload", "icon/send", "icon/mic", "icon/play", "icon/plus", "icon/rotate-ccw"] }, aliases: ["button", "botón", "CTA", "call to action", "primary button", "secondary button", "ghost button", "link button"] },
+  Badge: { figma: "14:109", properties: ["Label", "Tone"], aliases: ["tag", "chip", "pill", "status", "estado", "etiqueta", "live indicator"] },
+  CheckItem: { figma: "14:110", properties: ["Label"], aliases: ["checklist item", "feature list item", "benefit row", "bullet", "ítem con check", "lista de beneficios"] },
+  Eyebrow: { figma: "14:115", properties: ["Label"], aliases: ["kicker", "overline", "pre-title", "section label", "antetítulo"] },
+  Panel: {
+    figma: "15:54",
+    properties: ["Content", "Variant"],
+    slot: { Content: "Whatever the card holds, padded by its own content (the Panel adds none). Usually an Eyebrow, a title in Title, CheckItems and one row of Actions." },
+    preferred: { Content: ["Eyebrow", "CheckItem", "Action", "Badge", "Pack Sustentación_example"] },
+    aliases: ["card", "tarjeta", "surface", "container", "box", "sheet", "tile"],
+  },
+  PremiumMark: { figma: "14:117", properties: [], aliases: ["premium badge", "crown", "pro badge", "paid indicator", "corona", "insignia premium"] },
+  PageHeader: { figma: "15:91", properties: ["Title", "Meta", "Show meta", "Show actions", "Size", "Compact"], aliases: ["page title", "screen header", "title bar", "h1", "encabezado de página"] },
+  Backdrop: { figma: null, reason: "Animated CSS light behind a hero; it has no static form worth a component.", aliases: ["hero background", "gradient", "glow", "fondo animado"] },
+  Mascot: { figma: "17:133", properties: ["Level"], aliases: ["Mocki", "avatar", "character", "mascota", "loro", "parrot", "level avatar"] },
+  ShimmerText: { figma: null, reason: "An animation on a word; in Figma it is the word.", aliases: ["shimmer", "shine", "sparkle text", "texto brillante"] },
+  Section: { figma: null, reason: "Page rhythm and gutters, not a drawable surface.", aliases: ["band", "page section", "sección", "wrapper"] },
+  PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface.", aliases: ["page container", "layout", "content area", "contenedor"] },
+  Mark: { figma: "17:112", properties: [], aliases: ["logo", "isologo", "app icon", "favicon", "logotipo"] },
+  Wordmark: { figma: "17:113", properties: ["Mark"], aliases: ["logo", "lockup", "brand", "logotype", "marca", "logotipo con nombre"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
