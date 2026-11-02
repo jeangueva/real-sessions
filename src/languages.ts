@@ -22,7 +22,7 @@
  * rather than discovered.
  */
 
-export type LanguageId = "en" | "es" | "pt";
+export type LanguageId = "en" | "es" | "fr" | "pt";
 
 export interface Language {
   id: LanguageId;
@@ -64,6 +64,15 @@ export const LANGUAGES: Language[] = [
     sttModel: "nova-2",
     auraSuffix: "es",
     bcp47: "es-419",
+  },
+  {
+    id: "fr",
+    label: "Français",
+    promptLabel: "French",
+    stt: "fr",
+    sttModel: "nova-2",
+    auraSuffix: "fr",
+    bcp47: "fr-FR",
   },
   {
     id: "pt",
@@ -111,6 +120,18 @@ const SPANISH_VOICES: Record<string, string> = {
 };
 
 /**
+ * The French voice each interviewer speaks with via Deepgram Aura-2.
+ */
+const FRENCH_VOICES: Record<string, string> = {
+  measured: "aura-2-ector-fr",
+  skeptic: "aura-2-agathe-fr",
+  rapid: "aura-2-agathe-fr",
+  warm: "aura-2-agathe-fr",
+  systems: "aura-2-ector-fr",
+  founder: "aura-2-agathe-fr",
+};
+
+/**
  * The thesis jury's voices in Spanish, by country, from the voices Aura has.
  *
  * Neutral Latin American men rather than the interviews' Mexican ones — a
@@ -140,5 +161,6 @@ export function voiceFor(
 ): string | null {
   if (language.auraSuffix === "en") return englishVoice;
   if (language.auraSuffix === "es") return SPANISH_VOICES[personaId] ?? "aura-2-celeste-es";
+  if (language.auraSuffix === "fr") return FRENCH_VOICES[personaId] ?? "aura-2-agathe-fr";
   return null;
 }

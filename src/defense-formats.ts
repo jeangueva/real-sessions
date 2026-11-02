@@ -12,7 +12,7 @@
  * What changes is who they are called and how they speak.
  */
 
-export type CountryCode = "PE" | "BR" | "CO" | "CL" | "AR" | "EC" | "BO" | "UY" | "PA" | "INT";
+export type CountryCode = "PE" | "BR" | "CO" | "CL" | "AR" | "EC" | "BO" | "UY" | "PA" | "INT" | "FR";
 
 export interface Juror {
   name: string;
@@ -25,7 +25,7 @@ export interface Juror {
 export interface DefenseFormat {
   country: CountryCode;
   countryName: string;
-  language: "es" | "pt" | "en";
+  language: "es" | "pt" | "en" | "fr";
   /** What the event is called there. */
   eventName: string;
   /** How the panel addresses the student. */
@@ -217,13 +217,31 @@ export const FORMATS: Record<CountryCode, DefenseFormat> = {
     scale: { min: 0, max: 100, pass: 60, decimals: false },
     verdicts: { unanimous: "Pass", majority: "Pass with corrections", failed: "Major revisions required" },
   },
+  FR: {
+    country: "FR",
+    countryName: "International (Français)",
+    language: "fr",
+    eventName: "soutenance de mémoire ou de thèse",
+    address: "le candidat ou la candidate, ou par son nom",
+    jurors: {
+      presidente: { name: "Prof. Laurent", role: "Président du jury", focus: CHAIR_FOCUS },
+      metodologo: { name: "Pre. Moreau", role: "Membre méthodologue", focus: METHOD_FOCUS },
+      especialista: { name: "Prof. Dubois", role: "Examinateur spécialiste", focus: SPECIALIST_FOCUS },
+    },
+    vocabulary: "soutenance, jury, problématique, cadre théorique, hypothèse, échantillon, résultats, mention",
+    scale: { min: 0, max: 20, pass: 10, decimals: true },
+    verdicts: { unanimous: "Admis avec félicitations", majority: "Admis", failed: "Ajourné" },
+  },
 };
 
 export function findFormat(country: unknown, fallbackLanguage?: string): DefenseFormat {
   if (typeof country === "string" && country.toUpperCase() in FORMATS) {
     return FORMATS[country.toUpperCase() as CountryCode];
   }
-  return fallbackLanguage === "pt" ? FORMATS.BR : FORMATS.PE;
+  if (fallbackLanguage === "pt") return FORMATS.BR;
+  if (fallbackLanguage === "en") return FORMATS.INT;
+  if (fallbackLanguage === "fr") return FORMATS.FR;
+  return FORMATS.PE;
 }
 
 /** The verdict that follows from three grades, in the format's own words. */

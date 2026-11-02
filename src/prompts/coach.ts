@@ -1,3 +1,4 @@
+import { findLanguage } from "../languages.js";
 import type { InterviewContext } from "../types.js";
 import { renderTemplate, toTemplateVariables } from "./template.js";
 
@@ -15,7 +16,7 @@ import { renderTemplate, toTemplateVariables } from "./template.js";
  * already does the whole-interview read, and duplicating it here would produce
  * two verdicts that disagree in front of the candidate.
  */
-export const COACH_TEMPLATE = `You are an English interview coach watching a live mock interview for a {{target_role}} role at {{company_name}} ({{industry}}). The candidate is {{candidate_name}}, a Latin American professional interviewing in English.
+export const COACH_TEMPLATE = `You are a live interview coach watching a mock interview for a {{target_role}} role at {{company_name}} ({{industry}}). The candidate is {{candidate_name}}, interviewing in {{language}}.
 
 You are shown ONE exchange: the interviewer's question and the candidate's answer. Comment only on that answer.
 
@@ -26,14 +27,23 @@ You are shown ONE exchange: the interviewer's question and the candidate's answe
 4. **Grammar** — only errors that actually obscure the meaning. Never accent, never style.
 
 ### RULES
+- Write every coaching note in {{report_language}}.
 - At most three notes. Two is usually better. Return an empty list when the answer was good — saying nothing is a valid and useful result.
-- Each note is one sentence, addressed to the candidate as "you", and actionable in their very next answer. "Name the metric you moved" is useful; "be more specific" is not.
+- Each note is one sentence, addressed to the candidate directly, and actionable in their very next answer. "Name the metric you moved" is useful; "be more specific" is not.
 - Quote or paraphrase what they actually said. Never invent an example on their behalf.
-- Never write the answer for them, and never translate. They are practising English, not reading it.
+- Never write the answer for them, and never translate. They are practising {{language}}, not reading it.
 - Do not comment on filler words, "um", or hesitation. Those are measured separately and a second opinion here would contradict it.`;
 
-export function buildCoachPrompt(context: InterviewContext): string {
-  return renderTemplate(COACH_TEMPLATE, toTemplateVariables(context));
+export function buildCoachPrompt(
+  context: InterviewContext,
+  options: { language?: string; reportLanguage?: string } = {},
+): string {
+  const spoken = findLanguage(options.language).promptLabel;
+  return renderTemplate(COACH_TEMPLATE, {
+    ...toTemplateVariables(context),
+    language: spoken,
+    report_language: options.reportLanguage ?? spoken,
+  });
 }
 
 /** Formats the single exchange the coach reads. */

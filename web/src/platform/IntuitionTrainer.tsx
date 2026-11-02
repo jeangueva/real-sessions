@@ -98,6 +98,120 @@ const CASE_ES: Record<string, { title: string; prompt: string; options: [string,
   },
 };
 
+const CASE_FR: Record<string, { title: string; prompt: string; options: [string, string, string] }> = {
+  "case-a": {
+    title: "Activité automatisée inattendue après un déploiement",
+    prompt: "Un système automatisé de transactions vient de recevoir une mise à jour logicielle. Des alertes apparaissent avant l'ouverture et une activité inattendue commence. Que priorisez-vous en premier ?",
+    options: [
+      "Contenir immédiatement l'activité et vérifier la cohérence des versions déployées",
+      "Attendre quelques minutes pour voir si le volume se stabilise seul",
+      "Augmenter la capacité de traitement pour vider la file plus vite",
+    ],
+  },
+  "case-b": {
+    title: "Reprise après une coupure réseau",
+    prompt: "Un service a subi une brève coupure réseau et les états des bases de données ont divergé. Vous pouvez restaurer la disponibilité rapidement en acceptant d'éventuelles incohérences ou suspendre les écritures pendant la réconciliation. Quelle approche choisissez-vous ?",
+    options: [
+      "Reprendre immédiatement toutes les écritures",
+      "Prioriser l'intégrité des données et communiquer une reprise plus graduelle",
+      "Supposer que la reconnexion automatique a réparé la divergence",
+    ],
+  },
+  "case-c": {
+    title: "Décalage entre deux équipes sur une interface critique",
+    prompt: "Deux équipes échangent des données numériques pour guider un véhicule à distance. La trajectoire observée diffère de la prédiction. Quelle hypothèse testez-vous d'abord sur l'interface ?",
+    options: [
+      "Les mesures doivent être du bruit aléatoire",
+      "Le véhicule a une défaillance mécanique interne",
+      "Le producteur et le consommateur de la donnée interprètent les unités différemment",
+    ],
+  },
+  "case-d": {
+    title: "Friction d'inscription avant le paiement",
+    prompt: "De nombreux acheteurs abandonnent leur panier juste après avoir cliqué sur le bouton de paiement, où on leur demande de s'inscrire ou de se connecter avant de finaliser l'achat. Quelle hypothèse produit testez-vous en premier ?",
+    options: [
+      "Remplacer l'inscription obligatoire avant paiement par un achat invité et une création de compte optionnelle après paiement",
+      "Ajouter davantage d'indications de validation du mot de passe sur le formulaire",
+      "Envoyer un e-mail de réduction 24 heures après l'abandon",
+    ],
+  },
+  "case-e": {
+    title: "Trop de fonctionnalités face au seul flux à forte traction",
+    prompt: "Votre application mobile inclut des badges ludiques, des projets de groupe et le partage de photos, mais la rétention stagne et seule une fonctionnalité — le partage de photos avec filtres — montre une traction organique nette. Comment allouez-vous le prochain cycle produit ?",
+    options: [
+      "Construire davantage de récompenses sociales pour relancer les fonctionnalités en retard",
+      "Recentrer le produit sur l'unique flux photo à fort signal et retirer le reste",
+      "Conserver toutes les fonctionnalités et refondre la barre de navigation",
+    ],
+  },
+  "case-f": {
+    title: "Fort trafic et peu de réservations sur une place de marché",
+    prompt: "Les annonces d'hébergement dans une grande ville reçoivent des visites, mais les réservations restent faibles. En examinant les annonces, les photos sont sombres et prises avec des téléphones basse résolution. Que priorisez-vous cette semaine ?",
+    options: [
+      "Réécrire l'algorithme de classement de recherche",
+      "Tester des photos haute qualité sur un échantillon d'annonces pour vérifier si la confiance visuelle est le goulot d'étranglement",
+      "Réduire la commission de la plateforme de 2 %",
+    ],
+  },
+};
+
+const CASE_PT: Record<string, { title: string; prompt: string; options: [string, string, string] }> = {
+  "case-a": {
+    title: "Atividade automatizada inesperada após um deploy",
+    prompt: "Um sistema automatizado de transações acabou de receber uma atualização de software. Alertas aparecem antes da abertura e começa uma atividade inesperada. O que você prioriza primeiro?",
+    options: [
+      "Conter a atividade imediatamente e verificar a consistência das versões implantadas",
+      "Aguardar alguns minutos para observar se o volume se estabiliza sozinho",
+      "Aumentar a capacidade de processamento para esvaziar a fila mais rápido",
+    ],
+  },
+  "case-b": {
+    title: "Recuperação após uma interrupção de rede",
+    prompt: "Um serviço sofreu uma breve queda de rede e os estados dos bancos de dados divergiram. Você pode restaurar a disponibilidade rápido aceitando possíveis inconsistências ou pausar escritas enquanto reconcilia os dados. Qual abordagem escolhe?",
+    options: [
+      "Retomar todas as escritas imediatamente",
+      "Priorizar a integridade dos dados e comunicar uma recuperação mais gradual",
+      "Assumir que a reconexão automática reparou a divergência",
+    ],
+  },
+  "case-c": {
+    title: "Desalinhamento entre duas equipes em uma interface crítica",
+    prompt: "Duas equipes trocam dados numéricos para guiar um veículo remoto. A trajetória observada difere da previsão. Qual hipótese você testa primeiro na interface?",
+    options: [
+      "As medições devem ser ruído aleatório",
+      "O veículo tem uma falha mecânica interna",
+      "Quem produz o dado e quem o consome estão interpretando as unidades de forma diferente",
+    ],
+  },
+  "case-d": {
+    title: "Fricção no cadastro antes do pagamento",
+    prompt: "Muitos compradores abandonam o carrinho logo após clicar no botão de pagamento, onde são solicitados a criar conta ou entrar antes de concluir a compra. Qual hipótese de produto você testa primeiro?",
+    options: [
+      "Substituir o cadastro obrigatório antes do pagamento por compra como convidado e criação opcional de conta ao finalizar",
+      "Adicionar mais dicas de validação de senha no formulário de cadastro",
+      "Enviar um e-mail com desconto 24 horas após o abandono",
+    ],
+  },
+  "case-e": {
+    title: "Excesso de funcionalidades diante do fluxo com tração real",
+    prompt: "Seu aplicativo móvel inclui medalhas de jogo, planos em grupo e publicação de fotos, mas a retenção está estagnada e apenas uma função — compartilhar fotos com filtros — mostra tração orgânica clara. Como você aloca o próximo ciclo de produto?",
+    options: [
+      "Construir mais recompensas sociais para levantar as funções atrasadas",
+      "Refocar o produto no único fluxo de fotos com sinal forte e cortar o restante",
+      "Manter todas as funções e redesenhar a barra de navegação",
+    ],
+  },
+  "case-f": {
+    title: "Alto tráfego e poucas reservas em um marketplace",
+    prompt: "Os anúncios de hospedagem em uma cidade principal recebem visitas, mas as reservas continuam baixas. Ao revisar as publicações, as fotos são escuras e tiradas com celulares de baixa resolução. O que você prioriza nesta semana?",
+    options: [
+      "Reescrever o algoritmo de ordenação da busca",
+      "Testar fotografia de alta qualidade em uma amostra de anúncios para verificar se a confiança visual é o gargalo",
+      "Reduzir a comissão da plataforma em 2%",
+    ],
+  },
+};
+
 const COPY = {
   en: {
     eyebrow: "Professional · Product, Design & Systems Intuition",
@@ -177,12 +291,37 @@ const COPY = {
     nextCaseBtn: "Praticar próximo caso",
     loadingCases: "Carregando casos de intuição…",
   },
+  fr: {
+    eyebrow: "Professionnel · Intuition Produit, Design & Systèmes",
+    title: "Entraîneur d'intuition produit et design avec retour du réel",
+    intro: "Engagez votre décision de priorisation, de compromis ou d'hypothèse, indiquez votre niveau de confiance et expliquez votre raisonnement avant de révéler ce qui s'est réellement passé dans le cas historique documenté.",
+    filterLabel: "Type de décision",
+    filterAll: "Tous les cas",
+    prioritization: "Priorisation",
+    tradeoffs: "Compromis",
+    hypotheses: "Hypothèses",
+    stepCommit: "1. Engagez votre jugement avant la révélation",
+    optionsLegend: "Choisissez votre plan d'action",
+    confidenceLabel: "Niveau de confiance dans cette décision",
+    reasoningLabel: "Pourquoi cette option ? Quel signal compte le plus et quelle hypothèse pourrait échouer ?",
+    reasoningPlaceholder: "Décrivez le signal principal sur lequel vous vous appuyez et quelle preuve vous ferait changer d'avis…",
+    revealBtn: "Valider le jugement et révéler le cas réel",
+    revealingBtn: "Révélation du cas documenté…",
+    outcomeEyebrow: "Issue historique documentée",
+    yourChoice: "Votre choix engagé",
+    recommendedChoice: "Approche recommandée",
+    alignedBadge: "Aligné avec l'enseignement documenté",
+    differsBadge: "Différent de l'approche recommandée",
+    rationaleHeading: "Pourquoi cette approche tient la route",
+    sourceLabel: "Lire la source primaire",
+    nextCaseBtn: "Pratiquer le cas suivant",
+    loadingCases: "Chargement des cas d'intuition…",
+  },
 } as const;
 
 export function IntuitionTrainer() {
   const { locale } = useLocale();
-  const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : COPY.en;
-  const isEs = locale === "es";
+  const copy = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : locale === "fr" ? COPY.fr : COPY.en;
 
   const [cases, setCases] = useState<IntuitionCaseItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,7 +364,9 @@ export function IntuitionTrainer() {
     filteredCases.find((c) => c.id === selectedId) ?? filteredCases[0] ?? cases[0] ?? null;
 
   function localizeCase(item: IntuitionCaseItem) {
-    if (isEs && CASE_ES[item.id]) return CASE_ES[item.id]!;
+    if (locale === "es" && CASE_ES[item.id]) return CASE_ES[item.id]!;
+    if (locale === "fr" && CASE_FR[item.id]) return CASE_FR[item.id]!;
+    if (locale === "pt" && CASE_PT[item.id]) return CASE_PT[item.id]!;
     return item;
   }
 

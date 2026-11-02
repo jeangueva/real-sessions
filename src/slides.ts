@@ -87,7 +87,13 @@ const THESIS_SCRIPT_SCHEMA = z.object({
 });
 
 export function languageName(thesis: ThesisAnalysis): string {
-  return thesis.language === "pt" ? "Brazilian Portuguese" : thesis.language === "en" ? "English" : "Spanish";
+  return thesis.language === "pt"
+    ? "Brazilian Portuguese"
+    : thesis.language === "en"
+      ? "English"
+      : thesis.language === "fr"
+        ? "French"
+        : "Spanish";
 }
 
 export function thesisNotesFor(thesis: ThesisAnalysis): string {

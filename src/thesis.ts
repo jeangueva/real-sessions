@@ -179,7 +179,7 @@ export const ThesisAnalysisSchema = z.object({
    * by careers-pe.ts to seat the discipline's jury.
    */
   career: z.string().nullable().default(null),
-  language: z.enum(["es", "pt", "en"]),
+  language: z.enum(["es", "pt", "en", "fr"]),
   summary: z.string(),
   ficha: z.object({
     problem: Cited,

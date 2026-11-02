@@ -4699,7 +4699,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       stored.context,
       questionTurn.text,
       answerTurn.text,
-      PROVIDER ? { provider: PROVIDER } : {},
+      {
+        ...(PROVIDER ? { provider: PROVIDER } : {}),
+        ...(stored.language ? { language: stored.language } : {}),
+      },
     );
     json(res, 200, { tips });
     return;
