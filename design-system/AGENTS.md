@@ -58,9 +58,9 @@ all five files exist and `src/index.ts` exports the folder.
    (`web/src/lib/thesis-copy.ts`, `web/src/lib/i18n.ts`), never invented:
    "Ensayar mi sustentación", "Sube tu tesis", "Ver planes", "Ahora no".
 6. **Generated files are generated.** Do not edit `src/tokens/tokens.json`,
-   `src/tokens/theme.css` or `registry.json`. Edit `src/tokens/tokens.css`
-   or the preset and run `npm run tokens`; change components and run
-   `npm run registry`.
+   `src/tokens/theme.css`, `src/tokens/figma.json` or `registry.json`. Edit
+   `src/tokens/tokens.css`, the preset or `src/tokens/figma-map.js` and run
+   `npm run tokens`; change components and run `npm run registry`.
 7. **Run `npm run check` before you finish.** It checks generated files,
    types, contracts, previews (rendered and run through axe) and tokens. Do
    not report work as done while it fails.
@@ -107,6 +107,15 @@ export function PackSustentacion() {
 }
 ```
 
+## The Figma library
+
+Figma follows the code. `src/tokens/figma-map.js` pairs each Figma variable
+with a CSS variable; `npm run tokens` resolves it into `src/tokens/figma.json`.
+With the Figma MCP, measure drift before and after any change and push only
+what the code already says. Drift that starts in Figma is a designer's
+proposal: bring it to the code in a PR, never overwrite it silently. The full
+procedure is in `docs/guides/figma.md`.
+
 ## Adding or changing a component
 
 1. Create or edit the five files (see above, and `docs/guides/contributing.md`).
@@ -121,6 +130,8 @@ export function PackSustentacion() {
 | --- | --- |
 | `npm run dev` | The documentation site, with hot reload |
 | `npm run check` | Everything CI runs |
-| `npm run tokens` | Regenerates `tokens.json` and `theme.css` |
+| `npm run tokens` | Regenerates `tokens.json`, `theme.css` and `figma.json` |
 | `npm run registry` | Regenerates `registry.json` |
+| `npm run figma:drift` | Prints the read-only script that compares the Figma library with the code (`docs/guides/figma.md`) |
+| `npm run figma:push` | Prints the script that makes the Figma library match the code |
 | `npm run build` | The static site, in `dist/` |
