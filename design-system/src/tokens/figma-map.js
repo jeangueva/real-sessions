@@ -168,6 +168,12 @@ export const COMPONENTS = {
   DisclosureMark: { figma: "29:336", properties: ["Label", "Open label", "Kind", "Open"], aliases: ["chevron", "expand", "accordion toggle", "disclosure", "ver más", "desplegable"] },
   Meter: { figma: "29:354", properties: ["Label", "Value", "Fill"], aliases: ["progress bar", "gauge", "score bar", "barra de progreso", "medidor"] },
   MonoLabel: { figma: "29:320", properties: ["Label"], aliases: ["card label", "overline", "instrument label", "caption", "etiqueta mono", "::LABEL"] },
+  ScoreRing: { figma: null, reason: "Batch 2: being drawn.", aliases: ["score", "ring", "donut", "progress ring", "nota", "puntaje", "anillo"] },
+  Tag: { figma: null, reason: "Batch 2: being drawn.", aliases: ["severity", "verdict", "status chip", "risk label", "gravedad", "etiqueta de riesgo"] },
+  Widget: { figma: null, reason: "Batch 2: being drawn.", aliases: ["card", "widget", "instrument card", "tarjeta", "panel del landing"] },
+  Inset: { figma: null, reason: "Batch 2: being drawn.", aliases: ["well", "inset panel", "nested box", "recuadro", "panel interior"] },
+  IconTile: { figma: null, reason: "Batch 2: being drawn.", aliases: ["icon tile", "icon box", "number tile", "avatar tile", "cuadro de icono"] },
+  Chip: { figma: null, reason: "Batch 2: being drawn.", aliases: ["chip", "fact chip", "pill label", "etiqueta", "dato"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */

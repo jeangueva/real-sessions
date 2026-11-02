@@ -832,6 +832,36 @@
       "properties": [
         "Label"
       ]
+    },
+    {
+      "name": "ScoreRing",
+      "node": null,
+      "reason": "Batch 2: being drawn."
+    },
+    {
+      "name": "Tag",
+      "node": null,
+      "reason": "Batch 2: being drawn."
+    },
+    {
+      "name": "Widget",
+      "node": null,
+      "reason": "Batch 2: being drawn."
+    },
+    {
+      "name": "Inset",
+      "node": null,
+      "reason": "Batch 2: being drawn."
+    },
+    {
+      "name": "IconTile",
+      "node": null,
+      "reason": "Batch 2: being drawn."
+    },
+    {
+      "name": "Chip",
+      "node": null,
+      "reason": "Batch 2: being drawn."
     }
   ],
   "effectStyles": [
