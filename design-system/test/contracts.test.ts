@@ -160,3 +160,31 @@ describe("the Figma library", () => {
     }
   });
 });
+
+// The brand art is the one place the system keeps literals instead of tokens,
+// so the token tests cannot see it drift. Compare it with the product's own
+// copy directly: the same colours in the mark, the same bytes in Mocki.
+describe("the brand art", () => {
+  const WEB = path.resolve(__dirname, "../../web");
+  const hexes = (text: string) =>
+    new Set(
+      [...text.matchAll(/#([0-9a-f]{6}|[0-9a-f]{3})\b/gi)].map((m) => {
+        const h = m[1]!;
+        return (h.length === 3 ? [...h].map((c) => c + c).join("") : h).toUpperCase();
+      }),
+    );
+
+  it.runIf(existsSync(path.join(WEB, "src/design-system/mark.tsx")))("draws the mark in the product's colours", () => {
+    const product = readFileSync(path.join(WEB, "src/design-system/mark.tsx"), "utf8");
+    const system = readFileSync(path.resolve(__dirname, "../src/components/Mark/Mark.tsx"), "utf8").match(/const BRAND = \{[\s\S]*?\}/)![0];
+    expect([...hexes(system)].sort()).toEqual([...hexes(product.slice(product.indexOf("<svg")))].sort());
+  });
+
+  it.runIf(existsSync(path.join(WEB, "public/avatars")))("ships the product's six Mocki stages", () => {
+    for (let level = 1; level <= 6; level += 1) {
+      const product = readFileSync(path.join(WEB, `public/avatars/level-${level}.png`));
+      const system = readFileSync(path.resolve(__dirname, `../src/components/Mascot/assets/level-${level}.png`));
+      expect(system.equals(product), `Mascot level-${level}.png differs from web/public/avatars`).toBe(true);
+    }
+  });
+});

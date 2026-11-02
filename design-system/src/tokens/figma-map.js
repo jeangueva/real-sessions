@@ -136,8 +136,8 @@ export const COMPONENTS = {
   ShimmerText: { figma: null, reason: "An animation on a word; in Figma it is the word." },
   Section: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
   PageBody: { figma: null, reason: "Page rhythm and gutters, not a drawable surface." },
-  Mark: { figma: null, reason: "Brand artwork: its contract still names the indigo tile while the product moved to mustard; draw it once the code is updated." },
-  Wordmark: { figma: null, reason: "Composes Mark; waits for it." },
+  Mark: { figma: null, reason: "Brand artwork, not drawn yet: four fixed colours on a 64px tile (see Mark.md); draw it from Mark.tsx's SVG." },
+  Wordmark: { figma: null, reason: "Composes Mark; drawn after it." },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
