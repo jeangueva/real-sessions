@@ -1507,6 +1507,413 @@
       }
     },
     {
+      "name": "field",
+      "type": "registry:ui",
+      "title": "Field",
+      "description": "A labelled form control: the name above it, the control, a hint below. The spacing of the three is the same in every form in the product.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Field/Field.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Field/Field.tsx"
+        },
+        {
+          "path": "src/components/Field/Field.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Field/Field.contract.ts"
+        },
+        {
+          "path": "src/components/Field/Field.md",
+          "type": "registry:file",
+          "target": "mockio/components/Field/Field.md"
+        },
+        {
+          "path": "src/components/Field/Field.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Field/Field.previews.tsx"
+        },
+        {
+          "path": "src/components/Field/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Field/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Field",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "A labelled form control: the name above it, the control, a hint below. The spacing of the three is the same in every form in the product.",
+          "source": "src/components/Field/Field.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "description": "The name of the control, in sentence case: \"Tu nombre\", \"Correo\". It names the control; it never describes it."
+            },
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The control itself: an input, a select, a textarea. The component wraps whatever it is given and never renders a control of its own."
+            },
+            "hint": {
+              "type": "string",
+              "required": false,
+              "description": "One line under the control saying what it wants: \"El jurado la lee antes de cada ensayo.\" Omitted, nothing renders."
+            },
+            "htmlFor": {
+              "type": "string",
+              "required": false,
+              "description": "The id of the control the label names. Leave it out when the control sits inside the label; pass it when the control is somewhere else in the tree."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For layout — a field that spans more than its cell in a grid — not for restyling the label."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "One control, with its own id and its own value. The Field brings the label and the spacing, not the control."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The label above the control in cream at 14px, medium weight; the hint under it in cream-faint at 14px; 8px between the three.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The field does not move; the control inside it does whatever it does."
+          ],
+          "accessibility": {
+            "role": "A generic <div> wrapping a <label>, the control and an optional <p>.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "label (htmlFor)",
+                "managedBy": "consumer",
+                "note": "The label names the control when htmlFor points at the control's id. Without it, the control has to sit inside the label."
+              },
+              {
+                "attribute": "aria-describedby",
+                "managedBy": "consumer",
+                "note": "The hint is a plain paragraph and is not wired to the control. When the hint is needed by a screen reader, point aria-describedby at its id."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The label is cream on the surface it sits on, at least 13:1 in both themes; the hint is cream-faint, the lowest step the palette allows, 4.5:1 or more.",
+            "focus": "Not focusable itself. The control inside takes the focus ring (focus-ring): 2px accent with a 2px offset.",
+            "targetSize": "not interactive (the control inside brings its own target)",
+            "screenReader": "The label is read as the control's name when htmlFor points at it. The hint is read in the flow of the page, after the control, unless the control names it with aria-describedby."
+          },
+          "content": {
+            "voice": [
+              "The label names the control in the person's own words: \"Tu nombre\", \"Correo\", \"Título de tu tesis\". Never \"Campo\" or \"Input\".",
+              "The hint says what the control wants, not what it is: \"El jurado la lee antes de cada ensayo.\"",
+              "Tú form, sentence case, no final period, no exclamation marks."
+            ],
+            "limits": [
+              "Label: 1–4 words, ≤ 30 characters, so it stays on one line above the control.",
+              "Hint: one line at 320px, about 60 characters. Anything longer belongs in the body of the screen."
+            ],
+            "examples": [
+              "Tu nombre",
+              "Correo",
+              "Título de tu tesis",
+              "El jurado la lee antes de cada ensayo."
+            ]
+          },
+          "usage": {
+            "when": [
+              "Every form control in the product that has a name: the name above, the control, the spacing.",
+              "A control with a hint: what it wants goes under it, where the eye already is."
+            ],
+            "whenNot": [
+              {
+                "situation": "A control that needs no name",
+                "instead": "The bare control, with its own placeholder or aria-label."
+              },
+              {
+                "situation": "A choice between two or three options",
+                "instead": "Segmented, or a radio group with its own labels."
+              },
+              {
+                "situation": "A question the person has to answer in their own words",
+                "instead": "A Notice above the form, not a hint under one field."
+              }
+            ],
+            "do": [
+              "Give the control an id and pass it as htmlFor, so the label names it.",
+              "Keep the same order everywhere: label, control, hint."
+            ],
+            "dont": [
+              "Don't use the hint for instructions about the form as a whole.",
+              "Don't restyle the label with className; the label's voice belongs to the system."
+            ]
+          },
+          "tokens": [
+            "--cream",
+            "--cream-faint"
+          ],
+          "related": [
+            {
+              "name": "Notice",
+              "difference": "Says something about the state of the screen; a Field names a control."
+            },
+            {
+              "name": "Panel",
+              "difference": "The block a form can sit in."
+            }
+          ],
+          "i18n": {
+            "rtl": "The label, the control and the hint stack in the document's direction; the label stays above the control.",
+            "textExpansion": "A German or Portuguese label runs about 30% longer: it wraps to two lines and the control moves down with it. The spacing between the three does not change.",
+            "formatting": "None: the label and the hint come from the caller, already translated.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: the label, the control and the hint stack in a single column; a field that spans more than its cell in a grid keeps spanning it.",
+              "From sm up: the same stack. A field's width is the caller's, through className."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "field",
+            "importStatement": "import { Field } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label",
+              "hint",
+              "htmlFor"
+            ],
+            "placement": "Inside a form or a Panel, once per control. Never around a group of controls: that is a fieldset."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Field",
+            "differences": [
+              "None: the app's copy is this component, prop for prop."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the component."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "inset-frame",
+      "type": "registry:ui",
+      "title": "InsetFrame",
+      "description": "The frame the public site's content sits in: a rounded window, inset from the edge of the screen.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/InsetFrame/InsetFrame.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/InsetFrame/InsetFrame.tsx"
+        },
+        {
+          "path": "src/components/InsetFrame/InsetFrame.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/InsetFrame/InsetFrame.contract.ts"
+        },
+        {
+          "path": "src/components/InsetFrame/InsetFrame.md",
+          "type": "registry:file",
+          "target": "mockio/components/InsetFrame/InsetFrame.md"
+        },
+        {
+          "path": "src/components/InsetFrame/InsetFrame.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/InsetFrame/InsetFrame.previews.tsx"
+        },
+        {
+          "path": "src/components/InsetFrame/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/InsetFrame/index.ts"
+        }
+      ],
+      "categories": [
+        "template"
+      ],
+      "meta": {
+        "level": "template",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "InsetFrame",
+          "level": "template",
+          "status": "stable",
+          "summary": "The frame the public site's content sits in: a rounded window, inset from the edge of the screen.",
+          "source": "src/components/InsetFrame/InsetFrame.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The content the frame holds: a screen, a document, a page of the public site."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For the frame's own surface — a background, a shadow — not for the padding."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "One page. The frame clips what overflows it, so the content inside is laid out for the width it gets, not for the window."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The content fills the window with 8px around it on a phone and 12px from md up; the frame's corners are 10px on a phone and 28px from md up.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The frame does not move; the page inside it scrolls."
+          ],
+          "accessibility": {
+            "role": "A generic <div> inside another <div>: the padding and the corners, nothing more.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "overflow",
+                "managedBy": "component",
+                "note": "The frame clips what does not fit. Anything that must be reachable has to be reachable inside it, not behind it."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "None of its own: the frame has no text and no surface of its own beyond what the caller puts on it.",
+            "focus": "Not focusable itself. Focus moves through the page inside it, and nothing is trapped at the frame's edge.",
+            "targetSize": "not interactive",
+            "screenReader": "Adds nothing to what a screen reader reads: it is a generic container with no role and no name."
+          },
+          "content": {
+            "voice": [
+              "None: the frame holds content and never writes any of its own."
+            ],
+            "limits": [
+              "Nothing: the frame is layout."
+            ],
+            "examples": []
+          },
+          "usage": {
+            "when": [
+              "The public site: the page sits in a rounded window, inset from the edge of the screen.",
+              "Any full-height surface that should read as a document on a table."
+            ],
+            "whenNot": [
+              {
+                "situation": "A screen inside the signed-in app",
+                "instead": "PageBody: the app is the window, and it does not need a frame around it."
+              },
+              {
+                "situation": "A card inside a page",
+                "instead": "Panel: a frame the size of its content, not of the screen."
+              },
+              {
+                "situation": "Content that must be read in the browser's own scroll",
+                "instead": "Nothing: the frame clips, and a long page inside it has to scroll inside it."
+              }
+            ],
+            "do": [
+              "Let the frame fill the height it is given; it is a viewport frame, not a box.",
+              "Keep one frame per page: a frame inside a frame is a picture of a picture."
+            ],
+            "dont": [
+              "Don't nest an InsetFrame inside another one.",
+              "Don't use it for the app's screens; it would put a second window inside the first."
+            ]
+          },
+          "tokens": [
+            "--surface-base",
+            "--surface-deep"
+          ],
+          "related": [
+            {
+              "name": "PageBody",
+              "difference": "The content container of the app's screens; this one frames the public site."
+            },
+            {
+              "name": "Panel",
+              "difference": "A card the size of its content; the frame is the size of the screen."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the frame is symmetric and the page inside it handles its own direction.",
+            "textExpansion": "Nothing changes: the frame holds the page, and the page grows with its language.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 8px of padding around the content, 10px corners.",
+              "From md (768px): 12px of padding, 28px corners.",
+              "The content inside keeps its own responsive rules; the frame only clips and pads."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "inset-frame",
+            "importStatement": "import { InsetFrame } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "The outermost element of a public page. One per page, above the page's own layout."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "InsetFrame",
+            "differences": [
+              "None: the app's copy is this component, prop for prop."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the component."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "mark",
       "type": "registry:ui",
       "title": "Mark",
@@ -2000,6 +2407,459 @@
               "version": "0.1.0",
               "changes": [
                 "First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "meter",
+      "type": "registry:ui",
+      "title": "Meter",
+      "description": "A measured score: what is being measured, the number, and the bar that fills to it. The number is always there.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Meter/Meter.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Meter/Meter.tsx"
+        },
+        {
+          "path": "src/components/Meter/Meter.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/Meter.contract.ts"
+        },
+        {
+          "path": "src/components/Meter/Meter.md",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/Meter.md"
+        },
+        {
+          "path": "src/components/Meter/Meter.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/Meter.previews.tsx"
+        },
+        {
+          "path": "src/components/Meter/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Meter/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Meter",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "A measured score: what is being measured, the number, and the bar that fills to it. The number is always there.",
+          "source": "src/components/Meter/Meter.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "value": {
+              "type": "number",
+              "required": true,
+              "description": "The figure as it is measured: 72, 3, 12.5. It is shown as it is, not rounded."
+            },
+            "max": {
+              "type": "number",
+              "required": false,
+              "default": "100",
+              "description": "The top of the scale. The bar fills value/max, clamped to 0–100%. Set it to the real maximum: 20 for a score out of 20, 8 for eight steps."
+            },
+            "label": {
+              "type": "string",
+              "required": true,
+              "description": "What is being measured, in the person's words: \"Claridad\", \"Tu turno\", \"Respuestas practicadas\". It is the accessible name of the bar."
+            },
+            "suffix": {
+              "type": "string",
+              "required": false,
+              "default": "\"%\"",
+              "description": "The unit after the number. Empty for a count, \"%\" for a percentage, \"s\" for seconds. It is written next to the figure, so it must be short."
+            }
+          },
+          "slots": [],
+          "states": [
+            {
+              "name": "default",
+              "description": "The name at the left in cream-dim at 14px, the figure at the right in cream-bright at 16px, semibold, with tabular figures; the bar 6px tall below them, in the accent over a lifted surface.",
+              "trigger": "Initial render."
+            },
+            {
+              "name": "empty",
+              "description": "The bar at zero: the track is there, the accent is not. The figure still shows the real value, so a zero never reads as \"missing\".",
+              "trigger": "value={0}."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "The bar grows: scaleX from its left edge over 700ms with the cinematic ease, so a score that arrives late still moves in the direction it came from.",
+            "Reduced motion: the bar is at its final length at once; the figure changes as it changes."
+          ],
+          "accessibility": {
+            "role": "A <div role=\"meter\">: a scalar value inside a known range.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-valuenow / aria-valuemin / aria-valuemax",
+                "managedBy": "component",
+                "note": "The figure, the bottom of the scale and the top. max is the value passed to the component, so the range a screen reader reads is the range the bar draws."
+              },
+              {
+                "attribute": "aria-label",
+                "managedBy": "component",
+                "note": "The same text as the visible name, so the bar and the figure are not read as two different things."
+              }
+            ],
+            "reducedMotion": "The bar's growth is instant under prefers-reduced-motion: reduce; the figure changes as it changes.",
+            "contrast": "The name is cream-dim, 13:1 on the surface in the dark theme and 9.9:1 in the light one; the figure is cream-bright, above 17:1 in both.",
+            "focus": "Not focusable itself. It reports a value; it does not take one.",
+            "targetSize": "not interactive",
+            "screenReader": "Announced as a meter with its name and its value: \"Claridad, 72\". The bar itself adds nothing: the figure is the reading."
+          },
+          "content": {
+            "voice": [
+              "The name says what is measured, in the person's words: \"Claridad\", \"Tu turno\", \"Respuestas practicadas\". Not \"Métrica\" or \"Score\".",
+              "The figure speaks for itself; the component adds no words of its own.",
+              "Sentence case, no period, no exclamation marks."
+            ],
+            "limits": [
+              "Label: 1–3 words, ≤ 24 characters, so it sits on one line beside the figure.",
+              "Suffix: 1–2 characters. It is written right next to the figure, so \"puntos\" belongs in the label, not in the suffix."
+            ],
+            "examples": [
+              "Claridad",
+              "Tu turno",
+              "Respuestas practicadas",
+              "72%",
+              "3 de 7"
+            ]
+          },
+          "usage": {
+            "when": [
+              "A score the person earned and can see: clarity, turns, answers practised.",
+              "Anything measured against a maximum, where the bar and the number say the same thing."
+            ],
+            "whenNot": [
+              {
+                "situation": "A step in a process that advances in time",
+                "instead": "A Badge with the count: \"Turno 3 de 7\" says where you are; a bar would imply a score."
+              },
+              {
+                "situation": "A value with no maximum",
+                "instead": "The number alone, in the body of the screen."
+              },
+              {
+                "situation": "Something that loads",
+                "instead": "A progress indicator in the place that waits, not a meter: this one reports a result, not a state of the machine."
+              }
+            ],
+            "do": [
+              "Set max to the real maximum, so the bar and the number agree.",
+              "Keep the number: the bar alone is unreadable for a screen reader and useless in print."
+            ],
+            "dont": [
+              "Don't leave max at 100 when the scale ends somewhere else; the bar would lie.",
+              "Don't use the bar to hide a number the person needs to act on."
+            ]
+          },
+          "tokens": [
+            "--cream-bright",
+            "--cream-dim",
+            "--surface-lift",
+            "--accent",
+            "ease-cinematic"
+          ],
+          "related": [
+            {
+              "name": "Badge",
+              "difference": "States a fact in words; a Meter measures one."
+            },
+            {
+              "name": "Notice",
+              "difference": "Says what happened; a Meter says how much."
+            }
+          ],
+          "i18n": {
+            "rtl": "The name stays at the start of the row and the figure at the end, in the document's direction.",
+            "textExpansion": "A German or Portuguese name runs about 30% longer: it wraps under the figure rather than pushing it out of the row.",
+            "formatting": "The figure is printed as a number with the suffix next to it, without a thousands separator: a score of 1200 reads \"1200\", not \"1,200\".",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: the name and the figure share a row; the bar spans the width of the field.",
+              "From sm up: the same row, wider. The bar never changes its height."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "meter",
+            "importStatement": "import { Meter } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label",
+              "value",
+              "max",
+              "suffix"
+            ],
+            "placement": "In the body of a screen, under the thing it measures: the feedback of an interview, the progress of a thesis."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Meter",
+            "differences": [
+              "None: the app's copy is this component, prop for prop."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the component."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "notice",
+      "type": "registry:ui",
+      "title": "Notice",
+      "description": "A message about the state of something: saved, done, or not possible. The words carry the meaning; the icon is decoration.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Notice/Notice.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Notice/Notice.tsx"
+        },
+        {
+          "path": "src/components/Notice/Notice.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/Notice.contract.ts"
+        },
+        {
+          "path": "src/components/Notice/Notice.md",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/Notice.md"
+        },
+        {
+          "path": "src/components/Notice/Notice.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/Notice.previews.tsx"
+        },
+        {
+          "path": "src/components/Notice/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Notice/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Notice",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "A message about the state of something: saved, done, or not possible. The words carry the meaning; the icon is decoration.",
+          "source": "src/components/Notice/Notice.tsx",
+          "composes": [],
+          "dependencies": [
+            "lucide-react"
+          ],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "What the notice says. One or two sentences: what happened and, when there is one, what to do about it."
+            },
+            "tone": {
+              "type": "\"error\" | \"success\" | \"info\"",
+              "required": false,
+              "default": "\"info\"",
+              "description": "How loud the message is, and how it is announced.",
+              "values": {
+                "error": "Something could not be done. Assertive: it interrupts whatever the screen was saying.",
+                "success": "Something was done. Quietly: it waits its turn among the other polite messages.",
+                "info": "A fact about the state of the screen: saved, pending, nothing to do."
+              }
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended. For layout — the notice's place in a stack — not for recolouring it."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The message. Text only: a sentence, not a heading and not a list."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The message in cream-bright at 14px on the lifted surface, with the information icon in cream-dim before it. Announced politely, as a status.",
+              "trigger": "Initial render, with tone=\"info\"."
+            },
+            {
+              "name": "error",
+              "description": "The same box in the amber of the step palette, with the alert icon. Announced assertively, as an alert, so it is read straight away.",
+              "trigger": "tone=\"error\"."
+            },
+            {
+              "name": "success",
+              "description": "The same box in the green of the grow palette, with the check icon. Announced politely, as a status.",
+              "trigger": "tone=\"success\"."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The notice does not move; it appears where it is."
+          ],
+          "accessibility": {
+            "role": "A <p role=\"status\"> for info and success; a <p role=\"alert\"> for error.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "role",
+                "managedBy": "component",
+                "note": "error is an alert and interrupts; info and success are statuses and wait their turn."
+              },
+              {
+                "attribute": "aria-hidden (icon)",
+                "managedBy": "component",
+                "note": "The icon is decorative. The words alone say what happened."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The message is cream-bright on its own background in every tone; the icon takes the tone's own colour, which is at least 4.5:1 on that background in both themes.",
+            "focus": "Not focusable itself. It is read when it appears.",
+            "targetSize": "not interactive",
+            "screenReader": "A status is announced when it appears without interrupting; an alert interrupts. Either way the message is read once, in full — the icon adds nothing."
+          },
+          "content": {
+            "voice": [
+              "Say what happened and what to do next: \"Guardamos tu avance.\" \"No pudimos subir el archivo: pesa más de 300 MB.\"",
+              "Never blame the person. The product does not mark anyone wrong: the error names what failed, not who.",
+              "Tú form, sentence case, no exclamation marks. One or two sentences."
+            ],
+            "limits": [
+              "Message: one sentence, about 80 characters at 320px; two at most.",
+              "The message states the whole thing: a notice that needs a paragraph belongs in the body of the screen."
+            ],
+            "examples": [
+              "Guardamos tu avance.",
+              "No pudimos subir el archivo: pesa más de 300 MB.",
+              "Listo: tu tesis ya está en revisión."
+            ]
+          },
+          "usage": {
+            "when": [
+              "After something the person asked for succeeds: saved, sent, uploaded.",
+              "When something could not be done and the person has to know before they go on.",
+              "A fact about the state of the screen that is worth a line of its own."
+            ],
+            "whenNot": [
+              {
+                "situation": "A field that is not valid",
+                "instead": "The field's own hint, next to the control that has to change."
+              },
+              {
+                "situation": "A message the screen can say by itself",
+                "instead": "The copy on the screen: an empty state that says where the page leads."
+              },
+              {
+                "situation": "A confirmation the person did not ask for",
+                "instead": "Nothing. A success notice for something nobody wanted to know about is noise."
+              }
+            ],
+            "do": [
+              "Use error only when the person has to act on it now.",
+              "Put the outcome in the message, not in the icon."
+            ],
+            "dont": [
+              "Don't stack two notices in the same screen; the second one dilutes the first.",
+              "Don't use a notice to explain what the screen is for."
+            ]
+          },
+          "tokens": [
+            "--cream-bright",
+            "--cream-dim",
+            "--surface-lift",
+            "--step-soft",
+            "--step-text",
+            "--grow-soft",
+            "--grow-text"
+          ],
+          "related": [
+            {
+              "name": "Badge",
+              "difference": "A standing fact about the screen; a Notice says what happened."
+            },
+            {
+              "name": "Meter",
+              "difference": "Measures a score; a Notice reports an event."
+            }
+          ],
+          "i18n": {
+            "rtl": "The icon stays at the start of the line, in the document's direction; the message follows it.",
+            "textExpansion": "A German or Portuguese message runs about 30% longer: the box grows to two lines and the icon stays at the top.",
+            "formatting": "None: the message comes from the caller, already translated.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: the message wraps inside the box, and the icon stays at the top of the first line.",
+              "From sm up: the same box, wider. The padding does not change."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "notice",
+            "importStatement": "import { Notice } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "tone"
+            ],
+            "placement": "Inside a PageBody, above or below the thing it is about. Never inside a form field: that is the field's hint."
+          },
+          "appCounterpart": {
+            "file": "design-system/primitives.tsx",
+            "exportName": "Notice",
+            "differences": [
+              "None: the app's copy is this component, prop for prop."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the component."
               ]
             }
           ]
