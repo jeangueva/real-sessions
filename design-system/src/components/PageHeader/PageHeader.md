@@ -14,8 +14,9 @@ starts exactly where the content under it starts, at every width.
 ## Anatomy
 
 1. **Title** — the `h1`. 32px on phones, 40px from `sm`, bold, tight
-   tracking. No rule or background under it: the size and the space after it
-   end the header.
+   tracking. Its measure stops at 52rem, so it wraps there and not at the
+   width of the window. No rule or background under it: the size and the space
+   after it end the header.
 2. **Meta** _(optional)_ — one line in `cream-dim`. Clamped with an ellipsis;
    the full text is in the DOM and in a `title` tooltip.
 3. **Actions** _(optional)_ — at the end of the row, bottom-aligned with the
@@ -27,7 +28,16 @@ starts exactly where the content under it starts, at every width.
 | Prop | Effect |
 | --- | --- |
 | `compact` | Phones only: 20px title and 16px above it, so a call's video gets the height. The title is clamped to two lines at every width. |
+| `dense` | Every width: 20px title (24px from `sm`) and 16px above it, for a workspace screen that is a list rather than a moment. The body below it does not shrink. |
 | `width="reading"` | The 48rem centred column, above a `PageBody width="reading"`. |
+
+## The capped title
+
+The container reaches 110rem, but the title stops at 52rem. A heading that can
+run the full width of a desktop window stops being a heading and becomes a
+line of text: the eye has no second line to return to, and a long one arrives
+as a single unreadable band across the screen. The title is balanced across
+its lines, so the block reads as a shape rather than a ragged edge.
 
 ## The one-line meta
 
@@ -46,12 +56,15 @@ is one line:
 
 The product's copy still lets the meta wrap. This is the redesign's decision,
 recorded in the contract's `appCounterpart.differences` until the product
-adopts it.
+adopts it. The same entry records that the product's title is still light
+where this one is bold.
 
 ## When to use it
 
 - At the top of every app screen, once, directly above its `PageBody`.
 - `compact` on the live call, where the content needs the height on a phone.
+- `dense` on the thesis workspace, where the screen is a list and the title
+  is only a label for it.
 
 ## When not to use it
 

@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-export type ActionTone = "solid" | "neutral" | "glass" | "ghost";
+export type ActionTone = "solid" | "neutral" | "quiet" | "glass" | "ghost";
 
 export interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** The label. A verb first: "Ensayar", "Sube tu tesis gratis". */
@@ -9,6 +9,9 @@ export interface ActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
    * solid = the one primary action per view, in the accent.
    * neutral = a confident secondary — ink on paper.
+   * quiet = a secondary at the same volume as the panel it sits on: a
+   * hairline and no fill colour, for the rare errand next to the loud
+   * action.
    * glass = over video or imagery. ghost = tertiary.
    */
   tone?: ActionTone;
@@ -25,6 +28,13 @@ const TONE: Record<ActionTone, string> = {
     "bg-accent text-accent-ink shadow-[0_4px_0_rgb(var(--accent-depth))] hover:brightness-110 active:translate-y-[4px] active:shadow-[0_0_0_rgb(var(--accent-depth))] disabled:bg-surface-lift disabled:text-cream-faint disabled:opacity-100 disabled:shadow-none",
   neutral:
     "bg-cream-bright text-surface-base shadow-[0_4px_0_rgb(0_0_0/0.35)] hover:bg-cream-bright/90 active:translate-y-[4px] active:shadow-none",
+  // The same family of control at a lower volume: a hairline instead of a
+  // fill. There is no edge to sink into, so the press scales instead of
+  // translating — a button that shrinks a hair answers the finger without
+  // pretending it has depth. A busy quiet button (a sign-in popup open) dims
+  // less than the default 40%: it is waiting, not unavailable.
+  quiet:
+    "bg-surface-card text-cream-bright shadow-[inset_0_0_0_1px_var(--line-strong)] hover:bg-surface-lift active:scale-[0.97] disabled:opacity-70",
   glass:
     "liquid-glass text-cream-bright shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)] hover:bg-surface-lift active:translate-y-[3px] active:shadow-[inset_0_0_0_1px_var(--line)]",
   ghost: "text-cream-dim hover:bg-surface-lift hover:text-cream-bright",

@@ -32,6 +32,13 @@ export const PageHeaderContract = defineContract({
       description:
         "For a screen whose content is the point, like a call: on phones the title drops from 32px to 20px and the space above from 32px to 16px. From sm up the size and spacing match every other screen. The title is clamped to two lines at every width.",
     },
+    dense: {
+      type: "boolean",
+      required: false,
+      default: "false",
+      description:
+        "For a workspace screen that has to hold its own: the title is 20px on a phone and 24px from sm up, and the space above it is 16px at every width. The body below it does not shrink. Use it when the screen is a list, not a moment.",
+    },
     width: {
       type: '"wide" | "reading"',
       required: false,
@@ -49,7 +56,8 @@ export const PageHeaderContract = defineContract({
   states: [
     {
       name: "default",
-      description: "The h1 at 32px (40px from sm), bold, tracking -0.028em; meta in cream-dim at 16px below it; actions bottom-aligned at the row's end. No rule under it.",
+      description:
+        "The h1 at 32px (40px from sm), bold, tracking -0.028em; meta in cream-dim at 16px below it; actions bottom-aligned at the row's end. The title's measure is capped at 52rem and balanced across its lines, so it stays a heading on a wide window. No rule under it.",
       trigger: "Initial render.",
     },
     {
@@ -86,6 +94,7 @@ export const PageHeaderContract = defineContract({
     ],
     limits: [
       "Title: ≤ 40 characters so it stays on one line at 320px (two at most).",
+      "Title measure: 52rem. The title wraps at that measure, not at the width of the window — a heading that can run the full width of a desktop screen stops being a heading and becomes a line of text.",
       "Meta: one line. About 35 characters fit at 320px, about 45 at 390px and about 70 from 640px; anything longer is cut, so the point goes in the first 35 characters and instructions go in the body.",
     ],
     examples: ["Mi tesis", "Súbela una vez. El jurado la lee antes de cada ensayo.", "Ajustes", "Cuenta y preferencias de práctica", "Tu camino", "Equivócate aquí, no en la entrevista"],
@@ -94,6 +103,7 @@ export const PageHeaderContract = defineContract({
     when: [
       "At the top of every screen in the signed-in app, once, directly above its PageBody.",
       "compact for a screen whose content needs the height on a phone: the live call.",
+      "dense for a workspace screen that is a list rather than a moment: the thesis workspace.",
     ],
     whenNot: [
       { situation: "A marketing page's headline", instead: "The hero's own h1, then Sections with h2." },
@@ -112,7 +122,7 @@ export const PageHeaderContract = defineContract({
       "Don't draw a rule or a background under the header.",
     ],
   },
-  tokens: ["--cream-bright", "--cream", "--surface-deep", "max-w-[110rem]", "max-w-3xl"],
+  tokens: ["--cream-bright", "--cream", "--surface-deep", "max-w-[110rem]", "max-w-[52rem]", "max-w-3xl"],
   related: [
     { name: "PageBody", difference: "The content container under it, with the same gutters and ceiling." },
     { name: "Badge", difference: "Goes in actions to state the screen's mode (Práctica, Modo estrés)." },
@@ -127,28 +137,36 @@ export const PageHeaderContract = defineContract({
   },
   responsive: {
     behaviour: [
-      "Phones: 16px gutters; 32px above (16px when compact); title 32px (20px when compact); actions wrap onto their own line under the title when the row runs out of room.",
-      "From sm (640px): 24px gutters, title 40px, 32px above in both modes.",
-      "From lg (1024px): 40px gutters, 40px above. The row stops at the width's ceiling and centres.",
+      "Phones: 16px gutters; 32px above (16px when compact or dense); title 32px (20px when compact or dense); actions wrap onto their own line under the title when the row runs out of room.",
+      "From sm (640px): 24px gutters, title 40px, 32px above in both modes. With dense the title stays at 24px.",
+      "From lg (1024px): 40px gutters, 40px above. The row stops at the width's ceiling and centres; the title stops at 52rem, so a long heading wraps there instead of running the width of the window.",
     ],
     minWidth: "320px",
   },
   designTool: {
     registryItem: "page-header",
     importStatement: 'import { PageHeader } from "@mockio/design-system";',
-    canvasProps: ["title", "meta", "actions", "compact", "width"],
+    canvasProps: ["title", "meta", "actions", "compact", "dense", "width"],
     placement: "The first child of the screen's <main> (provided by the app shell), directly above PageBody. One per screen.",
   },
   appCounterpart: {
     file: "platform/AppShell.tsx",
     exportName: "PageHeader",
     differences: [
-      "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap, so on Mi tesis a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
+      "The title is light (font-light, tracking -0.045em) in the app's copy and bold here. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
+      "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on Mi tesis a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
       "Adds width (\"wide\" | \"reading\") to match PageBody's; the app's copy is always max-w-[110rem], so its title does not line up with a narrower body.",
     ],
   },
-  version: "1.0.0",
+  version: "1.1.0",
   changelog: [
+    {
+      version: "1.1.0",
+      changes: [
+        "New dense prop: a small title and 16px above it at every width, for the workspace screens that are a list rather than a moment. The app's copy already had it; the contract now says so.",
+        "The title's measure is capped at 52rem and balanced across its lines, so a heading cannot run the width of a desktop window.",
+      ],
+    },
     {
       version: "1.0.0",
       changes: [
