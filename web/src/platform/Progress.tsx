@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Action,
   AnimatedCounter,
-  Eyebrow,
+  MonoLabel,
   FadeRise,
   Meter,
   Panel,
@@ -235,7 +235,7 @@ export function Progress() {
                   className="shrink-0 text-cream-bright"
                 />
                 <div>
-                  <Eyebrow>{t("progress.level")}</Eyebrow>
+                  <MonoLabel>{t("progress.level")}</MonoLabel>
                   <p className="mt-2 text-title font-semibold tabular-nums text-cream-bright">
                     <AnimatedCounter value={profile.level} />
                   </p>
@@ -262,7 +262,7 @@ export function Progress() {
               </div>
               {league?.you && (
                 <div>
-                  <Eyebrow>{t("progress.thisWeek")}</Eyebrow>
+                  <MonoLabel>{t("progress.thisWeek")}</MonoLabel>
                   <p className="mt-2 text-title font-semibold tabular-nums text-cream-bright">
                     #{league.you}
                   </p>
@@ -389,7 +389,7 @@ export function Progress() {
         <div className="grid gap-4 xl:grid-cols-3">
           <FadeRise delay={0.05} className="xl:col-span-1">
             <div className="flex h-full flex-col p-2 sm:p-4">
-              <Eyebrow>{t("progress.overall")}</Eyebrow>
+              <MonoLabel>{t("progress.overall")}</MonoLabel>
               <p className="mt-2 text-xs text-cream-faint">
                 {t("progress.overallNote")}
               </p>
@@ -401,7 +401,7 @@ export function Progress() {
 
           <FadeRise delay={0.1} className="xl:col-span-2">
             <div className="flex h-full flex-col p-2 sm:p-4">
-              <Eyebrow>{t("progress.byFront")}</Eyebrow>
+              <MonoLabel>{t("progress.byFront")}</MonoLabel>
               <p className="mt-2 max-w-3xl text-xs text-cream-faint">
                 {t("progress.byFrontNote")}
               </p>

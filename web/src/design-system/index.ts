@@ -16,7 +16,7 @@ export { GlowCard } from "./glow-card";
 export type { AccordionEntry } from "./accordion";
 export {
   Action,
-  Eyebrow,
+  MonoLabel,
   Panel,
   Section,
   InsetFrame,

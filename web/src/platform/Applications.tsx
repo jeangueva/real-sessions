@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Panel } from "@/design-system";
+import { Action, MonoLabel, FadeRise, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import type { MessageKey } from "@/lib/i18n";
@@ -227,7 +227,7 @@ function AddApplication({ onAdded }: { onAdded: () => void }) {
 
   return (
     <Panel variant="raised" className="flex max-w-2xl flex-col gap-4 p-6">
-      <Eyebrow>{t("apps.add")}</Eyebrow>
+      <MonoLabel>{t("apps.add")}</MonoLabel>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Field label={t("apps.company")} value={company} onChange={setCompany} />
         <Field label={t("apps.role")} value={role} onChange={setRole} />

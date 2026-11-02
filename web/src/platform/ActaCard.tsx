@@ -2,7 +2,7 @@ import type React from "react";
 import { Link } from "react-router-dom";
 import { Gavel } from "lucide-react";
 import CountUp from "@/components/bits/CountUp";
-import { Eyebrow, Panel } from "@/design-system";
+import { MonoLabel, Panel } from "@/design-system";
 import type { Evaluation } from "@/lib/evaluation";
 import { useThesisT } from "@/lib/thesis-copy";
 import { JURORS } from "@/lib/voice";
@@ -90,7 +90,7 @@ export function ActaCard({
             <Gavel className="h-6 w-6" />
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <Eyebrow>{t("actaTitle")}</Eyebrow>
+            <MonoLabel>{t("actaTitle")}</MonoLabel>
             <p className="flex items-baseline gap-2">
               {/* The grade arrives rather than sits there: the one number the
                   student came for, counted up once, quickly. A decimal grade

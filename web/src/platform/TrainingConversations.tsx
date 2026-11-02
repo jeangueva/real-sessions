@@ -1,19 +1,7 @@
 import { useEffect, useState } from "react";
 import { Globe2, GraduationCap, MessagesSquare, RotateCcw, Sparkles, Terminal } from "lucide-react";
-import {
-  Action,
-  Badge,
-  CheckItem,
-  Eyebrow,
-  FadeRise,
-  Field,
-  InterviewerPresence,
-  Meter,
-  Notice,
-  Panel,
-  Waveform,
-} from "@/design-system";
-import { Chip, IconTile, Inset, MonoLabel, Widget } from "@/components/marketing";
+import { Action, Badge, CheckItem, FadeRise, Field, InterviewerPresence, Meter, MonoLabel, Notice, Panel, Waveform } from "@/design-system";
+import { Chip, IconTile, Inset, Widget } from "@/components/marketing";
 import { useLocale } from "@/hooks/useLocale";
 import { PageBody, PageHeader } from "./AppShell";
 
@@ -1042,7 +1030,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                 label="COACHING REPORT"
                 className="p-6 sm:p-7"
               >
-                <Eyebrow>{copy.feedbackEyebrow}</Eyebrow>
+                <MonoLabel>{copy.feedbackEyebrow}</MonoLabel>
                 <h3 className="mt-2 text-xl font-medium tracking-[-0.02em] text-cream-bright">
                   {copy.feedbackTitle}
                 </h3>

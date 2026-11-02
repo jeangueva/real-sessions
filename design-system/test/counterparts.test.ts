@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { catalog } from "../src/catalog";
-import { componentRegion, counterpartProp, declaredProps } from "./helpers/props";
+import { classTokens, componentRegion, counterpartProp, declaredProps } from "./helpers/props";
 
 /**
  * The counterpart guard.
@@ -30,10 +30,23 @@ import { componentRegion, counterpartProp, declaredProps } from "./helpers/props
  *     the same holds in the other direction: either the contract declares it
  *     or the difference says so. A capability that grew in the product and
  *     stayed out of the contract is a promise nobody made and nobody keeps.
+ *   - When the two render differently — a different size, weight, case or
+ *     colour — the contract has to say so too. Two components can share a
+ *     name and an API and still be different components, and that is exactly
+ *     the kind of difference a reader of the contract cannot see.
  */
 
 const ROOT = path.resolve(__dirname, "..");
 const WEB_SRC = path.resolve(ROOT, "../web/src");
+
+/**
+ * The class names that say how a thing looks: its size, weight, case and
+ * colour. Arbitrary values are left out — `text-[1.5rem]` says nothing about
+ * the scale the component is on — and so are the decorative ones (shadows,
+ * rings, paddings), which components may disagree about without becoming
+ * different components.
+ */
+const TYPOGRAPHY = /^(?:text|font)-[a-z][a-z0-9-]*$|^(?:uppercase|lowercase|italic|tabular-nums)$/;
 
 describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name, entry) => {
   const { contract } = entry;
@@ -88,6 +101,25 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
           `${name}.${prop}: the product's copy (${counterpart.file}) accepts it and the contract never declared it. Declare the prop in the contract, or record the difference in appCounterpart.differences.`,
         ).toContain(prop.toLowerCase());
       }
+    },
+  );
+
+  it.runIf(Boolean(source && region))(
+    "records a difference in how the two render",
+    () => {
+      if (!source || !region || !counterpart) return;
+      const mine = classTokens(path.join(ROOT, contract.source), name);
+      const theirs = classTokens(path.join(WEB_SRC, counterpart.file), counterpart.exportName);
+      const onlyMine = [...mine].filter((t) => TYPOGRAPHY.test(t) && !theirs.has(t));
+      const onlyTheirs = [...theirs].filter((t) => TYPOGRAPHY.test(t) && !mine.has(t));
+      if (!onlyMine.length && !onlyTheirs.length) return;
+
+      const differences = counterpart.differences.join(" ").toLowerCase();
+      const named = [...onlyMine, ...onlyTheirs].some((t) => differences.includes(t.toLowerCase()));
+      expect(
+        named,
+        `${name}: the two render differently and the contract says nothing about it. The system uses [${onlyMine.join(", ") || "—"}] where the product's copy uses [${onlyTheirs.join(", ") || "—"}]. Write it down in appCounterpart.differences, naming one of them.`,
+      ).toBe(true);
     },
   );
 });

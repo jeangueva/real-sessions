@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { FileText, Trash2, Upload } from "lucide-react";
-import { Action, Eyebrow, FadeRise, Field, Panel } from "@/design-system";
+import { Action, MonoLabel, FadeRise, Field, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
 import { useT } from "@/hooks/useLocale";
 import {
@@ -134,7 +134,7 @@ export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
         <FadeRise>
         <Panel className="flex h-full flex-col gap-5 p-6">
           <div>
-            <Eyebrow>{t("profile.cvTitle")}</Eyebrow>
+            <MonoLabel>{t("profile.cvTitle")}</MonoLabel>
             <p className="mt-2 text-xs text-cream-faint">
               {t("profile.cvNote")}
             </p>
@@ -183,7 +183,7 @@ export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
         <FadeRise delay={0.08}>
         <Panel className="flex h-full flex-col gap-5 p-6">
           <div>
-            <Eyebrow>{t("profile.links")}</Eyebrow>
+            <MonoLabel>{t("profile.links")}</MonoLabel>
             <p className="mt-2 text-xs text-cream-faint">
               {t("profile.linksNote")}
             </p>
@@ -214,7 +214,7 @@ export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
           <FadeRise delay={0.16} className="lg:col-span-2">
           <Panel variant="raised" className="flex flex-col gap-4 p-6">
             <div>
-              <Eyebrow>{t("profile.briefTitle")}</Eyebrow>
+              <MonoLabel>{t("profile.briefTitle")}</MonoLabel>
               <p className="mt-2 text-xs text-cream-faint">
                 {t("profile.briefNote")}
               </p>

@@ -62,7 +62,7 @@ a press (`active:scale-[0.97]`). No lift-on-hover.
 - `Section` — owns vertical rhythm and max width. Screens never hand-tune
   section padding; that is how layouts drift apart.
 - `InsetFrame` — full-height hero frame with the page showing as a margin.
-- `Eyebrow`, `CheckItem` — small shared bits.
+- `MonoLabel`, `CheckItem` — small shared bits.
 
 ## Motion (`design-system/motion.tsx`)
 
@@ -119,7 +119,7 @@ single place that changes.
 
 **Marketing page:**
 1. Wrap in `Section` (or `InsetFrame` for a hero).
-2. Compose `Panel`, `Action`, `Eyebrow`.
+2. Compose `Panel`, `Action`, `MonoLabel`.
 3. Wrap blocks in `FadeRise`; headlines in `WordsPullUp`.
 
 **App screen:**

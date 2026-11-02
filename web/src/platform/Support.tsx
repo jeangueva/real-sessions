@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Badge, Eyebrow, Field, Notice, Panel } from "@/design-system";
+import { Badge, MonoLabel, Field, Notice, Panel } from "@/design-system";
 import { useLocale } from "@/hooks/useLocale";
 
 const COPY = {
@@ -103,7 +103,7 @@ export function Support() {
   return (
     <Panel variant="raised" className="mt-4 max-w-3xl p-6 sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Eyebrow>{c.eyebrow}</Eyebrow>
+        <MonoLabel>{c.eyebrow}</MonoLabel>
         <Badge tone="live">{c.badge}</Badge>
       </div>
 

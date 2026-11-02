@@ -234,3 +234,27 @@ export function unionLiterals(typeText: string): string[] | null {
   if (!/^\s*(?:"[^"]+"|\d+)\s*(\|\s*(?:"[^"]+"|\d+)\s*)*$/.test(typeText)) return null;
   return found;
 }
+
+/**
+ * The class names a component renders.
+ *
+ * Both sides of a counterpart are read this way: the system's component and
+ * the copy the product ships. The set of class names says how each one looks,
+ * which is the part of a component two copies of it can disagree about
+ * without either one breaking.
+ */
+export function classTokens(file: string, componentName: string): Set<string> {
+  const source = read(file);
+  if (!source) return new Set();
+  const region = componentRegion(source, componentName);
+  if (!region) return new Set();
+
+  const tokens = new Set<string>();
+  for (const match of region.matchAll(/className=\{?`([^`]*)`\}?/g)) {
+    for (const token of match[1]!.split(/\s+/)) if (token) tokens.add(token);
+  }
+  for (const match of region.matchAll(/className="([^"]*)"/g)) {
+    for (const token of match[1]!.split(/\s+/)) if (token) tokens.add(token);
+  }
+  return tokens;
+}

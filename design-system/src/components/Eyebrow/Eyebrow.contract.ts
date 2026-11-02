@@ -99,11 +99,15 @@ export const EyebrowContract = defineContract({
     canvasProps: ["children"],
     placement: "Directly above a heading (landing sections) or above a value or a group inside a card (platform). Something must follow it: a heading, a number or the group it labels.",
   },
-  appCounterpart: {
-    file: "design-system/primitives.tsx",
-    exportName: "Eyebrow",
-    differences: ["Spreads native paragraph attributes (id, lang, data-*) onto the <p>; the app's copy accepts children and className only."],
-  },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
+  appCounterpart: null,
+  version: "1.0.1",
+  changelog: [
+    {
+      version: "1.0.1",
+      changes: [
+        "The app's copy of this component was a different component: its \"Eyebrow\" was the mono \"::\" label of the dashboards, which the system calls MonoLabel. This contract no longer points at it — the app has no accent kicker yet.",
+      ],
+    },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product."] },
+  ],
 });

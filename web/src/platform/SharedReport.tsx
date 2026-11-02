@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Action, Eyebrow, FadeRise, Meter, Panel, PopIn, ScoreRing } from "@/design-system";
+import { Action, MonoLabel, FadeRise, Meter, Panel, PopIn, ScoreRing } from "@/design-system";
 import { useT } from "@/hooks/useLocale";
 import { track } from "@/lib/analytics";
 import type { Evaluation } from "@/lib/evaluation";
@@ -120,7 +120,7 @@ export function SharedReport() {
         <div className="grid gap-4 lg:grid-cols-3">
           <FadeRise delay={0.05} className="lg:col-span-1">
             <Panel variant="raised" className="flex h-full flex-col gap-6 p-6">
-              <Eyebrow>{t("feedback.overall")}</Eyebrow>
+              <MonoLabel>{t("feedback.overall")}</MonoLabel>
               {/* The same ring and the same Mocki the candidate saw: a
                   shared report is the product's shop window, so it looks
                   like the moment it records rather than a spreadsheet. */}
@@ -161,7 +161,7 @@ export function SharedReport() {
           <FadeRise delay={0.1} className="lg:col-span-2">
             <Panel className="flex h-full flex-col gap-6 p-6">
               <div>
-                <Eyebrow>{t("feedback.worked")}</Eyebrow>
+                <MonoLabel>{t("feedback.worked")}</MonoLabel>
                 <ul className="mt-3 flex flex-col gap-3">
                   {evaluation.strengths.map((item) => (
                     <li key={item} className="text-sm leading-relaxed text-cream-bright">
@@ -171,7 +171,7 @@ export function SharedReport() {
                 </ul>
               </div>
               <div className="border-t border-line pt-6">
-                <Eyebrow>{t("feedback.toFix")}</Eyebrow>
+                <MonoLabel>{t("feedback.toFix")}</MonoLabel>
                 <ul className="mt-3 flex flex-col gap-3">
                   {evaluation.areas_for_improvement.map((item) => (
                     <li key={item} className="text-sm leading-relaxed text-cream-dim">
@@ -185,7 +185,7 @@ export function SharedReport() {
 
           <FadeRise delay={0.15} className="lg:col-span-2">
             <Panel className="flex h-full flex-col gap-5 p-6">
-              <Eyebrow>{t("feedback.language")}</Eyebrow>
+              <MonoLabel>{t("feedback.language")}</MonoLabel>
               <div>
                 <p className="text-xs text-cream-faint">{t("feedback.usedWell")}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -216,7 +216,7 @@ export function SharedReport() {
 
           <FadeRise delay={0.2} className="lg:col-span-1">
             <Panel className="flex h-full flex-col gap-4 p-6">
-              <Eyebrow>{t("feedback.structure")}</Eyebrow>
+              <MonoLabel>{t("feedback.structure")}</MonoLabel>
               <p className="text-sm leading-relaxed text-cream-dim">
                 {evaluation.structure_feedback.feedback_text}
               </p>

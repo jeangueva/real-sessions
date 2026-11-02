@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { Eyebrow, Field, Panel } from "@/design-system";
+import { MonoLabel, Field, Panel } from "@/design-system";
 import HoldButton from "@/components/bits/HoldButton";
 import { ApiError, deleteAccount } from "@/lib/api";
 import { useT } from "@/hooks/useLocale";
@@ -44,7 +44,7 @@ export function DeleteAccount({ email }: { email: string }) {
 
   return (
     <Panel className="mt-4 max-w-2xl border border-line p-6">
-      <Eyebrow>{t("delete.title")}</Eyebrow>
+      <MonoLabel>{t("delete.title")}</MonoLabel>
 
       {!open ? (
         <div className="mt-3 flex flex-wrap items-center gap-4">

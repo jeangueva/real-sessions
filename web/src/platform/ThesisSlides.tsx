@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Download, Loader2, PenLine, Presentation, Trash2, Upload } from "lucide-react";
-import { Eyebrow, Panel, DisclosureMark, Segmented } from "@/design-system";
+import { MonoLabel, Panel, DisclosureMark, Segmented } from "@/design-system";
 import { ApiError, deleteSlides, uploadSlides, writeThesisScript } from "@/lib/api";
 import type { StoredThesis } from "@/lib/api";
 import { useThesisT } from "@/lib/thesis-copy";
@@ -197,7 +197,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
 
           {review.inconsistencies.length > 0 && (
             <section className="flex flex-col gap-2">
-              <Eyebrow>{t("slidesMismatch")}</Eyebrow>
+              <MonoLabel>{t("slidesMismatch")}</MonoLabel>
               {review.inconsistencies.map((entry, index) => (
                 <p key={index} className="flex gap-2 rounded-2xl bg-step-soft px-4 py-3 text-sm text-step-text">
                   <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
@@ -225,7 +225,7 @@ export function ThesisSlides({ thesis, onChange }: { thesis: StoredThesis; onCha
           )}
 
           <section className="flex flex-col gap-2">
-            <Eyebrow>{fromThesis ? t("scriptOutline") : t("slidesPerSlide")}</Eyebrow>
+            <MonoLabel>{fromThesis ? t("scriptOutline") : t("slidesPerSlide")}</MonoLabel>
             <ol className="flex flex-col gap-2">
               {review.slides.map((slide) => (
                 <li key={slide.n} className="rounded-2xl bg-surface-card p-4 shadow-card">
