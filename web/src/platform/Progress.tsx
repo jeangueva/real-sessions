@@ -34,6 +34,7 @@ import { formatSessionDate } from "@/lib/format";
 import { badgeText } from "@/lib/badges";
 import { Today } from "./Today";
 import { Welcome } from "./Welcome";
+import { RecentSessions } from "./RecentSessions";
 import { Journey } from "./Journey";
 import { SessionList } from "./SessionList";
 
@@ -283,6 +284,10 @@ export function Progress() {
         {/* The first steps, until they are done or dismissed: they moved here
             from the interviews screen, which is now for picking a job. */}
         <Welcome sessions={sessions ?? []} />
+        {/* Practise again, from the path: the same cards the interviews
+            screen shows, each loading that setup so the second attempt is
+            one press away from seeing how the first went. */}
+        <RecentSessions sessions={sessions ?? []} genericCompany="" />
         <FadeRise delay={0.03}>
           <Today sessions={sessions ?? []} />
         </FadeRise>
