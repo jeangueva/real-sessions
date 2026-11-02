@@ -635,6 +635,26 @@
       "tailwind": "text-xs font-medium"
     },
     {
+      "name": "Small semibold",
+      "size": 14,
+      "family": "Inter Tight",
+      "weight": 600,
+      "lineHeight": 1.5,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "text-xs font-semibold"
+    },
+    {
+      "name": "Mono",
+      "size": 16,
+      "family": "JetBrains Mono",
+      "weight": 500,
+      "lineHeight": 1.55,
+      "letterSpacing": 0,
+      "uppercase": false,
+      "tailwind": "font-mono text-sm font-medium"
+    },
+    {
       "name": "Wordmark",
       "size": 20,
       "family": "Inter Tight",
@@ -835,33 +855,58 @@
     },
     {
       "name": "ScoreRing",
-      "node": null,
-      "reason": "Batch 2: being drawn."
+      "node": "33:450",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=33-450",
+      "properties": [
+        "Value",
+        "Band"
+      ]
     },
     {
       "name": "Tag",
-      "node": null,
-      "reason": "Batch 2: being drawn."
+      "node": "33:354",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=33-354",
+      "properties": [
+        "Label",
+        "Tone"
+      ]
     },
     {
       "name": "Widget",
-      "node": null,
-      "reason": "Batch 2: being drawn."
+      "node": "33:463",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=33-463",
+      "properties": [
+        "Content",
+        "Show label",
+        "Featured"
+      ]
     },
     {
       "name": "Inset",
-      "node": null,
-      "reason": "Batch 2: being drawn."
+      "node": "33:464",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=33-464",
+      "properties": [
+        "Content"
+      ]
     },
     {
       "name": "IconTile",
-      "node": null,
-      "reason": "Batch 2: being drawn."
+      "node": "33:437",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=33-437",
+      "properties": [
+        "Icon",
+        "Number",
+        "Kind"
+      ]
     },
     {
       "name": "Chip",
-      "node": null,
-      "reason": "Batch 2: being drawn."
+      "node": "33:359",
+      "url": "https://www.figma.com/design/jmdQwNqGso3sQoUpcME5g8?node-id=33-359",
+      "properties": [
+        "Label",
+        "Tone"
+      ]
     }
   ],
   "effectStyles": [

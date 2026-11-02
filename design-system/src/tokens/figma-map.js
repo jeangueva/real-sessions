@@ -123,6 +123,8 @@ export const TEXT_STYLES = [
   { figma: "Button", preset: "sm", weight: 600, letterSpacing: "-0.01em", family: "sans", tailwind: "text-sm font-semibold tracking-[-0.01em]" },
   { figma: "Body strong", preset: "sm", weight: 600, family: "sans", tailwind: "text-sm font-semibold" },
   { figma: "Small strong", preset: "xs", weight: 500, family: "sans", tailwind: "text-xs font-medium" },
+  { figma: "Small semibold", preset: "xs", weight: 600, family: "sans", tailwind: "text-xs font-semibold" },
+  { figma: "Mono", preset: "sm", weight: 500, family: "mono", tailwind: "font-mono text-sm font-medium" },
   // The lockup's name at the product's usual size (Wordmark className="text-xl font-semibold").
   { figma: "Wordmark", px: 20, lineHeight: "1.4", letterSpacing: "-0.03em", weight: 600, family: "sans", tailwind: "text-xl font-semibold tracking-[-0.03em]" },
   { figma: "Label", preset: "xs", weight: 500, letterSpacing: "0.06em", uppercase: true, family: "mono", tailwind: "font-mono text-xs uppercase tracking-[0.06em]" },
@@ -168,12 +170,12 @@ export const COMPONENTS = {
   DisclosureMark: { figma: "29:336", properties: ["Label", "Open label", "Kind", "Open"], aliases: ["chevron", "expand", "accordion toggle", "disclosure", "ver más", "desplegable"] },
   Meter: { figma: "29:354", properties: ["Label", "Value", "Fill"], aliases: ["progress bar", "gauge", "score bar", "barra de progreso", "medidor"] },
   MonoLabel: { figma: "29:320", properties: ["Label"], aliases: ["card label", "overline", "instrument label", "caption", "etiqueta mono", "::LABEL"] },
-  ScoreRing: { figma: null, reason: "Batch 2: being drawn.", aliases: ["score", "ring", "donut", "progress ring", "nota", "puntaje", "anillo"] },
-  Tag: { figma: null, reason: "Batch 2: being drawn.", aliases: ["severity", "verdict", "status chip", "risk label", "gravedad", "etiqueta de riesgo"] },
-  Widget: { figma: null, reason: "Batch 2: being drawn.", aliases: ["card", "widget", "instrument card", "tarjeta", "panel del landing"] },
-  Inset: { figma: null, reason: "Batch 2: being drawn.", aliases: ["well", "inset panel", "nested box", "recuadro", "panel interior"] },
-  IconTile: { figma: null, reason: "Batch 2: being drawn.", aliases: ["icon tile", "icon box", "number tile", "avatar tile", "cuadro de icono"] },
-  Chip: { figma: null, reason: "Batch 2: being drawn.", aliases: ["chip", "fact chip", "pill label", "etiqueta", "dato"] },
+  ScoreRing: { figma: "33:450", properties: ["Value", "Band"], aliases: ["score", "ring", "donut", "progress ring", "nota", "puntaje", "anillo"] },
+  Tag: { figma: "33:354", properties: ["Label", "Tone"], aliases: ["severity", "verdict", "status chip", "risk label", "gravedad", "etiqueta de riesgo"] },
+  Widget: { figma: "33:463", properties: ["Content", "Show label", "Featured"], slot: { Content: "The card's body under its ::LABEL: a figure, a list, an Inset, a row of Chips. Widget pads it; nothing inside needs its own card." }, preferred: { Content: ["Inset", "IconTile", "Chip", "CheckItem", "Meter", "Tag", "Action"] }, aliases: ["card", "widget", "instrument card", "tarjeta", "panel del landing"] },
+  Inset: { figma: "33:464", properties: ["Content"], slot: { Content: "A darker well inside a Widget or a Panel: a figure with its caption, a short list, a quoted line." }, preferred: { Content: ["Meter", "Tag", "CheckItem", "Chip"] }, aliases: ["well", "inset panel", "nested box", "recuadro", "panel interior"] },
+  IconTile: { figma: "33:437", properties: ["Icon", "Number", "Kind"], preferred: { Icon: ["icon/file-text", "icon/mic", "icon/presentation", "icon/users", "icon/timer", "icon/target", "icon/graduation-cap", "icon/sparkles"] }, aliases: ["icon tile", "icon box", "number tile", "avatar tile", "cuadro de icono"] },
+  Chip: { figma: "33:359", properties: ["Label", "Tone"], aliases: ["chip", "fact chip", "pill label", "etiqueta", "dato"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */
