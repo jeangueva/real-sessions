@@ -118,7 +118,46 @@ const pt: Copy = {
   skip: "Ir para o conteúdo",
 };
 
+const fr: Copy = {
+  diagnosis: "Diagnostic",
+  review: "Révision",
+  slides: "Diapositives",
+  title: "Entraînez-vous pour la vraie vie.",
+  intro: "Répétez votre soutenance, vos entretiens et les conversations que vous repoussez. Gratuit, une situation à la fois.",
+  start: "Commencer gratuitement",
+  explore: "Voir les situations",
+  free: "100 % gratuit · Soutien volontaire",
+  education: "Éducation",
+  professional: "Professionnel",
+  educationBody: "Votre soutenance et ce qui vient avant : exposés, travaux de groupe et la discussion avec votre directeur.",
+  professionalBody: "Entretiens, conversations difficiles au travail et en famille, et des cas pour entraîner votre jugement produit.",
+  thesis: "Soutenance de mémoire",
+  thesisBody: "Déposez votre mémoire, voyez où le jury va insister et répétez à voix haute jusqu’à être prêt.",
+  academic: "Situations académiques",
+  academicBody: "Un camarade qui ne rend rien, une note que vous ne comprenez pas, un directeur qui demande un chapitre de plus.",
+  interviews: "Entretiens d’embauche",
+  interviewsBody: "Choisissez le poste, répondez à voix haute et voyez quoi améliorer dans chaque réponse.",
+  conversations: "Conversations difficiles",
+  conversationsBody: "Dire non à un fondateur, négocier un périmètre, parler d’argent en famille. Sur le ton de l’Amérique latine ou de l’Amérique du Nord.",
+  techLab: "Au travail",
+  techLabBody: "Dire non à un fondateur, négocier le périmètre avec l’ingénierie, faire un retour difficile, expliquer un retard.",
+  culturalLab: "En famille",
+  culturalLabBody: "L’argent en famille, les limites avec la belle-famille, un héritage, le conflit que vous évitez. Sur le ton de l’Amérique latine ou de l’Amérique du Nord.",
+  intuition: "Intuition produit",
+  intuitionBody: "Vous tranchez sur un cas réel, dites à quel point vous êtes sûr, puis voyez ce qui s’est vraiment passé.",
+  support: "S’entraîner est 100 % gratuit. Soutenir est volontaire.",
+  supportBody: "Tout dans Éducation et Professionnel est gratuit, sans fonction bloquée ni limite hebdomadaire. Pour aider Mockio à continuer, vous pouvez contribuer une fois ou chaque mois, dès 1 USD.",
+  how: "Choisissez une situation. Répétez-la. Voyez comment ça s’est passé.",
+  howBody: "Choisissez une situation académique ou de travail, répondez à voix haute ou tranchez, puis lisez le retour ou ce qui s’est vraiment passé.",
+  welcome: "Que voulez-vous pratiquer ?",
+  tools: "Vos outils",
+  progress: "Progrès",
+  applications: "Candidatures",
+  profile: "Votre contexte",
+  skip: "Aller au contenu",
+};
+
 export function usePracticeCopy(): Copy {
   const { locale } = useLocale();
-  return locale === "es" ? es : locale === "pt" ? pt : en;
+  return locale === "es" ? es : locale === "pt" ? pt : locale === "fr" ? fr : en;
 }

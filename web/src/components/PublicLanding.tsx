@@ -134,14 +134,14 @@ const COPY = {
     eduTag: "01 · Education",
     proTag: "02 · Professional",
     howTag: "03 · Method",
-    supportTag: "04 · Free access & voluntary support",
+    supportTag: "04 · Free",
     privacyTag: "Privacy & open access",
-    eduSub: "3-examiner thesis defense + Academic scenario simulations",
+    eduSub: "Thesis defence and academic situations",
     proSub: "Hard conversations, product intuition and job interviews",
     openThesis: "Open Thesis Defense",
     openAcademic: "Practice academic scenarios",
     openConversations: "Practise conversations",
-    openIntuition: "Train product & design intuition",
+    openIntuition: "Train product intuition",
     openInterviews: "Practice job interviews",
     callLabel: "The live jury video call",
     mockLive: "Live",
@@ -222,6 +222,103 @@ const COPY = {
     affTitle: "Community & educators",
     affBody: "Advisors, teachers and mentors sharing Mockio with their students and teams.",
     affCta: "See community programme",
+  },
+  fr: {
+    latam: "Amérique latine",
+    northAmerica: "Amérique du Nord",
+    techCallLabel: "Une conversation de travail",
+    countriesLabel: "Avec le format de jury de",
+    eduTag: "01 · Éducation",
+    proTag: "02 · Professionnel",
+    howTag: "03 · Méthode",
+    supportTag: "04 · Gratuit",
+    privacyTag: "Confidentialité et accès libre",
+    eduSub: "Soutenance de mémoire et situations académiques",
+    proSub: "Conversations difficiles, intuition produit et entretiens",
+    openThesis: "Ouvrir la soutenance",
+    openAcademic: "Pratiquer des situations académiques",
+    openConversations: "Pratiquer des conversations",
+    openIntuition: "Entraîner l’intuition produit",
+    openInterviews: "Pratiquer des entretiens",
+    callLabel: "L’appel vidéo avec le jury",
+    mockLive: "En direct",
+    juror1: "Président",
+    juror2: "Méthodologue",
+    juror3: "Spécialiste",
+    mockJuror1: "Dr Ramírez · Président du jury",
+    mockQuestion1: "Page 18, vous posez trois objectifs spécifiques, mais vos conclusions n’en traitent que deux. Qu’est devenu le troisième ?",
+    mockAnswer1: "Le troisième objectif est traité dans la conclusion 2, avec l’analyse des coûts du tableau 9…",
+    mockJuror2: "Dre Vidal · Méthodologue",
+    mockQuestion2: "Page 41, vous utilisez Pearson. Avez-vous vérifié la normalité des données ? Je ne trouve pas ce test dans votre mémoire.",
+    mockAnswer2: "J’ai appliqué Kolmogorov-Smirnov, à l’annexe 4, mais je ne l’ai pas cité dans le chapitre…",
+    mockJuror3: "Dr Paredes · Spécialiste",
+    mockQuestion3: "Dans la discussion (p. 54), vous affirmez une réduction de 30 % des délais sans contrôler la saisonnalité. Comment le justifiez-vous ?",
+    mockAnswer3: "Nous avons comparé le même trimestre à l’année de référence, page 48, pour isoler l’effet saisonnier…",
+    mockYou: "Vous",
+    mockActa: "Procès-verbal simulé",
+    mockVerdict: "Admis à la majorité",
+    eduBullet1: "Un jury de 3 qui a lu tout votre mémoire et cite la page quand il vous interroge",
+    eduBullet2: "Où le jury va insister, révisions, diapositives et remarques",
+    eduBullet3: "Aussi : un groupe qui n’avance pas, une note que vous ne comprenez pas, un directeur qui en demande plus",
+    acad1Title: "Un travail de groupe déséquilibré",
+    acad1Meta: "Un camarade qui a manqué deux rendus",
+    acad2Title: "Demander l’explication d’une note",
+    acad2Meta: "Un enseignant peu disponible",
+    acad3Title: "Des résultats qui ne soutiennent pas votre hypothèse",
+    acad3Meta: "Un directeur qui attendait un effet net",
+    acad4Title: "Négocier le périmètre du mémoire",
+    acad4Meta: "Un nouveau chapitre demandé à 6 semaines du rendu",
+    techScenarios: [
+      {
+        role: "Fondateur · Lancement vendredi",
+        initials: "FD",
+        prompt: "Il faut annoncer la version complète ce vendredi. Je l’ai déjà promise à deux clients.",
+        reply: "Le paiement échoue encore dans 4 % des cas. Si on lance vendredi un pilote interne, on protège la production et on garde la démo.",
+        coach: "Limite claire + risque observable + option réversible.",
+      },
+      {
+        role: "Responsable produit · Périmètre du sprint",
+        initials: "RP",
+        prompt: "Ce ne sont que trois écrans de plus et la migration de la base, ça rentre dans ce sprint.",
+        reply: "À deux développeurs, on livre la migration et le parcours principal, ou les trois écrans sans migration. Qu’est-ce qui débloque le plus cette semaine ?",
+        coach: "Rend les dépendances visibles et demande un arbitrage explicite.",
+      },
+      {
+        role: "Designer senior · Critique d’utilisabilité",
+        initials: "DS",
+        prompt: "La maquette est propre ; si les testeurs n’ont pas vu le bouton, c’est que le prototype était statique.",
+        reply: "Dans 4 sessions sur 5, les participants ont cherché en haut à droite avant de défiler. On teste une variante avec l’action fixée ?",
+        coach: "S’appuie sur des faits observables sans attaquer l’auteur.",
+      },
+    ],
+    culturalTitle: "Sur le ton de l’Amérique latine ou de l’Amérique du Nord",
+    culturalCaseRole: "Proche · Demande d’argent récurrente",
+    culturalCasePrompt: "Ce mois-ci, c’est encore serré. Tu peux me virer la même somme que le mois dernier ?",
+    culturalCaseReply: "Je tiens à toi et je préfère être franc : je peux t’aider de moitié, une dernière fois, et samedi on regarde ensemble comment organiser les mensualités.",
+    culturalCoach: "Préserve le lien familial sans prendre un engagement financier intenable.",
+    intuitionCaseTag: "Cas réel · Hypothèse",
+    intuitionPrompt: "Beaucoup d’acheteurs abandonnent le panier au moment où on leur demande de créer un compte avant de payer. Quelle hypothèse testez-vous d’abord ?",
+    intuitionChosen: "Votre choix : achat sans compte, compte facultatif à la fin",
+    intuitionConfidence: "Votre certitude avant de voir le résultat",
+    intuitionRevealTitle: "Résultat historique : UIE — The $300 Million Button",
+    intuitionRevealBody: "Remplacer l’inscription obligatoire avant paiement par un simple bouton « continuer » a augmenté les acheteurs de 45 % et rapporté 300 M$ la première année.",
+    step1Title: "Choisissez une situation",
+    step1Body: "Votre soutenance, une conversation difficile, un cas produit ou un entretien.",
+    step2Title: "Répétez-la",
+    step2Body: "Répondez à voix haute à quelqu’un qui ne vous facilite pas la tâche, ou tranchez avant de voir ce qui s’est passé.",
+    step3Title: "Voyez comment ça s’est passé",
+    step3Body: "Votre procès-verbal, ce qu’il faudrait dire autrement, ou ce qui s’est vraiment passé dans le cas.",
+    privacyTitle: "100 % gratuit. Rien de bloqué.",
+    privacyNote: "Mockio ne bloque aucun mode, ne limite pas les séances par semaine et n’entraîne aucun modèle avec votre mémoire ou vos répétitions. Pour soutenir le projet, c’est volontaire, dès 1 USD.",
+    privacy1: "Tous les modes d’Éducation et de Professionnel ouverts dès le premier jour",
+    privacy2: "Si vous voulez soutenir, une fois ou chaque mois, dès 1 USD",
+    privacy3: "Vos documents et répétitions restent privés et s’effacent en un clic",
+    instTitle: "Pour les universités et écoles",
+    instBody: "Intégrez Mockio dans Moodle, Canvas ou Blackboard via LTI 1.3 pour que vos étudiants répètent leurs soutenances et présentations.",
+    instCta: "Voir l’intégration",
+    affTitle: "Communauté et enseignants",
+    affBody: "Directeurs, enseignants et mentors qui partagent Mockio avec leurs étudiants et leurs équipes.",
+    affCta: "Voir le programme",
   },
   pt: {
     latam: "América Latina",
@@ -578,7 +675,7 @@ function FeatureRow({
   return (
     <div className="grid items-stretch gap-3 md:grid-cols-2 [&>*]:min-w-0">
       <FadeRise className={`h-full ${flip ? "md:order-2" : ""}`}>
-        <Widget label={label} className="h-full justify-between">
+        <Widget label={label} className="h-full">
           <div className="space-y-4">
             <h3 className="text-balance text-[clamp(1.75rem,3.2vw,2.5rem)] font-light leading-[1.08] tracking-[-0.04em] text-cream-bright">
               {title}
@@ -603,7 +700,7 @@ function FeatureRow({
 export function PublicLanding() {
   const { locale } = useLocale();
   const c = usePracticeCopy();
-  const d = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : COPY.en;
+  const d = locale === "es" ? COPY.es : locale === "pt" ? COPY.pt : locale === "fr" ? COPY.fr : COPY.en;
 
   useEffect(() => {
     document.title = `Mockio | ${c.title}`;
@@ -797,7 +894,7 @@ export function PublicLanding() {
 
             <div className="grid gap-3 md:grid-cols-2">
               <FadeRise>
-                <Widget label={`01.1 · ${c.thesis}`} className="h-full justify-between">
+                <Widget label={`01.1 · ${c.thesis}`} className="h-full">
                   <div>
                     <h3 className="text-2xl font-light tracking-[-0.03em] text-cream-bright">
                       {c.thesis}
@@ -813,7 +910,7 @@ export function PublicLanding() {
               </FadeRise>
 
               <FadeRise delay={0.06}>
-                <Widget label={`01.2 · ${c.academic}`} className="h-full justify-between">
+                <Widget label={`01.2 · ${c.academic}`} className="h-full">
                   <div>
                     <h3 className="text-2xl font-light tracking-[-0.03em] text-cream-bright">
                       {c.academic}

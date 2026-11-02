@@ -72,6 +72,21 @@ const AREA_PT: Record<string, string> = {
   operations: "Operações",
 };
 
+const AREA_FR: Record<string, string> = {
+  engineering: "Ingénierie",
+  product: "Produit",
+  design: "Design",
+  data: "Données",
+  growth: "Growth",
+  marketing: "Marketing",
+  finance: "Finance",
+  legal: "Juridique",
+  people: "RH",
+  sales: "Ventes",
+  "customer-success": "Succès client",
+  operations: "Opérations",
+};
+
 const COPY = {
   es: {
     search: "Busca un puesto: backend, ventas, analista…",
@@ -99,6 +114,19 @@ const COPY = {
     start: "Começar entrevista",
     none: "Não encontramos «{query}». Tente outra palavra.",
   },
+  fr: {
+    search: "Cherchez un poste : backend, ventes, analyste…",
+    areas: "{count} domaines",
+    jobs: "{count} postes",
+    see: "Voir les postes",
+    back: "Tous les domaines",
+    areaTitle: "Entretiens en {area}",
+    areaSub: "{count} postes à pratiquer",
+    meta: "≈ 10 min",
+    turns: "7 questions",
+    start: "Commencer l’entretien",
+    none: "Rien ne correspond à « {query} ». Essayez un autre mot.",
+  },
   en: {
     search: "Search a job: backend, sales, analyst…",
     areas: "{count} fields",
@@ -117,7 +145,7 @@ const COPY = {
 /** The label over the settings bar, under the picker. */
 export function useTuneLabel(): string {
   const { locale } = useLocale();
-  return locale === "pt" ? "Ou ajuste a entrevista" : locale === "es" ? "O ajusta la entrevista" : "Or tune the interview";
+  return locale === "pt" ? "Ou ajuste a entrevista" : locale === "es" ? "O ajusta la entrevista" : locale === "fr" ? "Ou réglez l’entretien" : "Or tune the interview";
 }
 
 const fill = (text: string, values: Record<string, string | number>) =>
@@ -143,9 +171,9 @@ export function RolePicker({
   disabled?: boolean;
 }) {
   const { locale } = useLocale();
-  const c = locale === "pt" ? COPY.pt : locale === "es" ? COPY.es : COPY.en;
+  const c = locale === "pt" ? COPY.pt : locale === "es" ? COPY.es : locale === "fr" ? COPY.fr : COPY.en;
   const areaName = (area: Area) =>
-    (locale === "pt" ? AREA_PT[area.id] : locale === "es" ? AREA_ES[area.id] : undefined) ?? area.label;
+    (locale === "pt" ? AREA_PT[area.id] : locale === "es" ? AREA_ES[area.id] : locale === "fr" ? AREA_FR[area.id] : undefined) ?? area.label;
   const [open, setOpen] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
