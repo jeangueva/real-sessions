@@ -360,6 +360,166 @@
         "Don't write a sentence in spaced caps.",
         "Don't use it inside the signed-in product, where the kicker is Eyebrow."
       ]
+    },
+    {
+      "name": "ScoreRing",
+      "node": "33:450",
+      "properties": [
+        "Value",
+        "Band"
+      ],
+      "description": "The one headline score of a finished session as a ring that draws itself to the percentage, with the number printed in the middle.\n\n**Use it for:** The one headline score of a finished interview: the report's overall percentage, the score on a session's detail, a shared report; How much of the daily goal is done, on Today, with the XP in words under it.\n\n**Not for:** The supporting scores beside the headline one (vocabulary, structure) → Meter; Something loading or being evaluated → A sentence that names what is happening (\"Evaluando…\"), or DotMatrix.\n\n**Also known as:** score, ring, donut, progress ring, nota, puntaje, anillo.\n\n`import { ScoreRing } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/ScoreRing/ScoreRing.md",
+      "do": [
+        "Print the rounded number inside, with a smaller \"%\".",
+        "One ring per view: it is the headline.",
+        "Say outside the ring, in words, what the score means for the next step."
+      ],
+      "dont": [
+        "Don't leave the ring empty of a number: the colour alone is not readable in the light theme and is never announced.",
+        "Don't use it as a spinner or a progress bar for a wait.",
+        "Don't recolour the stroke with className, or add red for a low score."
+      ]
+    },
+    {
+      "name": "Tag",
+      "node": "33:354",
+      "properties": [
+        "Label",
+        "Tone"
+      ],
+      "description": "A small coloured pill with a verdict in words on one piece of the student's work — how serious a risk is, whether an objective holds together.\n\n**Use it for:** How serious each risk in the thesis diagnosis is: Grave, Te costará puntos, De forma; Whether each objective of the consistency matrix holds together: Coherente, Débil, Incoherente.\n\n**Not for:** A status of the screen or of a call (the mode, a setting, something in progress) → Badge; A score or a proportion → Meter, or ScoreRing for the headline score.\n\n**Also known as:** severity, verdict, status chip, risk label, gravedad, etiqueta de riesgo.\n\n`import { Tag } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Tag/Tag.md",
+      "do": [
+        "Pick the tone from the verdict: one mapping per list, the same everywhere it appears.",
+        "Put the tag before the item it qualifies, so it is read first.",
+        "Sort a list from the most serious to the least, as the diagnosis does."
+      ],
+      "dont": [
+        "Don't use a Tag for a status of the screen; that is a Badge.",
+        "Don't recolour it with className, and never red.",
+        "Don't use two tones for the same word, or one word in two tones."
+      ]
+    },
+    {
+      "name": "Widget",
+      "node": "33:463",
+      "properties": [
+        "Content",
+        "Show label",
+        "Featured"
+      ],
+      "description": "The landing's instrument card: a flat card-coloured surface with a hairline ring, its own padding, its content stacked and an optional \"::LABEL\" on top.\n\n**Use it for:** A card on the landing below the hero: a feature beside its screen, a step of \"Cómo funciona\", a pricing tier, a small fact in a grid; A grid of equal cards on a marketing page: all Widgets, all h-full, gap-3 between them.\n\n**Not for:** A block on a signed-in app screen (an upload step, a settings section, a wait) → Panel, which carries the card shadow and leaves padding to the caller; A group inside a widget → Inset. A Widget inside a Widget doubles the ring and the radius.\n\n**Also known as:** card, widget, instrument card, tarjeta, panel del landing.\n\n`import { Widget } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Widget/Widget.md",
+      "preferred": {
+        "Content": [
+          "Inset",
+          "IconTile",
+          "Chip",
+          "CheckItem",
+          "Meter",
+          "Tag",
+          "Action"
+        ]
+      },
+      "slot": {
+        "Content": "The card's body under its ::LABEL: a figure, a list, an Inset, a row of Chips. Widget pads it; nothing inside needs its own card."
+      },
+      "do": [
+        "Name the widget with label, and keep a real heading under it when it makes a claim.",
+        "Give widgets in a grid h-full so a row lines up.",
+        "Use featured for the recommended tier, together with a Chip that says so.",
+        "Put groups inside it in Insets."
+      ],
+      "dont": [
+        "Don't nest a Widget in a Widget.",
+        "Don't add a shadow or a hover lift: the widget kit is flat, and a lift promises a press.",
+        "Don't recolour the ring or the fill through className; use featured.",
+        "Don't type the colons into label."
+      ]
+    },
+    {
+      "name": "Inset",
+      "node": "33:464",
+      "properties": [
+        "Content"
+      ],
+      "description": "The darker well inside a Widget that groups one piece of its content: a numbered row, a price, a step's tile and title.\n\n**Use it for:** Rows of a list inside a Widget: the product's three points, the six degrees with their minutes and questions; The figure of a pricing tier, set apart from its list of items.\n\n**Not for:** A block on the page ground, outside a card → Widget on the landing, Panel in the app. surface-lift is a wash; with no card behind it, it reads as nothing; A row the person presses or selects → A link or button with its own focus ring and hover; Inset has no states. A choice of one among a few is Segmented.\n\n**Also known as:** well, inset panel, nested box, recuadro, panel interior.\n\n`import { Inset } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Inset/Inset.md",
+      "preferred": {
+        "Content": [
+          "Meter",
+          "Tag",
+          "CheckItem",
+          "Chip"
+        ]
+      },
+      "slot": {
+        "Content": "A darker well inside a Widget or a Panel: a figure with its caption, a short list, a quoted line."
+      },
+      "do": [
+        "Put it inside a Widget (or a Panel).",
+        "Tighten the padding for a row with className (p-3, px-4 py-3).",
+        "Wrap a list of insets in a real <ul>/<ol>."
+      ],
+      "dont": [
+        "Don't nest an Inset in an Inset.",
+        "Don't give it a border or a shadow: it recedes, it does not rise.",
+        "Don't put it on the page ground."
+      ]
+    },
+    {
+      "name": "IconTile",
+      "node": "33:437",
+      "properties": [
+        "Icon",
+        "Number",
+        "Kind"
+      ],
+      "description": "The widget kit's small amber-tint square holding a step number or an icon at the head of a row or a step; decoration, hidden from assistive technology.\n\n**Use it for:** The number of a step or a point in an ordered list on the landing: the three rows of El producto, the three steps of Cómo funciona; An icon at the head of an Inset row, repeating what its words say.\n\n**Not for:** An icon that is the only label of something → Words, or an icon with an accessible name inside the control that needs it. The tile is aria-hidden; A tick on an item of what a plan includes → CheckItem.\n\n**Also known as:** icon tile, icon box, number tile, avatar tile, cuadro de icono.\n\n`import { IconTile } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/IconTile/IconTile.md",
+      "preferred": {
+        "Icon": [
+          "icon/file-text",
+          "icon/mic",
+          "icon/presentation",
+          "icon/users",
+          "icon/timer",
+          "icon/target",
+          "icon/graduation-cap",
+          "icon/sparkles"
+        ]
+      },
+      "do": [
+        "Put the tiles inside an <ol> when they number things.",
+        "Keep the words beside the tile.",
+        "Write numbers with the leading zero: 01, 02, 03."
+      ],
+      "dont": [
+        "Don't put a word in the tile.",
+        "Don't rely on the tile to say anything.",
+        "Don't recolour it per row: every tile in the kit is the same amber tint."
+      ]
+    },
+    {
+      "name": "Chip",
+      "node": "33:359",
+      "properties": [
+        "Label",
+        "Tone"
+      ],
+      "description": "A fact in mono caps on an amber wash — a country the panel follows, the \"Recomendado\" over a tier. Never a control.\n\n**Use it for:** A row of facts on the landing: the countries whose jury format the panel follows, after a MonoLabel lead-in; The one chip that marks the recommended tier: tone=\"accent\", in the featured Widget's header.\n\n**Not for:** Something the person presses, toggles or dismisses → Action for a step, Segmented for a choice of one among a few; The status of the current screen or call → Badge.\n\n**Also known as:** chip, fact chip, pill label, etiqueta, dato.\n\n`import { Chip } from \"@mockio/design-system\";`",
+      "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Chip/Chip.md",
+      "do": [
+        "Put a row of chips in a <ul>, one <li> per chip.",
+        "Write the fact in sentence case and let the style uppercase it.",
+        "Use tone=\"accent\" for one chip per view."
+      ],
+      "dont": [
+        "Don't give a chip an onClick or a hover.",
+        "Don't recolour it with bg-* or a hex value; pick the tone.",
+        "Don't write a sentence in a chip."
+      ]
     }
   ]
 }
