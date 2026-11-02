@@ -1495,7 +1495,7 @@
       "name": "mark",
       "type": "registry:ui",
       "title": "Mark",
-      "description": "The isologo: Mocki the parrot as three shapes on the indigo tile, in the brand's fixed colours, legible down to 16px.",
+      "description": "The isologo: Mocki the parrot as three shapes on the mustard tile, in the brand's fixed colours, legible down to 16px.",
       "dependencies": [],
       "registryDependencies": [
         "@mockio/mockio-theme",
@@ -1535,12 +1535,12 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Mark",
           "level": "atom",
           "status": "stable",
-          "summary": "The isologo: Mocki the parrot as three shapes on the indigo tile, in the brand's fixed colours, legible down to 16px.",
+          "summary": "The isologo: Mocki the parrot as three shapes on the mustard tile, in the brand's fixed colours, legible down to 16px.",
           "source": "src/components/Mark/Mark.tsx",
           "composes": [],
           "dependencies": [],
@@ -1695,8 +1695,14 @@
               "The colours are named constants (BRAND.tile, BRAND.beak, BRAND.head, BRAND.eye) instead of inline literals; the values are identical (#fff is written #FFFFFF)."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Mustard tile (#F6B733), red-orange beak (#D9481C) and ink eye (#2E2D2A), as the product's mark has been since the amber restyle."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -1783,7 +1789,7 @@
       "meta": {
         "level": "atom",
         "status": "beta",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "contract": {
           "name": "Mascot",
           "level": "atom",
@@ -1864,7 +1870,7 @@
               }
             ],
             "reducedMotion": "Nothing to reduce: the component does not move. Wrappers that animate it (PopIn, the level-up spring) check prefers-reduced-motion themselves.",
-            "contrast": "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated indigo body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
+            "contrast": "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated mustard body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
             "focus": "Never focusable.",
             "targetSize": "not interactive",
             "screenReader": "Announced as its alt (\"Mocki, nivel 3\", image) unless decorative. Sighted users see which form it is; the default alt gives the stage as a number, not the form's description."
@@ -1967,8 +1973,14 @@
               "Drops the axis prop, which the app's copy accepted and ignored."
             ]
           },
-          "version": "0.1.0",
+          "version": "0.1.1",
           "changelog": [
+            {
+              "version": "0.1.1",
+              "changes": [
+                "The six stages recoloured from violet to mustard, the same PNGs the product ships in public/avatars/."
+              ]
+            },
             {
               "version": "0.1.0",
               "changes": [
