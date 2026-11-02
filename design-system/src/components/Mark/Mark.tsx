@@ -3,16 +3,15 @@
  *
  * These are the only hex literals in the system and they stay literals: a
  * logo that changes colour with the theme is two logos. The tile happens to
- * equal the light theme's accent (#5856D6) but is not read from `--accent`,
- * because the dark theme's accent is a different indigo (#5E5CE6) and the mark
- * must be the same drawing everywhere. `public/favicon.svg` in the product is
+ * equal the accent (#F6B733, in both themes) but is not read from `--accent`:
+ * the accent may move again, and the mark must be the same drawing everywhere. `public/favicon.svg` in the product is
  * the same drawing; keep the two in step.
  */
 const BRAND = {
-  tile: "#5856D6",
-  beak: "#EF9F27",
+  tile: "#F6B733",
+  beak: "#D9481C",
   head: "#FFFFFF",
-  eye: "#26215C",
+  eye: "#2E2D2A",
 } as const;
 
 export interface MarkProps {
@@ -30,7 +29,7 @@ export interface MarkProps {
 
 /**
  * The isologo: Mocki, the parrot, reduced to three shapes — head, crest and
- * beak — on the brand's indigo tile.
+ * beak — on the brand's mustard tile.
  *
  * Reduced so it still reads at 16px in a browser tab. Inline rather than an
  * <img>, so it is there on the first paint and needs no request.

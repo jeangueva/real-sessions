@@ -4,7 +4,7 @@ export const MarkContract = defineContract({
   name: "Mark",
   level: "atom",
   status: "stable",
-  summary: "The isologo: Mocki the parrot as three shapes on the indigo tile, in the brand's fixed colours, legible down to 16px.",
+  summary: "The isologo: Mocki the parrot as three shapes on the mustard tile, in the brand's fixed colours, legible down to 16px.",
   source: "src/components/Mark/Mark.tsx",
   composes: [],
   dependencies: [],
@@ -111,6 +111,9 @@ export const MarkContract = defineContract({
       "The colours are named constants (BRAND.tile, BRAND.beak, BRAND.head, BRAND.eye) instead of inline literals; the values are identical (#fff is written #FFFFFF).",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product.", "Added the optional label for a mark that stands alone."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Mustard tile (#F6B733), red-orange beak (#D9481C) and ink eye (#2E2D2A), as the product's mark has been since the amber restyle."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product.", "Added the optional label for a mark that stands alone."] },
+  ],
 });

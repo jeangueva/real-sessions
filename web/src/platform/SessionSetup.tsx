@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Action, Panel, PremiumMark } from "@/design-system";
+import { Action, Panel } from "@/design-system";
 import type { MessageKey } from "@/lib/i18n";
 import { PageBody, PageHeader } from "./AppShell";
 import { Link } from "react-router-dom";
 import { RolePicker, useTuneLabel } from "./RolePicker";
-import { Briefcase, Lock, Plus, Search, Timer, TrendingUp, Users } from "lucide-react";
-import { fetchCatalogue, fetchHistory, fetchPlan, fetchPreferences, titleInArea } from "@/lib/api";
+import { Briefcase, Plus, Search, Timer, TrendingUp, Users } from "lucide-react";
+import { fetchCatalogue, fetchHistory, fetchPreferences, titleInArea } from "@/lib/api";
 import { areaLabel } from "@/lib/areas";
 import type {
   Area,
-  Capabilities,
   CatalogueCompany,
   Language,
   Level,
@@ -82,7 +81,6 @@ export function SessionSetup() {
   const [companies, setCompanies] = useState<CatalogueCompany[]>([]);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [personaId, setPersonaId] = useState("");
-  const [can, setCan] = useState<Capabilities | null>(null);
   const [sector, setSector] = useState("");
   /**
    * The advertisement this interview is for.
@@ -262,9 +260,6 @@ export function SessionSetup() {
         setLevels(result.levels ?? []);
       })
       .catch(() => undefined);
-    fetchPlan()
-      .then((result) => setCan(result.capabilities))
-      .catch(() => undefined);
     // Only for the search box. A first-time candidate has none, and the field
     // still works as a way into the form.
     fetchHistory()
@@ -362,7 +357,6 @@ export function SessionSetup() {
     [allStages, phase],
   );
   /** The job and growing are the paid plan; preparing and drills are free. */
-  const phaseLocked = (phase === "work" || phase === "grow") && can !== null && !can.workScenes;
 
   /** The chosen rounds, in the order they were chosen. */
   const chosenStages = useMemo(
@@ -467,24 +461,6 @@ export function SessionSetup() {
   const activeSector = sectors.find((entry) => entry.id === sector);
 
   /**
-   * How much of the free allowance is left.
-   *
-   * Counted from the history this screen already has rather than asked for
-   * separately. It is advisory — the server does the check that matters, on
-   * the whole record rather than the three sessions a free plan can see — so
-   * the worst a stale count does is show an encouraging number and then get a
-   * refusal, which is the right way round.
-   */
-  const limit = can?.weeklySessions ?? null;
-  const usedThisMonth = (() => {
-    if (limit === null) return 0;
-    const now = new Date();
-    const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
-    return sessions.filter((entry) => Date.parse(entry.startedAt) >= start).length;
-  })();
-  const left = limit === null ? null : Math.max(0, limit - usedThisMonth);
-
-  /**
    * A job card was pressed: set the role, and start once the rounds have
    * followed it. The rounds are derived from the role on the next render, so
    * starting in the click itself would send the previous role's rounds.
@@ -508,12 +484,6 @@ export function SessionSetup() {
   }, [pendingRole, role, chosenStages, visibleStages]);
 
   const begin = () => {
-    // A paid scene on the free plan opens the plans instead of an
-    // interview the server would refuse.
-    if (phaseLocked) {
-      navigate("/app/settings#plan");
-      return;
-    }
     // The shape of the interview, never what was typed into the
     // company box: that is a name a person chose to tell us.
     track("interview started", {
@@ -556,34 +526,7 @@ export function SessionSetup() {
       <PageHeader
         title={t("setup.title")}
         meta={t("setup.meta")}
-        /**
-         * The plan, in the row with the title.
-         *
-         * It was a full-width notice — twice over, once for the allowance and
-         * once for the plan — carrying a paragraph of sales copy above the
-         * thing someone came to do. What is worth saying at a glance is how
-         * many interviews are left; the argument for paying belongs on the
-         * page that sells, which is where the button goes.
-         */
-        actions={
-          can && (!can.targetCompany || left !== null) ? (
-            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-              <p className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-lift px-3 py-1.5 text-xs font-medium text-cream-dim">
-                <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span className={left === 0 ? "text-cream-bright" : undefined}>
-                  {left === 0
-                    ? t("setup.quotaNone")
-                    : left !== null && limit !== null
-                      ? t("setup.quotaLeft", { left, limit })
-                      : t("setup.quotaFree")}
-                </span>
-              </p>
-              <Link to="/app/settings#plan" className="shrink-0">
-                <Action tone="glass">{t("cta.seePlans")}</Action>
-              </Link>
-            </div>
-          ) : undefined
-        }
+
       />
 
       <Tour />
@@ -653,21 +596,12 @@ export function SessionSetup() {
               >
                 <entry.icon aria-hidden className="h-4 w-4" />
                 {t(entry.label)}
-                {(entry.id === "work" || entry.id === "grow") && can !== null && !can.workScenes && <PremiumMark label={t("premium.mark")} />}
               </button>
             ))}
           </div>
           <h2 className="text-base font-semibold text-cream-bright">{t(PHASES.find((entry) => entry.id === phase)!.title)}</h2>
-          {phaseLocked && (
-            <p className="-mt-1 text-sm text-cream-dim">
-              {t("phase.lockedBody")}{" "}
-              <Link to="/app/settings#plan" className="font-semibold text-accent-text underline underline-offset-4">
-                {t("cta.seePlans")}
-              </Link>
-            </p>
-          )}
 
-          <RolePicker areas={areas} roles={roles} onStart={startFor} disabled={left === 0} />
+          <RolePicker areas={areas} roles={roles} onStart={startFor} />
 
           <h3 className="mt-2 font-mono text-xs font-medium uppercase tracking-[0.06em] text-cream-dim">
             <span aria-hidden className="tracking-[-0.1em]">::</span>
@@ -744,7 +678,7 @@ export function SessionSetup() {
               },
               {
                 key: "language",
-                enabled: can?.interviewLanguage ?? true,
+                enabled: true,
                 node: (
                   <FilterSegment
                     label={t("field.language")}
@@ -753,8 +687,6 @@ export function SessionSetup() {
                       "English"
                     }
                     hint={t("field.languageHint")}
-                    disabled={can ? !can.interviewLanguage : false}
-                    disabledReason={t("field.languageLocked")}
                   >
                     {(close) => (
                       <>
@@ -881,7 +813,7 @@ export function SessionSetup() {
               },
               {
                 key: "interviewer",
-                enabled: can?.choosePersona ?? true,
+                enabled: true,
                 node: (
                   <FilterSegment
                     label={t("field.interviewer")}
@@ -889,8 +821,6 @@ export function SessionSetup() {
                       personas.find((p) => p.id === personaId)?.name ?? t("field.companyDefault")
                     }
                     hint={t("field.interviewerHint")}
-                    disabled={can ? !can.choosePersona : false}
-                    disabledReason={t("field.interviewerLocked")}
                   >
                     {(close) => (
                       <>
@@ -922,7 +852,7 @@ export function SessionSetup() {
               },
               {
                 key: "sector",
-                enabled: can?.targetCompany ?? true,
+                enabled: true,
                 node: (
                   <FilterSegment
                     label={t("field.sector")}
@@ -932,8 +862,6 @@ export function SessionSetup() {
                         ? `Expect ${activeSector.metrics}.`
                         : "Sets the vocabulary and the numbers you will be asked for."
                     }
-                    disabled={can ? !can.targetCompany : false}
-                    disabledReason={t("field.sectorLocked")}
                   >
                     {(close) => (
                       <>
@@ -964,19 +892,15 @@ export function SessionSetup() {
               },
               {
                 key: "company",
-                enabled: can?.targetCompany ?? true,
+                enabled: true,
                 node: (
                   <FilterSegment
                     label={t("field.company")}
                     value={
-                      can && !can.targetCompany
-                        ? t("field.generalRole")
-                        : company === genericCompany
+                      company === genericCompany
                           ? t("field.anyCompany")
                           : company
                     }
-                    disabled={can ? !can.targetCompany : false}
-                    disabledReason={t("field.companyLocked")}
                   >
                     {(close) => (
                       <>
@@ -1017,7 +941,6 @@ export function SessionSetup() {
                 data-tour="begin"
                 /* The server refuses this anyway. Saying so before the click
                    is the difference between a paywall and a failure. */
-                disabled={left === 0}
             onClick={begin}
               >
                 {/* Which interview it starts, since each job card starts its own. */}
@@ -1046,7 +969,7 @@ export function SessionSetup() {
             single application rather than to a standing preference. Only on
             the paid plan, which is where targeting a real employer lives.
             Hidden when an application is supplying it. */}
-        {can?.targetCompany &&
+        {
           !(application && application.company === company && application.role === role) && (
           /* A quiet link until it is wanted: most interviews start without a
              posting, and a full-width card for an optional field was the

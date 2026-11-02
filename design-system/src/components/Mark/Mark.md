@@ -7,18 +7,19 @@ status: stable
 # Mark
 
 The isologo. Mocki, the parrot, reduced to three shapes — head, crest and
-beak — on the indigo tile. A parrot because parrots learn to speak by
+beak — on the mustard tile. A parrot because parrots learn to speak by
 repeating out loud, which is all this product asks of someone; reduced so it
 still reads at 16px in a browser tab. The same drawing is the product's
 `public/favicon.svg`, and the two are kept in step.
 
 ## Anatomy
 
-1. **Tile** — a 64×64 rounded square (`rx` 15), indigo `#5856D6`.
+1. **Tile** — a 64×64 rounded square (`rx` 15), mustard `#F6B733`.
 2. **Crest** — the white curl at the top left.
 3. **Head** — a white circle, slightly left of centre.
-4. **Eye** — a deep indigo dot, `#26215C`, looking forward.
-5. **Beak** — orange `#EF9F27`, pointing right. The only warm shape.
+4. **Eye** — a warm ink dot, `#2E2D2A`, looking forward.
+5. **Beak** — red-orange `#D9481C`, pointing right, deep enough to stand off
+   the tile.
 
 It is an inline SVG, not an `<img>`: it is there on the first paint and costs
 no request.
@@ -26,17 +27,16 @@ no request.
 ## Colour
 
 The four colours are literals, and the only hex values in the system. That is
-deliberate: a logo that follows the theme is two logos. The tile equals the
-light theme's `--accent` today but is not read from it — the dark theme's
-accent is a different indigo (`#5E5CE6`), and the mark must be one drawing on
-every ground.
+deliberate: a logo that follows the theme is two logos. The tile equals
+`--accent` today, in both themes, but is not read from it — the accent may
+move again, and the mark must stay one drawing on every ground.
 
 | Part | Colour |
 | --- | --- |
-| Tile | `#5856D6` |
+| Tile | `#F6B733` |
 | Head and crest | `#FFFFFF` |
-| Eye | `#26215C` |
-| Beak | `#EF9F27` |
+| Eye | `#2E2D2A` |
+| Beak | `#D9481C` |
 
 ## When to use it
 

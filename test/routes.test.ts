@@ -233,13 +233,13 @@ describe("the free plan, enforced over HTTP", () => {
     expect((await api.call("/api/context/document", { method: "POST", body: form })).status).not.toBe(402);
   });
 
-  it("refuses a scene from the job itself with a 402: that is the paid plan", async () => {
+  it("runs a scene from the job itself on the free plan without a 402 paywall", async () => {
+    api.provider.reply("Hi, where are we on the project?");
     const response = await api.call(
       "/api/sessions",
       post({ candidateName: "X", targetRole: "Growth PM", companyName: "Nubank", interviewStage: "Client status call", stages: ["client-call"] }),
     );
-    expect(response.status).toBe(402);
-    expect(((await response.json()) as { code: string }).code).toBe("paidOnly");
+    expect(response.status).toBe(201);
   });
 
   it("runs a scene from the job itself on the paid plan, as a colleague rather than an interviewer", async () => {
@@ -533,16 +533,17 @@ describe("billing", () => {
     expect(body.subscription).toBeNull();
   });
 
-  it("refuses a checkout when payments are not set up", async () => {
-    const response = await api.call("/api/billing/checkout", post({}));
-    expect(response.status).toBe(503);
+  it("retires checkout and subscribe endpoints with 410 because all features are free", async () => {
+    const checkout = await api.call("/api/billing/checkout", post({}));
+    expect(checkout.status).toBe(410);
+    expect(await checkout.json()).toMatchObject({ code: "platformFree" });
+
+    const subscribe = await api.call("/api/billing/subscribe", post({ cardTokenId: "tok-1" }));
+    expect(subscribe.status).toBe(410);
+    expect(await subscribe.json()).toMatchObject({ code: "platformFree" });
   });
 
-  it("refuses a checkout until the deployment says which credentials it holds", async () => {
-    // Fully configured, priced, and still refused: Mercado Pago issues
-    // APP_USR- credentials for the sandbox and for production alike, so
-    // nobody — including this server — can tell from the token whether a
-    // click would take money.
+  it("reports billing unconfigured until the deployment says which credentials it holds", async () => {
     const before = { ...process.env };
     process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
     process.env.MERCADOPAGO_AMOUNT = "9";
@@ -550,14 +551,6 @@ describe("billing", () => {
     delete process.env.MERCADOPAGO_MODE;
     delete process.env.MERCADOPAGO_LIVE;
     try {
-      const response = await api.call("/api/billing/checkout", post({}));
-      expect(response.status).toBe(503);
-      expect(((await response.json()) as { error: string }).error).toContain(
-        "MERCADOPAGO_MODE",
-      );
-
-      // And the UI is told, so it hides the button rather than offering one
-      // that fails.
       const state = await api.json<{ configured: boolean }>("/api/billing");
       expect(state.configured).toBe(false);
     } finally {
@@ -565,18 +558,15 @@ describe("billing", () => {
     }
   });
 
-  it("reports itself configured, and says it is a sandbox, once the mode is set", async () => {
+  it("reports new checkout unconfigured even when provider credentials exist", async () => {
     const before = { ...process.env };
     process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
     process.env.MERCADOPAGO_AMOUNT = "9";
     process.env.MERCADOPAGO_CURRENCY = "ARS";
     process.env.MERCADOPAGO_MODE = "test";
     try {
-      const state = await api.json<{ configured: boolean; mode: string }>("/api/billing");
-      expect(state.configured).toBe(true);
-      // The page needs this: a sandbox and the real thing are otherwise
-      // indistinguishable to whoever is looking at the screen.
-      expect(state.mode).toBe("test");
+      const state = await api.json<{ configured: boolean; mode: string | null }>("/api/billing");
+      expect(state.configured).toBe(false);
     } finally {
       process.env = before;
     }
@@ -584,373 +574,6 @@ describe("billing", () => {
 
   it("has nothing to cancel before anyone subscribes", async () => {
     expect((await api.call("/api/billing/cancel", post({}))).status).toBe(404);
-  });
-
-  it("puts the payer on the paid plan without waiting for a webhook", async () => {
-    /**
-     * The card is authorized, the money is taken, and the entitlement used to
-     * be granted only when Mercado Pago's notification arrived. A webhook
-     * signed with the wrong secret, or one that never reached the service,
-     * left a paying customer on the free plan with nothing to point at.
-     */
-    const before = { ...process.env };
-    const realFetch = globalThis.fetch;
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-    process.env.MERCADOPAGO_MODE = "test";
-    process.env.MERCADOPAGO_AMOUNT = "9";
-    process.env.MERCADOPAGO_CURRENCY = "ARS";
-
-    // Mercado Pago echoes back the external_reference it was given, which is
-    // how a notification finds its way to an owner. The stub does the same.
-    let reference = "";
-    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      const url = String(input);
-      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
-      if (init?.method === "POST" && typeof init.body === "string") {
-        reference = String(JSON.parse(init.body).external_reference ?? "");
-      }
-      const body = {
-        id: "mp-live-1",
-        status: "authorized",
-        external_reference: reference,
-        next_payment_date: "2027-01-01T00:00:00.000Z",
-      };
-      return {
-        ok: true,
-        status: 200,
-        json: async () => body,
-        text: async () => JSON.stringify(body),
-      } as unknown as Response;
-    }) as typeof fetch;
-
-    try {
-      await api.authenticate();
-      await api.call(
-        "/api/accounts",
-        post({ email: "payer@b.com", password: "a long enough passphrase" }),
-      );
-
-      const paid = await api.call("/api/billing/subscribe", post({ cardTokenId: "tok-1" }));
-      expect(paid.status).toBe(201);
-
-      // No webhook has been delivered at this point.
-      expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
-    } finally {
-      globalThis.fetch = realFetch;
-      process.env = before;
-    }
-  });
-
-  it("settles a hosted checkout when the panel asks, without a webhook", async () => {
-    /**
-     * The redirect flow leaves a `pending` row and walks the payer to Mercado
-     * Pago. Only the webhook turned that into a paid plan — so a notification
-     * that was late, lost or refused left someone who had paid looking at
-     * "you are on the free plan". Reading the billing panel now asks the
-     * provider whenever our own row has not settled.
-     */
-    const before = { ...process.env };
-    const realFetch = globalThis.fetch;
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-    process.env.MERCADOPAGO_MODE = "test";
-    process.env.MERCADOPAGO_AMOUNT = "9";
-    process.env.MERCADOPAGO_CURRENCY = "ARS";
-
-    let reference = "";
-    // The checkout is opened as pending, which is what the provider really
-    // answers there; every read afterwards finds it authorized, as it would
-    // be once the payer finishes paying.
-    let opened = false;
-    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      const url = String(input);
-      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
-      if (init?.method === "POST" && typeof init.body === "string") {
-        reference = String(JSON.parse(init.body).external_reference ?? "");
-      }
-      const creating = init?.method === "POST";
-      if (creating) opened = true;
-      const body = {
-        id: "mp-hosted-1",
-        status: creating ? "pending" : "authorized",
-        external_reference: reference,
-        init_point: "https://www.mercadopago.com/checkout/mp-hosted-1",
-        next_payment_date: "2027-01-01T00:00:00.000Z",
-      };
-      return {
-        ok: true,
-        status: 200,
-        json: async () => body,
-        text: async () => JSON.stringify(body),
-      } as unknown as Response;
-    }) as typeof fetch;
-
-    try {
-      await api.authenticate();
-      await api.call(
-        "/api/accounts",
-        post({ email: "redirected@b.com", password: "a long enough passphrase" }),
-      );
-
-      const started = await api.call("/api/billing/checkout", post({}));
-      expect(started.status).toBe(201);
-      expect(opened).toBe(true);
-
-      // What the payer's browser does when Mercado Pago sends them back: the
-      // panel settles first, then reads.
-      const settled = await api.call("/api/billing/reconcile", post({}));
-      expect(settled.status).toBe(200);
-      expect(((await settled.json()) as { plan: string }).plan).toBe("premium");
-
-      const state = await api.json<{ subscription: { status: string } | null }>(
-        "/api/billing",
-      );
-      expect(state.subscription?.status).toBe("authorized");
-      expect((await api.json<{ plan: string }>("/api/plan")).plan).toBe("premium");
-    } finally {
-      globalThis.fetch = realFetch;
-      process.env = before;
-    }
-  });
-
-  it("keeps serving the billing panel when the provider is unreachable", async () => {
-    // A panel that fails to render because Mercado Pago is down is a worse
-    // answer than one showing a status a few minutes stale.
-    const before = { ...process.env };
-    const realFetch = globalThis.fetch;
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-    process.env.MERCADOPAGO_MODE = "test";
-    process.env.MERCADOPAGO_AMOUNT = "9";
-    process.env.MERCADOPAGO_CURRENCY = "ARS";
-
-    let calls = 0;
-    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      const url = String(input);
-      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
-      calls += 1;
-      if (calls === 1) {
-        const body = {
-          id: "mp-hosted-2",
-          status: "pending",
-          external_reference: "",
-          init_point: "https://www.mercadopago.com/checkout/mp-hosted-2",
-        };
-        return {
-          ok: true, status: 200,
-          json: async () => body,
-          text: async () => JSON.stringify(body),
-        } as unknown as Response;
-      }
-      throw new Error("provider unreachable");
-    }) as typeof fetch;
-
-    try {
-      await api.authenticate();
-      await api.call(
-        "/api/accounts",
-        post({ email: "stranded@b.com", password: "a long enough passphrase" }),
-      );
-      expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
-
-      // Settling says plainly that it could not reach the provider…
-      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(502);
-      const attempted = calls;
-
-      // …and the read behind it is untouched by that, because it no longer
-      // talks to the provider at all. That is what lets the panel draw a
-      // stale row instead of nothing while Mercado Pago is down.
-      const response = await api.call("/api/billing");
-      expect(response.status).toBe(200);
-      const state = (await response.json()) as { subscription: { status: string } | null };
-      expect(state.subscription?.status).toBe("pending");
-      // The read cost nothing upstream. Before the refactor it would have
-      // reached the provider itself, and this number would have moved.
-      expect(calls).toBe(attempted);
-    } finally {
-      globalThis.fetch = realFetch;
-      process.env = before;
-    }
-  });
-
-  it("sends the payer back to the tab that settles their subscription", async () => {
-    /**
-     * Settings opens on Appearance without a fragment, and the panel that
-     * asks the provider whether a payment landed only mounts on the plan tab.
-     * Returned to a bare `/app/settings`, a payer would land on the wrong
-     * tab, nothing would ask anything, and they would sit on `pending` with
-     * the money gone until a webhook that may never arrive.
-     */
-    const before = { ...process.env };
-    const realFetch = globalThis.fetch;
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-    process.env.MERCADOPAGO_MODE = "test";
-    process.env.MERCADOPAGO_AMOUNT = "9";
-    process.env.MERCADOPAGO_CURRENCY = "ARS";
-    process.env.REALSESSIONS_SITE_URL = "https://www.getmockio.com";
-
-    let sent: Record<string, unknown> = {};
-    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      const url = String(input);
-      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
-      if (typeof init?.body === "string") sent = JSON.parse(init.body);
-      const body = {
-        id: "mp-back-1",
-        status: "pending",
-        init_point: "https://www.mercadopago.com/checkout/mp-back-1",
-      };
-      return {
-        ok: true, status: 200,
-        json: async () => body,
-        text: async () => JSON.stringify(body),
-      } as unknown as Response;
-    }) as typeof fetch;
-
-    try {
-      await api.authenticate();
-      await api.call(
-        "/api/accounts",
-        post({ email: "returning@b.com", password: "a long enough passphrase" }),
-      );
-      expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
-      expect(sent["back_url"]).toBe("https://www.getmockio.com/app/settings#plan");
-    } finally {
-      globalThis.fetch = realFetch;
-      process.env = before;
-    }
-  });
-
-  it("does not ask the provider about a subscription it cannot change", async () => {
-    // `cancelled` is terminal. Reconciling it would put a round-trip on every
-    // load of the plan panel, for someone who left months ago, that can never
-    // change the answer.
-    const before = { ...process.env };
-    const realFetch = globalThis.fetch;
-    process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-    process.env.MERCADOPAGO_MODE = "test";
-    process.env.MERCADOPAGO_AMOUNT = "9";
-    process.env.MERCADOPAGO_CURRENCY = "ARS";
-
-    let calls = 0;
-    globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      const url = String(input);
-      if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
-      calls += 1;
-      const creating = init?.method === "POST" && url.endsWith("/preapproval");
-      const body = {
-        id: "mp-gone-1",
-        status: creating ? "pending" : "cancelled",
-        init_point: "https://www.mercadopago.com/checkout/mp-gone-1",
-      };
-      return {
-        ok: true, status: 200,
-        json: async () => body,
-        text: async () => JSON.stringify(body),
-      } as unknown as Response;
-    }) as typeof fetch;
-
-    try {
-      await api.authenticate();
-      await api.call(
-        "/api/accounts",
-        post({ email: "departed@b.com", password: "a long enough passphrase" }),
-      );
-      expect((await api.call("/api/billing/checkout", post({}))).status).toBe(201);
-      // Settle once: pending becomes cancelled at the provider.
-      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(200);
-      const after = calls;
-      // Every load from here on must cost nothing upstream.
-      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(200);
-      expect((await api.call("/api/billing/reconcile", post({}))).status).toBe(200);
-      expect(calls).toBe(after);
-    } finally {
-      globalThis.fetch = realFetch;
-      process.env = before;
-    }
-  });
-
-  describe("the provider's own reason for a refusal", () => {
-    /**
-     * Two conditions guard it, and the point is that they have to agree.
-     *
-     * The reason is what makes a sandbox debuggable — a wrong test card, a
-     * currency the account cannot take, credentials from two applications all
-     * arrive as "declined" without it. It is also a list of which cards the
-     * provider refused and why, which is worth having to someone working
-     * through stolen ones. A single environment variable standing between
-     * those two readings is one typo in a dashboard.
-     */
-    const realFetch = globalThis.fetch;
-    const refuse = () => {
-      globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-        const url = String(input);
-        if (!url.includes("api.mercadopago.com")) return realFetch(input, init);
-        const body = { message: "back_url is required" };
-        return {
-          ok: false, status: 400,
-          json: async () => body,
-          text: async () => JSON.stringify(body),
-        } as unknown as Response;
-      }) as typeof fetch;
-    };
-
-    const attempt = async () => {
-      await api.authenticate();
-      await api.call(
-        "/api/accounts",
-        post({ email: `refused${Math.random().toString(36).slice(2)}@b.com`, password: "a long enough passphrase" }),
-      );
-      const response = await api.call("/api/billing/subscribe", post({ cardTokenId: "tok-1" }));
-      return (await response.json()) as { error: string; detail?: string };
-    };
-
-    it("explains itself in a sandbox that is not the public site", async () => {
-      const before = { ...process.env };
-      refuse();
-      process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-      process.env.MERCADOPAGO_MODE = "test";
-      process.env.MERCADOPAGO_AMOUNT = "9";
-      process.env.MERCADOPAGO_CURRENCY = "ARS";
-      process.env.REALSESSIONS_SITE_URL = "http://localhost:5173";
-      try {
-        expect((await attempt()).detail).toContain("back_url is required");
-      } finally {
-        globalThis.fetch = realFetch;
-        process.env = before;
-      }
-    });
-
-    it("says nothing extra once the mode is live", async () => {
-      const before = { ...process.env };
-      refuse();
-      process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-123456789";
-      process.env.MERCADOPAGO_MODE = "live";
-      process.env.MERCADOPAGO_AMOUNT = "9";
-      process.env.MERCADOPAGO_CURRENCY = "ARS";
-      process.env.REALSESSIONS_SITE_URL = "http://localhost:5173";
-      try {
-        expect((await attempt()).detail).toBeUndefined();
-      } finally {
-        globalThis.fetch = realFetch;
-        process.env = before;
-      }
-    });
-
-    it("says nothing extra on the public site, whatever the mode claims", async () => {
-      // The second lock. A deployment left in test mode by mistake still
-      // must not hand the provider's wording to a real candidate.
-      const before = { ...process.env };
-      refuse();
-      process.env.MERCADOPAGO_ACCESS_TOKEN = "TEST-123456789";
-      process.env.MERCADOPAGO_MODE = "test";
-      process.env.MERCADOPAGO_AMOUNT = "9";
-      process.env.MERCADOPAGO_CURRENCY = "ARS";
-      process.env.REALSESSIONS_SITE_URL = "https://www.getmockio.com";
-      try {
-        expect((await attempt()).detail).toBeUndefined();
-      } finally {
-        globalThis.fetch = realFetch;
-        process.env = before;
-      }
-    });
   });
 
   describe("the webhook", () => {
@@ -1550,28 +1173,19 @@ describe("tracking applications", () => {
 });
 
 describe("choosing how often to be charged", () => {
-  it("refuses a cycle it does not know rather than guessing", async () => {
+  it("retires checkout with 410 regardless of billing cycle", async () => {
     await api.authenticate();
     const response = await api.call(
       "/api/billing/checkout",
       post({ cycle: "fortnightly" }),
     );
-    /**
-     * Of the two ways to guess, both are unacceptable: "yearly" read as
-     * monthly charges a twelfth of what somebody agreed to, and the reverse
-     * charges twelve times. So nothing is read as anything.
-     */
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(410);
   });
 
-  it("still takes a payment from a client that says nothing about cycles", async () => {
+  it("retires subscribe with 410 when no cycle is specified", async () => {
     await api.authenticate();
-    // Absent means monthly, so an older page keeps working.
     const response = await api.call("/api/billing/subscribe", post({ cardTokenId: "" }));
-    // Whatever it fails on next — a missing token, or payments being off in
-    // this harness — it is not the cycle. That is the whole assertion.
-    const body = (await response.json()) as { error?: string };
-    expect(body.error ?? "").not.toMatch(/billing cycle/i);
+    expect(response.status).toBe(410);
   });
 });
 

@@ -49,53 +49,27 @@ function serve(subscriptionStatus: string | null, plan: "free" | "premium") {
   );
 }
 
-describe("the plan card, once cancelled", () => {
-  it("offers a way back while the paid period is still running", async () => {
+describe("the billing and support panel", () => {
+  it("shows free status and no cancel button once a historical subscription is cancelled", async () => {
     serve("cancelled", "premium");
-    // The button the old conditions hid: `!active` was false, so nothing was
-    // offered until the plan actually lapsed.
-    expect(await screen.findByRole("button", { name: /Resume the paid plan/i })).
-      toBeInTheDocument();
+    expect(await screen.findByText(/All features remain free/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Cancel existing subscription/i })).toBeNull();
   });
 
-  it("says it is cancelled once, not twice", async () => {
-    serve("cancelled", "premium");
-    await screen.findByRole("button", { name: /Resume the paid plan/i });
-    // The status line and the closing note both carried the word and the
-    // date. One of them now stands down — the one that cannot say why the
-    // plan is still running.
-    const text = document.body.textContent ?? "";
-    expect(text.match(/Cancelled/gi) ?? []).toHaveLength(1);
-  });
-
-  it("does not offer to resume a subscription that is still live", async () => {
+  it("offers to cancel an existing active subscription while keeping all features free", async () => {
     serve("authorized", "premium");
-    await waitFor(() => expect(screen.getByText(/Active/i)).toBeInTheDocument());
-    expect(screen.queryByRole("button", { name: /Resume the paid plan/i })).toBeNull();
+    expect(
+      await screen.findByRole("button", { name: /Cancel existing subscription/i }),
+    ).toBeInTheDocument();
   });
 });
 
-/**
- * The call that has to happen, and the reason this file is where the
- * refactor is held.
- *
- * Settling used to happen inside `GET /api/billing`, so nothing could forget
- * it. Moving it to its own POST made the server honest — a read that writes
- * is a surprise to whoever opens the file next — at the cost of a client that
- * now has to remember. A client that forgets brings back the worst failure
- * this product has: a payer whose webhook was late reads "you are on the free
- * plan" with the money already gone. Nothing on the server can catch that,
- * so it is caught here.
- */
 describe("the plan panel, on load", () => {
   it("asks the server to settle, and reads again once it answers", async () => {
     serve("pending", "free");
     await waitFor(() =>
       expect(asked.filter((url) => url.split("?")[0]!.endsWith("/api/billing"))).toHaveLength(2),
     );
-    // One read before settling, so a provider that hangs cannot leave this
-    // panel blank, and one after, because settling is what turns a payment
-    // into a plan.
     expect(asked.filter((url) => url.includes("/api/billing/reconcile"))).toHaveLength(1);
     const settled = asked.findIndex((url) => url.includes("/api/billing/reconcile"));
     const reads = asked.flatMap((url, at) => (url.split("?")[0]!.endsWith("/api/billing") ? [at] : []));
@@ -104,8 +78,6 @@ describe("the plan panel, on load", () => {
   });
 
   it("still reads the panel when the provider cannot be reached", async () => {
-    // A 502 from reconcile must leave a slightly stale panel, not an empty
-    // one: Mercado Pago being down is not a reason to hide someone's plan.
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -115,8 +87,8 @@ describe("the plan panel, on load", () => {
         }
         const body = url.includes("/api/billing")
           ? {
-              configured: true, mode: "live", publicKey: "APP_USR-key",
-              plan: { amount: 29.9, currency: "PEN" },
+              configured: false, mode: "live", publicKey: null,
+              plan: null,
               subscription: { status: "pending", periodEnd: PERIOD_END },
             }
           : url.includes("/api/plan")
@@ -130,7 +102,6 @@ describe("the plan panel, on load", () => {
         <Billing />
       </MemoryRouter>,
     );
-    // The offer is still there, drawn from the stored row.
-    expect(await screen.findByRole("button", { name: /29.9/ })).toBeInTheDocument();
+    expect(await screen.findByText(/Status: pending/i)).toBeInTheDocument();
   });
 });

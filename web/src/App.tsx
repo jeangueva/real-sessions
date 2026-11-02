@@ -1,16 +1,9 @@
 import { lazy, Suspense, useEffect } from "react";
 import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Hero } from "@/components/Hero";
-import { LandingNav } from "@/components/LandingNav";
-import { DefenseLanding } from "@/components/DefenseLanding";
-import { Journey } from "@/components/Journey";
+import { PublicLanding } from "@/components/PublicLanding";
+import { WorkspaceHome } from "@/platform/WorkspaceHome";
 import { Privacy, Terms } from "@/legal/LegalPage";
-import { InterviewPreview } from "@/components/InterviewPreview";
-import { CompanyPicker } from "@/components/CompanyPicker";
-import { Features } from "@/components/Features";
-import { Pricing } from "@/components/Pricing";
-import { SiteFooter } from "@/components/SiteFooter";
 import { SignIn } from "@/platform/SignIn";
 import { ResetPassword } from "@/platform/ResetPassword";
 import { Unsubscribe } from "@/platform/Unsubscribe";
@@ -50,6 +43,8 @@ function ThesisMoved() {
 }
 
 const Thesis = lazy(() => import("@/platform/Thesis").then((m) => ({ default: m.Thesis })));
+const TrainingConversations = lazy(() => import("@/platform/TrainingConversations").then((m) => ({ default: m.TrainingConversations })));
+const IntuitionTrainer = lazy(() => import("@/platform/IntuitionTrainer").then((m) => ({ default: m.IntuitionTrainer })));
 const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m) => ({ default: m.InterviewDetail })));
 /**
  * Lazy although it is public, which is the opposite of the rule above.
@@ -83,37 +78,6 @@ function RouteViews() {
   return null;
 }
 
-function Landing() {
-  return (
-    <main className="bg-surface-base">
-      <LandingNav />
-      <Hero />
-      {/* The whole path — the agency screen, the job, the raise — before any
-          single feature: it is the one thing nobody else offers, and it is
-          also why preparing is free and the rest is not. */}
-      <Journey />
-      {/* Pricing sits second, directly under the hero, where early access
-          used to be. The people this is for decide in the first screen or
-          leave, so the ask goes where they are — and the ask is now the plan
-          itself rather than a list to join. What it costs is the argument
-          being made before the offer; that argument is the rest of the page,
-          and it is still there for anyone who wants it before deciding.
-
-          `EarlyAccess` is not gone, only unmounted: the endpoint, the grants
-          and the countdown all still work, so putting the section back is one
-          line. */}
-      <Pricing />
-      <InterviewPreview />
-      <CompanyPicker />
-      <Features />
-      {/* `Habit` and `Contribute` are unmounted, not deleted: the streaks and
-          XP belong inside the product, and a stranger asked to fill in a
-          question form before trying anything was the page's longest detour. */}
-      <SiteFooter />
-    </main>
-  );
-}
-
 export function App() {
   return (
     /**
@@ -130,10 +94,9 @@ export function App() {
       {/* Worst-case data for break-ui — a dev build only. */}
       {import.meta.env.DEV && <DevDataToggle />}
       <Routes>
-        {/* Sustentación is the front page; the English-interview landing
-            stays reachable, and is where the defence page sends graduates. */}
-        <Route path="/" element={<DefenseLanding />} />
-        <Route path="/entrevistas" element={<Landing />} />
+        {/* Both public entry points describe the same free practice platform. */}
+        <Route path="/" element={<PublicLanding />} />
+        <Route path="/entrevistas" element={<PublicLanding />} />
         <Route path="/afiliados" element={<Suspense fallback={null}><AffiliatesPage /></Suspense>} />
         <Route path="/instituciones" element={<Suspense fallback={null}><InstitutionsPage /></Suspense>} />
         <Route path="/signin" element={<SignIn />} />
@@ -190,6 +153,11 @@ export function App() {
           {/* Sustentación is the product: the app opens on the thesis. Interview
               practice lives one tab over, as what comes after the defence. */}
           <Route index element={<Suspense fallback={null}><Thesis /></Suspense>} />
+          <Route path="education" element={<WorkspaceHome space="defense" />} />
+          <Route path="professional" element={<WorkspaceHome space="career" />} />
+          <Route path="training/education" element={<Suspense fallback={null}><TrainingConversations domain="education" /></Suspense>} />
+          <Route path="training/professional" element={<Suspense fallback={null}><TrainingConversations domain="professional" /></Suspense>} />
+          <Route path="intuition" element={<Suspense fallback={null}><IntuitionTrainer /></Suspense>} />
           {/* The thesis workspace's sections, one address each. */}
           <Route path="tesis/:section" element={<Suspense fallback={null}><Thesis /></Suspense>} />
           <Route path="practice" element={<Suspense fallback={null}><SessionSetup /></Suspense>} />

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { FileText, Trash2, Upload } from "lucide-react";
 import { Action, Eyebrow, FadeRise, Field, Panel } from "@/design-system";
 import { PageBody, PageHeader } from "./AppShell";
@@ -9,11 +8,10 @@ import {
   ApiError,
   clearProfile,
   fetchCandidateProfile,
-  fetchPlan,
   saveProfileLinks,
   uploadProfileDocument,
 } from "@/lib/api";
-import type { CandidateProfile, Capabilities } from "@/lib/api";
+import type { CandidateProfile } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
 
 const ACCEPT = ".pdf,.docx,.txt,.md";
@@ -41,7 +39,6 @@ export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
   const Body = embedded ? Plain : PageBody;
   const t = useT();
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
-  const [can, setCan] = useState<Capabilities | null>(null);
   const [links, setLinks] = useState("");
   const [busy, setBusy] = useState<"idle" | "uploading" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +46,6 @@ export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchPlan()
-      .then((result) => setCan(result.capabilities))
-      .catch(() => undefined);
     fetchCandidateProfile()
       .then((result) => {
         setProfile(result.profile);
@@ -115,26 +109,6 @@ export function Profile({ embedded = false }: { embedded?: boolean } = {}) {
     }
   };
 
-  if (can && !can.candidateProfile) {
-    return (
-      <>
-        <Header title={t("profile.title")} meta={t("profile.locked")} />
-        <Body>
-          {/* Full width, with the prose held to a readable measure inside it:
-              a narrow card adrift on the left of a wide page reads as a
-              rendering fault rather than as a decision. */}
-          <Panel variant="raised" className="flex flex-col gap-4 p-6 sm:p-8">
-            <p className="max-w-prose text-base leading-relaxed text-cream">
-              {t("profile.lockedBody")}
-            </p>
-            <Link to="/app/settings#plan" className="self-start">
-              <Action withArrow>{t("cta.seePlans")}</Action>
-            </Link>
-          </Panel>
-        </Body>
-      </>
-    );
-  }
 
   return (
     <>

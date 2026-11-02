@@ -117,11 +117,11 @@ function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * 86_400_000);
 }
 
-/** What an owner's packs in date unlock beyond credits. */
+/** Platform modes are free; only an existing human-teacher booking remains a paid obligation. */
 export function unlocks(packs: readonly PackGrant[]): { modes: boolean; group: boolean; mentor: boolean } {
   return {
-    modes: packs.some((pack) => PACK_KINDS[pack.kind]?.modes),
-    group: packs.some((pack) => PACK_KINDS[pack.kind]?.group),
+    modes: true,
+    group: true,
     mentor: packs.some((pack) => PACK_KINDS[pack.kind]?.mentor === true),
   };
 }

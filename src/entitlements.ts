@@ -1,157 +1,36 @@
-/**
- * Who can do what.
- *
- * Two plans. Free is a real product — a general interview for a role, with a
- * score and the headline feedback — because a trial that cannot show what the
- * thing does converts nobody. Premium is the version that knows *you*: a
- * specific company and sector, your CV in the interviewer's hands, live
- * coaching, and the history that makes progress visible.
- *
- * The split is drawn along "does this need to know who you are". That is why
- * the CV, the company picker and the trend chart are all on the same side of
- * it, and why the free tier keeps the honest score rather than a crippled one.
- *
- * Every gate is enforced on the server. The UI hides what you cannot use, but
- * hiding a button is a courtesy, not a control — a client can always send the
- * request anyway.
- */
+/** All platform features are free. Legacy grants remain for billing records only. */
 import { createHash } from "node:crypto";
 import process from "node:process";
 import type { DbPool } from "./db/index.js";
 
 export type Plan = "free" | "premium";
-
-/** Months of premium an early-access sign-up is worth. */
 export const EARLY_ACCESS_MONTHS = 6;
-
 export interface Capabilities {
   plan: Plan;
-  /** Choose a specific company and sector rather than a generic interview. */
   targetCompany: boolean;
-  /** Pick the interviewer archetype instead of taking the default. */
   choosePersona: boolean;
-  /** Upload a CV or portfolio for the interviewer to draw on. */
   candidateProfile: boolean;
-  /** Live coaching notes beside the transcript. */
   liveCoaching: boolean;
-  /** The measured metrics panel and the actionable next steps. */
   advancedFeedback: boolean;
-  /** Sessions kept in history and plotted. Free keeps the most recent few. */
   historyLimit: number;
-  /**
-   * Run the interview in Spanish or Portuguese rather than English.
-   *
-   * Deliberately not the interface language, which is a different setting and
-   * not something to charge for. This is what the interviewer speaks — free
-   * rehearses the English interview the product is named for.
-   */
   interviewLanguage: boolean;
-  /**
-   * Interviews a week, or null for no limit.
-   *
-   * The free plan had no cap at all — only a rate limit of twelve starts an
-   * hour, which is 288 a day and about $14 of vendor spend per account. That
-   * is not a paywall, it is an unbounded liability with a paywall next to it.
-   *
-   * It was three a month before this, chosen so the progress chart had enough
-   * points to mean something. The window moved to a week because the product
-   * is a habit: somebody preparing for interviews practises this week, not
-   * once a quarter, and an allowance that renews monthly tells them to come
-   * back in three weeks — which is the same as telling them not to.
-   *
-   * What it costs is real and worth stating. Five a week is about
-   * twenty-two a month against the old three, so a free account now costs
-   * roughly seven times what it did in vendor spend. That is the price of the
-   * habit, and the subscription is what has to cover it.
-   */
   weeklySessions: number | null;
-  /**
-   * Publish one finished report at a link anybody can open.
-   *
-   * On both plans, because a shared report is how a stranger first hears of
-   * Mockio: every link a candidate sends a friend is the product explaining
-   * itself to someone who has not signed up.
-   *
-   * What the link carries follows the owner's plan, not this flag. A free
-   * owner's link shows the free half of the report, so sharing never becomes
-   * a way to read the paid half — see `publicReport` in server.ts.
-   */
   shareReport: boolean;
-  /**
-   * Keep a list of real jobs, each holding its posting and its rehearsals.
-   *
-   * Paid for the same reason `targetCompany` is: this is the half of the
-   * product that is about one specific interview on Thursday rather than
-   * about practising English in general. The free plan rehearses; the paid
-   * plan prepares.
-   */
   trackApplications: boolean;
-  /**
-   * The conversations after the offer: stand-ups, client calls, reviews,
-   * asking for a raise (stages in the "work" and "grow" phases).
-   *
-   * This is the line between the plans now. Getting hired — every interview
-   * feature — is free, capped by the week; the job itself, which someone
-   * needs every week once they have it, is what the subscription is for.
-   */
   workScenes: boolean;
 }
 
-/**
- * Free: everything that gets someone hired, five sessions a week.
- *
- * The interview features used to be the paid part — a company, a CV, live
- * coaching — and the person who most needed them, before their first job in
- * English, was the one least able to pay. Now preparing is free and the
- * weekly cap is what keeps its cost bounded; what is paid is the working
- * life that comes after.
- */
-const FREE: Capabilities = {
-  plan: "free",
-  targetCompany: true,
-  choosePersona: true,
-  candidateProfile: true,
-  liveCoaching: true,
-  advancedFeedback: true,
-  historyLimit: 20,
-  interviewLanguage: true,
-  weeklySessions: 5,
-  shareReport: true,
-  trackApplications: true,
-  workScenes: false,
-};
-
-const PREMIUM: Capabilities = {
-  plan: "premium",
-  targetCompany: true,
-  choosePersona: true,
-  candidateProfile: true,
-  liveCoaching: true,
-  advancedFeedback: true,
-  historyLimit: 50,
-  // Uncapped on purpose. Even a candidate running six a week costs about five
-  // dollars across their whole subscription, so metering them would buy
-  // nothing and would punish exactly the people getting the most out of it.
-  weeklySessions: null,
-  interviewLanguage: true,
-  shareReport: true,
-  trackApplications: true,
-  workScenes: true,
-};
-
-export function capabilitiesFor(plan: Plan): Capabilities {
-  return plan === "premium" ? PREMIUM : FREE;
+/** No paid advantages, weekly purchase quota, or withheld history. */
+export function capabilitiesFor(_legacyPlan: Plan): Capabilities {
+  return {
+    plan: "free", targetCompany: true, choosePersona: true,
+    candidateProfile: true, liveCoaching: true, advancedFeedback: true,
+    historyLimit: Number.MAX_SAFE_INTEGER, interviewLanguage: true,
+    weeklySessions: null, shareReport: true, trackApplications: true, workScenes: true,
+  };
 }
 
-/**
- * What a free session runs against: a role, not an employer.
- *
- * All three are fixed constants rather than defaults the client can override.
- * Gating the company name alone left `industry` and `companyCulture` readable
- * from the request — for a company outside the catalogue they legitimately are
- * — so a free caller could send `industry: "Fintech"` and get exactly the
- * sector-grounded interview the picker is meant to sell.
- */
+/** Default context when no company was selected. */
 export const GENERIC_COMPANY = "a well-regarded technology company";
 export const GENERIC_CULTURE = "High standards, clear communication, ownership";
 export const GENERIC_INDUSTRY = "Technology";

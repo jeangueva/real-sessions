@@ -87,11 +87,9 @@ describe("the applications screen", () => {
     await waitFor(() => expect(sent).toEqual(["PATCH /api/applications/a1"]));
   });
 
-  it("shows a paywall rather than an error on the free plan", async () => {
-    serve({ allowed: false });
-    expect(await screen.findByText(/on the paid plan/i)).toBeTruthy();
-    // A 402 rendered as a failure would tell a free account the product is
-    // broken, which is the worst possible reading of a paywall.
+  it("loads applications on the free plan without a paywall", async () => {
+    serve({ allowed: true });
+    expect(await screen.findByText(/Growth PM · Nubank/)).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
   });
 

@@ -13,19 +13,45 @@
 
 web
 
+## Current direction (November 2026)
+
+Mockio has two main workspaces: **Educación / Profesional**. Neither is a paid
+tier. The thesis workspace remains part of Education, alongside academic
+conversation practice. Professional covers interviews, high-stakes tech
+conversations, personal conversations and product/design judgment practice.
+
+Practice scenarios include saying no to a founder, negotiating engineering
+scope, feedback to a senior designer, nontechnical stakeholder alignment,
+incomplete data, family finances, in-laws and inheritance. Latin American and
+North American contexts are selectable situational settings, never stereotypes
+or predictions about an individual. Education also includes conversations with
+advisors, oral examinations and group-project disagreements.
+
+Intuition practice asks for a decision and its reasoning before revealing a
+documented historical outcome. Cases must cite real sources, distinguish
+reported facts from interpretation and avoid implying that one outcome proves
+a universally correct decision. No generated outcome may be presented as fact.
+
+The platform is **100% free**. Support is voluntary, one-time or monthly, from
+US$1, with suggested amounts 1, 2, 5, 8, 10 and a custom amount. Support does not
+unlock features, priority or better feedback. Safety and abuse controls apply
+equally. Ko-fi is the intended external support destination; its account and
+payment settings must be configured before collecting support. Historical paid
+subscriptions must remain cancellable and are not automatically converted into
+donations.
+
 ## Users
 
 - **Primary: university students in Peru (and, by extension, Latin America)
   preparing to defend a thesis** (sustentación de tesis) in front of a jury of
   three: presidente, metodólogo, especialista. They are under real pressure,
   often days or hours away from the date, usually alone, frequently on a phone.
-- **Secondary: graduates and early-career professionals rehearsing job
-  interviews**, including interviews in English, against simulated hiring
-  managers from real companies (the `/entrevistas` landing and the practice
-  area of the app).
+- **Professionals, including PMs, design leads and data practitioners**, who
+  rehearse interviews and difficult conversations or practise judgment under
+  uncertainty, including work across Latin America and North America.
 - **People around the student:** a thesis advisor (asesor) who can see shared
-  progress, classmates joining a group defence from a link, someone paying for
-  a student's pack through a gift link, affiliates, and institutions.
+  progress, classmates joining a group defence from a link, voluntary
+  supporters and institutions.
 - **[inferred]** Most sessions happen at night or in a quiet room before the
   real date; the reader is anxious and reads every sentence in that state.
 
@@ -60,8 +86,8 @@ depth, exposition time and grading severity to the degree.
   live interview with coaching notes, a report with measured metrics (words
   per minute, filler rate, thinking time, vocabulary range), progress over
   time, an applications tracker.
-- Payments in Peru through Mercado Pago; one-off packs (Sustentación,
-  Intensivo), no subscription required for the thesis product.
+- No payment is required for either workspace. Optional support is separate
+  from access; legacy billing integrations only service historical purchases.
 
 ## Capabilities and Constraints
 

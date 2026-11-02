@@ -13,6 +13,7 @@
     "./styles.css": "./src/styles.css",
     "./tailwind-preset": "./src/tokens/tailwind-preset.js",
     "./tokens.json": "./src/tokens/tokens.json",
+    "./figma.json": "./src/tokens/figma.json",
     "./registry.json": "./registry.json"
   },
   "scripts": {
@@ -21,9 +22,13 @@
     "preview": "vite preview",
     "tokens": "node scripts/build-tokens.mjs",
     "registry": "tsx scripts/build-registry.ts",
+    "figma:docs": "tsx scripts/build-figma-docs.ts",
+    "figma:drift": "node scripts/figma-script.mjs drift",
+    "figma:push": "node scripts/figma-script.mjs push",
+    "figma:audit": "node scripts/figma-script.mjs audit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "node scripts/build-tokens.mjs --check && tsx scripts/build-registry.ts --check && tsc --noEmit && vitest run"
+    "check": "node scripts/build-tokens.mjs --check && tsx scripts/build-registry.ts --check && tsx scripts/build-figma-docs.ts --check && tsc --noEmit && vitest run"
   },
   "peerDependencies": {
     "framer-motion": "^11.15.0",

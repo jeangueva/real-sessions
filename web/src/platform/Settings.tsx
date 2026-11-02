@@ -1,3 +1,4 @@
+import { freeAccessCopy } from "@/lib/free-access-copy";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FileText, LogOut } from "lucide-react";
@@ -12,13 +13,12 @@ import { PageBody, PageHeader } from "./AppShell";
 import { Billing } from "./Billing";
 import { DeleteAccount } from "./DeleteAccount";
 import { AdvisorCard } from "./AdvisorCard";
-import { GiftCard, RealJuryCard, refreshDefenseStatus } from "./DefenseExtras";
+import { RealJuryCard } from "./DefenseExtras";
 import { storedSpace, thesisPath, type Space } from "@/lib/spaces";
 import { useThesisT } from "@/lib/thesis-copy";
 import { canRecord } from "@/lib/recordings";
 import {
   ApiError,
-  buyDefensePack,
   fetchCareers,
   fetchCatalogue,
   fetchPreferences,
@@ -33,12 +33,9 @@ import type {
   CatalogueCompany,
   CareerCatalogue,
   CareerResolution,
-  DefenseAllowance,
   DefenseFormatInfo,
   Level,
   Area,
-  PackKind,
-  PackOfferDetail,
   Role,
   Preferences,
   Sector,
@@ -114,14 +111,14 @@ export function Settings() {
           { id: "defense", label: tt("settingsDefenseTab") },
           { id: "advisor", label: tt("settingsAdvisorTab") },
           { id: "appearance", label: t("settings.appearance") },
-          { id: "plan", label: t("billing.plan") },
+          { id: "plan", label: freeAccessCopy(locale).support },
         ]
       : [
           { id: "account", label: t("settings.account") },
           { id: "practice", label: t("settings.practice") },
           { id: "context", label: t("nav.context") },
           { id: "appearance", label: t("settings.appearance") },
-          { id: "plan", label: t("billing.plan") },
+          { id: "plan", label: freeAccessCopy(locale).support },
         ];
   const validTabIds = tabs.map((entry) => entry.id);
 
@@ -520,7 +517,6 @@ export function Settings() {
             aria-labelledby="settings-tab-plan"
             className="flex flex-col gap-6"
           >
-            {space === "defense" && <DefensePlanSection />}
             <Billing />
           </div>
         )}
@@ -913,115 +909,3 @@ function AdvisorSettingsPanel() {
   );
 }
 
-const DEFENSE_PACK_LABELS: Record<
-  Exclude<PackKind, "asesor_pro">,
-  { name: Parameters<ReturnType<typeof useThesisT>>[0]; body: Parameters<ReturnType<typeof useThesisT>>[0] }
-> = {
-  sustentacion: { name: "offerSustentacion", body: "offerSustentacionBody" },
-  intensivo: { name: "offerIntensivo", body: "offerIntensivoBody" },
-  grupal: { name: "offerGrupal", body: "offerGrupalBody" },
-  docente: { name: "offerDocente", body: "offerDocenteBody" },
-};
-
-/**
- * Shown at the top of the Plan tab when the student is in Sustentación:
- * weekly free defence status or remaining credits, one-off defence packs,
- * and the family gift link.
- */
-function DefensePlanSection() {
-  const tt = useThesisT();
-  const [allowance, setAllowance] = useState<DefenseAllowance | null>(null);
-  const [offers, setOffers] = useState<PackOfferDetail[]>([]);
-  const [payments, setPayments] = useState(false);
-  const [buying, setBuying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchThesis()
-      .then((result) => {
-        setAllowance(result.allowance ?? { credits: 0, freeLeft: 0 });
-        setOffers((result.offers ?? []).filter((offer) => offer.kind !== "asesor_pro"));
-        setPayments(result.pack?.available ?? false);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  if (!allowance) return null;
-
-  const isUnlimited = allowance.unlimited === true || allowance.credits === null;
-  const hasCredits = isUnlimited || (allowance.credits ?? 0) > 0;
-  const money = (amount: number, currency: string) =>
-    new Intl.NumberFormat(currency === "PEN" ? "es-PE" : undefined, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-
-  const buy = async (kind: PackKind) => {
-    setBuying(true);
-    setError(null);
-    try {
-      refreshDefenseStatus();
-      window.location.assign((await buyDefensePack(kind)).initPoint);
-    } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : tt("error"));
-      setBuying(false);
-    }
-  };
-
-  return (
-    <Panel className="flex max-w-2xl flex-col gap-4 p-6 sm:p-8">
-      <div>
-        <h2 className="text-base font-semibold text-cream-bright">{tt("settingsPlanDefenseTitle")}</h2>
-        <p className="mt-1 text-xs text-cream-dim">{tt("settingsPlanDefenseSubtitle")}</p>
-      </div>
-
-      <p className="rounded-xl bg-surface-lift px-4 py-3 text-sm font-medium text-cream-bright">
-        {isUnlimited
-          ? tt("unlimitedAvailable")
-          : hasCredits
-            ? `${tt("creditsLeft", { count: allowance.credits ?? 0 })}${
-                allowance.sponsor ? ` (${tt("sponsoredBy", { name: allowance.sponsor.name })})` : ""
-              }`
-            : allowance.freeLeft > 0
-              ? tt("freeAvailable")
-              : tt("freeUsed")}
-      </p>
-
-      {!isUnlimited && payments && offers.length > 0 && (
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          {offers.map((offer) => {
-            const copy = DEFENSE_PACK_LABELS[offer.kind as Exclude<PackKind, "asesor_pro">];
-            if (!copy) return null;
-            return (
-              <button
-                key={offer.kind}
-                type="button"
-                disabled={buying}
-                onClick={() => void buy(offer.kind)}
-                className="focus-ring flex flex-col items-start gap-1 rounded-xl bg-surface-lift px-4 py-3 text-left transition-[background-color,transform] duration-150 ease-press hover:bg-cream/10 active:scale-[0.98] disabled:opacity-60"
-              >
-                <span className="flex w-full items-baseline justify-between gap-2">
-                  <span className="text-sm font-semibold text-cream-bright">{tt(copy.name)}</span>
-                  <span className="text-base font-bold tabular-nums text-cream-bright">
-                    {money(offer.amount, offer.currency)}
-                  </span>
-                </span>
-                <span className="text-xs text-cream-dim">{tt(copy.body)}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {error && (
-        <p role="alert" className="text-sm text-step-text">
-          {error}
-        </p>
-      )}
-
-      {!isUnlimited && <GiftCard compact />}
-    </Panel>
-  );
-}

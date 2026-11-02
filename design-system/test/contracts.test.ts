@@ -146,3 +146,63 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
     expect(source).not.toMatch(/useT\(|useLocale\(|useThesisT\(/);
   });
 });
+
+// figma-map.js says where each component lives in the Figma library, or why
+// it is not drawn there. A folder without an entry is a component the library
+// silently lacks; an entry without a folder points designers at nothing.
+describe("the Figma library", () => {
+  it("accounts for every component folder, and only those", async () => {
+    const { COMPONENTS } = await import("../src/tokens/figma-map.js");
+    expect(Object.keys(COMPONENTS).sort()).toEqual([...folders].sort());
+    for (const [name, entry] of Object.entries(COMPONENTS)) {
+      if (entry.figma === null) expect(entry.reason.length, `${name} needs a reason to stay out of Figma`).toBeGreaterThan(10);
+      else expect(entry.figma, `${name}: a Figma node id like "14:103"`).toMatch(/^\d+:\d+$/);
+    }
+  });
+});
+
+// The brand art is the one place the system keeps literals instead of tokens,
+// so the token tests cannot see it drift. Compare it with the product's own
+// copy directly: the same colours in the mark, the same bytes in Mocki.
+describe("the brand art", () => {
+  const WEB = path.resolve(__dirname, "../../web");
+  const hexes = (text: string) =>
+    new Set(
+      [...text.matchAll(/#([0-9a-f]{6}|[0-9a-f]{3})\b/gi)].map((m) => {
+        const h = m[1]!;
+        return (h.length === 3 ? [...h].map((c) => c + c).join("") : h).toUpperCase();
+      }),
+    );
+
+  it.runIf(existsSync(path.join(WEB, "src/design-system/mark.tsx")))("draws the mark in the product's colours", () => {
+    const product = readFileSync(path.join(WEB, "src/design-system/mark.tsx"), "utf8");
+    const system = readFileSync(path.resolve(__dirname, "../src/components/Mark/Mark.tsx"), "utf8").match(/const BRAND = \{[\s\S]*?\}/)![0];
+    expect([...hexes(system)].sort()).toEqual([...hexes(product.slice(product.indexOf("<svg")))].sort());
+  });
+
+  it.runIf(existsSync(path.join(WEB, "public/avatars")))("ships the product's six Mocki stages", () => {
+    for (let level = 1; level <= 6; level += 1) {
+      const product = readFileSync(path.join(WEB, `public/avatars/level-${level}.png`));
+      const system = readFileSync(path.resolve(__dirname, `../src/components/Mascot/assets/level-${level}.png`));
+      expect(system.equals(product), `Mascot level-${level}.png differs from web/public/avatars`).toBe(true);
+    }
+  });
+});
+
+// What the Figma agent reads to pick a component: a description written from
+// the contract, with the names people search for.
+describe("the Figma descriptions", () => {
+  it("cover every drawn component, with aliases and a doc link", async () => {
+    const { COMPONENTS } = await import("../src/tokens/figma-map.js");
+    const docs = JSON.parse(readFileSync(path.resolve(__dirname, "../src/tokens/figma-components.json"), "utf8")) as {
+      components: { name: string; description: string; docUrl: string }[];
+    };
+    const drawn = Object.entries(COMPONENTS).filter(([, entry]) => entry.figma).map(([name]) => name).sort();
+    expect(docs.components.map((c) => c.name).sort()).toEqual(drawn);
+    for (const [name, entry] of Object.entries(COMPONENTS)) expect(entry.aliases.length, `${name} needs at least three aliases`).toBeGreaterThanOrEqual(3);
+    for (const c of docs.components) {
+      expect(c.description, c.name).toMatch(/\*\*Also known as:\*\*/);
+      expect(existsSync(path.resolve(__dirname, `../src/components/${c.name}/${c.name}.md`)), `${c.name} doc link`).toBe(true);
+    }
+  });
+});

@@ -10,7 +10,6 @@ import {
   createApplication,
   deleteApplication,
   fetchApplications,
-  fetchPlan,
   updateApplication,
   type ApplicationStatus,
   type ApplicationSummary,
@@ -46,7 +45,6 @@ const STATUS_KEY: Record<ApplicationStatus, MessageKey> = {
 export function Applications() {
   const t = useT();
   const [rows, setRows] = useState<ApplicationSummary[] | null>(null);
-  const [allowed, setAllowed] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -54,23 +52,11 @@ export function Applications() {
     fetchApplications()
       .then((result) => setRows(result.applications))
       .catch((caught: unknown) => {
-        // 402 is not an error to report: it is the plan, and the paywall
-        // below says it better than an alert would.
-        if (caught instanceof ApiError && caught.status === 402) {
-          setRows([]);
-          return;
-        }
         setError(caught instanceof ApiError ? caught.message : "Could not load your applications.");
       });
 
   useEffect(() => {
-    fetchPlan()
-      .then((result) => {
-        setAllowed(result.capabilities.trackApplications);
-        if (result.capabilities.trackApplications) void read();
-        else setRows([]);
-      })
-      .catch(() => setAllowed(false));
+    void read();
   }, []);
 
   const move = async (id: string, status: ApplicationStatus) => {
@@ -87,22 +73,6 @@ export function Applications() {
     await deleteApplication(id).catch(() => void read());
   };
 
-  if (allowed === false) {
-    return (
-      <>
-        <PageHeader title={t("apps.title")} meta={t("apps.meta")} />
-        <PageBody>
-          <Panel variant="raised" className="flex max-w-xl flex-col gap-4 p-6">
-            <p className="text-lg font-semibold leading-snug text-cream-bright">{t("apps.paid")}</p>
-            <p className="text-sm text-cream-dim">{t("apps.paidWhy")}</p>
-            <Link to="/app/settings#plan" className="self-start">
-              <Action>{t("apps.seePlans")}</Action>
-            </Link>
-          </Panel>
-        </PageBody>
-      </>
-    );
-  }
 
   return (
     <>
