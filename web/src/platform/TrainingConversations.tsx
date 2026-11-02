@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Globe2, GraduationCap, MessagesSquare, RotateCcw, Terminal } from "lucide-react";
+import { MessagesSquare, RotateCcw } from "lucide-react";
 import {
   Action,
   CheckItem,
@@ -746,38 +746,20 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                   {filteredScenarios.map((item, idx) => {
                     const localized = localizeScenario(item);
                     const selected = activeScenario?.id === item.id;
-                    const Icon =
-                      item.domain === "education"
-                        ? GraduationCap
-                        : item.personal
-                          ? Globe2
-                          : Terminal;
-                    const badgeLabel =
-                      item.domain === "education"
-                        ? copy.academicBadge
-                        : item.personal
-                          ? copy.personalBadge
-                          : copy.techBadge;
                     return (
                       <FadeRise key={item.id} delay={idx * 0.03}>
                         <button
                           type="button"
                           aria-pressed={selected}
                           onClick={() => setSelectedId(item.id)}
-                          className={`focus-ring flex h-full w-full flex-col justify-between rounded-[1.25rem] border p-5 text-left transition-all ${
+                          className={`focus-ring flex h-full w-full flex-col justify-between rounded-[1.25rem] border p-4 text-left transition-[transform,background-color,border-color] duration-150 ease-press active:scale-[0.99] ${
                             selected
-                              ? "border-accent-border bg-surface-lift shadow-card"
+                              ? "border-accent-border bg-surface-lift"
                               : "border-line bg-surface-card hover:border-line-bright hover:bg-surface-lift"
                           }`}
                         >
                           <div>
-                            <div className="flex items-center justify-between gap-2">
-                              <IconTile>
-                                <Icon className="h-4 w-4" aria-hidden />
-                              </IconTile>
-                              <Chip>{badgeLabel}</Chip>
-                            </div>
-                            <h3 className="mt-3 text-base font-medium tracking-[-0.02em] text-cream-bright">
+                            <h3 className="text-base font-medium tracking-[-0.02em] text-cream-bright">
                               {localized.title}
                             </h3>
                             <p className="mt-1.5 text-xs leading-relaxed text-cream-dim">
@@ -785,12 +767,6 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                             </p>
                           </div>
 
-                          <Inset className="mt-4 px-3 py-2">
-                            <p className="text-xs text-cream-dim">
-                              <span className="font-medium text-cream-bright">{copy.partnerRole}:</span>{" "}
-                              {localized.role}
-                            </p>
-                          </Inset>
                         </button>
                       </FadeRise>
                     );

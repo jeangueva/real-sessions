@@ -665,9 +665,9 @@ function Diagnosis({
           </Link>
           <MentorCard thesis={thesis} onChange={onChange} />
           <PreparationReportCard thesis={thesis} />
-          <Support />
           <AdvisorCard />
           <ShareRealQuestions country={a.language === "pt" ? "BR" : "PE"} />
+          <Support />
           <Privacy />
           <p className="max-w-prose text-xs text-cream-dim">{t("disclaimer")}</p>
         </div>
