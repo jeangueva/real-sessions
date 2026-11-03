@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Globe2, GraduationCap, MessagesSquare, RotateCcw, Sparkles, Terminal } from "lucide-react";
-import { Action, Badge, CheckItem, FadeRise, Field, InterviewerPresence, Meter, MonoLabel, Notice, Panel, Waveform } from "@/design-system";
-import { Chip, IconTile, Inset, Widget } from "@/components/marketing";
+import { Action, Badge, CheckItem, Chip, FadeRise, Field, IconTile, InsetPanel, InterviewerPresence, Meter, MonoLabel, Notice, Panel, Waveform, Widget } from "@/design-system";
 import { useLocale } from "@/hooks/useLocale";
 import { PageBody, PageHeader } from "./AppShell";
 
@@ -775,12 +774,12 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                             </p>
                           </div>
 
-                          <Inset className="mt-4 px-3 py-2">
+                          <InsetPanel className="mt-4 px-3 py-2">
                             <p className="text-xs text-cream-dim">
                               <span className="font-medium text-cream-bright">{copy.partnerRole}:</span>{" "}
                               {localized.role}
                             </p>
-                          </Inset>
+                          </InsetPanel>
                         </button>
                       </FadeRise>
                     );
@@ -865,7 +864,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                 </fieldset>
 
                 {activeScenario && (
-                  <Inset className="p-4">
+                  <InsetPanel className="p-4">
                     {/* The goal goes straight under its own label. It used to
                         sit below the scenario's name, so a panel called "your
                         objective" opened with the name of something else. */}
@@ -876,7 +875,7 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                     <p className="mt-2 text-xs text-cream-dim">
                       {localizeScenario(activeScenario).title}
                     </p>
-                  </Inset>
+                  </InsetPanel>
                 )}
 
                 <Action
@@ -1037,30 +1036,30 @@ export function TrainingConversations({ domain }: { domain: "education" | "profe
                 <p className="mt-2 text-sm leading-relaxed text-cream-dim">{feedback.summary}</p>
 
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  <Inset className="p-4">
+                  <InsetPanel className="p-4">
                     <MonoLabel className="text-ok">{copy.strengths}</MonoLabel>
                     <ul className="mt-3 space-y-2">
                       {feedback.strengths.map((item, i) => (
                         <CheckItem key={i}>{item}</CheckItem>
                       ))}
                     </ul>
-                  </Inset>
-                  <Inset className="p-4">
+                  </InsetPanel>
+                  <InsetPanel className="p-4">
                     <MonoLabel className="text-step">{copy.improvements}</MonoLabel>
                     <ul className="mt-3 space-y-2">
                       {feedback.improvements.map((item, i) => (
                         <CheckItem key={i}>{item}</CheckItem>
                       ))}
                     </ul>
-                  </Inset>
+                  </InsetPanel>
                 </div>
 
-                <Inset className="mt-4 p-4">
+                <InsetPanel className="mt-4 p-4">
                   <MonoLabel>{copy.suggestedReply}</MonoLabel>
                   <p className="mt-2 text-sm leading-relaxed text-cream-bright">
                     {feedback.suggestedReply}
                   </p>
-                </Inset>
+                </InsetPanel>
 
                 <p className="mt-4 text-xs text-cream-dim">
                   <strong className="text-cream-bright">{copy.nextPractice}:</strong>{" "}

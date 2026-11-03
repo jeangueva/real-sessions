@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Action, Badge, MonoLabel, Notice, Panel } from "@/design-system";
-import { Inset } from "@/components/marketing";
+import { Action, Badge, InsetPanel, MonoLabel, Notice, Panel } from "@/design-system";
 import { ApiError, cancelSubscription, fetchBilling, reconcileBilling } from "@/lib/api";
 import type { BillingState } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
@@ -81,13 +80,13 @@ export function Billing() {
         )}
 
         {state && !subscription && (
-          <Inset className="mt-4 p-4">
+          <InsetPanel className="mt-4 p-4">
             <p className="text-sm text-cream-bright">No existing subscription.</p>
-          </Inset>
+          </InsetPanel>
         )}
 
         {subscription && (
-          <Inset className="mt-4 space-y-3 p-4">
+          <InsetPanel className="mt-4 space-y-3 p-4">
             <p className="text-sm font-medium text-cream-bright">
               Status: {subscription.status}
               {subscription.periodEnd
@@ -115,7 +114,7 @@ export function Billing() {
                 All features remain free. No new purchase is needed.
               </p>
             )}
-          </Inset>
+          </InsetPanel>
         )}
       </Panel>
     </div>

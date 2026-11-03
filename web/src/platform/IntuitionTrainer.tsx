@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Compass, ExternalLink } from "lucide-react";
-import { Action, FadeRise, Field, MonoLabel, Notice, Panel } from "@/design-system";
-import { Chip, IconTile, Inset, Widget } from "@/components/marketing";
+import { Action, Chip, FadeRise, Field, IconTile, InsetPanel, MonoLabel, Notice, Panel, Widget } from "@/design-system";
 import { useLocale } from "@/hooks/useLocale";
 import { PageBody, PageHeader } from "./AppShell";
 
@@ -538,7 +537,7 @@ export function IntuitionTrainer() {
                     })}
                   </fieldset>
 
-                  <Inset className="mt-5 p-4">
+                  <InsetPanel className="mt-5 p-4">
                     <label
                       htmlFor="confidence-range"
                       className="flex items-center justify-between text-sm font-medium text-cream-bright"
@@ -560,7 +559,7 @@ export function IntuitionTrainer() {
                     {/* No second meter. The slider already shows where the
                         value sits and the label already says what it is; the
                         bar underneath repeated both a third time. */}
-                  </Inset>
+                  </InsetPanel>
 
                   <div className="mt-5">
                     <Field label={copy.reasoningLabel} htmlFor="intuition-reasoning">
@@ -611,28 +610,28 @@ export function IntuitionTrainer() {
                   </p>
 
                   <div className="mt-6 grid gap-4 md:grid-cols-2">
-                    <Inset className="p-4">
+                    <InsetPanel className="p-4">
                       <MonoLabel>
                         {copy.yourChoice} ({result.judgment.confidence}%)
                       </MonoLabel>
                       <p className="mt-2 text-sm font-medium text-cream-bright">
                         {localizedActive.options[result.judgment.choice]}
                       </p>
-                    </Inset>
-                    <Inset className="p-4">
+                    </InsetPanel>
+                    <InsetPanel className="p-4">
                       <MonoLabel className="text-accent-text">{copy.recommendedChoice}</MonoLabel>
                       <p className="mt-2 text-sm font-medium text-cream-bright">
                         {localizedActive.options[result.recommended]}
                       </p>
-                    </Inset>
+                    </InsetPanel>
                   </div>
 
-                  <Inset className="mt-4 p-4">
+                  <InsetPanel className="mt-4 p-4">
                     <MonoLabel>{copy.rationaleHeading}</MonoLabel>
                     <p className="mt-2 text-sm leading-relaxed text-cream-dim">
                       {result.rationale}
                     </p>
-                  </Inset>
+                  </InsetPanel>
 
                   <p className="mt-4 text-xs text-cream-dim">{result.reflection}</p>
                   <p className="mt-1 text-xs text-cream-faint">{result.presentation}</p>
