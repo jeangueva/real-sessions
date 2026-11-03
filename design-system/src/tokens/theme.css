@@ -63,6 +63,8 @@
   --step-soft: 56 38 8;
   --premium: 160 150 255;
   --premium-soft: 40 36 70;
+  --chip: 248 232 205;
+  --chip-ink: 46 45 42;
 }
 
 /* Light: data-theme="light" on <html>, or on any subtree. */
@@ -98,6 +100,8 @@
   --step-soft: 255 243 224;
   --premium: 124 108 242;
   --premium-soft: 234 231 253;
+  --chip: 248 232 205;
+  --chip-ink: 46 45 42;
 }
 
 /*
@@ -153,6 +157,8 @@
   --color-step-soft: rgb(var(--step-soft));
   --color-premium: rgb(var(--premium));
   --color-premium-soft: rgb(var(--premium-soft));
+  --color-chip: rgb(var(--chip));
+  --color-chip-ink: rgb(var(--chip-ink));
 
   --radius-inset: 1.75rem;
   --radius-card: 1.25rem;

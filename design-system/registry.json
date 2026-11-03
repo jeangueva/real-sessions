@@ -84,6 +84,8 @@
           "color-step-soft": "rgb(var(--step-soft))",
           "color-premium": "rgb(var(--premium))",
           "color-premium-soft": "rgb(var(--premium-soft))",
+          "color-chip": "rgb(var(--chip))",
+          "color-chip-ink": "rgb(var(--chip-ink))",
           "radius-inset": "1.75rem",
           "radius-card": "1.25rem",
           "shadow-card": "var(--shadow-card)",
@@ -133,7 +135,9 @@
           "step-text": "178 80 0",
           "step-soft": "255 243 224",
           "premium": "124 108 242",
-          "premium-soft": "234 231 253"
+          "premium-soft": "234 231 253",
+          "chip": "248 232 205",
+          "chip-ink": "46 45 42"
         },
         "dark": {
           "ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
@@ -166,7 +170,9 @@
           "step-text": "255 159 10",
           "step-soft": "56 38 8",
           "premium": "160 150 255",
-          "premium-soft": "40 36 70"
+          "premium-soft": "40 36 70",
+          "chip": "248 232 205",
+          "chip-ink": "46 45 42"
         }
       },
       "css": {
@@ -1324,6 +1330,385 @@
       }
     },
     {
+      "name": "chip",
+      "type": "registry:ui",
+      "title": "Chip",
+      "description": "A peach chip in mono caps: a fact, never a control.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/Chip/Chip.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Chip/Chip.tsx"
+        },
+        {
+          "path": "src/components/Chip/Chip.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Chip/Chip.contract.ts"
+        },
+        {
+          "path": "src/components/Chip/Chip.md",
+          "type": "registry:file",
+          "target": "mockio/components/Chip/Chip.md"
+        },
+        {
+          "path": "src/components/Chip/Chip.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Chip/Chip.previews.tsx"
+        },
+        {
+          "path": "src/components/Chip/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Chip/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Chip",
+          "level": "atom",
+          "status": "stable",
+          "summary": "A peach chip in mono caps: a fact, never a control.",
+          "source": "src/components/Chip/Chip.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The fact: \"LATAM\", \"HIPÓTESIS · PRIORIZACIÓN\"."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the chip's own placement (a margin, a wrap). Not the fill and not the ink — a chip that changes them stops being a fact."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The fact, in caps."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "A warm peach wash with the dark ink on it, in mono caps, rounded at 9px.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The chip does not move; a chip that moved would look pressable."
+          ],
+          "accessibility": {
+            "role": "A <span>: a piece of text in a wash.",
+            "keyboard": [],
+            "aria": [],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The dark ink on the peach wash: over 12:1 in both themes, and the wash itself clears 3:1 against the card behind it.",
+            "focus": "Not focusable: a fact is read, not reached.",
+            "targetSize": "not interactive",
+            "screenReader": "Reads the words in caps, like the rest of the text."
+          },
+          "content": {
+            "voice": [
+              "A fact, in the instrument voice: caps, mono, a little tracking.",
+              "It names something and never instructs: \"LATAM\" names a region, \"Recomendado\" names a plan."
+            ],
+            "limits": [
+              "1–4 words, 28 characters at most; the chip wraps rather than truncates."
+            ],
+            "examples": [
+              "LATAM",
+              "HIPÓTESIS · PRIORIZACIÓN · TRADE-OFFS",
+              "Recomendado"
+            ]
+          },
+          "usage": {
+            "when": [
+              "A fact about a product or a plan, next to the words it belongs to.",
+              "A row of what a plan includes, in one line each."
+            ],
+            "whenNot": [
+              {
+                "situation": "A status of the current screen",
+                "instead": "a Badge: the words carry the status, in the system's own voice."
+              },
+              {
+                "situation": "Something the person can press",
+                "instead": "an Action: a chip is a fact, never a control."
+              },
+              {
+                "situation": "A label of a block",
+                "instead": "a MonoLabel: the label is above the block, in the same voice."
+              }
+            ],
+            "do": [
+              "Put the chip next to the words it qualifies, not on its own line.",
+              "Keep it to a fact the reader can verify: a region, a plan, a list of what is included."
+            ],
+            "dont": [
+              "Don't put a price in it: the price is a sentence, and the sentence is what the reader compares.",
+              "Don't style it as a control: no border, no shadow, no hover."
+            ]
+          },
+          "tokens": [
+            "--chip",
+            "--chip-ink"
+          ],
+          "related": [
+            {
+              "name": "Badge",
+              "difference": "A status of the current screen, in the system's own voice. This is a fact about a product or a plan, in the peach."
+            },
+            {
+              "name": "MonoLabel",
+              "difference": "The label above a block. This is a fact beside the words."
+            },
+            {
+              "name": "IconTile",
+              "difference": "A square with a figure in it. This is a pill with words in it."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the chip is symmetric and the words inside it are text.",
+            "textExpansion": "The words wrap inside the chip and the chip grows with them; a German name of a plan is longer than a Spanish one and the chip says so.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 12px of padding on each side, in 12px mono caps.",
+              "From sm (640px): the same; the chip does not change with the width.",
+              "A chip too long for its row wraps its words rather than overflowing."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "chip",
+            "importStatement": "import { Chip } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "Beside the words it qualifies, inside a Widget or a row of facts."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "Chip",
+            "differences": [
+              "Spreads every other <span> attribute (id, title, data-*); the app's copy accepts only children and className.",
+              "The fill and the ink are the chip's own tokens now, the same peach the app wrote as a literal colour."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's chip.",
+                "The peach wash and its ink are tokens now, so the chip is a token the design tools can pick."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "content-column",
+      "type": "registry:ui",
+      "title": "ContentColumn",
+      "description": "The public site's one column: 1200px of content, the same gutters on every page.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/lede",
+        "@mockio/mockio-contract",
+        "@mockio/section-title",
+        "@mockio/widget"
+      ],
+      "files": [
+        {
+          "path": "src/components/ContentColumn/ContentColumn.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/ContentColumn/ContentColumn.tsx"
+        },
+        {
+          "path": "src/components/ContentColumn/ContentColumn.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/ContentColumn/ContentColumn.contract.ts"
+        },
+        {
+          "path": "src/components/ContentColumn/ContentColumn.md",
+          "type": "registry:file",
+          "target": "mockio/components/ContentColumn/ContentColumn.md"
+        },
+        {
+          "path": "src/components/ContentColumn/ContentColumn.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/ContentColumn/ContentColumn.previews.tsx"
+        },
+        {
+          "path": "src/components/ContentColumn/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/ContentColumn/index.ts"
+        }
+      ],
+      "categories": [
+        "template"
+      ],
+      "meta": {
+        "level": "template",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "ContentColumn",
+          "level": "template",
+          "status": "stable",
+          "summary": "The public site's one column: 1200px of content, the same gutters on every page.",
+          "source": "src/components/ContentColumn/ContentColumn.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The page's content: a band, a grid, a row of cards."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the column's own layout (a grid, a flex row) and the padding of a band that is not the page's. Not a max-w-* — the ceiling is the same everywhere."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "One page's worth of bands, in one column. Everything inside is as wide as the column allows."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The column is as wide as the window allows, up to 1200px, with 20px of gutter on a phone and 32px from 640px up.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The column does not move; the page inside it scrolls."
+          ],
+          "accessibility": {
+            "role": "A generic <div> inside another <div>: the ceiling and the gutters, nothing more.",
+            "keyboard": [],
+            "aria": [],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "None of its own: the column has no text and no surface beyond what the caller puts on it.",
+            "focus": "Not focusable itself. Focus moves through the content inside it, and nothing is trapped at the column's edge.",
+            "targetSize": "not interactive",
+            "screenReader": "Adds nothing to what a screen reader reads: it is a generic container with no role and no name."
+          },
+          "content": {
+            "voice": [
+              "None: the column holds content and never writes any of its own."
+            ],
+            "limits": [
+              "Nothing: the column is layout."
+            ],
+            "examples": []
+          },
+          "usage": {
+            "when": [
+              "The public site: every band of every public page sits in this column, so a card that moves from one page to another lands in the same place.",
+              "Any page whose content is one column and the same width everywhere."
+            ],
+            "whenNot": [
+              {
+                "situation": "A screen inside the signed-in app",
+                "instead": "PageBody: the app is the window, and it does not need a frame around it."
+              },
+              {
+                "situation": "A band with its own vertical rhythm",
+                "instead": "Section: it owns the padding above and below the band."
+              },
+              {
+                "situation": "A block of content inside the page",
+                "instead": "a Widget: the block, its own label and its own hairline."
+              }
+            ],
+            "do": [
+              "Let the column fill the width it is given; the ceiling is there for a reason.",
+              "Keep one column per page: two columns in a row is a grid, and a grid needs a decision."
+            ],
+            "dont": [
+              "Don't set a max-w-* on it: the ceiling is the column's, and a second one fights it.",
+              "Don't use it for the signed-in app; the app's screens are wider and tighter."
+            ]
+          },
+          "tokens": [],
+          "related": [
+            {
+              "name": "Section",
+              "difference": "The band: it owns the vertical rhythm and centres a column of its own. This is the column without the band."
+            },
+            {
+              "name": "PageBody",
+              "difference": "The app's container: wider, tighter gutters and a ceiling that follows the screen rather than the page."
+            },
+            {
+              "name": "Widget",
+              "difference": "One block inside the column, with a hairline and its own padding."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the column is symmetric and the page inside it handles its own direction.",
+            "textExpansion": "Nothing changes: the column is a width, and the page inside it grows with its language.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 20px of gutter on each side, the column as wide as the window.",
+              "From sm (640px): 32px of gutter on each side.",
+              "Above 1200px the column stops growing and centres; the gutters stay."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "content-column",
+            "importStatement": "import { ContentColumn } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "The outermost element of a public page. One per page, above the page's own bands."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "ContentColumn",
+            "differences": [
+              "Spreads every other <div> attribute (id, aria-*, data-*); the app's copy accepts only children and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's column."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "eyebrow",
       "type": "registry:ui",
       "title": "Eyebrow",
@@ -1762,6 +2147,202 @@
       }
     },
     {
+      "name": "icon-tile",
+      "type": "registry:ui",
+      "title": "IconTile",
+      "description": "A small amber-tint square holding an icon or a number.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract"
+      ],
+      "files": [
+        {
+          "path": "src/components/IconTile/IconTile.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/IconTile/IconTile.tsx"
+        },
+        {
+          "path": "src/components/IconTile/IconTile.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/IconTile/IconTile.contract.ts"
+        },
+        {
+          "path": "src/components/IconTile/IconTile.md",
+          "type": "registry:file",
+          "target": "mockio/components/IconTile/IconTile.md"
+        },
+        {
+          "path": "src/components/IconTile/IconTile.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/IconTile/IconTile.previews.tsx"
+        },
+        {
+          "path": "src/components/IconTile/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/IconTile/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "IconTile",
+          "level": "atom",
+          "status": "stable",
+          "summary": "A small amber-tint square holding an icon or a number.",
+          "source": "src/components/IconTile/IconTile.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The icon or the figure that goes in the tile."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the tile's own size when it has to grow with the icon inside it. Not the fill and not the colour."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "An icon, or a figure in the instrument voice."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "A 40px square with the accent's soft wash behind it and the accent's text colour in it.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The tile does not move."
+          ],
+          "accessibility": {
+            "role": "A <span> with aria-hidden: a decoration next to words.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden",
+                "managedBy": "component",
+                "note": "The tile holds a number or an icon that the words beside it already carry. A screen reader that read both would say everything twice."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The accent's text colour on its soft wash: over 4.5:1 in both themes.",
+            "focus": "Not focusable, and there is nothing inside it to focus.",
+            "targetSize": "not interactive",
+            "screenReader": "Reads nothing: the tile is hidden, and the words beside it carry it."
+          },
+          "content": {
+            "voice": [
+              "A figure in the instrument voice: \"01\", \"02\", \"03\".",
+              "An icon with no words of its own."
+            ],
+            "limits": [
+              "One or two characters in the instrument voice; an icon at 16px."
+            ],
+            "examples": [
+              "01",
+              "02",
+              "03"
+            ]
+          },
+          "usage": {
+            "when": [
+              "A numbered row: the tile holds the number and the words beside it hold the step.",
+              "A row of icons that mark what a card is about."
+            ],
+            "whenNot": [
+              {
+                "situation": "A number the reader has to read",
+                "instead": "the number as text: the tile is a decoration next to words that already say it."
+              },
+              {
+                "situation": "A status the reader has to know",
+                "instead": "a Badge: the words carry the status."
+              },
+              {
+                "situation": "An icon that is the only content",
+                "instead": "nothing: a tile without words says nothing."
+              }
+            ],
+            "do": [
+              "Put the words beside it, not in it: the tile marks, the sentence tells.",
+              "Number the steps of a row with it, so the row reads as a sequence."
+            ],
+            "dont": [
+              "Don't put a number the reader has to count in it; the tile is hidden from them.",
+              "Don't use it as an avatar: that is the mascot's job."
+            ]
+          },
+          "tokens": [
+            "--accent-soft",
+            "--accent-text"
+          ],
+          "related": [
+            {
+              "name": "Chip",
+              "difference": "A fact in mono caps in a warm wash. This is a square that holds an icon or a figure."
+            },
+            {
+              "name": "Mascot",
+              "difference": "The character, in six stages. This is a square with a number in it."
+            },
+            {
+              "name": "Badge",
+              "difference": "A status in words, which the reader needs."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the tile is symmetric and the icon inside it does its own mirroring.",
+            "textExpansion": "Nothing changes: the tile holds a figure or an icon, and both fit.",
+            "formatting": "The figure is the caller's; the tile does not number anything by itself.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "The tile is 40px at every width.",
+              "It never shrinks: the row of tiles keeps its own rhythm as the words wrap beside it."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "icon-tile",
+            "importStatement": "import { IconTile } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "At the start of a row, before the words that say what it marks."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "IconTile",
+            "differences": [
+              "Spreads every other <span> attribute (id, data-*); the app's copy accepts only children and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's tile."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "inset-frame",
       "type": "registry:ui",
       "title": "InsetFrame",
@@ -1949,6 +2530,379 @@
               "version": "1.0.0",
               "changes": [
                 "First documented version, taken from the product's own copy of the component."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "inset-panel",
+      "type": "registry:ui",
+      "title": "InsetPanel",
+      "description": "The recessed panel inside a widget: a step of the widget's own surface.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/icon-tile",
+        "@mockio/mockio-contract",
+        "@mockio/widget"
+      ],
+      "files": [
+        {
+          "path": "src/components/InsetPanel/InsetPanel.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/InsetPanel/InsetPanel.tsx"
+        },
+        {
+          "path": "src/components/InsetPanel/InsetPanel.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/InsetPanel/InsetPanel.contract.ts"
+        },
+        {
+          "path": "src/components/InsetPanel/InsetPanel.md",
+          "type": "registry:file",
+          "target": "mockio/components/InsetPanel/InsetPanel.md"
+        },
+        {
+          "path": "src/components/InsetPanel/InsetPanel.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/InsetPanel/InsetPanel.previews.tsx"
+        },
+        {
+          "path": "src/components/InsetPanel/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/InsetPanel/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "InsetPanel",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The recessed panel inside a widget: a step of the widget's own surface.",
+          "source": "src/components/InsetPanel/InsetPanel.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "What the inset holds: a row, a list, a short piece of copy."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the panel's own layout (a flex row, a grid) and its padding when the content needs less or more room. Not the fill."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The row or the list, padded by the panel itself."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "A step of the widget's surface, with 16px of padding and its own corners, so a row inside a card reads as belonging to it.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The panel does not move; the content inside it does whatever it does."
+          ],
+          "accessibility": {
+            "role": "A generic <div>: a well inside a card.",
+            "keyboard": [],
+            "aria": [],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "None of its own: the panel has no text and no surface beyond the widget's.",
+            "focus": "Not focusable itself. Focus moves through the content inside it.",
+            "targetSize": "not interactive",
+            "screenReader": "Adds nothing to what a screen reader reads: it is a generic container with no role and no name."
+          },
+          "content": {
+            "voice": [
+              "None: the panel holds content and never writes any of its own."
+            ],
+            "limits": [
+              "Nothing: the panel is layout."
+            ],
+            "examples": []
+          },
+          "usage": {
+            "when": [
+              "A row inside a widget that belongs to it rather than to the page: a step, a case, a fact.",
+              "A list of short items inside a card, when the card's own padding would leave them floating."
+            ],
+            "whenNot": [
+              {
+                "situation": "A card of its own",
+                "instead": "a Widget: the inset is inside one."
+              },
+              {
+                "situation": "A group of blocks side by side",
+                "instead": "a row of Widgets in a grid."
+              },
+              {
+                "situation": "The window a public page sits in",
+                "instead": "an InsetFrame: that one is the page's own frame."
+              }
+            ],
+            "do": [
+              "Keep the inset inside the widget it belongs to; on its own it is a box with no reason to exist.",
+              "Use it for the rows that are content, not for a second layer of decoration."
+            ],
+            "dont": [
+              "Don't nest one inset inside another: the steps of the surface multiply and nobody can say which is which.",
+              "Don't use it for the whole card; that is the widget's own job."
+            ]
+          },
+          "tokens": [
+            "--surface-lift"
+          ],
+          "related": [
+            {
+              "name": "Widget",
+              "difference": "The block: the card with the hairline and the label. This is the well inside it."
+            },
+            {
+              "name": "Panel",
+              "difference": "The app's surface, on the page rather than inside a card."
+            },
+            {
+              "name": "InsetFrame",
+              "difference": "The window of a public page. Nothing to do with this well."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the panel is symmetric and the content inside handles its own direction.",
+            "textExpansion": "Nothing changes: the panel grows with its content.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 16px of padding on every side.",
+              "From sm (640px): the same; the panel does not change with the width.",
+              "A row inside it wraps rather than scrolling."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "inset-panel",
+            "importStatement": "import { InsetPanel } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "Inside a Widget, as a step of its surface."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "InsetPanel",
+            "differences": [
+              "Spreads every other <div> attribute (id, aria-*, data-*); the app's copy accepts only children and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's inset."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "lede",
+      "type": "registry:ui",
+      "title": "Lede",
+      "description": "The sentence under a title: what the block is, in one paragraph.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract",
+        "@mockio/section-title"
+      ],
+      "files": [
+        {
+          "path": "src/components/Lede/Lede.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Lede/Lede.tsx"
+        },
+        {
+          "path": "src/components/Lede/Lede.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Lede/Lede.contract.ts"
+        },
+        {
+          "path": "src/components/Lede/Lede.md",
+          "type": "registry:file",
+          "target": "mockio/components/Lede/Lede.md"
+        },
+        {
+          "path": "src/components/Lede/Lede.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Lede/Lede.previews.tsx"
+        },
+        {
+          "path": "src/components/Lede/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Lede/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Lede",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The sentence under a title: what the block is, in one paragraph.",
+          "source": "src/components/Lede/Lede.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The paragraph: one or two sentences about what the block gives."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the paragraph's own spacing and its measure. Not the size or the colour."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The paragraph, in the language of the page."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "One line of body text at 18px, or 20px from 640px up, in the dimmer ink.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The paragraph does not move; the block around it may enter with its own motion."
+          ],
+          "accessibility": {
+            "role": "A <p>: a paragraph.",
+            "keyboard": [],
+            "aria": [],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The dimmer ink (cream-dim) on the surface behind it: over 4.5:1 in both themes.",
+            "focus": "Not focusable: a paragraph is read, not reached.",
+            "targetSize": "not interactive",
+            "screenReader": "Reads the paragraph as it is written."
+          },
+          "content": {
+            "voice": [
+              "One or two sentences, in the tú form, saying what the block gives rather than how it works.",
+              "It may carry a question: the page asks the reader the thing it wants answered."
+            ],
+            "limits": [
+              "Two sentences at most: 40 words on a phone, 60 on a desktop."
+            ],
+            "examples": [
+              "Hasta 300 páginas, escaneadas o no. Cada pregunta sale de una página que puedes abrir.",
+              "Pago único, sin suscripción. Empieza gratis."
+            ]
+          },
+          "usage": {
+            "when": [
+              "The paragraph under a title, when the block needs a sentence to introduce it.",
+              "The paragraph under the title of a Widget."
+            ],
+            "whenNot": [
+              {
+                "situation": "The title of the block",
+                "instead": "a SectionTitle: the lede is the sentence under it, never the title."
+              },
+              {
+                "situation": "A hint under a form control",
+                "instead": "a Field's own hint, next to the control."
+              },
+              {
+                "situation": "A message about what just happened",
+                "instead": "a Notice: the lede introduces, the notice answers."
+              }
+            ],
+            "do": [
+              "Say what the reader gets, in the first sentence.",
+              "Leave a question at the end only if the page answers it further down."
+            ],
+            "dont": [
+              "Don't repeat the title in the lede; the reader has just read it.",
+              "Don't use it for body copy inside a block: that copy belongs to the block itself."
+            ]
+          },
+          "tokens": [
+            "--cream"
+          ],
+          "related": [
+            {
+              "name": "SectionTitle",
+              "difference": "The title above it: the block's headline, in the page's own voice."
+            },
+            {
+              "name": "Notice",
+              "difference": "A message about what just happened. This introduces a block."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the paragraph is text, and the page's direction carries it.",
+            "textExpansion": "The paragraph wraps and grows; it is never clamped. A third sentence in German is still a third sentence.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 18px, leading relaxed.",
+              "From sm (640px): 20px.",
+              "The paragraph wraps to as many lines as it needs, inside the column's measure."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "lede",
+            "importStatement": "import { Lede } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "Under a title, before the block it introduces."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "Lede",
+            "differences": [
+              "Spreads every other <p> attribute (id, lang, dir); the app's copy accepts only children and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's paragraph."
               ]
             }
           ]
@@ -4173,6 +5127,213 @@
       }
     },
     {
+      "name": "screen-frame",
+      "type": "registry:ui",
+      "title": "ScreenFrame",
+      "description": "A piece of the product, drawn as the product draws it: a window with a hairline and the interface inside.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/mockio-contract",
+        "@mockio/mono-label"
+      ],
+      "files": [
+        {
+          "path": "src/components/ScreenFrame/ScreenFrame.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/ScreenFrame/ScreenFrame.tsx"
+        },
+        {
+          "path": "src/components/ScreenFrame/ScreenFrame.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/ScreenFrame/ScreenFrame.contract.ts"
+        },
+        {
+          "path": "src/components/ScreenFrame/ScreenFrame.md",
+          "type": "registry:file",
+          "target": "mockio/components/ScreenFrame/ScreenFrame.md"
+        },
+        {
+          "path": "src/components/ScreenFrame/ScreenFrame.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/ScreenFrame/ScreenFrame.previews.tsx"
+        },
+        {
+          "path": "src/components/ScreenFrame/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/ScreenFrame/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "ScreenFrame",
+          "level": "atom",
+          "status": "stable",
+          "summary": "A piece of the product, drawn as the product draws it: a window with a hairline and the interface inside.",
+          "source": "src/components/ScreenFrame/ScreenFrame.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The interface itself: a transcript, a card, a row of the real product."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the frame's own size and the padding of the interface inside it. Not the fill and not the edge."
+            },
+            "dark": {
+              "type": "boolean",
+              "required": false,
+              "default": "false",
+              "description": "The call is always dark, as a video call is, whatever the theme."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The product, drawn as the product draws it. The frame clips what overflows it, so the content inside is laid out for the width it gets."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The frame is a card-coloured window with a hairline around it, and the interface inside is padded by the caller.",
+              "trigger": "Initial render."
+            },
+            {
+              "name": "dark",
+              "description": "The ground is the media ground, so the window reads as a lit screen in either theme and the ink inside stays light.",
+              "trigger": "dark={true}"
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The frame does not move; the interface inside it does whatever it does."
+          ],
+          "accessibility": {
+            "role": "A generic <div> with aria-hidden: the frame is a picture of the product.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-hidden",
+                "managedBy": "component",
+                "note": "The frame is hidden from assistive technology. The page says the same thing in words next to it, and a screen reader that read both would say everything twice."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "None of its own: the frame has no text of its own beyond what the caller puts inside it.",
+            "focus": "Not focusable, and nothing inside it can be reached: the frame is a picture.",
+            "targetSize": "not interactive",
+            "screenReader": "Reads nothing: the whole frame is hidden, and the page's words carry it."
+          },
+          "content": {
+            "voice": [
+              "None: the frame holds the product and never writes any of its own."
+            ],
+            "limits": [
+              "Nothing: the frame is layout."
+            ],
+            "examples": []
+          },
+          "usage": {
+            "when": [
+              "The public site: a piece of the product shown as the product draws it, next to the words that say what it is.",
+              "Any place where the interface itself is the argument: a transcript, a card, the call."
+            ],
+            "whenNot": [
+              {
+                "situation": "A real screen of the signed-in app",
+                "instead": "PageBody: the app is the window, and it does not need a frame around it."
+              },
+              {
+                "situation": "A card of content with words in it",
+                "instead": "a Widget: the frame is for the interface, not for copy."
+              },
+              {
+                "situation": "A video",
+                "instead": "nothing: the frame is a window, and a video brings its own."
+              }
+            ],
+            "do": [
+              "Put the real interface inside: the point of the frame is that it is the product.",
+              "Say in words next to it what the frame shows, because the frame itself is silent."
+            ],
+            "dont": [
+              "Don't put anything inside that has to be read or pressed: it is hidden from everyone but the eye.",
+              "Don't use it to frame a whole page; an InsetFrame is the frame of a page."
+            ]
+          },
+          "tokens": [
+            "--surface-card",
+            "--surface-base",
+            "--line"
+          ],
+          "related": [
+            {
+              "name": "Widget",
+              "difference": "A card of words: a label, a title and content. This is the product itself, framed."
+            },
+            {
+              "name": "InsetFrame",
+              "difference": "The window the whole public page sits in. This is a window around one piece of the product."
+            },
+            {
+              "name": "PageBody",
+              "difference": "The app's screen. This is a picture of the product, on the public site."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the frame is symmetric and the interface inside handles its own direction.",
+            "textExpansion": "Nothing changes: the frame is a window and the interface inside it grows with its language.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: the frame is as wide as the column allows, and the interface inside is padded by the caller.",
+              "From sm (640px): the same, with the caller's own padding.",
+              "The frame never scrolls: what overflows it is clipped."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "screen-frame",
+            "importStatement": "import { ScreenFrame } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "dark"
+            ],
+            "placement": "Inside a band of the public site, next to the words that explain it. Never around a whole page."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "ScreenFrame",
+            "differences": [
+              "Spreads every other <div> attribute (id, data-*); the app's copy accepts only children, className and dark."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's window."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "section",
       "type": "registry:ui",
       "title": "Section",
@@ -4410,6 +5571,203 @@
       }
     },
     {
+      "name": "section-title",
+      "type": "registry:ui",
+      "title": "SectionTitle",
+      "description": "The heading of a block of the public site: a section's title, or the title of a Widget inside one.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/lede",
+        "@mockio/mockio-contract",
+        "@mockio/widget"
+      ],
+      "files": [
+        {
+          "path": "src/components/SectionTitle/SectionTitle.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/SectionTitle/SectionTitle.tsx"
+        },
+        {
+          "path": "src/components/SectionTitle/SectionTitle.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/SectionTitle/SectionTitle.contract.ts"
+        },
+        {
+          "path": "src/components/SectionTitle/SectionTitle.md",
+          "type": "registry:file",
+          "target": "mockio/components/SectionTitle/SectionTitle.md"
+        },
+        {
+          "path": "src/components/SectionTitle/SectionTitle.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/SectionTitle/SectionTitle.previews.tsx"
+        },
+        {
+          "path": "src/components/SectionTitle/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/SectionTitle/index.ts"
+        }
+      ],
+      "categories": [
+        "atom"
+      ],
+      "meta": {
+        "level": "atom",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "SectionTitle",
+          "level": "atom",
+          "status": "stable",
+          "summary": "The heading of a block of the public site: a section's title, or the title of a Widget inside one.",
+          "source": "src/components/SectionTitle/SectionTitle.tsx",
+          "composes": [],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The title's words."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the title's own spacing above it, and the measure when a title has to wrap sooner. Not the size, the weight or the colour."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The title, in the language of the page."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "The title is 32px on a phone and 56px on a wide desktop, in the light weight and the brightest ink.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The title does not move; the block around it may enter with its own motion."
+          ],
+          "accessibility": {
+            "role": "An <h2>: the second level of the document's headings.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "id",
+                "managedBy": "consumer",
+                "note": "So the band that holds it can be named by it: aria-labelledby."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "The brightest ink on the page (cream-bright) on the surface behind it: over 12:1 in both themes.",
+            "focus": "Not focusable: a heading is read, not reached.",
+            "targetSize": "not interactive",
+            "screenReader": "Reads the title as a heading of the second level, and nothing else."
+          },
+          "content": {
+            "voice": [
+              "A sentence with a full stop, in the tú form: the page speaks to the person reading it, not about itself.",
+              "It says what the block gives, not how it works: \"Un jurado que leyó tu tesis. Completa.\""
+            ],
+            "limits": [
+              "One line on a phone, two on a desktop: 8–14 words."
+            ],
+            "examples": [
+              "Un jurado que leyó tu tesis. Completa.",
+              "De tu PDF a tu acta en una tarde."
+            ]
+          },
+          "usage": {
+            "when": [
+              "The title of a section of the public site.",
+              "The title of a Widget, when the widget is a block of the page in its own right."
+            ],
+            "whenNot": [
+              {
+                "situation": "The title of a screen in the signed-in app",
+                "instead": "PageHeader: the app's screen has one title, and it is an h1."
+              },
+              {
+                "situation": "A label above the title",
+                "instead": "a MonoLabel, in the instrument voice."
+              },
+              {
+                "situation": "A heading inside the block",
+                "instead": "an h3 or a bold paragraph: the title is the block's only heading."
+              }
+            ],
+            "do": [
+              "Write the title as what the block gives, in one sentence.",
+              "Let it wrap: the size follows the viewport and the measure is the caller's."
+            ],
+            "dont": [
+              "Don't use it as an h1: the page's own title is the h1, and a second one flattens the document.",
+              "Don't set the size or the weight through className; they are the title's."
+            ]
+          },
+          "tokens": [
+            "--cream-bright"
+          ],
+          "related": [
+            {
+              "name": "Lede",
+              "difference": "The sentence under the title: this is the title itself."
+            },
+            {
+              "name": "PageHeader",
+              "difference": "The title of an app screen, with its meta and its actions. This is the title of a block of a public page."
+            },
+            {
+              "name": "MonoLabel",
+              "difference": "The instrument label above a block, in mono caps. This is the title, in the page's own voice."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the title is text, and the page's direction carries it.",
+            "textExpansion": "The size follows the viewport, so a longer title wraps to two lines instead of shrinking. Keep it under 14 words.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 32px, in the light weight.",
+              "From sm (640px): the size follows the width of the window, up to 56px.",
+              "The title wraps; it never shrinks below 32px."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "section-title",
+            "importStatement": "import { SectionTitle } from \"@mockio/design-system\";",
+            "canvasProps": [],
+            "placement": "At the top of a band of the public site, or at the top of a Widget that is a block in its own right."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "SectionTitle",
+            "differences": [
+              "Spreads every other <h2> attribute (id, aria-*); the app's copy accepts only children and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's title."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "shimmer-text",
       "type": "registry:ui",
       "title": "ShimmerText",
@@ -4639,6 +5997,220 @@
               "version": "0.1.0",
               "changes": [
                 "First version. A clean-room replacement for the vendored text shine behind the product's top-bar \"Premium\" chip: CSS only, colours from tokens instead of resolved props, reduced motion checked by the component itself."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "widget",
+      "type": "registry:ui",
+      "title": "Widget",
+      "description": "A cream card floating on the page: no shadow, a hairline at most, and an optional mono label.",
+      "dependencies": [],
+      "registryDependencies": [
+        "@mockio/mockio-theme",
+        "@mockio/icon-tile",
+        "@mockio/inset-panel",
+        "@mockio/mockio-contract",
+        "@mockio/mono-label"
+      ],
+      "files": [
+        {
+          "path": "src/components/Widget/Widget.tsx",
+          "type": "registry:ui",
+          "target": "mockio/components/Widget/Widget.tsx"
+        },
+        {
+          "path": "src/components/Widget/Widget.contract.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Widget/Widget.contract.ts"
+        },
+        {
+          "path": "src/components/Widget/Widget.md",
+          "type": "registry:file",
+          "target": "mockio/components/Widget/Widget.md"
+        },
+        {
+          "path": "src/components/Widget/Widget.previews.tsx",
+          "type": "registry:file",
+          "target": "mockio/components/Widget/Widget.previews.tsx"
+        },
+        {
+          "path": "src/components/Widget/index.ts",
+          "type": "registry:file",
+          "target": "mockio/components/Widget/index.ts"
+        }
+      ],
+      "categories": [
+        "molecule"
+      ],
+      "meta": {
+        "level": "molecule",
+        "status": "stable",
+        "version": "1.0.0",
+        "contract": {
+          "name": "Widget",
+          "level": "molecule",
+          "status": "stable",
+          "summary": "A cream card floating on the page: no shadow, a hairline at most, and an optional mono label.",
+          "source": "src/components/Widget/Widget.tsx",
+          "composes": [
+            "MonoLabel"
+          ],
+          "dependencies": [],
+          "props": {
+            "children": {
+              "type": "ReactNode",
+              "required": true,
+              "description": "The block's content: a list, a card, a piece of the interface."
+            },
+            "label": {
+              "type": "ReactNode",
+              "required": false,
+              "description": "The block's label, in the instrument voice: \"::CÓMO FUNCIONA\"."
+            },
+            "className": {
+              "type": "string",
+              "required": false,
+              "default": "\"\"",
+              "description": "Extra classes, appended: the block's own layout (a grid, a flex column) and its height. Not the fill, the edge or the padding."
+            }
+          },
+          "slots": [
+            {
+              "name": "children",
+              "description": "The block's content, padded by the widget itself."
+            },
+            {
+              "name": "label",
+              "description": "One line above the content, in mono caps. It names the block; it does not describe it."
+            }
+          ],
+          "states": [
+            {
+              "name": "default",
+              "description": "A card-coloured block with a hairline around it, padded 20px on a phone and 24px from 640px up, with its label above the content.",
+              "trigger": "Initial render."
+            }
+          ],
+          "events": [],
+          "motion": [
+            "None. The block does not move; the content inside it does whatever it does."
+          ],
+          "accessibility": {
+            "role": "A generic <div>: a card, a box, nothing more.",
+            "keyboard": [],
+            "aria": [
+              {
+                "attribute": "aria-labelledby",
+                "managedBy": "consumer",
+                "note": "So a region that holds several widgets can be named by the label above it."
+              }
+            ],
+            "reducedMotion": "Nothing moves, so nothing changes.",
+            "contrast": "None of its own: the label is the MonoLabel's ink on the card's surface.",
+            "focus": "Not focusable itself. Focus moves through the content inside it, and nothing is trapped at the edge.",
+            "targetSize": "not interactive",
+            "screenReader": "Adds nothing by itself. The label is a paragraph, so a reader hears it before the content it names."
+          },
+          "content": {
+            "voice": [
+              "The label is in the instrument voice, in caps, and names the block: \"::CÓMO FUNCIONA\".",
+              "The content inside is the product's own copy, not the widget's."
+            ],
+            "limits": [
+              "Label: 1–3 words, 24 characters at most."
+            ],
+            "examples": [
+              "El producto",
+              "::CÓMO FUNCIONA",
+              "::CASOS"
+            ]
+          },
+          "usage": {
+            "when": [
+              "The public site: a block of the page with a label above it, side by side with other blocks.",
+              "The signed-in product: the training screens, where a block of the conversation sits in a card."
+            ],
+            "whenNot": [
+              {
+                "situation": "A card inside the signed-in app",
+                "instead": "Panel: it is the app's surface, with a shadow and no padding of its own."
+              },
+              {
+                "situation": "A page band",
+                "instead": "a Section: the band owns the vertical rhythm of the page."
+              },
+              {
+                "situation": "A card the person presses",
+                "instead": "a link or a button styled with the card tokens: a widget has no press."
+              }
+            ],
+            "do": [
+              "Give it a label when the block's purpose is not obvious from its content.",
+              "Let the blocks in a row share the same height with h-full, so the row lines up."
+            ],
+            "dont": [
+              "Don't stack a widget inside a widget: the hairline doubles and the radius starts to fight itself.",
+              "Don't put an Action in the label; the label is a name, not a control."
+            ]
+          },
+          "tokens": [
+            "--surface-card",
+            "--line",
+            "--cream-dim"
+          ],
+          "related": [
+            {
+              "name": "Panel",
+              "difference": "The app's surface: a shadow instead of a hairline, and no padding of its own. This one is the public site's block."
+            },
+            {
+              "name": "InsetPanel",
+              "difference": "The recessed panel inside a widget: a step of its own surface."
+            },
+            {
+              "name": "MonoLabel",
+              "difference": "The label on its own. A widget draws one above its content."
+            }
+          ],
+          "i18n": {
+            "rtl": "Nothing mirrors: the block is symmetric and the content inside handles its own direction.",
+            "textExpansion": "Nothing changes: the block grows with its content, and the label wraps inside it.",
+            "formatting": "None.",
+            "strings": []
+          },
+          "responsive": {
+            "behaviour": [
+              "Phones: 20px of padding, and the label wraps to two lines before it truncates.",
+              "From sm (640px): 24px of padding.",
+              "The block is as wide as its parent; in a row, the row decides."
+            ],
+            "minWidth": "320px"
+          },
+          "designTool": {
+            "registryItem": "widget",
+            "importStatement": "import { Widget } from \"@mockio/design-system\";",
+            "canvasProps": [
+              "label"
+            ],
+            "placement": "Inside a band of the public site, or in the training screens of the signed-in product. One column on a phone, a row on a desktop."
+          },
+          "appCounterpart": {
+            "file": "design-system/marketing.tsx",
+            "exportName": "Widget",
+            "differences": [
+              "Spreads every other <div> attribute (id, aria-*, data-*); the app's copy accepts only children, label and className."
+            ]
+          },
+          "version": "1.0.0",
+          "changelog": [
+            {
+              "version": "1.0.0",
+              "changes": [
+                "First documented version, taken from the product's own copy of the public site's block."
               ]
             }
           ]

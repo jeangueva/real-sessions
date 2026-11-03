@@ -62,6 +62,8 @@ export const COLORS = [
   { figma: "feedback/attention/soft", css: "--step-soft", tailwind: "bg-step-soft", scopes: BG },
   { figma: "premium/default", css: "--premium", tailwind: "bg-premium", scopes: ANY },
   { figma: "premium/soft", css: "--premium-soft", tailwind: "bg-premium-soft", scopes: BG },
+  { figma: "chip/default", css: "--chip", tailwind: "bg-chip", scopes: BG },
+  { figma: "text/on-chip", css: "--chip-ink", tailwind: "text-chip-ink", scopes: TEXT },
   { figma: "border/subtle", css: "--line", tailwind: "border-line", scopes: STROKE },
   { figma: "border/control", css: "--line-strong", tailwind: "border-line-strong", scopes: STROKE },
   { figma: "overlay/scrim", css: "--scrim", tailwind: "bg-scrim", scopes: BG },
@@ -141,7 +143,7 @@ export const TEXT_STYLES = [
  */
 export const COMPONENTS = {
   Action: { figma: "14:103", properties: ["Label", "With arrow", "Icon", "Tone", "State"], preferred: { Icon: ["icon/arrow-right", "icon/arrow-up-right", "icon/download", "icon/upload", "icon/send", "icon/mic", "icon/play", "icon/plus", "icon/rotate-ccw"] }, aliases: ["button", "botón", "CTA", "call to action", "primary button", "secondary button", "ghost button", "link button"] },
-  Badge: { figma: "14:109", properties: ["Label", "Tone"], aliases: ["tag", "chip", "pill", "status", "estado", "etiqueta", "live indicator"] },
+  Badge: { figma: "14:109", properties: ["Label", "Tone"], aliases: ["tag", "status", "estado", "etiqueta", "live indicator"] },
   CheckItem: { figma: "14:110", properties: ["Label"], aliases: ["checklist item", "feature list item", "benefit row", "bullet", "ítem con check", "lista de beneficios"] },
   Eyebrow: { figma: "14:115", properties: ["Label"], aliases: ["kicker", "overline", "pre-title", "section label", "antetítulo"] },
   Panel: {
@@ -165,6 +167,14 @@ export const COMPONENTS = {
   Notice: { figma: null, reason: "Not drawn in the library yet: the three tones are the same box with a different ground, and Figma would draw three of them.", aliases: ["alert", "message", "toast", "banner", "aviso", "mensaje", "alerta"] },
   MonoLabel: { figma: null, reason: "Not drawn in the library yet: the label is a mono uppercase line with two colons in front of it, and Figma would draw it as a text style instead.", aliases: ["mono label", "instrument label", "::label", "etiqueta mono", "rótulo"] },
   InsetFrame: { figma: null, reason: "Page rhythm and gutters, not a drawable surface: it is the window the public site's page sits in.", aliases: ["frame", "window", "browser frame", "marco", "ventana"] },
+  ContentColumn: { figma: null, reason: "Page rhythm and gutters, not a drawable surface: it is the column the public site's bands sit in.", aliases: ["column", "container", "page width", "columna", "contenedor"] },
+  SectionTitle: { figma: null, reason: "Not drawn in the library yet: the title is a text style with two sizes, and Figma would draw it as text.", aliases: ["section title", "heading", "h2", "titulo de seccion", "encabezado"] },
+  Lede: { figma: null, reason: "Not drawn in the library yet: the lede is a paragraph of text, and Figma would draw it as a text style.", aliases: ["lede", "standfirst", "intro paragraph", "entradilla", "parrafo introductorio"] },
+  ScreenFrame: { figma: null, reason: "Not drawn in the library yet: the frame holds the live interface, and Figma would draw a picture of it.", aliases: ["product frame", "app window", "app screenshot", "marco de producto", "ventana de la app"] },
+  Widget: { figma: null, reason: "Not drawn in the library yet: the widget is the public site's card, with a label above it and a hairline around it.", aliases: ["card", "block", "tile", "tarjeta", "bloque"] },
+  InsetPanel: { figma: null, reason: "Not drawn in the library yet: the inset is a step of a card's surface, and it only makes sense inside one.", aliases: ["inset", "well", "inner panel", "hueco", "panel interior"] },
+  IconTile: { figma: null, reason: "Not drawn in the library yet: the tile is a small square of the accent wash with a figure in it.", aliases: ["icon tile", "numbered tile", "step marker", "mosaico de icono", "casilla"] },
+  Chip: { figma: null, reason: "Not drawn in the library yet: the chip is the peach wash with the instrument voice in it.", aliases: ["chip", "pill", "fact", "pastilla", "hecho"] },
 };
 
 /** Elevation: one Figma effect style per theme for each shadow variable. */

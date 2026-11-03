@@ -99,6 +99,14 @@ export default {
           DEFAULT: "rgb(var(--premium) / <alpha-value>)",
           soft: "rgb(var(--premium-soft) / <alpha-value>)",
         },
+        /**
+         * The chip: a fact, never a control. A warm wash with the dark ink on
+         * it, the same in both themes.
+         */
+        chip: {
+          DEFAULT: "rgb(var(--chip) / <alpha-value>)",
+          ink: "rgb(var(--chip-ink) / <alpha-value>)",
+        },
       },
       /**
        * One family, Apple's rule: the platform's own face first.
