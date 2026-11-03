@@ -32,6 +32,7 @@ Each of these degrades on its own and says so in the startup line.
 | `DEEPGRAM_API_KEY` | Browser speech recognition instead of streaming transcription |
 | `MERCADOPAGO_*` | The paid plan is reachable only by an early-access grant; the app says payments are off rather than offering a broken button |
 | `PADDLE_*` | Every country is sold through Mercado Pago in soles. With all six set, readers outside Peru are sold through Paddle at their country's price, in their currency — see `.env.example` for the setup steps and `src/billing/regions.ts` for the prices |
+| `REALSESSIONS_SUPPORT_URL` | The support panel says the link is not set up and shows no button. Set it to your Ko-fi page (`https://ko-fi.com/<your-page>`); only `https://` URLs without credentials are accepted. Donations never unlock features |
 | `REALSESSIONS_REVIEWERS` | Nobody can verify contributed questions, so none reach an interview |
 | `REALSESSIONS_SITE_URL` | Links in emails point at `http://localhost:5173` |
 | `REALSESSIONS_TRUST_PROXY=1` | Set **only** behind a proxy you control. Otherwise any caller can rotate `X-Forwarded-For` and mint unlimited rate-limit identities |
