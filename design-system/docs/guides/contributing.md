@@ -92,6 +92,12 @@ replacement named in `usage.whenNot[].instead`, and removed in a later major.
      or a proper noun listed with its reason (below)
    - **copy**: every example a contract shows is the product's own words, or
      the default the system ships — a string no source can produce fails
+   - **site**: the documentation site shows every component, every foundation
+     and every guide, and a component's page shows the whole contract — every
+     prop, every state, every preview, the product's differences and the
+     changelog. A promise the page does not print is a promise the page
+     breaks. The site also declares no colour of its own: it reads the
+     variables it needs from the product stylesheet.
 CI runs the same command (`npm --prefix design-system run check`) and then
 builds the site.
 

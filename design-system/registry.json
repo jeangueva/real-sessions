@@ -275,6 +275,26 @@
       "description": "The system's guidance as Markdown — foundations (colour, type, motion, voice) and guides — so a tool that installs the components also has the rules for using them.",
       "files": [
         {
+          "path": "docs/foundations/colour.md",
+          "type": "registry:file",
+          "target": "mockio/docs/foundations/colour.md"
+        },
+        {
+          "path": "docs/foundations/motion.md",
+          "type": "registry:file",
+          "target": "mockio/docs/foundations/motion.md"
+        },
+        {
+          "path": "docs/foundations/type.md",
+          "type": "registry:file",
+          "target": "mockio/docs/foundations/type.md"
+        },
+        {
+          "path": "docs/foundations/voice.md",
+          "type": "registry:file",
+          "target": "mockio/docs/foundations/voice.md"
+        },
+        {
           "path": "docs/guides/contributing.md",
           "type": "registry:file",
           "target": "mockio/docs/guides/contributing.md"

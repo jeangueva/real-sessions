@@ -1,3 +1,10 @@
+---
+title: The Figma library
+group: Guides
+order: 6
+summary: The Figma library as a view of this package — what pairs with what, the script that checks the two agree, and how to push a change.
+---
+
 # The Figma library
 
 The library lives at
