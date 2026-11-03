@@ -43,6 +43,8 @@ const PROPER_NOUNS = new Map<string, string>([
   ["Apple", "the company the type references come from"],
   ["Airbnb", "the company the surface references come from"],
   ["CanvasText", "the colour the browser's forced-colours mode asks for"],
+  ["Check", "the icon the check item draws"],
+  ["Crown", "the icon the premium mark draws"],
   ["English", "a language"],
   ["Figma", "the design tool"],
   ["German", "a language"],
@@ -157,11 +159,10 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
   });
 
   it("names only components that exist in its guidance", () => {
-    // The Markdown repeats the contract in prose a person reads. The pointers
-    // live in "When not to use it"; the rest of the file may name anything the
-    // system owns.
-    const section = entry.docs.split("## When not to use it")[1]?.split("\n## ")[0] ?? "";
-    for (const match of section.matchAll(/`([A-Z][A-Za-z0-9]*)`/g)) {
+    // The Markdown repeats the contract in prose a person reads. Every name
+    // in it has to lead somewhere: the file names the components of this
+    // system, in the code spans where a component is written.
+    for (const match of entry.docs.matchAll(/`([A-Z][A-Za-z0-9]*)`/g)) {
       const word = match[1]!;
       expect(
         NAMES.has(asName(word)) || PROPER_NOUNS.has(word),
