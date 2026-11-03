@@ -29,7 +29,7 @@ export const WidgetPreviews = definePreviews([
       "The public site's blocks side by side, each with its own label, each with a row of steps inside.",
     render: () => (
       <div className="grid gap-3 bg-surface-base py-12 md:grid-cols-2">
-        <Widget label="::CÓMO FUNCIONA">
+        <Widget label="03 · Método">
           <InsetPanel className="flex items-center gap-3">
             <IconTile>01</IconTile>
             <span className="text-sm text-cream-bright">Sube tu tesis</span>
@@ -44,7 +44,7 @@ export const WidgetPreviews = definePreviews([
       </div>
     ),
     code: `<div className="grid gap-3 md:grid-cols-2">
-  <Widget label="::CÓMO FUNCIONA">…</Widget>
+  <Widget label="03 · Método">…</Widget>
   <Widget label="::QUÉ RECIBES">…</Widget>
 </div>`,
   },
@@ -56,14 +56,14 @@ export const WidgetPreviews = definePreviews([
     why: "The hairline doubles and the radius starts to fight itself: two radii at two distances from the edge is a shape nobody drew. A block inside a card belongs in an InsetPanel, which is a step of the surface rather than a second card.",
     render: () => (
       <Widget label="El producto">
-        <Widget label="::CÓMO FUNCIONA">
+        <Widget label="03 · Método">
           <p className="text-sm text-cream-dim">Sube tu tesis</p>
         </Widget>
       </Widget>
     ),
     code: `{/* Don't: use an InsetPanel for the block inside */}
 <Widget label="El producto">
-  <Widget label="::CÓMO FUNCIONA">…</Widget>
+  <Widget label="03 · Método">…</Widget>
 </Widget>`,
   },
 ]);

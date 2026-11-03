@@ -55,8 +55,11 @@ all five files exist and `src/index.ts` exports the folder.
 5. **Real copy.** Spanish first, tú (never vos or usted, outside the simulated
    jury), sentence case, actions start with a verb, no exclamation marks,
    gender-neutral, calm. Example copy is quoted from the product
-   (`web/src/lib/thesis-copy.ts`, `web/src/lib/i18n.ts`), never invented:
-   "Ensayar mi sustentación", "Sube tu tesis", "Ver planes", "Ahora no".
+   (`web/src/lib/thesis-copy.ts`, `web/src/lib/locales/es.ts`), never
+   invented: "Ensayar mi sustentación", "Sube tu tesis", "Ver planes",
+   "Cancelar". A component the product does not use carries the default it
+   ships itself, and `test/copy.test.ts` fails when an example is a string
+   no source can produce.
 6. **Generated files are generated.** Do not edit `src/tokens/tokens.json`,
    `src/tokens/theme.css`, `src/tokens/figma.json` or `registry.json`. Edit
    `src/tokens/tokens.css`, the preset or `src/tokens/figma-map.js` and run
@@ -100,7 +103,7 @@ export function PackSustentacion() {
       </ul>
       <div className="mt-6 flex flex-wrap gap-3">
         <Action tone="solid" withArrow>Ensayar mi sustentación</Action>
-        <Action tone="ghost">Ahora no</Action>
+        <Action tone="ghost">Cancelar</Action>
       </div>
     </Panel>
   );

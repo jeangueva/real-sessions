@@ -44,7 +44,7 @@ export const FieldPreviews = definePreviews([
       "Two fields side by side on a wide screen, one of them spanning both columns. The className is for layout only; the label and the spacing stay the system's.",
     render: () => (
       <div className="grid max-w-2xl gap-6 sm:grid-cols-2">
-        <Field label="Título de tu tesis" htmlFor="grid-title" hint="El que va en la portada.">
+        <Field label="Rol por defecto" htmlFor="grid-title" hint="El que va en la portada.">
           <input id="grid-title" type="text" className="field-control w-full" placeholder="Influencia de la gestión…" />
         </Field>
         <Field label="Correo" htmlFor="grid-email" className="sm:col-span-2">
@@ -53,7 +53,7 @@ export const FieldPreviews = definePreviews([
       </div>
     ),
     code: `<div className="grid gap-6 sm:grid-cols-2">
-  <Field label="Título de tu tesis" htmlFor="title" hint="El que va en la portada.">…</Field>
+  <Field label="Rol por defecto" htmlFor="title" hint="El que va en la portada.">…</Field>
   <Field label="Correo" htmlFor="email" className="sm:col-span-2">…</Field>
 </div>`,
   },

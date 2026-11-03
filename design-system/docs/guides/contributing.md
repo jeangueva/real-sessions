@@ -90,7 +90,8 @@ replacement named in `usage.whenNot[].instead`, and removed in a later major.
      describes all of them, and they match the product (below)
    - **pointers**: every name a contract uses is a component of this system,
      or a proper noun listed with its reason (below)
-
+   - **copy**: every example a contract shows is the product's own words, or
+     the default the system ships — a string no source can produce fails
 CI runs the same command (`npm --prefix design-system run check`) and then
 builds the site.
 

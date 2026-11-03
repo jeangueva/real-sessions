@@ -40,7 +40,7 @@ screen reader too.
 ## Writing
 
 - The label names the control in the person's own words: _Tu nombre_, _Correo_,
-  _Título de tu tesis_. Never "Campo" or "Input".
+  _Rol por defecto_. Never "Campo" or "Input".
 - The hint says what the control wants, not what it is: _El jurado la lee
   antes de cada ensayo._
 - Sentence case, no final period, no exclamation marks.

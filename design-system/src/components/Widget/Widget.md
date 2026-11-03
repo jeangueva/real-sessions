@@ -16,7 +16,7 @@ screens.
 1. **Card** — a `div`, the card surface, with a hairline around it.
 2. **Corners** — 22px, between the card's 20px and the inset's 28px.
 3. **Padding** — 20px on a phone, 24px from `sm` up.
-4. **Label** — a `MonoLabel`, when the block is named: `::CÓMO FUNCIONA`.
+4. **Label** — a `MonoLabel`, when the block is named: `03 · Método`.
 5. **Content** — the block's own content, in a flex column with 16px
    between the parts.
 
@@ -44,7 +44,7 @@ pressable is a link or a button.
 ## Writing
 
 - The label names the block in the instrument voice, in caps, 1–3 words:
-  `::CÓMO FUNCIONA`.
+  `03 · Método`.
 - The content inside is the product's own copy, not the widget's.
 
 ## Accessibility

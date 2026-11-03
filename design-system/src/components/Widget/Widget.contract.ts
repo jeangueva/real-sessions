@@ -17,7 +17,7 @@ export const WidgetContract = defineContract({
     label: {
       type: "ReactNode",
       required: false,
-      description: "The block's label, in the instrument voice: \"::CÓMO FUNCIONA\".",
+      description: "The block's label, in the instrument voice: \"03 · Método\".",
     },
     className: {
       type: "string",
@@ -63,11 +63,11 @@ export const WidgetContract = defineContract({
   },
   content: {
     voice: [
-      "The label is in the instrument voice, in caps, and names the block: \"::CÓMO FUNCIONA\".",
+      "The label is in the instrument voice, in caps, and names the block: \"03 · Método\".",
       "The content inside is the product's own copy, not the widget's.",
     ],
     limits: ["Label: 1–3 words, 24 characters at most."],
-    examples: ["El producto", "::CÓMO FUNCIONA", "::CASOS"],
+    examples: ["El producto", "03 · Método", "01 · Educación"],
   },
   usage: {
     when: [
@@ -140,8 +140,12 @@ export const WidgetContract = defineContract({
       "Spreads every other <div> attribute (id, aria-*, data-*); the app's copy accepts only children, label and className.",
     ],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    {
+      version: "1.0.1",
+      changes: ["The examples are the product's own instrument labels now: \"03 · Método\" and \"01 · Educación\". — nothing changes for a screen."],
+    },
     {
       version: "1.0.0",
       changes: [

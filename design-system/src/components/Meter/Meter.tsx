@@ -3,7 +3,7 @@ export interface MeterProps {
   value: number;
   /** The top of the scale. The bar fills value/max, clamped to 0–100%. */
   max?: number;
-  /** What is being measured: "Claridad", "Tu turno". */
+  /** What is being measured: "Claridad", "Vocabulario". */
   label: string;
   /** The unit after the number. Empty for a count. */
   suffix?: string;

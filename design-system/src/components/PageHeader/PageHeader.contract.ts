@@ -89,7 +89,7 @@ export const PageHeaderContract = defineContract({
     voice: [
       "The title names the screen in one to four words, sentence case, no period: \"Mi tesis\", \"Tu camino\", \"Tus postulaciones\".",
       "Possessives in the tú form where the screen is the person's own: \"Tu informe\", \"Tu camino\".",
-      "Meta is one short sentence that says what the screen is for, or one fact: \"Súbela una vez. El jurado la lee antes de cada ensayo.\", \"12 completadas\".",
+      "Meta is one short sentence that says what the screen is for, or one fact: \"Listo para entrevistar\", \"Preparando tu material… tarda menos de un minuto.\".",
       "No exclamation marks; meta never repeats the title.",
     ],
     limits: [
@@ -158,8 +158,12 @@ export const PageHeaderContract = defineContract({
       "Adds width (\"wide\" | \"reading\") to match PageBody's: the reading ceiling is `max-w-3xl` here, and the app's copy has no width prop at all, so its title does not line up with a narrower body.",
     ],
   },
-  version: "1.1.2",
+  version: "1.1.3",
   changelog: [
+    {
+      version: "1.1.3",
+      changes: ["The meta examples are the product's own words now: \"Listo para entrevistar\" and \"Preparando tu material… tarda menos de un minuto.\" — nothing changes for a screen."],
+    },
     {
       version: "1.1.2",
       changes: ["The contract now names the class names of the difference: the title's weight, the measure the meta wraps in and the reading ceiling."],

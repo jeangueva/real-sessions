@@ -25,7 +25,7 @@ export const FieldContract = defineContract({
       type: "string",
       required: false,
       description:
-        "One line under the control saying what it wants: \"El jurado la lee antes de cada ensayo.\" Omitted, nothing renders.",
+        "One line under the control saying what it wants: \"Se usa para precargar las sesiones nuevas.\" Omitted, nothing renders.",
     },
     htmlFor: {
       type: "string",
@@ -83,15 +83,15 @@ export const FieldContract = defineContract({
   },
   content: {
     voice: [
-      "The label names the control in the person's own words: \"Tu nombre\", \"Correo\", \"Título de tu tesis\". Never \"Campo\" or \"Input\".",
-      "The hint says what the control wants, not what it is: \"El jurado la lee antes de cada ensayo.\"",
+      "The label names the control in the person's own words: \"Tu nombre\", \"Correo\", \"Rol por defecto\". Never \"Campo\" or \"Input\".",
+      "The hint says what the control wants, not what it is: \"Se usa para precargar las sesiones nuevas.\"",
       "Tú form, sentence case, no final period, no exclamation marks.",
     ],
     limits: [
       "Label: 1–4 words, ≤ 30 characters, so it stays on one line above the control.",
       "Hint: one line at 320px, about 60 characters. Anything longer belongs in the body of the screen.",
     ],
-    examples: ["Tu nombre", "Correo", "Título de tu tesis", "El jurado la lee antes de cada ensayo."],
+    examples: ["Tu nombre", "Correo", "Rol por defecto", "Se usa para precargar las sesiones nuevas."],
   },
   usage: {
     when: [
@@ -152,8 +152,12 @@ export const FieldContract = defineContract({
     exportName: "Field",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    {
+      version: "1.0.2",
+      changes: ["The examples are the product's own labels and hints now: \"Rol por defecto\" and \"Se usa para precargar las sesiones nuevas.\" — nothing changes for a screen."],
+    },
     { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the bare control, a radio group — because the system has no component for them."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],

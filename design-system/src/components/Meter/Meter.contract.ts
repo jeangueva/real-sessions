@@ -25,7 +25,7 @@ export const MeterContract = defineContract({
       type: "string",
       required: true,
       description:
-        "What is being measured, in the person's words: \"Claridad\", \"Tu turno\", \"Respuestas practicadas\". It is the accessible name of the bar.",
+        "What is being measured, in the person's words: \"Claridad\", \"Vocabulario\", \"Estructura\". It is the accessible name of the bar.",
     },
     suffix: {
       type: "string",
@@ -80,7 +80,7 @@ export const MeterContract = defineContract({
   },
   content: {
     voice: [
-      "The name says what is measured, in the person's words: \"Claridad\", \"Tu turno\", \"Respuestas practicadas\". Not \"Métrica\" or \"Score\".",
+      "The name says what is measured, in the person's words: \"Claridad\", \"Vocabulario\", \"Estructura\". Not \"Métrica\" or \"Score\".",
       "The figure speaks for itself; the component adds no words of its own.",
       "Sentence case, no period, no exclamation marks.",
     ],
@@ -88,7 +88,7 @@ export const MeterContract = defineContract({
       "Label: 1–3 words, ≤ 24 characters, so it sits on one line beside the figure.",
       "Suffix: 1–2 characters. It is written right next to the figure, so \"puntos\" belongs in the label, not in the suffix.",
     ],
-    examples: ["Claridad", "Tu turno", "Respuestas practicadas", "72%", "3 de 7"],
+    examples: ["Claridad", "Vocabulario", "Estructura", "100%", "3 de 7"],
   },
   usage: {
     when: [
@@ -150,8 +150,12 @@ export const MeterContract = defineContract({
     exportName: "Meter",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    {
+      version: "1.0.2",
+      changes: ["The examples are the product's own meters now: \"Vocabulario\" and \"Estructura\", the labels the app's report shows. — nothing changes for a screen."],
+    },
     { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a Badge with the count, the number alone, a progress indicator — because the system has no component for them."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],

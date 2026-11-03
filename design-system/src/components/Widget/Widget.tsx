@@ -4,7 +4,7 @@ import { MonoLabel } from "../MonoLabel";
 export interface WidgetProps extends HTMLAttributes<HTMLDivElement> {
   /** The block's content: a list, a card, a piece of the interface. */
   children: ReactNode;
-  /** The block's label, in the instrument voice: "::CÓMO FUNCIONA". */
+  /** The block's label, in the instrument voice: "03 · Método". */
   label?: ReactNode;
   /**
    * Extra classes, appended: the block's own layout (a grid, a flex column)

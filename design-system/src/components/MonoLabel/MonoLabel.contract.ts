@@ -72,14 +72,14 @@ export const MonoLabelContract = defineContract({
     voice: [
       "A noun phrase, not a sentence: \"GENERAL\", \"TU CUENTA\", \"QUÉ FUNCIONÓ\".",
       "It names the block; the heading under it says something. Never a full sentence and never a question.",
-      "It is written in capitals by the component: pass the words as they are written, \"qué funcionó\", not \"QUÉ FUNCIONÓ\".",
+      "It is written in capitals by the component: pass the words as they are written, \"Qué funcionó\", not \"QUÉ FUNCIONÓ\".",
       "No final period, no colon of its own, no exclamation mark.",
     ],
     limits: [
       "1–3 words, about 24 characters, so it stays on one line beside what it labels.",
       "Longer names are cut by the space they sit in, not by the label: shorten the name, do not wrap it.",
     ],
-    examples: ["general", "tu cuenta", "qué funcionó", "educación", "turno actual"],
+    examples: ["general", "tu cuenta", "Qué funcionó", "01 · Educación", "Formato"],
   },
   usage: {
     when: [
@@ -146,8 +146,12 @@ export const MonoLabelContract = defineContract({
       "The app had this component twice, under two names: as \"Eyebrow\" in its primitives and as \"MonoLabel\" in its marketing library, byte for byte the same. It is one component now, called MonoLabel, and the app's copy of the system's Eyebrow is a different thing entirely.",
     ],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    {
+      version: "1.0.2",
+      changes: ["The examples are the product's own labels now: \"Qué funcionó\", \"01 · Educación\" and \"Formato\". — nothing changes for a screen."],
+    },
     {
       version: "1.0.1",
       changes: ["Nothing changes for a screen: the alternative is named in plain words now — a heading — because the system has no component for it."],

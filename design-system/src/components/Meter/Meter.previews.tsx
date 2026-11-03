@@ -37,10 +37,10 @@ export const MeterPreviews = definePreviews([
       "Eight answers practised. The suffix is empty because the number is not a percentage, and the maximum is the real one.",
     render: () => (
       <div className="max-w-sm">
-        <Meter value={3} max={8} suffix="" label="Respuestas practicadas" />
+        <Meter value={3} max={8} suffix="" label="Estructura" />
       </div>
     ),
-    code: `<Meter value={3} max={8} suffix="" label="Respuestas practicadas" />`,
+    code: `<Meter value={3} max={8} suffix="" label="Estructura" />`,
   },
   {
     id: "above-the-maximum",

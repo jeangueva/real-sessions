@@ -101,14 +101,14 @@ export const PageBodyPreviews = definePreviews([
       <div className="bg-surface-deep">
         <PageBody>
           <Panel variant="raised" className="p-6">
-            <p className="text-sm text-cream-dim">Todavía no hay nada que graficar</p>
+            <p className="text-sm text-cream-dim">Todavía no hay entrevistas</p>
           </Panel>
         </PageBody>
       </div>
     ),
     code: `<PageBody>
   <Panel variant="raised" className="p-6">
-    <p className="text-sm text-cream-dim">Todavía no hay nada que graficar</p>
+    <p className="text-sm text-cream-dim">Todavía no hay entrevistas</p>
   </Panel>
 </PageBody>`,
   },

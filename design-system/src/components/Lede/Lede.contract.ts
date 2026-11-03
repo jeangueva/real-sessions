@@ -49,7 +49,7 @@ export const LedeContract = defineContract({
     ],
     limits: ["Two sentences at most: 40 words on a phone, 60 on a desktop."],
     examples: [
-      "Hasta 300 páginas, escaneadas o no. Cada pregunta sale de una página que puedes abrir.",
+      "Una hoja de defensa de una página y 15 tarjetas de repaso, hechas de tu tesis.",
       "Pago único, sin suscripción. Empieza gratis.",
     ],
   },
@@ -120,8 +120,12 @@ export const LedeContract = defineContract({
       "Spreads every other <p> attribute (id, lang, dir); the app's copy accepts only children and className.",
     ],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    {
+      version: "1.0.1",
+      changes: ["The example is a lede the product shows now: \"Una hoja de defensa de una página y 15 tarjetas de repaso, hechas de tu tesis.\" — nothing changes for a screen."],
+    },
     {
       version: "1.0.0",
       changes: [

@@ -76,7 +76,7 @@ PageBody renders no words. What the screen says first lives in the
 `PageHeader`; the body starts with the task, not a restatement of the title.
 A loading or empty screen says what is happening in a raised `Panel` inside:
 _Leyendo tu tesis… puede tardar hasta dos minutos._,
-_Todavía no hay nada que graficar_.
+_Todavía no hay entrevistas_.
 
 ## Accessibility
 
