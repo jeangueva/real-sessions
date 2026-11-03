@@ -4,10 +4,9 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
-import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo, InterviewerPresence, Meter, MonoLabel, Waveform } from "@/design-system";
+import { Action, AnimatedCounter, Chip, ContentColumn, EASE_OUT, FadeRise, HeroVideo, IconTile, InsetPanel, InterviewerPresence, Lede, Meter, MonoLabel, ScreenFrame, SectionTitle, Waveform, Widget } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
-import { Chip, IconTile, Inset, Lede, Screen, Title, Widget, Wrap } from "./marketing";
 import { useLocale } from "@/hooks/useLocale";
 import { usePracticeCopy } from "@/lib/practice-copy";
 import { scrollToSection } from "@/lib/scroll-to-section";
@@ -326,7 +325,7 @@ function JuryCallScreen({ d }: { d: LandingCopy }) {
   const current = turns[active]!;
 
   return (
-    <Screen dark>
+    <ScreenFrame dark>
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-xs text-white/60">
         <span className="flex items-center gap-2">
           <span className="h-2 w-2 animate-live rounded-full bg-step" />
@@ -377,7 +376,7 @@ function JuryCallScreen({ d }: { d: LandingCopy }) {
           <p className="text-sm text-white/80">{current.answer}</p>
         </div>
       </div>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -391,7 +390,7 @@ function ActaOverlay({ d }: { d: LandingCopy }) {
     { role: d.juror3, score: 14 },
   ];
   return (
-    <Screen className="w-[17rem] p-5">
+    <ScreenFrame className="w-[17rem] p-5">
       <div ref={ref}>
         <p className="text-xs font-semibold text-cream-dim">{d.mockActa}</p>
         <p className="mt-1 flex items-baseline gap-1.5">
@@ -425,7 +424,7 @@ function ActaOverlay({ d }: { d: LandingCopy }) {
           ))}
         </div>
       </div>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -433,7 +432,7 @@ function TechLabScreen({ d }: { d: LandingCopy }) {
   const [idx, setIdx] = useState(0);
   const current = d.techScenarios[idx]!;
   return (
-    <Screen dark className="p-5 sm:p-6">
+    <ScreenFrame dark className="p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
         <span className="font-mono text-xs uppercase tracking-[0.06em] text-accent-text">
           ::STAKEHOLDER LAB
@@ -474,13 +473,13 @@ function TechLabScreen({ d }: { d: LandingCopy }) {
       <p className="mt-3 rounded-xl bg-grow-soft px-3.5 py-2 text-xs font-medium text-grow-text">
         {current.coach}
       </p>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
 function CulturalLabScreen({ d }: { d: LandingCopy }) {
   return (
-    <Screen className="p-5 sm:p-6">
+    <ScreenFrame className="p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold text-cream-bright">{d.culturalTitle}</p>
         <div className="flex flex-wrap gap-1.5">
@@ -504,13 +503,13 @@ function CulturalLabScreen({ d }: { d: LandingCopy }) {
       <p className="mt-3 rounded-xl bg-accent-soft px-3.5 py-2.5 text-xs font-medium text-accent-text">
         {d.culturalCoach}
       </p>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
 function IntuitionScreen({ d }: { d: LandingCopy }) {
   return (
-    <Screen className="p-5 sm:p-6">
+    <ScreenFrame className="p-5 sm:p-6">
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-xs uppercase tracking-[0.06em] text-accent-text">
           {d.intuitionCaseTag}
@@ -537,7 +536,7 @@ function IntuitionScreen({ d }: { d: LandingCopy }) {
           {d.intuitionRevealBody}
         </p>
       </div>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -640,7 +639,7 @@ export function PublicLanding() {
             className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-black/75 md:bg-gradient-to-r md:from-black/85 md:via-black/45 md:to-transparent"
           />
 
-          <Wrap className="relative z-10 flex flex-1 flex-col justify-between gap-10 pb-10 pt-[clamp(2.5rem,9svh,6.5rem)]">
+          <ContentColumn className="relative z-10 flex flex-1 flex-col justify-between gap-10 pb-10 pt-[clamp(2.5rem,9svh,6.5rem)]">
             <FadeRise className="max-w-2xl">
               <Chip className="mb-5">{c.free}</Chip>
               <h1 className="text-balance text-[clamp(2.75rem,6.6vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white">
@@ -718,12 +717,12 @@ export function PublicLanding() {
                 </p>
               </a>
             </FadeRise>
-          </Wrap>
+          </ContentColumn>
         </section>
 
         {/* 2. Country & cultural formats band */}
         <section className="py-8">
-          <Wrap className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+          <ContentColumn className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
             <MonoLabel className="shrink-0">{d.countriesLabel}</MonoLabel>
             <ul className="flex flex-wrap gap-2">
               {countries.map((name) => (
@@ -732,24 +731,24 @@ export function PublicLanding() {
                 </li>
               ))}
             </ul>
-          </Wrap>
+          </ContentColumn>
         </section>
 
         {/* 3. Section 01: Educación — Thesis jury call + Academic scenario simulations */}
         <section id="education" className="scroll-mt-16 py-12 md:py-20">
-          <Wrap className="flex flex-col gap-3">
+          <ContentColumn className="flex flex-col gap-3">
             <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
               <FadeRise className="h-full">
                 <Widget label={d.eduTag} className="h-full">
-                  <Title>{c.education}</Title>
+                  <SectionTitle>{c.education}</SectionTitle>
                   <Lede>{c.educationBody}</Lede>
                   <ul className="mt-auto flex flex-col gap-2">
                     {[d.eduBullet1, d.eduBullet2, d.eduBullet3].map((item, index) => (
                       <li key={item}>
-                        <Inset className="flex items-center gap-3 p-3">
+                        <InsetPanel className="flex items-center gap-3 p-3">
                           <IconTile>0{index + 1}</IconTile>
                           <span className="text-base text-cream-bright">{item}</span>
-                        </Inset>
+                        </InsetPanel>
                       </li>
                     ))}
                   </ul>
@@ -810,10 +809,10 @@ export function PublicLanding() {
                         { title: d.acad4Title, meta: d.acad4Meta },
                       ].map((sc) => (
                         <li key={sc.title}>
-                          <Inset className="p-3">
+                          <InsetPanel className="p-3">
                             <p className="text-sm font-semibold text-cream-bright">{sc.title}</p>
                             <p className="mt-0.5 text-xs text-cream-dim">{sc.meta}</p>
-                          </Inset>
+                          </InsetPanel>
                         </li>
                       ))}
                     </ul>
@@ -826,15 +825,15 @@ export function PublicLanding() {
                 </Widget>
               </FadeRise>
             </div>
-          </Wrap>
+          </ContentColumn>
         </section>
 
         {/* 4. Section 02: Profesional — HardTalk Tech, HardTalk Latam, Intuition Trainer & Interviews */}
         <section id="professional" className="scroll-mt-16 py-12 md:py-20">
-          <Wrap className="flex flex-col gap-3">
+          <ContentColumn className="flex flex-col gap-3">
             <FadeRise className="mb-4 max-w-3xl">
               <MonoLabel>{d.proTag}</MonoLabel>
-              <Title className="mt-3">{c.professional}</Title>
+              <SectionTitle className="mt-3">{c.professional}</SectionTitle>
               <Lede className="mt-3">{c.professionalBody}</Lede>
             </FadeRise>
 
@@ -891,15 +890,15 @@ export function PublicLanding() {
                 </div>
               </Widget>
             </FadeRise>
-          </Wrap>
+          </ContentColumn>
         </section>
 
         {/* 5. How it works: three trail-dashboard tiles with amber IconTiles */}
         <section id="how-it-works" className="scroll-mt-16 py-12 md:py-20">
-          <Wrap>
+          <ContentColumn>
             <FadeRise>
               <MonoLabel>{d.howTag}</MonoLabel>
-              <Title className="mt-3 max-w-2xl">{c.how}</Title>
+              <SectionTitle className="mt-3 max-w-2xl">{c.how}</SectionTitle>
               <Lede className="mt-3 max-w-2xl">{c.howBody}</Lede>
             </FadeRise>
             <ol className="mt-8 grid gap-3 md:grid-cols-3">
@@ -911,12 +910,12 @@ export function PublicLanding() {
                 <li key={step.title} className="min-w-0">
                   <FadeRise delay={index * 0.06} className="h-full">
                     <Widget className="h-full">
-                      <Inset className="flex flex-col gap-4">
+                      <InsetPanel className="flex flex-col gap-4">
                         <IconTile>0{index + 1}</IconTile>
                         <h3 className="text-2xl font-light tracking-[-0.03em] text-cream-bright">
                           {step.title}
                         </h3>
-                      </Inset>
+                      </InsetPanel>
                       <p className="text-pretty text-base leading-relaxed text-cream-dim">
                         {step.body}
                       </p>
@@ -925,12 +924,12 @@ export function PublicLanding() {
                 </li>
               ))}
             </ol>
-          </Wrap>
+          </ContentColumn>
         </section>
 
         {/* 6. Ink claim band + Voluntary Support section */}
         <section id="support" className="scroll-mt-16 py-12 md:py-20">
-          <Wrap className="space-y-6">
+          <ContentColumn className="space-y-6">
             <FadeRise>
               <div className="grid gap-8 rounded-[1.375rem] bg-[#2E2D2A] p-6 text-[#F4F0E9] sm:p-10 md:grid-cols-2">
                 <div>
@@ -967,12 +966,12 @@ export function PublicLanding() {
             <FadeRise delay={0.08}>
               <Support />
             </FadeRise>
-          </Wrap>
+          </ContentColumn>
         </section>
 
         {/* 7. Institutions & community */}
         <section className="pb-16 pt-4 md:pb-24">
-          <Wrap className="grid gap-3 md:grid-cols-2">
+          <ContentColumn className="grid gap-3 md:grid-cols-2">
             {[
               { title: d.instTitle, body: d.instBody, to: "/instituciones", cta: d.instCta },
               { title: d.affTitle, body: d.affBody, to: "/afiliados", cta: d.affCta },
@@ -990,7 +989,7 @@ export function PublicLanding() {
                 </Widget>
               </FadeRise>
             ))}
-          </Wrap>
+          </ContentColumn>
         </section>
       </main>
 

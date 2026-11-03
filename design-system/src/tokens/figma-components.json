@@ -54,7 +54,7 @@
         "Label",
         "Tone"
       ],
-      "description": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.\n\n**Use it for:** A short fact about the current screen that the user is not changing right now: the mode of a call, a setting in force; A status happening at this moment, with tone live: the call connecting, the interviewer's turn.\n\n**Not for:** Something the user can press or toggle → Action (ghost), or a radio group. A Badge is not focusable and has no press; Marking an option as part of the paid plan → PremiumMark.\n\n**Also known as:** tag, chip, pill, status, estado, etiqueta, live indicator.\n\n`import { Badge } from \"@mockio/design-system\";`",
+      "description": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.\n\n**Use it for:** A short fact about the current screen that the user is not changing right now: the mode of a call, a setting in force; A status happening at this moment, with tone live: the call connecting, the interviewer's turn.\n\n**Not for:** Something the user can press or toggle → Action (ghost), or a radio group. A Badge is not focusable and has no press; Marking an option as part of the paid plan → PremiumMark.\n\n**Also known as:** tag, status, estado, etiqueta, live indicator.\n\n`import { Badge } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Badge/Badge.md",
       "do": [
         "Say the state in words; let the dot only add \"right now\".",

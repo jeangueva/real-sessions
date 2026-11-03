@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import { Action, FadeRise } from "@/design-system";
+import { Action, ContentColumn, FadeRise, Lede, ScreenFrame, SectionTitle } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
-import { Lede, Screen, Title, Wrap } from "./marketing";
 import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { ApiError, sendB2bLead } from "@/lib/api";
@@ -233,7 +232,7 @@ const PLATFORMS = ["Moodle", "Canvas", "Blackboard Learn", "D2L Brightspace", "S
 
 function CourseScreen({ c }: { c: Record<Key, string> }) {
   return (
-    <Screen>
+    <ScreenFrame>
       <div className="border-b border-[color:var(--line)] bg-surface-lift px-5 py-3">
         <p className="text-sm font-semibold text-cream-bright">{c.f1Course}</p>
       </div>
@@ -253,7 +252,7 @@ function CourseScreen({ c }: { c: Record<Key, string> }) {
           </li>
         </ul>
       </div>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -264,7 +263,7 @@ function RubricScreen({ c }: { c: Record<Key, string> }) {
     { label: c.f2c3, value: 4, max: 4 },
   ];
   return (
-    <Screen className="p-5 sm:p-6">
+    <ScreenFrame className="p-5 sm:p-6">
       <p className="text-sm font-semibold text-cream-bright">{c.f2Rubric}</p>
       <ul className="mt-4 divide-y divide-[color:var(--line)]">
         {rows.map((row) => (
@@ -278,7 +277,7 @@ function RubricScreen({ c }: { c: Record<Key, string> }) {
           </li>
         ))}
       </ul>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -290,7 +289,7 @@ function CohortScreen({ c }: { c: Record<Key, string> }) {
     ["Jorge R.", 0, "—", null],
   ] as const;
   return (
-    <Screen>
+    <ScreenFrame>
       <p className="border-b border-[color:var(--line)] px-5 py-3 text-sm font-semibold text-cream-bright">{c.f3Head}</p>
       <table className="w-full text-left text-sm">
         <thead>
@@ -318,13 +317,13 @@ function CohortScreen({ c }: { c: Record<Key, string> }) {
           ))}
         </tbody>
       </table>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
 function GradebookScreen({ c }: { c: Record<Key, string> }) {
   return (
-    <Screen>
+    <ScreenFrame>
       <p className="border-b border-[color:var(--line)] bg-surface-lift px-5 py-3 text-sm font-semibold text-cream-bright">{c.f4Book}</p>
       <table className="w-full text-left text-sm">
         <thead>
@@ -346,7 +345,7 @@ function GradebookScreen({ c }: { c: Record<Key, string> }) {
           ))}
         </tbody>
       </table>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -498,7 +497,7 @@ export function InstitutionsPage() {
       />
 
       <section className="pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
-        <Wrap className="py-16 md:py-28">
+        <ContentColumn className="py-16 md:py-28">
           <FadeRise className="max-w-4xl">
             <h1 className="text-balance text-headline font-semibold text-cream-bright">
               {c.title}
@@ -520,11 +519,11 @@ export function InstitutionsPage() {
               </a>
             </div>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <section className="border-y border-[color:var(--line)]">
-        <Wrap className="flex flex-col gap-3 py-8 md:flex-row md:items-center md:gap-10">
+        <ContentColumn className="flex flex-col gap-3 py-8 md:flex-row md:items-center md:gap-10">
           <p className="shrink-0 text-sm text-cream-dim">{c.platforms}</p>
           <ul className="flex flex-wrap gap-x-7 gap-y-2">
             {PLATFORMS.map((name) => (
@@ -533,20 +532,20 @@ export function InstitutionsPage() {
               </li>
             ))}
           </ul>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <section id="how" className="scroll-mt-16">
-        <Wrap className="divide-y divide-[color:var(--line)]">
+        <ContentColumn className="divide-y divide-[color:var(--line)]">
           <Feature title={c.f1Title} body={c.f1Body} screen={<CourseScreen c={c} />} />
           <Feature title={c.f2Title} body={c.f2Body} screen={<RubricScreen c={c} />} flip />
           <Feature title={c.f3Title} body={c.f3Body} screen={<CohortScreen c={c} />} />
           <Feature title={c.f4Title} body={c.f4Body} screen={<GradebookScreen c={c} />} flip />
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <section className="border-t border-[color:var(--line)] bg-surface-deep py-16 md:py-20">
-        <Wrap className="grid gap-10 md:grid-cols-2">
+        <ContentColumn className="grid gap-10 md:grid-cols-2">
           <FadeRise>
             <h2 className="text-2xl font-semibold tracking-[-0.02em] text-cream-bright sm:text-3xl">{c.noLmsTitle}</h2>
             <p className="mt-3 max-w-md text-pretty text-lg text-cream-dim">{c.noLmsBody}</p>
@@ -555,11 +554,11 @@ export function InstitutionsPage() {
             <h2 className="text-2xl font-semibold tracking-[-0.02em] text-cream-bright sm:text-3xl">{c.pricingTitle}</h2>
             <p className="mt-3 max-w-md text-pretty text-lg text-cream-dim">{c.pricingBody}</p>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <section className="bg-cream-bright text-surface-base">
-        <Wrap className="grid gap-10 py-20 md:grid-cols-2 md:py-24">
+        <ContentColumn className="grid gap-10 py-20 md:grid-cols-2 md:py-24">
           <FadeRise>
             <h2 className="text-balance text-[clamp(2rem,4.5vw,3.5rem)] font-semibold leading-[1.04] tracking-[-0.04em]">{c.privacyTitle}</h2>
           </FadeRise>
@@ -573,13 +572,13 @@ export function InstitutionsPage() {
               ))}
             </ul>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <section id="lti" className="scroll-mt-16 py-20 md:py-28">
-        <Wrap className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
+        <ContentColumn className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
           <FadeRise>
-            <Title>{c.techTitle}</Title>
+            <SectionTitle>{c.techTitle}</SectionTitle>
             <Lede className="mt-5 max-w-md">{c.techBody}</Lede>
           </FadeRise>
           <FadeRise delay={0.08}>
@@ -598,19 +597,19 @@ export function InstitutionsPage() {
             </dl>
             <p className="mt-4 text-sm text-cream-dim">{c.techServices}</p>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <section id="contacto" className="scroll-mt-16 bg-surface-deep py-20 md:py-28">
-        <Wrap className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
+        <ContentColumn className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
           <FadeRise>
-            <Title>{c.formTitle}</Title>
+            <SectionTitle>{c.formTitle}</SectionTitle>
             <Lede className="mt-5 max-w-md">{c.formBody}</Lede>
           </FadeRise>
           <FadeRise delay={0.08}>
             <LeadForm c={c} />
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <SiteFooter />

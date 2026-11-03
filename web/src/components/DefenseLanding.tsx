@@ -4,14 +4,13 @@ import BlurText from "@/components/bits/BlurText";
 import Magnet from "@/components/bits/Magnet";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
-import { Action, AnimatedCounter, EASE_OUT, FadeRise, HeroVideo, MonoLabel } from "@/design-system";
+import { Action, AnimatedCounter, Chip, ContentColumn, EASE_OUT, FadeRise, HeroVideo, IconTile, InsetPanel, Lede, MonoLabel, ScreenFrame, SectionTitle, Widget } from "@/design-system";
 import { LandingNav } from "./LandingNav";
 import { SiteFooter } from "./SiteFooter";
 import { useLocale } from "@/hooks/useLocale";
 import { scrollToSection } from "@/lib/scroll-to-section";
 import { savePendingThesis } from "@/lib/pending-thesis";
 import { SCENARIO_OPTIONS, type DefenseScenario } from "@/lib/defense-scenarios";
-import { Chip, IconTile, Inset, Lede, Screen, Title, Widget, Wrap } from "./marketing";
 
 /** The same footage as the interview landing; `VITE_HERO_VIDEO` overrides both. */
 const HERO_VIDEO = import.meta.env.VITE_HERO_VIDEO ?? "/hero-2.mp4";
@@ -511,7 +510,7 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
   const current = turns[active]!;
 
   return (
-    <Screen dark>
+    <ScreenFrame dark>
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-xs text-white/60">
         <span className="flex items-center gap-2">
           <span className="h-2 w-2 animate-live rounded-full bg-step" />
@@ -562,7 +561,7 @@ function CallScreen({ c }: { c: Record<Key, string> }) {
           <p className="text-sm text-white/80">{current.answer}</p>
         </div>
       </div>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -576,7 +575,7 @@ function ActaScreen({ c }: { c: Record<Key, string> }) {
     { role: c.juror3, score: 14 },
   ];
   return (
-    <Screen className="w-[17rem] p-5">
+    <ScreenFrame className="w-[17rem] p-5">
       <div ref={ref}>
         <p className="text-xs font-semibold text-cream-dim">{c.mockActa}</p>
         <p className="mt-1 flex items-baseline gap-1.5">
@@ -610,7 +609,7 @@ function ActaScreen({ c }: { c: Record<Key, string> }) {
           ))}
         </div>
       </div>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -621,7 +620,7 @@ function DiagnosisScreen({ c }: { c: Record<Key, string> }) {
     { text: c.risk3, page: 31, high: false },
   ];
   return (
-    <Screen className="p-5 sm:p-6">
+    <ScreenFrame className="p-5 sm:p-6">
       <p className="text-sm font-semibold text-cream-bright">{c.diagMock}</p>
       <ul className="mt-4 divide-y divide-[color:var(--line)]">
         {risks.map((risk) => (
@@ -641,7 +640,7 @@ function DiagnosisScreen({ c }: { c: Record<Key, string> }) {
         ))}
       </ul>
       <p className="mt-3 rounded-xl bg-surface-lift px-3 py-2.5 text-xs text-cream-dim">{c.matrixLine}</p>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -652,7 +651,7 @@ function JuryScreen({ c }: { c: Record<Key, string> }) {
     { role: c.juror3, name: c.jury3, field: c.jury3Field, note: null },
   ];
   return (
-    <Screen className="p-5 sm:p-6">
+    <ScreenFrame className="p-5 sm:p-6">
       <p className="text-sm font-semibold text-cream-bright">{c.juryMockTitle}</p>
       <ul className="mt-4 flex flex-col gap-2.5">
         {seats.map((seat) => (
@@ -665,7 +664,7 @@ function JuryScreen({ c }: { c: Record<Key, string> }) {
           </li>
         ))}
       </ul>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -680,7 +679,7 @@ function PlanScreen({ c, locale }: { c: Record<Key, string>; locale: string }) {
     { label: day(3), text: c.plan4, done: false },
   ];
   return (
-    <Screen className="p-5 sm:p-6">
+    <ScreenFrame className="p-5 sm:p-6">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-cream-bright">{c.planTitle.replace(/\.$/, "")}</p>
         <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">{c.planMock}</span>
@@ -703,7 +702,7 @@ function PlanScreen({ c, locale }: { c: Record<Key, string>; locale: string }) {
           </li>
         ))}
       </ol>
-    </Screen>
+    </ScreenFrame>
   );
 }
 
@@ -821,7 +820,7 @@ export function DefenseLanding() {
       <section className="on-media relative isolate flex min-h-[min(100svh,56rem)] flex-col overflow-hidden bg-black pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
         <HeroVideo bare focus="object-[50%_20%] md:object-[65%_15%]" src={HERO_VIDEO} poster={HERO_POSTER} />
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-black/70 md:bg-gradient-to-r md:from-black/85 md:via-black/40 md:to-transparent" />
-        <Wrap className="relative z-10 flex flex-1 flex-col justify-between gap-12 pb-10 pt-[clamp(2.5rem,10svh,7rem)]">
+        <ContentColumn className="relative z-10 flex flex-1 flex-col justify-between gap-12 pb-10 pt-[clamp(2.5rem,10svh,7rem)]">
           <FadeRise className="max-w-2xl">
             <h1 className="text-balance text-[clamp(2.75rem,7vw,5.75rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-white">
               {/* Word by word, out of a blur, once: the headline is the one
@@ -853,12 +852,12 @@ export function DefenseLanding() {
             <p className="mt-4 text-sm text-white/60">{c.ctaHint}</p>
             <p className="mt-1 text-sm text-white/60">{c.heroNote}</p>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 2. Whose format: the countries the panel follows, as peach chips. */}
       <section className="py-8">
-        <Wrap className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+        <ContentColumn className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
           <MonoLabel className="shrink-0">{c.countries}</MonoLabel>
           <ul className="flex flex-wrap gap-2">
             {countries.map((name) => (
@@ -867,24 +866,24 @@ export function DefenseLanding() {
               </li>
             ))}
           </ul>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 3. The product itself, as a dashboard: what it is beside the call
           and the record. Widgets on the page, the way the app draws them. */}
       <section id="panel" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap className="grid items-start gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <ContentColumn className="grid items-start gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <FadeRise className="h-full">
             <Widget label={c.lblProduct} className="h-full">
-              <Title>{c.prodTitle}</Title>
+              <SectionTitle>{c.prodTitle}</SectionTitle>
               <Lede>{c.prodBody}</Lede>
               <ul className="mt-auto flex flex-col gap-2">
                 {[c.prod1, c.prod2, c.prod3].map((item, index) => (
                   <li key={item}>
-                    <Inset className="flex items-center gap-3 p-3">
+                    <InsetPanel className="flex items-center gap-3 p-3">
                       <IconTile>0{index + 1}</IconTile>
                       <span className="text-base text-cream-bright">{item}</span>
-                    </Inset>
+                    </InsetPanel>
                   </li>
                 ))}
               </ul>
@@ -900,15 +899,15 @@ export function DefenseLanding() {
               </div>
             </Widget>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 4. How it works: three trail-info tiles, a number in an amber square. */}
       <section id="how" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap>
+        <ContentColumn>
           <FadeRise>
             <MonoLabel>{c.lblHow}</MonoLabel>
-            <Title className="mt-3 max-w-2xl">{c.howTitle}</Title>
+            <SectionTitle className="mt-3 max-w-2xl">{c.howTitle}</SectionTitle>
           </FadeRise>
           <ol className="mt-8 grid gap-3 md:grid-cols-3">
             {[
@@ -919,31 +918,31 @@ export function DefenseLanding() {
               <li key={step.title} className="min-w-0">
                 <FadeRise delay={index * 0.06} className="h-full">
                   <Widget className="h-full">
-                    <Inset className="flex flex-col gap-4">
+                    <InsetPanel className="flex flex-col gap-4">
                       <IconTile>0{index + 1}</IconTile>
                       <h3 className="text-2xl font-light tracking-[-0.03em] text-cream-bright">{step.title}</h3>
-                    </Inset>
+                    </InsetPanel>
                     <p className="text-pretty text-base leading-relaxed text-cream-dim">{step.body}</p>
                   </Widget>
                 </FadeRise>
               </li>
             ))}
           </ol>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 5. Three features, each a widget with its screen inside. */}
       <section className="py-4 md:py-8">
-        <Wrap className="flex flex-col gap-3">
+        <ContentColumn className="flex flex-col gap-3">
           <Feature label={c.lblDiag} title={c.diagTitle} body={c.diagBody} screen={<DiagnosisScreen c={c} />} />
           <Feature label={c.lblJury} title={c.juryTitle} body={c.juryBody} screen={<JuryScreen c={c} />} flip />
           <Feature label={c.lblPlan} title={c.planTitle} body={c.planBody} screen={<PlanScreen c={c} locale={locale} />} />
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 6. The rest: four small widgets. */}
       <section className="py-12 md:py-20">
-        <Wrap>
+        <ContentColumn>
           <FadeRise>
             <MonoLabel>{c.lblMore}</MonoLabel>
             <h2 className="mt-3 text-3xl font-light tracking-[-0.04em] text-cream-bright sm:text-4xl">{c.moreTitle}</h2>
@@ -963,15 +962,15 @@ export function DefenseLanding() {
               </FadeRise>
             ))}
           </dl>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 7. Degrees and levels: rows in an inset, the levels as a tab bar. */}
       <section id="scenarios" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <ContentColumn className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <FadeRise className="h-full">
             <Widget label={c.lblScenarios} className="h-full">
-              <Title>{c.scenTitle}</Title>
+              <SectionTitle>{c.scenTitle}</SectionTitle>
               <Lede>{c.scenSub}</Lede>
             </Widget>
           </FadeRise>
@@ -980,14 +979,14 @@ export function DefenseLanding() {
               <ul className="flex flex-col gap-2">
                 {(Object.keys(SCENARIO_OPTIONS) as DefenseScenario[]).map((scenario) => (
                   <li key={scenario}>
-                    <Inset className="flex items-baseline justify-between gap-4 px-4 py-3">
+                    <InsetPanel className="flex items-baseline justify-between gap-4 px-4 py-3">
                       <span className="text-lg font-medium tracking-[-0.01em] text-cream-bright">{c[`sc_${scenario}` as Key]}</span>
                       <span className="shrink-0 font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">
                         {c.scenMeta
                           .replace("{minutes}", String(SCENARIO_OPTIONS[scenario].exposition))
                           .replace("{questions}", String(SCENARIO_OPTIONS[scenario].questions))}
                       </span>
-                    </Inset>
+                    </InsetPanel>
                   </li>
                 ))}
               </ul>
@@ -1015,12 +1014,12 @@ export function DefenseLanding() {
               </div>
             </Widget>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 8. The one claim that has to land: an ink widget with amber checks. */}
       <section className="py-12 md:py-20">
-        <Wrap>
+        <ContentColumn>
           <FadeRise>
             <div className="grid gap-8 rounded-[1.375rem] bg-[#2E2D2A] p-6 text-[#F4F0E9] sm:p-10 md:grid-cols-2">
               <div>
@@ -1045,15 +1044,15 @@ export function DefenseLanding() {
               </ul>
             </div>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 9. Pricing: three widgets, the middle one in amber. */}
       <section id="pricing" className="scroll-mt-16 py-12 md:py-20">
-        <Wrap>
+        <ContentColumn>
           <FadeRise className="max-w-2xl">
             <MonoLabel>{c.lblPricing}</MonoLabel>
-            <Title className="mt-3">{c.pricingTitle}</Title>
+            <SectionTitle className="mt-3">{c.pricingTitle}</SectionTitle>
             <Lede className="mt-4">{c.pricingSub}</Lede>
           </FadeRise>
           <div className="mt-8 grid gap-3 lg:grid-cols-3 [&>*]:min-w-0">
@@ -1068,12 +1067,12 @@ export function DefenseLanding() {
                     <MonoLabel>{plan.name}</MonoLabel>
                     {plan.featured && <Chip className="!bg-[#FBD06A]">{c.packBadge}</Chip>}
                   </div>
-                  <Inset>
+                  <InsetPanel>
                     <p className="flex items-baseline gap-2">
                       <span className="text-5xl font-light tracking-[-0.045em] tabular-nums text-cream-bright">{plan.price}</span>
                       <span className="font-mono text-xs uppercase tracking-[0.06em] text-cream-dim">{plan.unit}</span>
                     </p>
-                  </Inset>
+                  </InsetPanel>
                   <ul className="flex flex-1 flex-col gap-3">
                     {plan.items.map((item) => (
                       <li key={item} className="flex gap-3 text-base text-cream">
@@ -1096,12 +1095,12 @@ export function DefenseLanding() {
             <p>{c.giftLine}</p>
             <p className="max-w-3xl text-xs">{c.legal}</p>
           </div>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 10. The people around the student: three widgets. */}
       <section className="py-12 md:py-16">
-        <Wrap className="grid gap-3 md:grid-cols-3">
+        <ContentColumn className="grid gap-3 md:grid-cols-3">
           {[
             { title: c.advisorTitle, body: c.advisorBody, to: "/afiliados", cta: c.advisorCta },
             { title: c.institutionTitle, body: c.institutionBody, to: "/instituciones", cta: c.institutionCta },
@@ -1117,12 +1116,12 @@ export function DefenseLanding() {
               </Widget>
             </FadeRise>
           ))}
-        </Wrap>
+        </ContentColumn>
       </section>
 
       {/* 11. The close: one amber card with the way in. */}
       <section className="pb-16 pt-6 md:pb-24">
-        <Wrap>
+        <ContentColumn>
           <FadeRise>
             <div className="flex flex-col items-start gap-8 rounded-[1.375rem] bg-accent p-6 text-[#2E2D2A] sm:p-10 md:flex-row md:items-end md:justify-between">
               <div className="max-w-3xl">
@@ -1138,7 +1137,7 @@ export function DefenseLanding() {
               </Magnet>
             </div>
           </FadeRise>
-        </Wrap>
+        </ContentColumn>
       </section>
 
       <SiteFooter />

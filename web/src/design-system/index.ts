@@ -28,6 +28,16 @@ export {
   Notice,
 } from "./primitives";
 
+export {
+  ContentColumn,
+  SectionTitle,
+  Lede,
+  ScreenFrame,
+  Widget,
+  InsetPanel,
+  IconTile,
+  Chip,
+} from "./marketing";
 export { Wordmark } from "./wordmark";
 export { Mark } from "./mark";
 export { Avatar } from "./avatar";

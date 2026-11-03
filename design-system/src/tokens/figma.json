@@ -266,6 +266,27 @@
       "dark": "#282446FF"
     },
     {
+      "name": "chip/default",
+      "css": "--chip",
+      "tailwind": "bg-chip",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "light": "#F8E8CDFF",
+      "dark": "#F8E8CDFF"
+    },
+    {
+      "name": "text/on-chip",
+      "css": "--chip-ink",
+      "tailwind": "text-chip-ink",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "light": "#2E2D2AFF",
+      "dark": "#2E2D2AFF"
+    },
+    {
       "name": "border/subtle",
       "css": "--line",
       "tailwind": "border-line",
@@ -787,6 +808,46 @@
       "name": "InsetFrame",
       "node": null,
       "reason": "Page rhythm and gutters, not a drawable surface: it is the window the public site's page sits in."
+    },
+    {
+      "name": "ContentColumn",
+      "node": null,
+      "reason": "Page rhythm and gutters, not a drawable surface: it is the column the public site's bands sit in."
+    },
+    {
+      "name": "SectionTitle",
+      "node": null,
+      "reason": "Not drawn in the library yet: the title is a text style with two sizes, and Figma would draw it as text."
+    },
+    {
+      "name": "Lede",
+      "node": null,
+      "reason": "Not drawn in the library yet: the lede is a paragraph of text, and Figma would draw it as a text style."
+    },
+    {
+      "name": "ScreenFrame",
+      "node": null,
+      "reason": "Not drawn in the library yet: the frame holds the live interface, and Figma would draw a picture of it."
+    },
+    {
+      "name": "Widget",
+      "node": null,
+      "reason": "Not drawn in the library yet: the widget is the public site's card, with a label above it and a hairline around it."
+    },
+    {
+      "name": "InsetPanel",
+      "node": null,
+      "reason": "Not drawn in the library yet: the inset is a step of a card's surface, and it only makes sense inside one."
+    },
+    {
+      "name": "IconTile",
+      "node": null,
+      "reason": "Not drawn in the library yet: the tile is a small square of the accent wash with a figure in it."
+    },
+    {
+      "name": "Chip",
+      "node": null,
+      "reason": "Not drawn in the library yet: the chip is the peach wash with the instrument voice in it."
     }
   ],
   "effectStyles": [

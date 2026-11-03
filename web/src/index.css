@@ -84,6 +84,11 @@
     --step-soft: 56 38 8;
     --premium: 160 150 255;
     --premium-soft: 40 36 70;
+
+    /* The chip: a fact, never a control. A warm wash with the dark ink on it,
+       the same in both themes — a fact reads the same in either. */
+    --chip: 248 232 205;
+    --chip-ink: 46 45 42;
   }
 
   /**
@@ -130,6 +135,11 @@
     /* #A16A00 clears 4.5:1 on white; the crown sits on its own soft wash. */
     --premium: 124 108 242;
     --premium-soft: 234 231 253;
+
+    /* The chip: a fact, never a control. A warm wash with the dark ink on it,
+       the same in both themes — a fact reads the same in either. */
+    --chip: 248 232 205;
+    --chip-ink: 46 45 42;
   }
 
   html {
