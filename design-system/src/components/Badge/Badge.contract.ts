@@ -78,11 +78,11 @@ export const BadgeContract = defineContract({
       "A status happening at this moment, with tone live: the call connecting, the interviewer's turn.",
     ],
     whenNot: [
-      { situation: "Something the user can press or toggle", instead: "Action (ghost) or Segmented. A Badge is not focusable and has no press." },
+      { situation: "Something the user can press or toggle", instead: "Action (ghost), or a radio group. A Badge is not focusable and has no press." },
       { situation: "Marking an option as part of the paid plan", instead: "PremiumMark." },
       { situation: "A message about what just happened", instead: "Notice." },
-      { situation: "A score or how far along something is", instead: "Meter or ScoreRing." },
-      { situation: "Something loading, with nothing to say yet", instead: "DotMatrix, or a sentence that names what is loading." },
+      { situation: "A score or how far along something is", instead: "Meter, which reports a proportion." },
+      { situation: "Something loading, with nothing to say yet", instead: "a sentence that names what is loading." },
     ],
     do: [
       "Say the state in words; let the dot only add \"right now\".",
@@ -129,6 +129,8 @@ export const BadgeContract = defineContract({
       "The live dot is shrink-0, so it keeps its size when the label wraps.",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a radio group, a Meter, a sentence that names what is loading — because the system has no component for them."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
 });

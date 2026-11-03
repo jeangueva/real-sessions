@@ -101,15 +101,15 @@ export const FieldContract = defineContract({
     whenNot: [
       {
         situation: "A control that needs no name",
-        instead: "The bare control, with its own placeholder or aria-label.",
+        instead: "the bare control, with its own placeholder or aria-label.",
       },
       {
         situation: "A choice between two or three options",
-        instead: "Segmented, or a radio group with its own labels.",
+        instead: "a radio group with its own labels.",
       },
       {
         situation: "A question the person has to answer in their own words",
-        instead: "A Notice above the form, not a hint under one field.",
+        instead: "a Notice above the form, not a hint under one field.",
       },
     ],
     do: [
@@ -152,8 +152,9 @@ export const FieldContract = defineContract({
     exportName: "Field",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the bare control, a radio group — because the system has no component for them."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],
 });

@@ -38,13 +38,12 @@ before the words. The words always carry the meaning; the dot only adds
 
 ## When not to use it
 
-- **Something to press or toggle** → `Action` (ghost) or `Segmented`. A badge
+- **Something to press or toggle** → `Action` (ghost), or a radio group. A badge
   has no focus and no press.
 - **Marking a paid option** → `PremiumMark`.
 - **A message about what just happened** → `Notice`.
-- **A score or a proportion** → `Meter` or `ScoreRing`.
-- **Loading with nothing to say yet** → `DotMatrix`, or a sentence that names
-  what is loading.
+- **A score or a proportion** → `Meter`, which reports a proportion.
+- **Loading with nothing to say yet** → a sentence that names what is loading.
 
 ## Interaction
 

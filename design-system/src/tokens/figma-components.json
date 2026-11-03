@@ -21,7 +21,7 @@
         "Tone",
         "State"
       ],
-      "description": "The button. One primary per view, in the accent; everything else steps down in tone.\n\n**Use it for:** Any action the user takes on purpose: start, save, send, confirm, open a flow; The single most important next step of a screen (tone solid, often withArrow).\n\n**Not for:** Navigating to another page as plain navigation → A link (<a> / router Link) styled as a link; wrap an Action in a Link only when the destination is a step forward; Choosing one option among several → Segmented (2–5 options) or a radio group.\n\n**Also known as:** button, botón, CTA, call to action, primary button, secondary button, ghost button, link button.\n\n`import { Action } from \"@mockio/design-system\";`",
+      "description": "The button. One primary per view, in the accent; everything else steps down in tone.\n\n**Use it for:** Any action the user takes on purpose: start, save, send, confirm, open a flow; The single most important next step of a screen (tone solid, often withArrow).\n\n**Not for:** Navigating to another page as plain navigation → a link styled as a link (<a>), with the Action wrapped inside it only when the destination is a step forward; Choosing one option among several → a radio group with 2–5 options, each with its own label.\n\n**Also known as:** button, botón, CTA, call to action, primary button, secondary button, ghost button, link button.\n\n`import { Action } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Action/Action.md",
       "preferred": {
         "Icon": [
@@ -54,7 +54,7 @@
         "Label",
         "Tone"
       ],
-      "description": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.\n\n**Use it for:** A short fact about the current screen that the user is not changing right now: the mode of a call, a setting in force; A status happening at this moment, with tone live: the call connecting, the interviewer's turn.\n\n**Not for:** Something the user can press or toggle → Action (ghost) or Segmented. A Badge is not focusable and has no press; Marking an option as part of the paid plan → PremiumMark.\n\n**Also known as:** tag, chip, pill, status, estado, etiqueta, live indicator.\n\n`import { Badge } from \"@mockio/design-system\";`",
+      "description": "A small pill with a status in words — the mode of a call, a setting in force — and, when live, a breathing dot.\n\n**Use it for:** A short fact about the current screen that the user is not changing right now: the mode of a call, a setting in force; A status happening at this moment, with tone live: the call connecting, the interviewer's turn.\n\n**Not for:** Something the user can press or toggle → Action (ghost), or a radio group. A Badge is not focusable and has no press; Marking an option as part of the paid plan → PremiumMark.\n\n**Also known as:** tag, chip, pill, status, estado, etiqueta, live indicator.\n\n`import { Badge } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Badge/Badge.md",
       "do": [
         "Say the state in words; let the dot only add \"right now\".",
@@ -73,7 +73,7 @@
       "properties": [
         "Label"
       ],
-      "description": "One row of a checklist of what a plan or an offer includes: a check in the accent, then the words.\n\n**Use it for:** Listing what a plan or an offer includes: the pricing cards, the early-access offer; A short list of things the reader gets, where every row is a yes.\n\n**Not for:** Something the user ticks or unticks → Checkbox; Steps to follow in order → An ordered list (<ol>) with numbers; a check says done or included, not next.\n\n**Also known as:** checklist item, feature list item, benefit row, bullet, ítem con check, lista de beneficios.\n\n`import { CheckItem } from \"@mockio/design-system\";`",
+      "description": "One row of a checklist of what a plan or an offer includes: a check in the accent, then the words.\n\n**Use it for:** Listing what a plan or an offer includes: the pricing cards, the early-access offer; A short list of things the reader gets, where every row is a yes.\n\n**Not for:** Something the user ticks or unticks → a native checkbox (<input type=\"checkbox\">); Steps to follow in order → an ordered list (<ol>) with numbers; a check says done or included, not next.\n\n**Also known as:** checklist item, feature list item, benefit row, bullet, ítem con check, lista de beneficios.\n\n`import { CheckItem } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/CheckItem/CheckItem.md",
       "do": [
         "Put it inside a <ul> with a label before it, such as \"Qué incluye\".",
@@ -92,7 +92,7 @@
       "properties": [
         "Label"
       ],
-      "description": "The short line in the accent above a heading or a value: it says where the reader is, the heading says what it means.\n\n**Use it for:** Above a landing section's heading, to place it: \"Precios\", \"Acceso anticipado\"; Above a value in a platform card: \"Nivel\" over the level, \"Acta simulada\" over the grade.\n\n**Not for:** The name of a section or a page → A heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it; A status or a mode on an item → Badge.\n\n**Also known as:** kicker, overline, pre-title, section label, antetítulo.\n\n`import { Eyebrow } from \"@mockio/design-system\";`",
+      "description": "The short line in the accent above a heading or a value: it says where the reader is, the heading says what it means.\n\n**Use it for:** Above a landing section's heading, to place it: \"Precios\", \"Acceso anticipado\"; Above a value in a platform card: \"Nivel\" over the level, \"Acta simulada\" over the grade.\n\n**Not for:** The name of a section or a page → a heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it; A status or a mode on an item → Badge.\n\n**Also known as:** kicker, overline, pre-title, section label, antetítulo.\n\n`import { Eyebrow } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Eyebrow/Eyebrow.md",
       "do": [
         "Pair it with a heading that says something.",
@@ -112,7 +112,7 @@
         "Content",
         "Variant"
       ],
-      "description": "The surface every card, block and sheet sits on: a rounded fill with the card shadow, or glass over imagery. No padding, no states.\n\n**Use it for:** Any block of content that belongs together on a page: a step, a form section, an empty state, a wait, a tier; A grid of equal items: give them all variant=\"card\" and h-full so the row lines up.\n\n**Not for:** A card the person presses as a whole (a session row, a nav tile) → A link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift), as RecentSessions does. Panel has no hover, focus or pressed state; A group inside a panel → An inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius.\n\n**Also known as:** card, tarjeta, surface, container, box, sheet, tile.\n\n`import { Panel } from \"@mockio/design-system\";`",
+      "description": "The surface every card, block and sheet sits on: a rounded fill with the card shadow, or glass over imagery. No padding, no states.\n\n**Use it for:** Any block of content that belongs together on a page: a step, a form section, an empty state, a wait, a tier; A grid of equal items: give them all variant=\"card\" and h-full so the row lines up.\n\n**Not for:** A card the person presses as a whole (a session row, a nav tile) → a link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift). A Panel has no hover, focus or pressed state; A group inside a panel → an inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius.\n\n**Also known as:** card, tarjeta, surface, container, box, sheet, tile.\n\n`import { Panel } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Panel/Panel.md",
       "preferred": {
         "Content": [
@@ -167,7 +167,7 @@
         "Size",
         "Compact"
       ],
-      "description": "The title block of every app screen: the page's only h1, one line of meta and the screen's actions, on the same container as PageBody.\n\n**Use it for:** At the top of every screen in the signed-in app, once, directly above its PageBody; compact for a screen whose content needs the height on a phone: the live call.\n\n**Not for:** A marketing page's headline → The hero's own h1, then Sections with h2; A heading inside the screen → An h2 in a Panel.\n\n**Also known as:** page title, screen header, title bar, h1, encabezado de página.\n\n`import { PageHeader } from \"@mockio/design-system\";`",
+      "description": "The title block of every app screen: the page's only h1, one line of meta and the screen's actions, on the same container as PageBody.\n\n**Use it for:** At the top of every screen in the signed-in app, once, directly above its PageBody; compact for a screen whose content needs the height on a phone: the live call.\n\n**Not for:** A marketing page's headline → the hero's own h1, then Sections with h2; A heading inside the screen → an h2 in a Panel.\n\n**Also known as:** page title, screen header, title bar, h1, encabezado de página.\n\n`import { PageHeader } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/PageHeader/PageHeader.md",
       "do": [
         "Pass the same width to PageHeader and PageBody.",
@@ -186,7 +186,7 @@
       "properties": [
         "Level"
       ],
-      "description": "Mocki, the parrot of the interview product, in one of six illustrated growth stages — from egg to crowned.\n\n**Use it for:** The interview product's gamified layer: progress, a level-up, the habit section of the landing; A first-run moment in the interview space, where a face lowers the stakes (the welcome checklist).\n\n**Not for:** Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan → No character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states; The brand logo, in a header, a favicon or a footer → Mark (the reduced isologo) or Wordmark (the lockup with the name).\n\n**Also known as:** Mocki, avatar, character, mascota, loro, parrot, level avatar.\n\n`import { Mascot } from \"@mockio/design-system\";`",
+      "description": "Mocki, the parrot of the interview product, in one of six illustrated growth stages — from egg to crowned.\n\n**Use it for:** The interview product's gamified layer: progress, a level-up, the habit section of the landing; A first-run moment in the interview space, where a face lowers the stakes (the welcome checklist).\n\n**Not for:** Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan → no character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states; The brand logo, in a header, a favicon or a footer → Mark (the reduced isologo) or Wordmark (the lockup with the name).\n\n**Also known as:** Mocki, avatar, character, mascota, loro, parrot, level avatar.\n\n`import { Mascot } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Mascot/Mascot.md",
       "do": [
         "Pass decorative when a heading or a message beside it already says what is happening.",
@@ -222,7 +222,7 @@
       "properties": [
         "Mark"
       ],
-      "description": "The brand lockup: the Mark and the lowercase name \"mockio\", sized together by font-size so the logo never drifts between places.\n\n**Use it for:** Where the brand is read, not only recognised: the landing nav, the site footer, the sign-in and unsubscribe pages; Beside the Mark in the app's top bar on wide screens, with mark={false}.\n\n**Not for:** A square place or a tight space where the name will not fit (phone top bar, icon tile) → Mark alone, inside a link named \"Mockio\"; The brand inside a sentence → Plain text \"Mockio\", capitalised, in the sentence's own font.\n\n**Also known as:** logo, lockup, brand, logotype, marca, logotipo con nombre.\n\n`import { Wordmark } from \"@mockio/design-system\";`",
+      "description": "The brand lockup: the Mark and the lowercase name \"mockio\", sized together by font-size so the logo never drifts between places.\n\n**Use it for:** Where the brand is read, not only recognised: the landing nav, the site footer, the sign-in and unsubscribe pages; Beside the Mark in the app's top bar on wide screens, with mark={false}.\n\n**Not for:** A square place or a tight space where the name will not fit (phone top bar, icon tile) → Mark alone, inside a link named \"Mockio\"; The brand inside a sentence → plain text \"Mockio\", capitalised, in the sentence's own font.\n\n**Also known as:** logo, lockup, brand, logotype, marca, logotipo con nombre.\n\n`import { Wordmark } from \"@mockio/design-system\";`",
       "docUrl": "https://github.com/jeangueva/real-sessions/blob/main/design-system/src/components/Wordmark/Wordmark.md",
       "do": [
         "Size it with a text-* class and let the mark follow.",

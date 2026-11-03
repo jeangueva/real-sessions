@@ -51,7 +51,8 @@ only shows on the dark theme, where `raised` is a step darker.
 - **A group inside a panel** → an inset well,
   `rounded-2xl bg-surface-lift p-4`. Never a Panel in a Panel.
 - **A one-line message about the screen's state** → `Notice`.
-- **A card that opens and closes** → `Disclosure`.
+- **A card that opens and closes** → a `<details>` element with the card
+  surface.
 - **Page gutters and width** → `PageBody` in the app, `Section` on a
   marketing page.
 
@@ -71,8 +72,7 @@ clips anything past the rounded corner, including a focus ring's 2px offset.
 - **One primary per panel** — at most one solid `Action`.
 - **Selection** — mark the recommended item of a set with
   `ring-2 ring-accent`, not a glow or a second colour.
-- **Entrance** — a panel enters with the block around it (`FadeRise` on the
-  caller), never on its own.
+- **Entrance** — a panel enters with the block around it, never on its own.
 
 ## Writing
 

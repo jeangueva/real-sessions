@@ -106,9 +106,9 @@ export const PageHeaderContract = defineContract({
       "dense for a workspace screen that is a list rather than a moment: the thesis workspace.",
     ],
     whenNot: [
-      { situation: "A marketing page's headline", instead: "The hero's own h1, then Sections with h2." },
-      { situation: "A heading inside the screen", instead: "An h2 in a Panel." },
-      { situation: "Instructions or a long description of the screen", instead: "A Panel in the PageBody; meta is cut to one line." },
+      { situation: "A marketing page's headline", instead: "the hero's own h1, then Sections with h2." },
+      { situation: "A heading inside the screen", instead: "an h2 in a Panel." },
+      { situation: "Instructions or a long description of the screen", instead: "a Panel in the PageBody; meta is cut to one line." },
       { situation: "A status message (an error, a saved confirmation)", instead: "Notice, in the PageBody." },
     ],
     do: [
@@ -125,7 +125,7 @@ export const PageHeaderContract = defineContract({
   tokens: ["--cream-bright", "--cream", "--surface-deep", "max-w-[110rem]", "max-w-[52rem]", "max-w-3xl"],
   related: [
     { name: "PageBody", difference: "The content container under it, with the same gutters and ceiling." },
-    { name: "Badge", difference: "Goes in actions to state the screen's mode (Práctica, Modo estrés)." },
+    { name: "Badge", difference: "Goes in actions to state the screen's mode (\"Práctica\", \"Modo estrés\")." },
     { name: "Action", difference: "Goes in actions: at most one, the screen's way forward." },
   ],
   i18n: {
@@ -154,12 +154,16 @@ export const PageHeaderContract = defineContract({
     exportName: "PageHeader",
     differences: [
       "The title is light (font-light, tracking -0.045em) in the app's copy and bold here. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
-      "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on Mi tesis a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
+      "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on the thesis screen a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
       "Adds width (\"wide\" | \"reading\") to match PageBody's; the app's copy is always max-w-[110rem], so its title does not line up with a narrower body.",
     ],
   },
-  version: "1.1.0",
+  version: "1.1.1",
   changelog: [
+    {
+      version: "1.1.1",
+      changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the hero's own h1, an h2 in a Panel — because the system has no component for them."],
+    },
     {
       version: "1.1.0",
       changes: [

@@ -39,8 +39,7 @@ colour and weight, never with spaced capitals.
 ## Interaction
 
 None. It is not focusable and does not respond to the pointer. It does not
-animate on its own either: when a block enters with `FadeRise`, the eyebrow
-enters with it.
+animate on its own either: when a block enters, the eyebrow enters with it.
 
 ## Writing
 

@@ -24,7 +24,8 @@ component owns the spacing and the label's voice; the caller owns the control.
 ## When not to use it
 
 - **A control with no name** → the bare control, with its own placeholder.
-- **A choice between two or three options** → `Segmented`, or a radio group.
+- **A choice between two or three options** → a radio group with its own
+  labels.
 - **Instructions about the form as a whole** → a `Notice` above the form.
 
 ## Interaction

@@ -12,7 +12,7 @@ export const MascotContract = defineContract({
     level: {
       type: "1 | 2 | 3 | 4 | 5 | 6",
       required: true,
-      description: "The growth stage to draw. It is the stage, not the XP level: the product maps XP to a stage (lib/avatar.ts tierForLevel) before it reaches this component. Untyped input outside 1–6 is rounded and clamped to the nearest stage; anything that is not a finite number becomes 1.",
+      description: "The growth stage to draw. It is the stage, not the experience level: the product maps the experience level to a stage (lib/avatar.ts tierForLevel) before it reaches this component. Untyped input outside 1–6 is rounded and clamped to the nearest stage; anything that is not a finite number becomes 1.",
       values: {
         "1": "Egg. A brand-new account.",
         "2": "Hatchling, cracking out of the shell.",
@@ -54,7 +54,7 @@ export const MascotContract = defineContract({
   ],
   events: [],
   motion: [
-    "None of its own. An entrance belongs to the caller (PopIn on sign-in, a spring on level-up), and that caller handles reduced motion.",
+    "None of its own. An entrance belongs to the caller, and that caller handles reduced motion.",
   ],
   accessibility: {
     role: "img (native <img>); presentation when decorative",
@@ -63,7 +63,7 @@ export const MascotContract = defineContract({
       { attribute: "alt", managedBy: "component", note: "Set from alt, or \"Mocki, nivel {level}\" by default, or \"\" when decorative." },
       { attribute: "alt (translation)", managedBy: "consumer", note: "The default alt is Spanish. Any other locale must pass its own alt." },
     ],
-    reducedMotion: "Nothing to reduce: the component does not move. Wrappers that animate it (PopIn, the level-up spring) check prefers-reduced-motion themselves.",
+    reducedMotion: "Nothing to reduce: the component does not move. The wrappers that animate it check prefers-reduced-motion themselves.",
     contrast: "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated mustard body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
     focus: "Never focusable.",
     targetSize: "not interactive",
@@ -86,10 +86,10 @@ export const MascotContract = defineContract({
       "Showing which form a level earns, where the change itself is the reward.",
     ],
     whenNot: [
-      { situation: "Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan", instead: "No character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states." },
+      { situation: "Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan", instead: "no character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states." },
       { situation: "The brand logo, in a header, a favicon or a footer", instead: "Mark (the reduced isologo) or Wordmark (the lockup with the name)." },
-      { situation: "A number the user needs to read: XP, a score, a level", instead: "The number as text, or Counter; Mocki shows the stage, not the value." },
-      { situation: "Waiting while something loads or the jury deliberates", instead: "DotMatrix with a sentence that says what is happening." },
+      { situation: "A number the user needs to read: XP, a score, a level", instead: "the number as text; Mocki shows the stage, not the value." },
+      { situation: "Waiting while something loads or the jury deliberates", instead: "a sentence that says what is happening." },
     ],
     do: [
       "Pass decorative when a heading or a message beside it already says what is happening.",
@@ -132,12 +132,13 @@ export const MascotContract = defineContract({
       "Renamed Mascot, and takes the stage (1–6) instead of the XP level: the level-to-stage curve stays in the product's lib/avatar.ts, so the system knows nothing about XP.",
       "The six PNGs ship inside the component (imported as modules) instead of loading from the app's /avatars/ folder.",
       "The alt is a prop with a Spanish default, \"Mocki, nivel {level}\"; the app's is a hard-coded English \"Level {level} avatar, form {n} of 6\".",
-      "Adds decorative, so the ten raw <img> copies of the PNGs in the product (most of them alt=\"\", beside Avatar rather than through it) can use the component.",
+      "Adds decorative, so the ten raw <img> copies of the PNGs in the product (most of them alt=\"\", beside the app's own avatar component rather than through it) can use the component.",
       "Drops the axis prop, which the app's copy accepted and ignored.",
     ],
   },
-  version: "0.1.1",
+  version: "0.1.2",
   changelog: [
+    { version: "0.1.2", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — no character, the number as text, a sentence — and the stage is described as the experience level."] },
     { version: "0.1.1", changes: ["The six stages recoloured from violet to mustard, the same PNGs the product ships in public/avatars/."] },
     { version: "0.1.0", changes: ["First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."] },
   ],

@@ -90,7 +90,7 @@ export const MonoLabelContract = defineContract({
     whenNot: [
       {
         situation: "The title of a screen or a section",
-        instead: "A heading: the title of PageHeader, an h2 inside a Section.",
+        instead: "a heading: the title of PageHeader, an h2 inside a Section.",
       },
       {
         situation: "A status on one item",
@@ -146,8 +146,12 @@ export const MonoLabelContract = defineContract({
       "The app had this component twice, under two names: as \"Eyebrow\" in its primitives and as \"MonoLabel\" in its marketing library, byte for byte the same. It is one component now, called MonoLabel, and the app's copy of the system's Eyebrow is a different thing entirely.",
     ],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    {
+      version: "1.0.1",
+      changes: ["Nothing changes for a screen: the alternative is named in plain words now — a heading — because the system has no component for it."],
+    },
     {
       version: "1.0.0",
       changes: [

@@ -47,7 +47,7 @@ A heading or a paragraph before the list works as well, or `aria-label` /
 
 ## When not to use it
 
-- **Something the user ticks** → `Checkbox`.
+- **Something the user ticks** → a native checkbox (`<input type="checkbox">`).
 - **Steps in order** → an ordered list with numbers. A check says _included_
   or _done_, not _next_.
 - **What one plan has and another lacks** → a table with a column per plan,

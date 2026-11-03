@@ -36,8 +36,8 @@ stays in one centred column.
 - **A screen in the signed-in app** → `PageBody`, with `PageHeader` above.
 - **A block inside a band** (a tier, a feature card) → `Panel`, inside the
   Section.
-- **The hero** → `HeroVideo` or the hero's own full-height layout over a
-  `Backdrop`. It is not a padded band.
+- **The hero** → the hero's own full-height layout over a `Backdrop`. It is
+  not a padded band.
 - **Columns through `className`** → a `<div className="grid …">` inside.
 
 ## Interaction
@@ -54,8 +54,8 @@ in-page link) can scroll to it — `#pricing`, `#features`.
 - **Layout** — on a `<div>` inside. `className` styles the band, not the
   column: `grid-cols-2` there lays out the single column and your content
   stacks.
-- **Motion** — blocks inside enter with `FadeRise`, headlines with
-  `WordsPullUp`. The band itself never moves.
+- **Motion** — blocks inside bring their own entrance as they scroll into
+  view. The band itself never moves.
 
 ## Writing
 

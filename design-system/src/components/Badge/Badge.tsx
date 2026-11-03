@@ -18,7 +18,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
  * Inline status marker. Text carries the meaning; the dot is decoration.
  *
  * Not a control: it has no focus, no hover and no press, so it never looks
- * like something to tap. A status you can change is a Segmented or an Action.
+ * like something to tap. A status you can change is a radio group or an Action.
  */
 export function Badge({ children, tone = "neutral", className = "", ...props }: BadgeProps) {
   return (

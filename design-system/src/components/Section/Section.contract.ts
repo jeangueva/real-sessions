@@ -49,7 +49,7 @@ export const SectionContract = defineContract({
   ],
   events: [],
   motion: [
-    "None of its own. Blocks inside enter with FadeRise (or WordsPullUp for a headline) as they scroll into view; the band itself never moves.",
+    "None of its own. The blocks inside bring their own entrance as they scroll into view; the band itself never moves.",
   ],
   accessibility: {
     role: "generic (<section> without an accessible name); region when aria-labelledby names it",
@@ -58,7 +58,7 @@ export const SectionContract = defineContract({
       { attribute: "aria-labelledby", managedBy: "consumer", note: "Point it at the band's h2 (give the h2 an id). Without a name a <section> is announced as nothing and does not appear in the landmarks list." },
       { attribute: "aria-label / data-* / other <section> attributes", managedBy: "consumer", note: "Spread onto the <section>. Prefer aria-labelledby over aria-label, so the name is the visible heading." },
     ],
-    reducedMotion: "Nothing moves, so nothing changes. Motion inside belongs to FadeRise or WordsPullUp, which handle reduced motion themselves.",
+    reducedMotion: "Nothing moves, so nothing changes. The motion inside belongs to the blocks that come with it, and they handle reduced motion themselves.",
     contrast:
       "Section draws no ink. On the backgrounds landing bands use, the ink tokens clear AA in both themes: on surface-deep cream-bright is 18.8:1 and cream-faint 7.8:1 (dark), 17.3:1 and 5.1:1 (light); on surface-base (black / white) they are higher.",
     focus: "Not focusable. With an id it can be the target of an in-page link; the browser moves the reading position there.",
@@ -91,8 +91,8 @@ export const SectionContract = defineContract({
     whenNot: [
       { situation: "A screen inside the signed-in app", instead: "PageBody (with PageHeader above it): tighter gutters, a wider ceiling, no marketing rhythm." },
       { situation: "A block inside a band (a tier, a feature card)", instead: "Panel, inside the Section." },
-      { situation: "The hero at the top of the page", instead: "HeroVideo or the hero's own full-height layout over a Backdrop; it is not a padded band." },
-      { situation: "Laying out the content in columns through className", instead: "A <div className=\"grid …\"> inside the Section; className reaches the outer band, not the column." },
+      { situation: "The hero at the top of the page", instead: "the hero's own full-height layout over a Backdrop; it is not a padded band." },
+      { situation: "Laying out the content in columns through className", instead: "a <div className=\"grid …\"> inside the Section; className reaches the outer band, not the column." },
     ],
     do: [
       "Give the band an id the nav can scroll to and name it with aria-labelledby on its h2.",
@@ -138,6 +138,8 @@ export const SectionContract = defineContract({
       "Spreads every other <section> attribute (aria-labelledby, aria-label, data-*). The app's copy accepts only children, className and id, so its bands cannot be named and are not landmarks.",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product.", "Native <section> attributes are passed through, so a band can be named with aria-labelledby."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the hero's own full-height layout, a grid inside the band — because the system has no component for them."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product.", "Native <section> attributes are passed through, so a band can be named with aria-labelledby."] }],
 });

@@ -36,9 +36,9 @@ tokens clipped to the glyphs — and the text stays real text.
 - **A call to action** → `Action` with tone `solid`. Emphasis comes from
   tone, not motion — and on an accent fill the base colour is 1.47:1.
 - **Marking an option as paid** → `PremiumMark`.
-- **Headlines, body copy or numbers** → plain text; `WordsPullUp` or
-  `FadeRise` for an entrance that happens once.
-- **Loading** → `DotMatrix`, or a sentence that names what is loading.
+- **Headlines, body copy or numbers** → plain text; a motion wrapper for an
+  entrance that happens once.
+- **Loading** → a sentence that names what is loading.
 
 ## Interaction
 

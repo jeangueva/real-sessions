@@ -105,15 +105,15 @@ export const NoticeContract = defineContract({
     whenNot: [
       {
         situation: "A field that is not valid",
-        instead: "The field's own hint, next to the control that has to change.",
+        instead: "the field's own hint, next to the control that has to change.",
       },
       {
         situation: "A message the screen can say by itself",
-        instead: "The copy on the screen: an empty state that says where the page leads.",
+        instead: "the copy on the screen: an empty state that says where the page leads.",
       },
       {
         situation: "A confirmation the person did not ask for",
-        instead: "Nothing. A success notice for something nobody wanted to know about is noise.",
+        instead: "nothing — a success notice for something nobody wanted to know about is noise.",
       },
     ],
     do: [
@@ -156,8 +156,9 @@ export const NoticeContract = defineContract({
     exportName: "Notice",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the field's own hint, the copy on the screen, nothing at all."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],
 });

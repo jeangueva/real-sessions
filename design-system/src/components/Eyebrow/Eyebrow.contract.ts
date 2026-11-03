@@ -24,7 +24,7 @@ export const EyebrowContract = defineContract({
   slots: [{ name: "children", description: "Text only. No icons, no links: the eyebrow is a label, and anything you can press belongs elsewhere." }],
   states: [{ name: "default", description: "16px semibold (text-sm in this scale) in accent-text, on its own line.", trigger: "Initial render." }],
   events: [],
-  motion: ["None of its own. An eyebrow enters with the block around it (the caller's FadeRise), never separately."],
+  motion: ["None of its own. An eyebrow enters with the block around it, never separately."],
   accessibility: {
     role: "paragraph (native <p>) — deliberately not a heading",
     keyboard: [],
@@ -65,10 +65,10 @@ export const EyebrowContract = defineContract({
       "As the label of a group of controls inside a card that already sits under a page heading: \"Apariencia\", \"Cuenta\".",
     ],
     whenNot: [
-      { situation: "The name of a section or a page", instead: "A heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it." },
+      { situation: "The name of a section or a page", instead: "a heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it." },
       { situation: "A status or a mode on an item", instead: "Badge." },
       { situation: "The label of a form field", instead: "Field, whose label is tied to its input." },
-      { situation: "A sentence of explanation", instead: "Body text in cream-dim under the heading." },
+      { situation: "A sentence of explanation", instead: "body text in cream-dim under the heading." },
     ],
     do: [
       "Pair it with a heading that says something.",
@@ -100,8 +100,12 @@ export const EyebrowContract = defineContract({
     placement: "Directly above a heading (landing sections) or above a value or a group inside a card (platform). Something must follow it: a heading, a number or the group it labels.",
   },
   appCounterpart: null,
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    {
+      version: "1.0.2",
+      changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a heading, body text — because the system has no component for them."],
+    },
     {
       version: "1.0.1",
       changes: [
