@@ -72,9 +72,12 @@ the next step without reading every label.
 
 - **Navigation** → a link. Wrap an Action in a link only when the destination
   is a step forward (e.g. the landing CTA to sign up).
-- **Choosing a value** → `Segmented`.
-- **Irreversible** → `HoldButton`.
-- **On/off** → `Checkbox`.
+- **Choosing a value** → a radio group with 2–5 options, each with its own
+  label.
+- **Irreversible** → an Action that asks for confirmation first, so a stray
+  tap does nothing.
+- **On/off** → a native checkbox (`<input type="checkbox">`) with its own
+  label.
 
 ## Do and don't
 

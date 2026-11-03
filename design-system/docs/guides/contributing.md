@@ -88,6 +88,8 @@ replacement named in `usage.whenNot[].instead`, and removed in a later major.
    - **previews**: every preview renders, and passes axe
    - **tokens**: dark and light declare the same variables, `tokens.json`
      describes all of them, and they match the product (below)
+   - **pointers**: every name a contract uses is a component of this system,
+     or a proper noun listed with its reason (below)
 
 CI runs the same command (`npm --prefix design-system run check`) and then
 builds the site.
@@ -116,6 +118,31 @@ repository (see [Separate repository](./separate-repo.md)).
 When you change a component that has a counterpart, change the product's copy
 in the same pull request, or list the new difference in `differences`.
 
+## Point only at what exists
+
+A contract is full of pointers: "instead: a radio group", "related: Panel".
+They are how a reader finds the right thing to use next, and they are prose,
+so no other test can read them — until `test/pointers.test.ts`, which reads
+the prose the way a reader does.
+
+The rule: **a contract names the components of this system and nothing else.**
+The product has a `Segmented`, a `HeroVideo`, a screen called
+`RecentSessions`; the system has none of them. A contract that points at one
+sends the reader looking for something that does not exist, and the next
+person either stops trusting the contracts or writes a second copy. So:
+
+- The alternative in `usage.whenNot[].instead` starts with a component's
+  name, a native element (`<details>`) or plain lowercase words — never with
+  the name of something that does not exist.
+- Every other capitalised word in the prose is a component of this system, or
+  a proper noun listed in `PROPER_NOUNS` with the reason it is not one (a
+  language, the mascot, a platform).
+- The Markdown's "When not to use it" says the same thing.
+
+The product's own copy is named where it belongs: in `appCounterpart`, by its
+file and its export name. The prose around it talks about the product in
+plain words.
+
 ## Review checklist
 
 - [ ] All five files changed together; the contract describes the code as it
@@ -133,6 +160,8 @@ in the same pull request, or list the new difference in `differences`.
       themes, as the contract's `accessibility` says.
 - [ ] Works at 320px and in right-to-left (arrows mirror, numbers do not).
 - [ ] The product's counterpart updated, or the difference recorded.
+- [ ] Every pointer in the contract and in the guidance names a component
+      this system has, or is written in plain words.
 - [ ] Nothing derived from React Bits or other code whose licence forbids
       redistribution: the registry hands these files to other tools.
 - [ ] `npm run check` passes locally.

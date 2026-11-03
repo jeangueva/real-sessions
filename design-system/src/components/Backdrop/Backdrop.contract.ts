@@ -60,20 +60,20 @@ export const BackdropContract = defineContract({
   content: {
     voice: [
       "The field has no copy. What sits on it is a hero: a short line in the product's voice, not marketing fluff — \"Sustenta antes de sustentar.\"",
-      "The field is atmosphere, not a picture of the product. When there is footage, show the footage (HeroVideo).",
+      "The field is atmosphere, not a picture of the product. When there is footage, show the footage.",
     ],
     limits: ["Copy on top: a headline and one supporting sentence; long reading text belongs on a plain surface."],
     examples: ["Sustenta antes de sustentar.", "Un jurado de 3 que leyó tu tesis te pregunta por voz, repregunta como el de verdad y te deja un acta de 0 a 20."],
   },
   usage: {
     when: [
-      "Behind a marketing hero when there is no footage, or underneath footage while it loads (HeroVideo does both).",
+      "Behind a marketing hero when there is no footage, or underneath footage while it loads.",
       "A mid-page marketing section that needs light rather than a flat ground (variant section).",
     ],
     whenNot: [
-      { situation: "Any signed-in screen: the thesis workspace, a rehearsal, an acta, settings", instead: "The surface tokens (surface-deep, a Panel). Nothing decorative competes with the sentence someone is reading while nervous." },
-      { situation: "There is real footage for the hero", instead: "HeroVideo, which composes Backdrop underneath as its fallback." },
-      { situation: "Behind long reading text, a form or a pricing table", instead: "A plain surface (Section on surface-deep). The drift and the grain cost legibility exactly where it is needed." },
+      { situation: "Any signed-in screen: the thesis workspace, a rehearsal, an acta, settings", instead: "the surface tokens (surface-deep, a Panel). Nothing decorative competes with the sentence someone is reading while nervous." },
+      { situation: "There is real footage for the hero", instead: "the footage itself, over a Backdrop that stands in while it loads." },
+      { situation: "Behind long reading text, a form or a pricing table", instead: "a plain surface (Section on surface-deep). The drift and the grain cost legibility exactly where it is needed." },
       { situation: "A section on the light theme that wants a soft tint", instead: "surface-deep or accent-soft. On a light page the field dims to a hint of itself, by design." },
     ],
     do: [
@@ -119,12 +119,16 @@ export const BackdropContract = defineContract({
       "The pale lights read rgb(var(--cream) / α) instead of the literal rgba(222,219,200,α) — the first palette's warm cream. They are now the current ink, #F5F5F7, a touch cooler.",
       "The layer carries on-media, so --cream resolves to the dark ink inside it in both themes and the lights stay light on the light theme.",
       "The navy (4 33 46), which has no token, is one named constant instead of two literals; the stale \"Velorah\" name is gone.",
-      "Calls useReducedMotion() itself and applies no drift under reduced motion; the app's copy relies on index.css and on HeroVideo passing still.",
+      "Calls useReducedMotion() itself and applies no drift under reduced motion; the app's copy relies on index.css and on its own video hero passing still.",
       "Adds className.",
     ],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    {
+      version: "1.0.1",
+      changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the surface tokens, the footage itself, a plain surface — because the system has no component for them."],
+    },
     {
       version: "1.0.0",
       changes: [

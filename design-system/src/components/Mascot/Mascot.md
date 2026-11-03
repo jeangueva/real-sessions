@@ -62,14 +62,14 @@ and 160px on the landing's habit section.
   person beside the student, not a mascot. The brand is `Mark` or `Wordmark`;
   an empty or error state is plain copy in a `Panel` or a `Notice`.
 - **As the logo** → `Mark` or `Wordmark`.
-- **To show a number** (XP, a score, a level) → the number as text, or
-  `Counter`. Mocki shows the stage, not the value.
-- **While waiting** → `DotMatrix` with a sentence saying what is happening.
+- **To show a number** (the experience level, a score, a stage) → the number
+  as text. Mocki shows the stage, not the value.
+- **While waiting** → a sentence saying what is happening.
 
 ## Interaction
 
 None. Mocki is an image: not focusable, not clickable, and it does not move.
-Where it appears as a reward the caller animates it — `PopIn` on sign-in and
+Where it appears as a reward the caller animates it — a pop on sign-in and
 reports, a spring on the level-up — and that caller respects reduced motion.
 
 ## Writing

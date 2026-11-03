@@ -24,7 +24,7 @@ export const CheckItemContract = defineContract({
   slots: [{ name: "children", description: "A phrase of text; inline elements (<strong>, a link) are fine. No block content and no second icon." }],
   states: [{ name: "default", description: "A 16px check in accent-text aligned to the first line, then the text in cream-dim.", trigger: "Initial render." }],
   events: [],
-  motion: ["None. A checklist enters with the card around it (the caller's FadeRise); rows do not stagger on their own."],
+  motion: ["None. A checklist enters with the card around it; rows do not stagger on their own."],
   accessibility: {
     role: "listitem (native <li>) — the consumer supplies the <ul> or <ol>",
     keyboard: [],
@@ -66,10 +66,10 @@ export const CheckItemContract = defineContract({
       "A short list of things the reader gets, where every row is a yes.",
     ],
     whenNot: [
-      { situation: "Something the user ticks or unticks", instead: "Checkbox." },
-      { situation: "Steps to follow in order", instead: "An ordered list (<ol>) with numbers; a check says done or included, not next." },
-      { situation: "Comparing what one plan has and another lacks", instead: "A table with a column per plan, so a missing feature is stated rather than implied by a missing row." },
-      { situation: "Plain bullets with no sense of included", instead: "A <ul> with a small dot, as the journey cards use." },
+      { situation: "Something the user ticks or unticks", instead: "a native checkbox (<input type=\"checkbox\">)." },
+      { situation: "Steps to follow in order", instead: "an ordered list (<ol>) with numbers; a check says done or included, not next." },
+      { situation: "Comparing what one plan has and another lacks", instead: "a table with a column per plan, so a missing feature is stated rather than implied by a missing row." },
+      { situation: "Plain bullets with no sense of included", instead: "a <ul> with a small dot, as the journey cards use." },
     ],
     do: [
       "Put it inside a <ul> with a label before it, such as \"Qué incluye\".",
@@ -109,6 +109,8 @@ export const CheckItemContract = defineContract({
       "Wraps children in a single span, so mixed inline content stays one flex item; the app's copy lays each child out as its own flex item.",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a native checkbox, an ordered list, a table, a plain list — because the system has no component for them."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
 });

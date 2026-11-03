@@ -98,15 +98,15 @@ export const MeterContract = defineContract({
     whenNot: [
       {
         situation: "A step in a process that advances in time",
-        instead: "A Badge with the count: \"Turno 3 de 7\" says where you are; a bar would imply a score.",
+        instead: "a Badge with the count: \"Turno 3 de 7\" says where you are; a bar would imply a score.",
       },
       {
         situation: "A value with no maximum",
-        instead: "The number alone, in the body of the screen.",
+        instead: "the number alone, in the body of the screen.",
       },
       {
         situation: "Something that loads",
-        instead: "A progress indicator in the place that waits, not a meter: this one reports a result, not a state of the machine.",
+        instead: "a progress indicator in the place that waits, not a meter: this one reports a result, not a state of the machine.",
       },
     ],
     do: [
@@ -150,8 +150,9 @@ export const MeterContract = defineContract({
     exportName: "Meter",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a Badge with the count, the number alone, a progress indicator — because the system has no component for them."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],
 });

@@ -79,7 +79,7 @@ export const BackdropPreviews = definePreviews([
     title: "The thesis landing without footage",
     kind: "in-context",
     theme: "dark",
-    description: "The Sustentación hero when the video is missing or fails to load: HeroVideo falls back to this field, and the headline, the one way in and the note sit on it unchanged.",
+    description: "The Sustentación hero when the video is missing or fails to load: the video hero falls back to this field, and the headline, the one way in and the note sit on it unchanged.",
     render: () => (
       <section className={`${FRAME} flex min-h-[28rem] flex-col justify-center px-8 py-12 sm:px-12`}>
         <Backdrop />
@@ -101,7 +101,7 @@ export const BackdropPreviews = definePreviews([
       </section>
     ),
     code: `<section className="on-media relative isolate flex min-h-[min(100svh,56rem)] flex-col overflow-hidden bg-black">
-  <Backdrop />  {/* HeroVideo renders this when there is no video */}
+  <Backdrop />  {/* the video hero renders this when there is no video */}
   <div className="relative z-10">
     <p>Sustentación de tesis</p>
     <h1>Sustenta antes de sustentar.</h1>

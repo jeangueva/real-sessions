@@ -80,7 +80,7 @@ export const InsetFrameContract = defineContract({
       },
       {
         situation: "Content that must be read in the browser's own scroll",
-        instead: "Nothing: the frame clips, and a long page inside it has to scroll inside it.",
+        instead: "nothing — the frame clips, and a long page inside it has to scroll inside it.",
       },
     ],
     do: [
@@ -123,8 +123,9 @@ export const InsetFrameContract = defineContract({
     exportName: "InsetFrame",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternative for a page that has to scroll is named in plain words now."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],
 });

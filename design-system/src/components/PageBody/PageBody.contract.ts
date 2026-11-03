@@ -54,7 +54,7 @@ export const PageBodyContract = defineContract({
   ],
   events: [],
   motion: [
-    "None of its own. Blocks inside enter with FadeRise; the app keeps motion restrained, so the container never animates between screens.",
+    "None of its own. The blocks inside bring their own entrance; the app keeps motion restrained, so the container never animates between screens.",
   ],
   accessibility: {
     role: "generic (a plain <div>); the landmark is the <main> the app shell wraps around PageHeader and PageBody",
@@ -133,12 +133,16 @@ export const PageBodyContract = defineContract({
     file: "platform/AppShell.tsx",
     exportName: "PageBody",
     differences: [
-      "Adds width (\"wide\" | \"reading\"). The app's copy has only className, and its screens that pass max-w-3xl or max-w-2xl there (FeedbackReport, InterviewDetail, Advisor, Warmup) get no narrower column, because max-w-[110rem] comes later in the generated CSS.",
+      "Adds width (\"wide\" | \"reading\"). The app's copy has only className, and its screens that pass max-w-3xl or max-w-2xl there (the feedback report, the interview detail, the advisor, the warm-up) get no narrower column, because max-w-[110rem] comes later in the generated CSS.",
       "Spreads every other <div> attribute (id, aria-*, data-*). The app's copy accepts only children and className.",
     ],
   },
-  version: "1.0.0",
+  version: "1.0.1",
   changelog: [
+    {
+      version: "1.0.1",
+      changes: ["Nothing changes for a screen: the blocks inside bring their own entrance, and the contract no longer names a wrapper the system does not have."],
+    },
     {
       version: "1.0.0",
       changes: [

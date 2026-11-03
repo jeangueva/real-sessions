@@ -12,7 +12,8 @@ grain that stops large blacks from banding, and a scrim so the copy on top
 does not depend on where the light has drifted to.
 
 It is the honest substitute for footage rather than a placeholder for it:
-`HeroVideo` renders it underneath the video while the first frame decodes,
+the product's own video hero renders it underneath the video while the first
+frame decodes,
 and on its own when there is no video or the file fails.
 
 ## Anatomy
@@ -52,7 +53,7 @@ All of it is CSS: no video, no canvas, no image request.
 ## When to use it
 
 - Behind a marketing hero with no footage, or under footage while it loads —
-  through `HeroVideo`, which does both.
+  through the product's own video hero, which does both.
 - A mid-page marketing section that wants light rather than a flat ground:
   `variant="section"`.
 
@@ -61,7 +62,8 @@ All of it is CSS: no video, no canvas, no image request.
 - **Inside the app** (the thesis workspace, a rehearsal, an acta, settings) →
   the surface tokens and `Panel`. Nothing decorative competes with the
   sentence someone is reading while nervous.
-- **There is footage** → `HeroVideo`, which already puts a Backdrop under it.
+- **There is footage** → the footage itself, over a Backdrop that stands in
+  while it loads.
 - **Behind long text, a form or a pricing table** → a plain `Section` on
   `surface-deep`.
 - **A light section that wants a tint** → `surface-deep` or `accent-soft`.
@@ -117,7 +119,7 @@ belongs on a plain surface.
 
 - ✅ A positioned, clipping, dark parent; copy above with `relative z-10`.
 - ✅ `still` under anything else that is not moving.
-- ✅ Through `HeroVideo` when there is footage.
+- ✅ Through the product's own video hero when there is footage.
 - ❌ On a light section under dark ink — a grey wash.
 - ❌ Two Backdrops stacked, or extra grain on top.
 - ❌ Inside the app.

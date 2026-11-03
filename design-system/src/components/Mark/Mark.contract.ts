@@ -40,7 +40,7 @@ export const MarkContract = defineContract({
     aria: [
       { attribute: "aria-hidden", managedBy: "component", note: "Set to true when there is no label, so a mark beside the written name is not announced twice." },
       { attribute: "role=\"img\" + aria-label", managedBy: "component", note: "Set from label when it is non-empty. The text itself is the consumer's: \"Mockio\" is the brand name and is not translated." },
-      { attribute: "focusable=\"false\"", managedBy: "component", note: "Always set, so legacy Edge and IE do not put the SVG in the tab order." },
+      { attribute: "focusable=\"false\"", managedBy: "component", note: "Always set, so legacy browsers do not put the SVG in the tab order." },
       { attribute: "aria-label (on the wrapping link)", managedBy: "consumer", note: "A mark used as the home link keeps label empty and names the link instead: <a aria-label=\"Mockio\">." },
     ],
     reducedMotion: "Nothing to reduce: the mark has no motion.",
@@ -111,8 +111,9 @@ export const MarkContract = defineContract({
       "The colours are named constants (BRAND.tile, BRAND.beak, BRAND.head, BRAND.eye) instead of inline literals; the values are identical (#fff is written #FFFFFF).",
     ],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    { version: "1.0.2", changes: ["Nothing changes for a screen: the note about the focusable attribute no longer names two browsers."] },
     { version: "1.0.1", changes: ["Mustard tile (#F6B733), red-orange beak (#D9481C) and ink eye (#2E2D2A), as the product's mark has been since the amber restyle."] },
     { version: "1.0.0", changes: ["First documented version, extracted from the product.", "Added the optional label for a mark that stands alone."] },
   ],

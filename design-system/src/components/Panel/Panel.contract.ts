@@ -23,7 +23,7 @@ export const PanelContract = defineContract({
         card: "bg-surface-card + shadow-card. The lighter fill on the dark theme (#1C1C1E); white on the light one. For panels side by side in a grid: pricing tiers, settings sections, list rows.",
         raised: "bg-surface-raised + shadow-card. A step darker than card on the dark theme (#161618), identical to card on the light one. For one block on the page ground: an upload step, an empty state, a wait.",
         glass:
-          ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on five screens) and for two tabbed sheets (the Settings account tab, the Billing plan).",
+          ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on five screens) and for two tabbed sheets (the account tab of the settings screen, the plan of the billing screen).",
       },
     },
     className: {
@@ -63,7 +63,7 @@ export const PanelContract = defineContract({
   ],
   events: [],
   motion: [
-    "None of its own. A panel enters with the block around it (the caller's FadeRise), never separately.",
+    "None of its own. A panel enters with the block around it, never separately.",
     "A caller's hover:shadow-lift is a box-shadow transition; keep it for panels inside something pressable.",
   ],
   accessibility: {
@@ -106,10 +106,10 @@ export const PanelContract = defineContract({
       "A whole screen that failed to load: variant=\"glass\" with role=\"alert\" on the message.",
     ],
     whenNot: [
-      { situation: "A card the person presses as a whole (a session row, a nav tile)", instead: "A link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift), as RecentSessions does. Panel has no hover, focus or pressed state." },
-      { situation: "A group inside a panel", instead: "An inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius." },
+      { situation: "A card the person presses as a whole (a session row, a nav tile)", instead: "a link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift). A Panel has no hover, focus or pressed state." },
+      { situation: "A group inside a panel", instead: "an inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius." },
       { situation: "A one-line message about the screen's state", instead: "Notice, which carries the icon and the tone." },
-      { situation: "A card that opens and closes", instead: "Disclosure (<details> with the card surface)." },
+      { situation: "A card that opens and closes", instead: "a <details> element with the card surface." },
       { situation: "Page gutters and width", instead: "PageBody inside the app, Section on a marketing page." },
     ],
     do: [
@@ -157,6 +157,8 @@ export const PanelContract = defineContract({
       "Spreads every other <div> attribute onto the surface. The app's copy accepts only id, role and aria-labelledby, so a panel there cannot carry aria-busy, aria-label or data-* attributes.",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product.", "Native <div> attributes are passed through."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a link styled with the card tokens, an inset well, a details element — because the system has no component for them."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product.", "Native <div> attributes are passed through."] }],
 });

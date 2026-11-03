@@ -126,7 +126,7 @@ export const BadgePreviews = definePreviews([
     title: "A badge used as a button",
     kind: "misuse",
     description: "A pill with a click handler, standing in for a toggle.",
-    why: "A Badge is a span: it cannot be reached with Tab, Enter and Space do nothing, and a screen reader announces it as plain text. A setting the user can change is a Segmented or a Checkbox; an action is an Action.",
+    why: "A Badge is a span: it cannot be reached with Tab, Enter and Space do nothing, and a screen reader announces it as plain text. A setting the user can change is a radio group or a native checkbox; an action is an Action.",
     render: () => (
       <Badge className="cursor-pointer" onClick={() => undefined}>
         Modo estrés

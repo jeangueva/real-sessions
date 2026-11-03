@@ -27,7 +27,7 @@ export const WordmarkContract = defineContract({
     { name: "default", description: "The Mark, a 0.35em gap and \"mockio\" in the mark face, lowercase, tracked -0.03em. Inherits colour and size from className or the parent.", trigger: "Initial render." },
   ],
   events: [],
-  motion: ["None. The wordmark is static; an entrance, if any, belongs to the container (FadeRise, PopIn)."],
+  motion: ["None. The wordmark is static; an entrance, if any, belongs to the container."],
   accessibility: {
     role: "none (a plain <span>; the text is its content)",
     keyboard: [],
@@ -59,7 +59,7 @@ export const WordmarkContract = defineContract({
     ],
     whenNot: [
       { situation: "A square place or a tight space where the name will not fit (phone top bar, icon tile)", instead: "Mark alone, inside a link named \"Mockio\"." },
-      { situation: "The brand inside a sentence", instead: "Plain text \"Mockio\", capitalised, in the sentence's own font." },
+      { situation: "The brand inside a sentence", instead: "plain text \"Mockio\", capitalised, in the sentence's own font." },
       { situation: "A friendly presence above the name on an entry screen", instead: "Mascot above a Wordmark with mark={false}; never the character and the mark together." },
     ],
     do: [
@@ -102,9 +102,11 @@ export const WordmarkContract = defineContract({
     exportName: "Wordmark",
     differences: [
       "Sets dir=\"ltr\" on the lockup, so the mark stays before the name in right-to-left locales; the app's copy flips the mark to the right of the name in Arabic and Hebrew.",
-      "Exports WordmarkProps as an interface; the app's props are an inline type.",
+      "Exports its props as an interface; the app's props are an inline type.",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product.", "The lockup no longer mirrors in right-to-left documents."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — plain text, the mark alone — because the system has no component for them."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product.", "The lockup no longer mirrors in right-to-left documents."] }],
 });

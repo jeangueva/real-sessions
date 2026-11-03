@@ -348,7 +348,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "contract": {
           "name": "Action",
           "level": "atom",
@@ -405,7 +405,7 @@
             "onClick": {
               "type": "(event: MouseEvent<HTMLButtonElement>) => void",
               "required": false,
-              "description": "Native click handler. Fires on pointer click, Enter and Space."
+              "description": "Native click handler. Fires on pointer click, `Enter` and `Space`."
             }
           },
           "slots": [
@@ -428,7 +428,7 @@
             {
               "name": "pressed",
               "description": "solid, neutral and glass translate down by their edge height (4px / 3px) and lose the edge; quiet has no edge, so it scales to 97% instead. All answer in 75ms.",
-              "trigger": ":active — pointer down, or Space held."
+              "trigger": ":active — pointer down, or `Space` held."
             },
             {
               "name": "focus-visible",
@@ -445,7 +445,7 @@
             {
               "name": "onClick",
               "signature": "(event: MouseEvent<HTMLButtonElement>) => void",
-              "firesWhen": "Click, Enter or Space — never while disabled."
+              "firesWhen": "Click, `Enter` or `Space` — never while disabled."
             }
           ],
           "motion": [
@@ -518,19 +518,19 @@
             "whenNot": [
               {
                 "situation": "Navigating to another page as plain navigation",
-                "instead": "A link (<a> / router Link) styled as a link; wrap an Action in a Link only when the destination is a step forward."
+                "instead": "a link styled as a link (<a>), with the Action wrapped inside it only when the destination is a step forward."
               },
               {
                 "situation": "Choosing one option among several",
-                "instead": "Segmented (2–5 options) or a radio group."
+                "instead": "a radio group with 2–5 options, each with its own label."
               },
               {
                 "situation": "A destructive action with no undo",
-                "instead": "HoldButton, so a stray tap does nothing."
+                "instead": "an Action that asks for confirmation first, so a stray tap does nothing."
               },
               {
                 "situation": "Toggling a setting on and off",
-                "instead": "Checkbox."
+                "instead": "a native checkbox (<input type=\"checkbox\">) with its own label."
               }
             ],
             "do": [
@@ -589,8 +589,14 @@
               "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (4px / 3px). The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press."
             ]
           },
-          "version": "1.1.0",
+          "version": "1.1.1",
           "changelog": [
+            {
+              "version": "1.1.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — a link, a radio group, an Action that asks for confirmation first, a native checkbox — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.1.0",
               "changes": [
@@ -654,7 +660,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Backdrop",
           "level": "atom",
@@ -733,7 +739,7 @@
           "content": {
             "voice": [
               "The field has no copy. What sits on it is a hero: a short line in the product's voice, not marketing fluff — \"Sustenta antes de sustentar.\"",
-              "The field is atmosphere, not a picture of the product. When there is footage, show the footage (HeroVideo)."
+              "The field is atmosphere, not a picture of the product. When there is footage, show the footage."
             ],
             "limits": [
               "Copy on top: a headline and one supporting sentence; long reading text belongs on a plain surface."
@@ -745,21 +751,21 @@
           },
           "usage": {
             "when": [
-              "Behind a marketing hero when there is no footage, or underneath footage while it loads (HeroVideo does both).",
+              "Behind a marketing hero when there is no footage, or underneath footage while it loads.",
               "A mid-page marketing section that needs light rather than a flat ground (variant section)."
             ],
             "whenNot": [
               {
                 "situation": "Any signed-in screen: the thesis workspace, a rehearsal, an acta, settings",
-                "instead": "The surface tokens (surface-deep, a Panel). Nothing decorative competes with the sentence someone is reading while nervous."
+                "instead": "the surface tokens (surface-deep, a Panel). Nothing decorative competes with the sentence someone is reading while nervous."
               },
               {
                 "situation": "There is real footage for the hero",
-                "instead": "HeroVideo, which composes Backdrop underneath as its fallback."
+                "instead": "the footage itself, over a Backdrop that stands in while it loads."
               },
               {
                 "situation": "Behind long reading text, a form or a pricing table",
-                "instead": "A plain surface (Section on surface-deep). The drift and the grain cost legibility exactly where it is needed."
+                "instead": "a plain surface (Section on surface-deep). The drift and the grain cost legibility exactly where it is needed."
               },
               {
                 "situation": "A section on the light theme that wants a soft tint",
@@ -826,12 +832,18 @@
               "The pale lights read rgb(var(--cream) / α) instead of the literal rgba(222,219,200,α) — the first palette's warm cream. They are now the current ink, #F5F5F7, a touch cooler.",
               "The layer carries on-media, so --cream resolves to the dark ink inside it in both themes and the lights stay light on the light theme.",
               "The navy (4 33 46), which has no token, is one named constant instead of two literals; the stale \"Velorah\" name is gone.",
-              "Calls useReducedMotion() itself and applies no drift under reduced motion; the app's copy relies on index.css and on HeroVideo passing still.",
+              "Calls useReducedMotion() itself and applies no drift under reduced motion; the app's copy relies on index.css and on its own video hero passing still.",
               "Adds className."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — the surface tokens, the footage itself, a plain surface — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -889,7 +901,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Badge",
           "level": "atom",
@@ -996,7 +1008,7 @@
             "whenNot": [
               {
                 "situation": "Something the user can press or toggle",
-                "instead": "Action (ghost) or Segmented. A Badge is not focusable and has no press."
+                "instead": "Action (ghost), or a radio group. A Badge is not focusable and has no press."
               },
               {
                 "situation": "Marking an option as part of the paid plan",
@@ -1008,11 +1020,11 @@
               },
               {
                 "situation": "A score or how far along something is",
-                "instead": "Meter or ScoreRing."
+                "instead": "Meter, which reports a proportion."
               },
               {
                 "situation": "Something loading, with nothing to say yet",
-                "instead": "DotMatrix, or a sentence that names what is loading."
+                "instead": "a sentence that names what is loading."
               }
             ],
             "do": [
@@ -1074,8 +1086,14 @@
               "The live dot is shrink-0, so it keeps its size when the label wraps."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — a radio group, a Meter, a sentence that names what is loading — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -1132,7 +1150,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "CheckItem",
           "level": "atom",
@@ -1171,7 +1189,7 @@
           ],
           "events": [],
           "motion": [
-            "None. A checklist enters with the card around it (the caller's FadeRise); rows do not stagger on their own."
+            "None. A checklist enters with the card around it; rows do not stagger on their own."
           ],
           "accessibility": {
             "role": "listitem (native <li>) — the consumer supplies the <ul> or <ol>",
@@ -1221,19 +1239,19 @@
             "whenNot": [
               {
                 "situation": "Something the user ticks or unticks",
-                "instead": "Checkbox."
+                "instead": "a native checkbox (<input type=\"checkbox\">)."
               },
               {
                 "situation": "Steps to follow in order",
-                "instead": "An ordered list (<ol>) with numbers; a check says done or included, not next."
+                "instead": "an ordered list (<ol>) with numbers; a check says done or included, not next."
               },
               {
                 "situation": "Comparing what one plan has and another lacks",
-                "instead": "A table with a column per plan, so a missing feature is stated rather than implied by a missing row."
+                "instead": "a table with a column per plan, so a missing feature is stated rather than implied by a missing row."
               },
               {
                 "situation": "Plain bullets with no sense of included",
-                "instead": "A <ul> with a small dot, as the journey cards use."
+                "instead": "a <ul> with a small dot, as the journey cards use."
               }
             ],
             "do": [
@@ -1287,8 +1305,14 @@
               "Wraps children in a single span, so mixed inline content stays one flex item; the app's copy lays each child out as its own flex item."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — a native checkbox, an ordered list, a table, a plain list — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -1342,7 +1366,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "contract": {
           "name": "Eyebrow",
           "level": "atom",
@@ -1379,7 +1403,7 @@
           ],
           "events": [],
           "motion": [
-            "None of its own. An eyebrow enters with the block around it (the caller's FadeRise), never separately."
+            "None of its own. An eyebrow enters with the block around it, never separately."
           ],
           "accessibility": {
             "role": "paragraph (native <p>) — deliberately not a heading",
@@ -1430,7 +1454,7 @@
             "whenNot": [
               {
                 "situation": "The name of a section or a page",
-                "instead": "A heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it."
+                "instead": "a heading (an h2 inside Section, the title of PageHeader). The eyebrow goes above it, never in place of it."
               },
               {
                 "situation": "A status or a mode on an item",
@@ -1442,7 +1466,7 @@
               },
               {
                 "situation": "A sentence of explanation",
-                "instead": "Body text in cream-dim under the heading."
+                "instead": "body text in cream-dim under the heading."
               }
             ],
             "do": [
@@ -1488,8 +1512,14 @@
             "placement": "Directly above a heading (landing sections) or above a value or a group inside a card (platform). Something must follow it: a heading, a number or the group it labels."
           },
           "appCounterpart": null,
-          "version": "1.0.1",
+          "version": "1.0.2",
           "changelog": [
+            {
+              "version": "1.0.2",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — a heading, body text — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.1",
               "changes": [
@@ -1549,7 +1579,7 @@
       "meta": {
         "level": "molecule",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Field",
           "level": "molecule",
@@ -1649,15 +1679,15 @@
             "whenNot": [
               {
                 "situation": "A control that needs no name",
-                "instead": "The bare control, with its own placeholder or aria-label."
+                "instead": "the bare control, with its own placeholder or aria-label."
               },
               {
                 "situation": "A choice between two or three options",
-                "instead": "Segmented, or a radio group with its own labels."
+                "instead": "a radio group with its own labels."
               },
               {
                 "situation": "A question the person has to answer in their own words",
-                "instead": "A Notice above the form, not a hint under one field."
+                "instead": "a Notice above the form, not a hint under one field."
               }
             ],
             "do": [
@@ -1713,8 +1743,14 @@
               "None: the app's copy is this component, prop for prop."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — the bare control, a radio group — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -1768,7 +1804,7 @@
       "meta": {
         "level": "template",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "InsetFrame",
           "level": "template",
@@ -1848,7 +1884,7 @@
               },
               {
                 "situation": "Content that must be read in the browser's own scroll",
-                "instead": "Nothing: the frame clips, and a long page inside it has to scroll inside it."
+                "instead": "nothing — the frame clips, and a long page inside it has to scroll inside it."
               }
             ],
             "do": [
@@ -1901,8 +1937,14 @@
               "None: the app's copy is this component, prop for prop."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternative for a page that has to scroll is named in plain words now."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -1957,7 +1999,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "contract": {
           "name": "Mark",
           "level": "atom",
@@ -2019,7 +2061,7 @@
               {
                 "attribute": "focusable=\"false\"",
                 "managedBy": "component",
-                "note": "Always set, so legacy Edge and IE do not put the SVG in the tab order."
+                "note": "Always set, so legacy browsers do not put the SVG in the tab order."
               },
               {
                 "attribute": "aria-label (on the wrapping link)",
@@ -2117,8 +2159,14 @@
               "The colours are named constants (BRAND.tile, BRAND.beak, BRAND.head, BRAND.eye) instead of inline literals; the values are identical (#fff is written #FFFFFF)."
             ]
           },
-          "version": "1.0.1",
+          "version": "1.0.2",
           "changelog": [
+            {
+              "version": "1.0.2",
+              "changes": [
+                "Nothing changes for a screen: the note about the focusable attribute no longer names two browsers."
+              ]
+            },
             {
               "version": "1.0.1",
               "changes": [
@@ -2211,7 +2259,7 @@
       "meta": {
         "level": "atom",
         "status": "beta",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "contract": {
           "name": "Mascot",
           "level": "atom",
@@ -2224,7 +2272,7 @@
             "level": {
               "type": "1 | 2 | 3 | 4 | 5 | 6",
               "required": true,
-              "description": "The growth stage to draw. It is the stage, not the XP level: the product maps XP to a stage (lib/avatar.ts tierForLevel) before it reaches this component. Untyped input outside 1–6 is rounded and clamped to the nearest stage; anything that is not a finite number becomes 1.",
+              "description": "The growth stage to draw. It is the stage, not the experience level: the product maps the experience level to a stage (lib/avatar.ts tierForLevel) before it reaches this component. Untyped input outside 1–6 is rounded and clamped to the nearest stage; anything that is not a finite number becomes 1.",
               "values": {
                 "1": "Egg. A brand-new account.",
                 "2": "Hatchling, cracking out of the shell.",
@@ -2274,7 +2322,7 @@
           ],
           "events": [],
           "motion": [
-            "None of its own. An entrance belongs to the caller (PopIn on sign-in, a spring on level-up), and that caller handles reduced motion."
+            "None of its own. An entrance belongs to the caller, and that caller handles reduced motion."
           ],
           "accessibility": {
             "role": "img (native <img>); presentation when decorative",
@@ -2291,7 +2339,7 @@
                 "note": "The default alt is Spanish. Any other locale must pass its own alt."
               }
             ],
-            "reducedMotion": "Nothing to reduce: the component does not move. Wrappers that animate it (PopIn, the level-up spring) check prefers-reduced-motion themselves.",
+            "reducedMotion": "Nothing to reduce: the component does not move. The wrappers that animate it check prefers-reduced-motion themselves.",
             "contrast": "An illustration, not text or a control, so WCAG 1.4.3 and 1.4.11 do not apply. The transparent PNG sits on any surface; the saturated mustard body reads on both themes' cards, and the drop shadow (black at 12%) only grounds it.",
             "focus": "Never focusable.",
             "targetSize": "not interactive",
@@ -2322,7 +2370,7 @@
             "whenNot": [
               {
                 "situation": "Any screen of Sustentación, the thesis space: its landing, upload, diagnosis, rehearsal, acta and plan",
-                "instead": "No character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states."
+                "instead": "no character. The thesis space speaks as a calm person beside the student, not a mascot; use Mark or Wordmark for the brand, and plain copy in a Panel or a Notice for empty and error states."
               },
               {
                 "situation": "The brand logo, in a header, a favicon or a footer",
@@ -2330,11 +2378,11 @@
               },
               {
                 "situation": "A number the user needs to read: XP, a score, a level",
-                "instead": "The number as text, or Counter; Mocki shows the stage, not the value."
+                "instead": "the number as text; Mocki shows the stage, not the value."
               },
               {
                 "situation": "Waiting while something loads or the jury deliberates",
-                "instead": "DotMatrix with a sentence that says what is happening."
+                "instead": "a sentence that says what is happening."
               }
             ],
             "do": [
@@ -2391,12 +2439,18 @@
               "Renamed Mascot, and takes the stage (1–6) instead of the XP level: the level-to-stage curve stays in the product's lib/avatar.ts, so the system knows nothing about XP.",
               "The six PNGs ship inside the component (imported as modules) instead of loading from the app's /avatars/ folder.",
               "The alt is a prop with a Spanish default, \"Mocki, nivel {level}\"; the app's is a hard-coded English \"Level {level} avatar, form {n} of 6\".",
-              "Adds decorative, so the ten raw <img> copies of the PNGs in the product (most of them alt=\"\", beside Avatar rather than through it) can use the component.",
+              "Adds decorative, so the ten raw <img> copies of the PNGs in the product (most of them alt=\"\", beside the app's own avatar component rather than through it) can use the component.",
               "Drops the axis prop, which the app's copy accepted and ignored."
             ]
           },
-          "version": "0.1.1",
+          "version": "0.1.2",
           "changelog": [
+            {
+              "version": "0.1.2",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — no character, the number as text, a sentence — and the stage is described as the experience level."
+              ]
+            },
             {
               "version": "0.1.1",
               "changes": [
@@ -2456,7 +2510,7 @@
       "meta": {
         "level": "molecule",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Meter",
           "level": "molecule",
@@ -2554,15 +2608,15 @@
             "whenNot": [
               {
                 "situation": "A step in a process that advances in time",
-                "instead": "A Badge with the count: \"Turno 3 de 7\" says where you are; a bar would imply a score."
+                "instead": "a Badge with the count: \"Turno 3 de 7\" says where you are; a bar would imply a score."
               },
               {
                 "situation": "A value with no maximum",
-                "instead": "The number alone, in the body of the screen."
+                "instead": "the number alone, in the body of the screen."
               },
               {
                 "situation": "Something that loads",
-                "instead": "A progress indicator in the place that waits, not a meter: this one reports a result, not a state of the machine."
+                "instead": "a progress indicator in the place that waits, not a meter: this one reports a result, not a state of the machine."
               }
             ],
             "do": [
@@ -2622,8 +2676,14 @@
               "None: the app's copy is this component, prop for prop."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — a Badge with the count, the number alone, a progress indicator — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -2678,7 +2738,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "MonoLabel",
           "level": "atom",
@@ -2771,7 +2831,7 @@
             "whenNot": [
               {
                 "situation": "The title of a screen or a section",
-                "instead": "A heading: the title of PageHeader, an h2 inside a Section."
+                "instead": "a heading: the title of PageHeader, an h2 inside a Section."
               },
               {
                 "situation": "A status on one item",
@@ -2841,8 +2901,14 @@
               "The app had this component twice, under two names: as \"Eyebrow\" in its primitives and as \"MonoLabel\" in its marketing library, byte for byte the same. It is one component now, called MonoLabel, and the app's copy of the system's Eyebrow is a different thing entirely."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternative is named in plain words now — a heading — because the system has no component for it."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -2899,7 +2965,7 @@
       "meta": {
         "level": "molecule",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Notice",
           "level": "molecule",
@@ -3007,15 +3073,15 @@
             "whenNot": [
               {
                 "situation": "A field that is not valid",
-                "instead": "The field's own hint, next to the control that has to change."
+                "instead": "the field's own hint, next to the control that has to change."
               },
               {
                 "situation": "A message the screen can say by itself",
-                "instead": "The copy on the screen: an empty state that says where the page leads."
+                "instead": "the copy on the screen: an empty state that says where the page leads."
               },
               {
                 "situation": "A confirmation the person did not ask for",
-                "instead": "Nothing. A success notice for something nobody wanted to know about is noise."
+                "instead": "nothing — a success notice for something nobody wanted to know about is noise."
               }
             ],
             "do": [
@@ -3074,8 +3140,14 @@
               "None: the app's copy is this component, prop for prop."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — the field's own hint, the copy on the screen, nothing at all."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -3133,7 +3205,7 @@
       "meta": {
         "level": "template",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "PageBody",
           "level": "template",
@@ -3185,7 +3257,7 @@
           ],
           "events": [],
           "motion": [
-            "None of its own. Blocks inside enter with FadeRise; the app keeps motion restrained, so the container never animates between screens."
+            "None of its own. The blocks inside bring their own entrance; the app keeps motion restrained, so the container never animates between screens."
           ],
           "accessibility": {
             "role": "generic (a plain <div>); the landmark is the <main> the app shell wraps around PageHeader and PageBody",
@@ -3300,12 +3372,18 @@
             "file": "platform/AppShell.tsx",
             "exportName": "PageBody",
             "differences": [
-              "Adds width (\"wide\" | \"reading\"). The app's copy has only className, and its screens that pass max-w-3xl or max-w-2xl there (FeedbackReport, InterviewDetail, Advisor, Warmup) get no narrower column, because max-w-[110rem] comes later in the generated CSS.",
+              "Adds width (\"wide\" | \"reading\"). The app's copy has only className, and its screens that pass max-w-3xl or max-w-2xl there (the feedback report, the interview detail, the advisor, the warm-up) get no narrower column, because max-w-[110rem] comes later in the generated CSS.",
               "Spreads every other <div> attribute (id, aria-*, data-*). The app's copy accepts only children and className."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the blocks inside bring their own entrance, and the contract no longer names a wrapper the system does not have."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -3366,7 +3444,7 @@
       "meta": {
         "level": "template",
         "status": "stable",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "contract": {
           "name": "PageHeader",
           "level": "template",
@@ -3497,15 +3575,15 @@
             "whenNot": [
               {
                 "situation": "A marketing page's headline",
-                "instead": "The hero's own h1, then Sections with h2."
+                "instead": "the hero's own h1, then Sections with h2."
               },
               {
                 "situation": "A heading inside the screen",
-                "instead": "An h2 in a Panel."
+                "instead": "an h2 in a Panel."
               },
               {
                 "situation": "Instructions or a long description of the screen",
-                "instead": "A Panel in the PageBody; meta is cut to one line."
+                "instead": "a Panel in the PageBody; meta is cut to one line."
               },
               {
                 "situation": "A status message (an error, a saved confirmation)",
@@ -3538,7 +3616,7 @@
             },
             {
               "name": "Badge",
-              "difference": "Goes in actions to state the screen's mode (Práctica, Modo estrés)."
+              "difference": "Goes in actions to state the screen's mode (\"Práctica\", \"Modo estrés\")."
             },
             {
               "name": "Action",
@@ -3577,12 +3655,18 @@
             "exportName": "PageHeader",
             "differences": [
               "The title is light (font-light, tracking -0.045em) in the app's copy and bold here. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
-              "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on Mi tesis a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
+              "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on the thesis screen a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
               "Adds width (\"wide\" | \"reading\") to match PageBody's; the app's copy is always max-w-[110rem], so its title does not line up with a narrower body."
             ]
           },
-          "version": "1.1.0",
+          "version": "1.1.1",
           "changelog": [
+            {
+              "version": "1.1.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — the hero's own h1, an h2 in a Panel — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.1.0",
               "changes": [
@@ -3648,7 +3732,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Panel",
           "level": "atom",
@@ -3671,7 +3755,7 @@
               "values": {
                 "card": "bg-surface-card + shadow-card. The lighter fill on the dark theme (#1C1C1E); white on the light one. For panels side by side in a grid: pricing tiers, settings sections, list rows.",
                 "raised": "bg-surface-raised + shadow-card. A step darker than card on the dark theme (#161618), identical to card on the light one. For one block on the page ground: an upload step, an empty state, a wait.",
-                "glass": ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on five screens) and for two tabbed sheets (the Settings account tab, the Billing plan)."
+                "glass": ".liquid-glass: near-transparent with a 4px backdrop blur and a gradient edge on dark and inside .on-media; a white sheet with a hairline on the light theme. The only surface allowed over video. On a plain page the product uses it for errors (the message of a screen that failed to load, on five screens) and for two tabbed sheets (the account tab of the settings screen, the plan of the billing screen)."
               }
             },
             "className": {
@@ -3711,7 +3795,7 @@
           ],
           "events": [],
           "motion": [
-            "None of its own. A panel enters with the block around it (the caller's FadeRise), never separately.",
+            "None of its own. A panel enters with the block around it, never separately.",
             "A caller's hover:shadow-lift is a box-shadow transition; keep it for panels inside something pressable."
           ],
           "accessibility": {
@@ -3767,11 +3851,11 @@
             "whenNot": [
               {
                 "situation": "A card the person presses as a whole (a session row, a nav tile)",
-                "instead": "A link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift), as RecentSessions does. Panel has no hover, focus or pressed state."
+                "instead": "a link or button styled with the card tokens itself (focus-ring rounded-2xl bg-surface-card shadow-card hover:shadow-lift). A Panel has no hover, focus or pressed state."
               },
               {
                 "situation": "A group inside a panel",
-                "instead": "An inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius."
+                "instead": "an inset well: rounded-2xl bg-surface-lift p-4. A Panel inside a Panel doubles the edge and the radius."
               },
               {
                 "situation": "A one-line message about the screen's state",
@@ -3779,7 +3863,7 @@
               },
               {
                 "situation": "A card that opens and closes",
-                "instead": "Disclosure (<details> with the card surface)."
+                "instead": "a <details> element with the card surface."
               },
               {
                 "situation": "Page gutters and width",
@@ -3851,8 +3935,14 @@
               "Spreads every other <div> attribute onto the surface. The app's copy accepts only id, role and aria-labelledby, so a panel there cannot carry aria-busy, aria-label or data-* attributes."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — a link styled with the card tokens, an inset well, a details element — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -3909,7 +3999,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "PremiumMark",
           "level": "atom",
@@ -4002,7 +4092,7 @@
               },
               {
                 "situation": "Explaining what the paid plan adds",
-                "instead": "A sentence beside the option with a link to the plans (\"Ver los planes\")."
+                "instead": "a sentence beside the option with a link to the plans (\"Ver los planes\")."
               }
             ],
             "do": [
@@ -4064,8 +4154,14 @@
               "A blank label falls back to the default instead of rendering an image with no name."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternative is named in plain words now — a sentence beside the option — because the system has no component for it."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -4122,7 +4218,7 @@
       "meta": {
         "level": "template",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Section",
           "level": "template",
@@ -4169,7 +4265,7 @@
           ],
           "events": [],
           "motion": [
-            "None of its own. Blocks inside enter with FadeRise (or WordsPullUp for a headline) as they scroll into view; the band itself never moves."
+            "None of its own. The blocks inside bring their own entrance as they scroll into view; the band itself never moves."
           ],
           "accessibility": {
             "role": "generic (<section> without an accessible name); region when aria-labelledby names it",
@@ -4186,7 +4282,7 @@
                 "note": "Spread onto the <section>. Prefer aria-labelledby over aria-label, so the name is the visible heading."
               }
             ],
-            "reducedMotion": "Nothing moves, so nothing changes. Motion inside belongs to FadeRise or WordsPullUp, which handle reduced motion themselves.",
+            "reducedMotion": "Nothing moves, so nothing changes. The motion inside belongs to the blocks that come with it, and they handle reduced motion themselves.",
             "contrast": "Section draws no ink. On the backgrounds landing bands use, the ink tokens clear AA in both themes: on surface-deep cream-bright is 18.8:1 and cream-faint 7.8:1 (dark), 17.3:1 and 5.1:1 (light); on surface-base (black / white) they are higher.",
             "focus": "Not focusable. With an id it can be the target of an in-page link; the browser moves the reading position there.",
             "targetSize": "not interactive",
@@ -4226,11 +4322,11 @@
               },
               {
                 "situation": "The hero at the top of the page",
-                "instead": "HeroVideo or the hero's own full-height layout over a Backdrop; it is not a padded band."
+                "instead": "the hero's own full-height layout over a Backdrop; it is not a padded band."
               },
               {
                 "situation": "Laying out the content in columns through className",
-                "instead": "A <div className=\"grid …\"> inside the Section; className reaches the outer band, not the column."
+                "instead": "a <div className=\"grid …\"> inside the Section; className reaches the outer band, not the column."
               }
             ],
             "do": [
@@ -4294,8 +4390,14 @@
               "Spreads every other <section> attribute (aria-labelledby, aria-label, data-*). The app's copy accepts only children, className and id, so its bands cannot be named and are not landmarks."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — the hero's own full-height layout, a grid inside the band — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [
@@ -4353,7 +4455,7 @@
       "meta": {
         "level": "atom",
         "status": "beta",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "contract": {
           "name": "ShimmerText",
           "level": "atom",
@@ -4466,11 +4568,11 @@
               },
               {
                 "situation": "Headlines, body copy or numbers",
-                "instead": "Plain text; WordsPullUp or FadeRise for an entrance that happens once."
+                "instead": "plain text; a motion wrapper for an entrance that happens once."
               },
               {
                 "situation": "Showing that something is loading",
-                "instead": "DotMatrix, or a sentence that names what is loading."
+                "instead": "a sentence that names what is loading."
               }
             ],
             "do": [
@@ -4525,12 +4627,18 @@
             "placement": "Inside the small chip in the app's top bar (rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold). One per view."
           },
           "appCounterpart": null,
-          "version": "0.1.0",
+          "version": "0.1.1",
           "changelog": [
+            {
+              "version": "0.1.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — plain text, a motion wrapper, a sentence that names what is loading — because the system has no component for them."
+              ]
+            },
             {
               "version": "0.1.0",
               "changes": [
-                "First version. A clean-room replacement for the vendored text shine behind the product's top-bar \"Premium\" chip (PremiumShine in platform/AppShell.tsx): CSS only, colours from tokens instead of resolved props, reduced motion checked by the component itself."
+                "First version. A clean-room replacement for the vendored text shine behind the product's top-bar \"Premium\" chip: CSS only, colours from tokens instead of resolved props, reduced motion checked by the component itself."
               ]
             }
           ]
@@ -4581,7 +4689,7 @@
       "meta": {
         "level": "molecule",
         "status": "stable",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "contract": {
           "name": "Wordmark",
           "level": "molecule",
@@ -4616,7 +4724,7 @@
           ],
           "events": [],
           "motion": [
-            "None. The wordmark is static; an entrance, if any, belongs to the container (FadeRise, PopIn)."
+            "None. The wordmark is static; an entrance, if any, belongs to the container."
           ],
           "accessibility": {
             "role": "none (a plain <span>; the text is its content)",
@@ -4674,7 +4782,7 @@
               },
               {
                 "situation": "The brand inside a sentence",
-                "instead": "Plain text \"Mockio\", capitalised, in the sentence's own font."
+                "instead": "plain text \"Mockio\", capitalised, in the sentence's own font."
               },
               {
                 "situation": "A friendly presence above the name on an entry screen",
@@ -4732,11 +4840,17 @@
             "exportName": "Wordmark",
             "differences": [
               "Sets dir=\"ltr\" on the lockup, so the mark stays before the name in right-to-left locales; the app's copy flips the mark to the right of the name in Arabic and Hebrew.",
-              "Exports WordmarkProps as an interface; the app's props are an inline type."
+              "Exports its props as an interface; the app's props are an inline type."
             ]
           },
-          "version": "1.0.0",
+          "version": "1.0.1",
           "changelog": [
+            {
+              "version": "1.0.1",
+              "changes": [
+                "Nothing changes for a screen: the alternatives are named in plain words now — plain text, the mark alone — because the system has no component for them."
+              ]
+            },
             {
               "version": "1.0.0",
               "changes": [

@@ -54,19 +54,19 @@ export const ActionContract = defineContract({
     onClick: {
       type: "(event: MouseEvent<HTMLButtonElement>) => void",
       required: false,
-      description: "Native click handler. Fires on pointer click, Enter and Space.",
+      description: "Native click handler. Fires on pointer click, `Enter` and `Space`.",
     },
   },
   slots: [{ name: "children", description: "Text, optionally preceded by a 16px lucide icon with aria-hidden." }],
   states: [
     { name: "default", description: "Resting fill for the tone.", trigger: "Initial render." },
     { name: "hover", description: "solid brightens 10%; neutral dims to 90%; quiet, glass and ghost take the lifted surface. Only on devices that can hover.", trigger: "Pointer over the button (hover: hover)." },
-    { name: "pressed", description: "solid, neutral and glass translate down by their edge height (4px / 3px) and lose the edge; quiet has no edge, so it scales to 97% instead. All answer in 75ms.", trigger: ":active — pointer down, or Space held." },
+    { name: "pressed", description: "solid, neutral and glass translate down by their edge height (4px / 3px) and lose the edge; quiet has no edge, so it scales to 97% instead. All answer in 75ms.", trigger: ":active — pointer down, or `Space` held." },
     { name: "focus-visible", description: "2px accent ring with a 2px offset in the page colour.", trigger: "Keyboard focus." },
     { name: "disabled", description: "solid becomes the neutral lifted grey with faint ink and no edge; quiet dims to 70%; the other tones drop to 40% opacity. No pointer events.", trigger: "disabled={true}" },
   ],
   events: [
-    { name: "onClick", signature: "(event: MouseEvent<HTMLButtonElement>) => void", firesWhen: "Click, Enter or Space — never while disabled." },
+    { name: "onClick", signature: "(event: MouseEvent<HTMLButtonElement>) => void", firesWhen: "Click, `Enter` or `Space` — never while disabled." },
   ],
   motion: [
     "Press: transform and shadow in 75ms with the press ease-out (cubic-bezier(0.23, 1, 0.32, 1)); release in 150ms.",
@@ -107,10 +107,10 @@ export const ActionContract = defineContract({
       "The single most important next step of a screen (tone solid, often withArrow).",
     ],
     whenNot: [
-      { situation: "Navigating to another page as plain navigation", instead: "A link (<a> / router Link) styled as a link; wrap an Action in a Link only when the destination is a step forward." },
-      { situation: "Choosing one option among several", instead: "Segmented (2–5 options) or a radio group." },
-      { situation: "A destructive action with no undo", instead: "HoldButton, so a stray tap does nothing." },
-      { situation: "Toggling a setting on and off", instead: "Checkbox." },
+      { situation: "Navigating to another page as plain navigation", instead: "a link styled as a link (<a>), with the Action wrapped inside it only when the destination is a step forward." },
+      { situation: "Choosing one option among several", instead: "a radio group with 2–5 options, each with its own label." },
+      { situation: "A destructive action with no undo", instead: "an Action that asks for confirmation first, so a stray tap does nothing." },
+      { situation: "Toggling a setting on and off", instead: "a native checkbox (<input type=\"checkbox\">) with its own label." },
     ],
     do: [
       "One solid Action per view; demote the rest to neutral, quiet or ghost.",
@@ -152,8 +152,12 @@ export const ActionContract = defineContract({
       "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (4px / 3px). The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press.",
     ],
   },
-  version: "1.1.0",
+  version: "1.1.1",
   changelog: [
+    {
+      version: "1.1.1",
+      changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a link, a radio group, an Action that asks for confirmation first, a native checkbox — because the system has no component for them."],
+    },
     {
       version: "1.1.0",
       changes: [

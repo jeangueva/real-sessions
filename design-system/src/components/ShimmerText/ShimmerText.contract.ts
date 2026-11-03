@@ -93,8 +93,8 @@ export const ShimmerTextContract = defineContract({
     whenNot: [
       { situation: "A call to action", instead: "Action with tone solid. Emphasis comes from tone, not from motion." },
       { situation: "Marking an option as part of the paid plan", instead: "PremiumMark." },
-      { situation: "Headlines, body copy or numbers", instead: "Plain text; WordsPullUp or FadeRise for an entrance that happens once." },
-      { situation: "Showing that something is loading", instead: "DotMatrix, or a sentence that names what is loading." },
+      { situation: "Headlines, body copy or numbers", instead: "plain text; a motion wrapper for an entrance that happens once." },
+      { situation: "Showing that something is loading", instead: "a sentence that names what is loading." },
     ],
     do: [
       "One per view, in the chrome, on accent-soft or a page or card surface.",
@@ -133,12 +133,16 @@ export const ShimmerTextContract = defineContract({
     placement: "Inside the small chip in the app's top bar (rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold). One per view.",
   },
   appCounterpart: null,
-  version: "0.1.0",
+  version: "0.1.1",
   changelog: [
+    {
+      version: "0.1.1",
+      changes: ["Nothing changes for a screen: the alternatives are named in plain words now — plain text, a motion wrapper, a sentence that names what is loading — because the system has no component for them."],
+    },
     {
       version: "0.1.0",
       changes: [
-        "First version. A clean-room replacement for the vendored text shine behind the product's top-bar \"Premium\" chip (PremiumShine in platform/AppShell.tsx): CSS only, colours from tokens instead of resolved props, reduced motion checked by the component itself.",
+        "First version. A clean-room replacement for the vendored text shine behind the product's top-bar \"Premium\" chip: CSS only, colours from tokens instead of resolved props, reduced motion checked by the component itself.",
       ],
     },
   ],

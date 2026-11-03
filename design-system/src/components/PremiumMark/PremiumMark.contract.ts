@@ -60,7 +60,7 @@ export const PremiumMarkContract = defineContract({
     whenNot: [
       { situation: "Saying the paid plan is active for this person", instead: "ShimmerText in the top bar's \"Premium\" chip." },
       { situation: "A status of the current screen", instead: "Badge." },
-      { situation: "Explaining what the paid plan adds", instead: "A sentence beside the option with a link to the plans (\"Ver los planes\")." },
+      { situation: "Explaining what the paid plan adds", instead: "a sentence beside the option with a link to the plans (\"Ver los planes\")." },
     ],
     do: [
       "Keep the marked option visible and pressable; let the press explain or open the plans.",
@@ -105,6 +105,8 @@ export const PremiumMarkContract = defineContract({
       "A blank label falls back to the default instead of rendering an image with no name.",
     ],
   },
-  version: "1.0.0",
-  changelog: [{ version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
+  version: "1.0.1",
+  changelog: [
+    { version: "1.0.1", changes: ["Nothing changes for a screen: the alternative is named in plain words now — a sentence beside the option — because the system has no component for it."] },
+    { version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
 });
