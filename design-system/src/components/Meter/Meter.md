@@ -37,7 +37,7 @@ draw more than the whole.
 
 ## Writing
 
-- The name says what is measured: _Claridad_, _Tu turno_, _Respuestas
+- The name says what is measured: _Claridad_, _Vocabulario_, _Respuestas
   practicadas_.
 - The suffix is short — `%`, or nothing for a count. "Puntos" belongs in the
   name, not in the suffix.

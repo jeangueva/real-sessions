@@ -28,7 +28,7 @@ the next step without reading every label.
 | `neutral` | A confident secondary next to a primary | Destructive actions |
 | `quiet` | A rare errand beside the loud action — sign out, cancel a plan | The main path forward |
 | `glass` | Actions over video or photography | Plain surfaces — it disappears |
-| `ghost` | Cancel, skip, "Ahora no" | The only action on a screen |
+| `ghost` | Cancel, skip, "Cancelar" | The only action on a screen |
 
 ## When to use it
 
@@ -38,7 +38,7 @@ the next step without reading every label.
   `withArrow`: _Sube tu tesis gratis_, _Empezar ensayo_.
 - A rare errand that must not compete with the loud action — `quiet`:
   _Cerrar sesión_.
-- A quiet way out of a flow — `ghost`: _Ahora no_, _Cancelar_.
+- A quiet way out of a flow — `ghost`: _Cancelar_.
 
 ## Interaction
 

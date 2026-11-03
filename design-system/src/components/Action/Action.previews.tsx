@@ -21,13 +21,13 @@ export const ActionPreviews = definePreviews([
         <Action>Ensayar</Action>
         <Action tone="neutral">Ver planes</Action>
         <Action tone="quiet">Cerrar sesión</Action>
-        <Action tone="ghost">Ahora no</Action>
+        <Action tone="ghost">Cancelar</Action>
       </div>
     ),
     code: `<Action>Ensayar</Action>
 <Action tone="neutral">Ver planes</Action>
 <Action tone="quiet">Cerrar sesión</Action>
-<Action tone="ghost">Ahora no</Action>`,
+<Action tone="ghost">Cancelar</Action>`,
   },
   {
     id: "glass",
@@ -81,10 +81,10 @@ export const ActionPreviews = definePreviews([
     description: "On a phone the primary spans the column so the thumb cannot miss it.",
     render: () => (
       <Action withArrow className="w-full">
-        Terminar y ver informe
+        Terminar y ver el informe
       </Action>
     ),
-    code: `<Action withArrow className="w-full">Terminar y ver informe</Action>`,
+    code: `<Action withArrow className="w-full">Terminar y ver el informe</Action>`,
   },
   {
     id: "two-primaries",

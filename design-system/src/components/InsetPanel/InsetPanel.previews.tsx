@@ -11,14 +11,14 @@ export const InsetPanelPreviews = definePreviews([
     description:
       "A step of the widget's own surface, so a row inside a card reads as belonging to it rather than floating next to it.",
     render: () => (
-      <Widget label="::CASOS">
+      <Widget label="01 · Educación">
         <InsetPanel className="flex items-center gap-3">
           <IconTile>01</IconTile>
           <span className="text-sm text-cream-bright">Recuperación tras una interrupción de red</span>
         </InsetPanel>
       </Widget>
     ),
-    code: `<Widget label="::CASOS">
+    code: `<Widget label="01 · Educación">
   <InsetPanel className="flex items-center gap-3">
     <IconTile>01</IconTile>
     <span>Recuperación tras una interrupción de red</span>

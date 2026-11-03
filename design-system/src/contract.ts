@@ -81,7 +81,12 @@ export interface ContentContract {
   voice: string[];
   /** Length limits, e.g. "Label: 1–3 words, ≤ 24 characters". */
   limits: string[];
-  /** Good copy, quoted from the product. */
+  /**
+   * Good copy, in the product's voice: what the product says, or the default
+   * the system itself ships. Never invented — `test/copy.test.ts` fails when
+   * an example is a string no source in the product or the system can
+   * produce.
+   */
   examples: string[];
 }
 

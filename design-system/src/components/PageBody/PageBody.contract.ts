@@ -78,7 +78,7 @@ export const PageBodyContract = defineContract({
     examples: [
       "Leyendo tu tesis… puede tardar hasta dos minutos.",
       "Agrega el puesto para el que te estás preparando.",
-      "Todavía no hay nada que graficar",
+      "Todavía no hay entrevistas",
     ],
   },
   usage: {
@@ -137,8 +137,12 @@ export const PageBodyContract = defineContract({
       "Spreads every other <div> attribute (id, aria-*, data-*). The app's copy accepts only children and className.",
     ],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    {
+      version: "1.0.2",
+      changes: ["The example is the product's own empty state now: \"Todavía no hay entrevistas\". — nothing changes for a screen."],
+    },
     {
       version: "1.0.1",
       changes: ["Nothing changes for a screen: the blocks inside bring their own entrance, and the contract no longer names a wrapper the system does not have."],

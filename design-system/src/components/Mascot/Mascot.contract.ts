@@ -74,10 +74,10 @@ export const MascotContract = defineContract({
       "The alt names the character and the stage, nothing more: \"Mocki, nivel 3\". No adjectives, no celebration.",
       "Mocki is a name: not translated, never with an article in Spanish (\"Mocki crece contigo\", not \"el Mocki\").",
       "Copy around Mocki follows the product voice: no exclamation marks, even at a level-up.",
-      "Beside an XP level (\"Nivel 7\"), pass the form wording as alt (\"Mocki, forma 4 de 6\") so the stage and the level are not two different numbers both called nivel.",
+      "Beside an XP level (\"7 XP en total\"), pass the form wording as alt (\"Mocki, forma 4 de 6\") so the stage and the level are not two different numbers both called nivel.",
     ],
     limits: ["alt: under 60 characters, one phrase, no full stop."],
-    examples: ["Mocki, nivel 3", "Mocki, forma 3 de 6", "Y Mocki crece contigo."],
+    examples: ["Mocki, nivel 3", "Y Mocki crece contigo."],
   },
   usage: {
     when: [
@@ -136,8 +136,12 @@ export const MascotContract = defineContract({
       "Drops the axis prop, which the app's copy accepted and ignored.",
     ],
   },
-  version: "0.1.2",
+  version: "0.1.3",
   changelog: [
+    {
+      version: "0.1.3",
+      changes: ["The examples are the product's own words now: the alt the component ships, the product's line about Mocki, and the product's \"7 XP en total\". — nothing changes for a screen."],
+    },
     { version: "0.1.2", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — no character, the number as text, a sentence — and the stage is described as the experience level."] },
     { version: "0.1.1", changes: ["The six stages recoloured from violet to mustard, the same PNGs the product ships in public/avatars/."] },
     { version: "0.1.0", changes: ["First version: Mocki's six stages as a self-contained component, with a localisable alt and a decorative mode."] },

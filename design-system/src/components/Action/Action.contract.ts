@@ -93,13 +93,13 @@ export const ActionContract = defineContract({
   },
   content: {
     voice: [
-      "Start with a verb, in the imperative, tú form in Spanish: \"Ensayar\", \"Sube tu tesis\", \"Ver mi acta\".",
+      "Start with a verb, in the imperative, tú form in Spanish: \"Ensayar\", \"Sube tu tesis\", \"Ver planes\".",
       "Sentence case. No final period. No exclamation marks.",
-      "Say the outcome, not the mechanism: \"Ver mi informe\" rather than \"Enviar\".",
+      "Say the outcome, not the mechanism: \"Terminar y ver el informe\" rather than \"Continuar\".",
       "Free things say so in the label when price is the obstacle: \"Sube tu tesis gratis\".",
     ],
     limits: ["1–4 words; ≤ 28 characters so it stays on one line at 320px."],
-    examples: ["Sube tu tesis gratis", "Ensayar", "Terminar y ver informe", "Copiar enlace", "Invitar a tu compañero"],
+    examples: ["Sube tu tesis gratis", "Ensayar", "Terminar y ver el informe", "Copiar enlace", "Invitar a tu compañero"],
   },
   usage: {
     when: [
@@ -152,8 +152,12 @@ export const ActionContract = defineContract({
       "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (`active:translate-y-[4px]`, `active:translate-y-[3px]`). The hover is a touch brighter in the system (`hover:brightness-110`) than in the product's copy (`hover:brightness-105`), and the glass tone's edge carries the 3px key the copy does not (`shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)]` against the copy's `shadow-[inset_0_0_0_1px_var(--line)]`). The edge also goes away when the button is disabled (`disabled:shadow-none`), which the flat copy has no need of. The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press.",
     ],
   },
-  version: "1.1.2",
+  version: "1.1.3",
   changelog: [
+    {
+      version: "1.1.3",
+      changes: ["The examples are the product's own words now: \"Terminar y ver el informe\" rather than a shortened \"Terminar y ver informe\", and \"Cancelar\" where the preview said \"Ahora no\". — nothing changes for a screen."],
+    },
     {
       version: "1.1.2",
       changes: ["The contract now names the class names of the difference: the system's press translates and the product's copy scales, and the hover and the glass edge differ too. Nothing changes for a screen."],

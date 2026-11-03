@@ -86,7 +86,7 @@ export const NoticeContract = defineContract({
   },
   content: {
     voice: [
-      "Say what happened and what to do next: \"Guardamos tu avance.\" \"No pudimos subir el archivo: pesa más de 300 MB.\"",
+      "Say what happened and what to do next: \"Listo. Entra tranquilo: ya lo ensayaste.\" \"Ese archivo no lo podemos leer. Usa PDF, Word (.docx) o una foto (JPG o PNG).\"",
       "Never blame the person. The product does not mark anyone wrong: the error names what failed, not who.",
       "Tú form, sentence case, no exclamation marks. One or two sentences.",
     ],
@@ -94,7 +94,7 @@ export const NoticeContract = defineContract({
       "Message: one sentence, about 80 characters at 320px; two at most.",
       "The message states the whole thing: a notice that needs a paragraph belongs in the body of the screen.",
     ],
-    examples: ["Guardamos tu avance.", "No pudimos subir el archivo: pesa más de 300 MB.", "Listo: tu tesis ya está en revisión."],
+    examples: ["Preparando tu material… tarda menos de un minuto.", "Ese archivo no lo podemos leer. Usa PDF, Word (.docx) o una foto (JPG o PNG).", "Listo. Entra tranquilo: ya lo ensayaste."],
   },
   usage: {
     when: [
@@ -156,8 +156,12 @@ export const NoticeContract = defineContract({
     exportName: "Notice",
     differences: ["None: the app's copy is this component, prop for prop."],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    {
+      version: "1.0.2",
+      changes: ["The examples are the product's own messages now, including the one about a file that cannot be read. — nothing changes for a screen."],
+    },
     { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the field's own hint, the copy on the screen, nothing at all."] },
     { version: "1.0.0", changes: ["First documented version, taken from the product's own copy of the component."] },
   ],

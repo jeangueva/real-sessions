@@ -35,7 +35,7 @@ never looks like something to tap.
 
 ## Writing
 
-- A noun phrase, not a sentence: "general", "tu cuenta", "qué funcionó".
+- A noun phrase, not a sentence: "general", "tu cuenta", "Qué funcionó".
 - Write the words in the case you want them read; the component sets the
   capitals.
 - No final period, no colon of your own, no exclamation mark.

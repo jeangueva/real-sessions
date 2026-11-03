@@ -36,7 +36,7 @@ turn.
 
 ## Writing
 
-- Say what happened and what to do next: _Guardamos tu avance._, _No pudimos
+- Say what happened and what to do next: _Listo. Entra tranquilo: ya lo ensayaste._, _No pudimos
   subir el archivo: pesa más de 300 MB._
 - Never blame the person. The error names what failed, not who: there is no
   red in this product, and nothing here marks anyone wrong.
