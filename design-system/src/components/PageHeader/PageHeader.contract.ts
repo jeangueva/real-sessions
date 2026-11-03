@@ -153,13 +153,17 @@ export const PageHeaderContract = defineContract({
     file: "platform/AppShell.tsx",
     exportName: "PageHeader",
     differences: [
-      "The title is light (font-light, tracking -0.045em) in the app's copy and bold here. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
-      "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on the thesis screen a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
-      "Adds width (\"wide\" | \"reading\") to match PageBody's; the app's copy is always max-w-[110rem], so its title does not line up with a narrower body.",
+      "The title is light (`font-light`) in the app's copy and bold (`font-bold`) here, with its leading and tracking to match. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
+      "The meta renders on one line (`line-clamp-1`) with the full text in a title attribute. The app's copy lets it wrap (`text-pretty`) inside a 46rem measure (`max-w-[46rem]`), so on the thesis screen a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
+      "Adds width (\"wide\" | \"reading\") to match PageBody's: the reading ceiling is `max-w-3xl` here, and the app's copy has no width prop at all, so its title does not line up with a narrower body.",
     ],
   },
-  version: "1.1.1",
+  version: "1.1.2",
   changelog: [
+    {
+      version: "1.1.2",
+      changes: ["The contract now names the class names of the difference: the title's weight, the measure the meta wraps in and the reading ceiling."],
+    },
     {
       version: "1.1.1",
       changes: ["Nothing changes for a screen: the alternatives are named in plain words now — the hero's own h1, an h2 in a Panel — because the system has no component for them."],

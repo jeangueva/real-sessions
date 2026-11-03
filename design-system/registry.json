@@ -354,7 +354,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "contract": {
           "name": "Action",
           "level": "atom",
@@ -592,11 +592,17 @@
             "exportName": "Action",
             "differences": [
               "Defaults type to \"button\" so it never submits a form by accident; the app's copy relies on the native default (submit).",
-              "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (4px / 3px). The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press."
+              "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (`active:translate-y-[4px]`, `active:translate-y-[3px]`). The hover is a touch brighter in the system (`hover:brightness-110`) than in the product's copy (`hover:brightness-105`), and the glass tone's edge carries the 3px key the copy does not (`shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)]` against the copy's `shadow-[inset_0_0_0_1px_var(--line)]`). The edge also goes away when the button is disabled (`disabled:shadow-none`), which the flat copy has no need of. The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press."
             ]
           },
-          "version": "1.1.1",
+          "version": "1.1.2",
           "changelog": [
+            {
+              "version": "1.1.2",
+              "changes": [
+                "The contract now names the class names of the difference: the system's press translates and the product's copy scales, and the hover and the glass edge differ too. Nothing changes for a screen."
+              ]
+            },
             {
               "version": "1.1.1",
               "changes": [
@@ -907,7 +913,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "contract": {
           "name": "Badge",
           "level": "atom",
@@ -1088,12 +1094,18 @@
             "exportName": "Badge",
             "differences": [
               "Accepts className and native span attributes (role, id, data-*); the app's copy takes children and tone only.",
-              "The live dot animates only under motion-safe:; the app's copy relies on the global reduced-motion stylesheet to stop it.",
-              "The live dot is shrink-0, so it keeps its size when the label wraps."
+              "The live dot animates only under `motion-safe:animate-live`; the app's copy writes `animate-live` and relies on the global reduced-motion stylesheet to stop it.",
+              "The live dot is `shrink-0`, so it keeps its size when the label wraps; the app's copy does not hold its size."
             ]
           },
-          "version": "1.0.1",
+          "version": "1.0.2",
           "changelog": [
+            {
+              "version": "1.0.2",
+              "changes": [
+                "The contract now names the class names of the difference: the system's dot animates under motion-safe and the product's copy writes the plain animation."
+              ]
+            },
             {
               "version": "1.0.1",
               "changes": [
@@ -1156,7 +1168,7 @@
       "meta": {
         "level": "atom",
         "status": "stable",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "contract": {
           "name": "CheckItem",
           "level": "atom",
@@ -1308,11 +1320,17 @@
             "exportName": "CheckItem",
             "differences": [
               "Accepts className and native <li> attributes; the app's copy takes children only.",
-              "Wraps children in a single span, so mixed inline content stays one flex item; the app's copy lays each child out as its own flex item."
+              "Wraps children in a single `min-w-0` span, so mixed inline content stays one flex item and can shrink; the app's copy lays each child out as its own flex item."
             ]
           },
-          "version": "1.0.1",
+          "version": "1.0.2",
           "changelog": [
+            {
+              "version": "1.0.2",
+              "changes": [
+                "The contract now names the class name of the difference: the system wraps the children in a min-w-0 span."
+              ]
+            },
             {
               "version": "1.0.1",
               "changes": [
@@ -4398,7 +4416,7 @@
       "meta": {
         "level": "template",
         "status": "stable",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "contract": {
           "name": "PageHeader",
           "level": "template",
@@ -4608,13 +4626,19 @@
             "file": "platform/AppShell.tsx",
             "exportName": "PageHeader",
             "differences": [
-              "The title is light (font-light, tracking -0.045em) in the app's copy and bold here. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
-              "The meta renders on one line (line-clamp-1) with the full text in a title attribute. The app's copy lets it wrap inside a 46rem measure, so on the thesis screen a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
-              "Adds width (\"wide\" | \"reading\") to match PageBody's; the app's copy is always max-w-[110rem], so its title does not line up with a narrower body."
+              "The title is light (`font-light`) in the app's copy and bold (`font-bold`) here, with its leading and tracking to match. The weight is the app's call: a light heading on the dark ground is quieter, and the app is the one people read.",
+              "The meta renders on one line (`line-clamp-1`) with the full text in a title attribute. The app's copy lets it wrap (`text-pretty`) inside a 46rem measure (`max-w-[46rem]`), so on the thesis screen a 25-word thesis title becomes the longest block of the header; this is the minimalist redesign's decision, ahead of the product.",
+              "Adds width (\"wide\" | \"reading\") to match PageBody's: the reading ceiling is `max-w-3xl` here, and the app's copy has no width prop at all, so its title does not line up with a narrower body."
             ]
           },
-          "version": "1.1.1",
+          "version": "1.1.2",
           "changelog": [
+            {
+              "version": "1.1.2",
+              "changes": [
+                "The contract now names the class names of the difference: the title's weight, the measure the meta wraps in and the reading ceiling."
+              ]
+            },
             {
               "version": "1.1.1",
               "changes": [

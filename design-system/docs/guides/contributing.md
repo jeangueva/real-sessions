@@ -110,7 +110,20 @@ off:
 - **Counterparts**: a contract's `appCounterpart` names the product's copy
   (`file` under `web/src`, `exportName`) and the deliberate `differences`.
   `test/contracts.test.ts` fails if that file is gone or no longer exports the
-  name.
+  name, and `test/counterparts.test.ts` compares the two copies for real: the
+  props they accept, the values they take, and **the class names they
+  render**. The last one is the whole vocabulary — a padding, a radius, a
+  colour, a shadow, a press — so a difference that is not written down fails
+  the build. When the two genuinely differ, `differences` names a class name
+  for every **aspect** of the difference: the fill, the ink, the type, the
+  shape, the shadow, the space, the layout, and each state the difference is
+  in (the hover, the press, the disabled one). "`active:translate-y-[4px]`"
+  against "`active:scale-[0.97]`" says what a reader of the contract cannot
+  see; a contract that explains the press and says nothing about the fill has
+  not explained the difference.
+- **Pointers**: `test/pointers.test.ts` reads the prose of every contract and
+  of every guidance file, and fails when a name in it is not a component of
+  this system (see below).
 
 Both run only when `../web` exists, so they are skipped in a split-out
 repository (see [Separate repository](./separate-repo.md)).
@@ -137,7 +150,8 @@ person either stops trusting the contracts or writes a second copy. So:
 - Every other capitalised word in the prose is a component of this system, or
   a proper noun listed in `PROPER_NOUNS` with the reason it is not one (a
   language, the mascot, a platform).
-- The Markdown's "When not to use it" says the same thing.
+- The Markdown says the same thing: every name in a code span is a component
+  of this system.
 
 The product's own copy is named where it belongs: in `appCounterpart`, by its
 file and its export name. The prose around it talks about the product in
@@ -162,6 +176,8 @@ plain words.
 - [ ] The product's counterpart updated, or the difference recorded.
 - [ ] Every pointer in the contract and in the guidance names a component
       this system has, or is written in plain words.
+- [ ] If the product's copy renders differently, `differences` names the
+      class names on each side.
 - [ ] Nothing derived from React Bits or other code whose licence forbids
       redistribution: the registry hands these files to other tools.
 - [ ] `npm run check` passes locally.
