@@ -1,0 +1,200 @@
+/**
+ * The documentation site's own styles.
+ *
+ * Everything else comes from the system's stylesheet (imported in main.tsx),
+ * so the site is a consumer of the system like any other consumer. What
+ * lives here is what Tailwind's utilities do not cover: the typography of a
+ * Markdown document, and the shell's own surfaces.
+ */
+
+/* ------------------------------------------------------------------ *
+ * The Markdown.
+ *
+ * The guides and the foundations are written by hand and read as
+ * documents, so they get a document's typography rather than a stack of
+ * utility classes. Every colour comes from a token.
+ * ------------------------------------------------------------------ */
+
+.doc {
+  color: rgb(var(--cream) / 0.85);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  max-width: 46rem;
+}
+
+.doc > * + * {
+  margin-top: 1rem;
+}
+
+.doc h2 {
+  color: rgb(var(--cream-bright));
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.018em;
+  margin-top: 2.5rem;
+}
+
+.doc h3 {
+  color: rgb(var(--cream-bright));
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.75rem;
+}
+
+.doc h4 {
+  color: rgb(var(--cream) / 0.85);
+  font-family: theme("fontFamily.mono");
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 1.5rem;
+}
+
+.doc strong {
+  color: rgb(var(--cream-bright));
+  font-weight: 600;
+}
+
+.doc a {
+  color: rgb(var(--accent-text));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.doc ul,
+.doc ol {
+  padding-left: 1.25rem;
+}
+
+.doc li + li {
+  margin-top: 0.4rem;
+}
+
+.doc li::marker {
+  color: rgb(var(--cream) / 0.45);
+}
+
+.doc blockquote {
+  border-left: 2px solid rgb(var(--accent) / 0.55);
+  padding-left: 1rem;
+  color: rgb(var(--cream) / 0.75);
+}
+
+.doc hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2rem 0;
+}
+
+/* Tables: the contracts are read as tables, so the tables are the point. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* A token in a table is a token, not a sentence: it never breaks in half. */
+.doc td code,
+.doc th code {
+  white-space: nowrap;
+}
+
+.doc th {
+  text-align: left;
+  font-weight: 600;
+  color: rgb(var(--cream-bright));
+  font-size: 0.8125rem;
+  font-family: theme("fontFamily.mono");
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.doc td {
+  padding: 0.6rem 0.75rem 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.doc tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.doc code {
+  font-family: theme("fontFamily.mono");
+  font-size: 0.85em;
+  background: rgb(var(--cream) / 0.09);
+  border-radius: 0.35em;
+  padding: 0.12em 0.4em;
+  color: rgb(var(--cream-bright));
+  word-break: break-word;
+}
+
+.doc pre {
+  background: rgb(var(--cream) / 0.05);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.doc pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: rgb(var(--cream) / 0.9);
+}
+
+/* ------------------------------------------------------------------ *
+ * The shell.
+ * ------------------------------------------------------------------ */
+
+/* A link that is a navigation, not a decoration: the underline is the
+   affordance, so it is always there and never on hover only. */
+.nav-link {
+  color: rgb(var(--cream) / 0.7);
+  transition: color 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.nav-link:hover {
+  color: rgb(var(--cream-bright));
+}
+
+.nav-link[aria-current="page"] {
+  color: rgb(var(--cream-bright));
+}
+
+/* The card a specimen sits on: the surface, a hairline, and nothing else.
+   The system has no decorative borders, so neither has the site. */
+.surface {
+  background: rgb(var(--surface-card) / 0.55);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+}
+
+/* The scrollbar of the sidebar, thin and quiet. */
+.quiet-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--cream) / 0.18) transparent;
+}
+
+.quiet-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.quiet-scroll::-webkit-scrollbar-thumb {
+  background: rgb(var(--cream) / 0.18);
+  border-radius: 999px;
+}

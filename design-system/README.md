@@ -66,7 +66,21 @@ Dark is the default; `data-theme="light"` on `<html>` turns it light.
 | [Lunagraph](docs/guides/lunagraph.md) | Bringing the system into the Lunagraph canvas |
 | [The registry](docs/guides/registry.md) | `registry.json`, its items and `meta.contract` |
 | [Contributing](docs/guides/contributing.md) | Adding or changing a component, versions, checks, review |
+| [The Figma library](docs/guides/figma.md) | The Figma library as a view of this package, and the script that checks the two agree |
 | [Separate repository](docs/guides/separate-repo.md) | Moving this folder to its own repository with its history |
+
+## Foundations
+
+| Foundation | For |
+| --- | --- |
+| [Colour](docs/foundations/colour.md) | The palette as roles, the two themes, and the rules that keep a colour from meaning something it should not |
+| [Type](docs/foundations/type.md) | One family, two voices, the scale, and the rules that keep a heading a heading |
+| [Motion](docs/foundations/motion.md) | One curve, a short list of durations, and the rules that keep an animation from being noise |
+| [Voice](docs/foundations/voice.md) | How the product speaks — Spanish first, tú, calm — and what it never says |
+
+The site reads all of these: the foundations and the guides are the pages
+under **Foundations** and **Guides**, and a component's own `.md` is the
+guidance at the bottom of its page.
 
 AI agents and Claude Code: read [AGENTS.md](AGENTS.md).
 

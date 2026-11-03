@@ -67,8 +67,13 @@ jobs:
       # Generated files, types, contracts, previews (rendered and run through
       # axe) and tokens against web/src/index.css. A colour changed in the
       # product and not in the system fails here, not months later.
+      #
+      # The site is built too: it is the system's front door, and a front
+      # door that does not open is a broken system.
       - name: Design system
-        run: npm --prefix design-system run check
+        run: |
+          npm --prefix design-system run check
+          npm --prefix design-system run build
 
       - name: Build
         run: npm --prefix web run build
