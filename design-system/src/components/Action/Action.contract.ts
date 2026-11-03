@@ -149,11 +149,15 @@ export const ActionContract = defineContract({
     exportName: "Action",
     differences: [
       "Defaults type to \"button\" so it never submits a form by accident; the app's copy relies on the native default (submit).",
-      "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (4px / 3px). The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press.",
+      "The press depth differs. This copy is the flat one: the button has no bottom edge and the press is a 3% scale, in every tone. The system's solid, neutral and glass carry an edge the face sinks into (`active:translate-y-[4px]`, `active:translate-y-[3px]`). The hover is a touch brighter in the system (`hover:brightness-110`) than in the product's copy (`hover:brightness-105`), and the glass tone's edge carries the 3px key the copy does not (`shadow-[inset_0_0_0_1px_var(--line),0_3px_0_var(--line-strong)]` against the copy's `shadow-[inset_0_0_0_1px_var(--line)]`). The edge also goes away when the button is disabled (`disabled:shadow-none`), which the flat copy has no need of. The quiet tone is the one that agrees on both sides: a hairline, no edge, and a 3% scale on press.",
     ],
   },
-  version: "1.1.1",
+  version: "1.1.2",
   changelog: [
+    {
+      version: "1.1.2",
+      changes: ["The contract now names the class names of the difference: the system's press translates and the product's copy scales, and the hover and the glass edge differ too. Nothing changes for a screen."],
+    },
     {
       version: "1.1.1",
       changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a link, a radio group, an Action that asks for confirmation first, a native checkbox — because the system has no component for them."],

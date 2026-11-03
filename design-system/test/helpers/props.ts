@@ -238,23 +238,54 @@ export function unionLiterals(typeText: string): string[] | null {
 /**
  * The class names a component renders.
  *
- * Both sides of a counterpart are read this way: the system's component and
- * the copy the product ships. The set of class names says how each one looks,
- * which is the part of a component two copies of it can disagree about
- * without either one breaking.
+ * Two sources: the class names in its own markup, and the maps of variants it
+ * uses (`TONE[tone]`, `SURFACE[variant]`), which live above the component in
+ * the file. A map belongs to the component whose markup refers to it, which
+ * is how the two copies of a component are compared honestly: the tones of a
+ * button are most of what it looks like, and reading only the markup would
+ * miss all of them.
+ *
+ * The interpolations are dropped: `${className}` is not a class name, and
+ * what the caller adds is the caller's, not the component's.
  */
 export function classTokens(file: string, componentName: string): Set<string> {
   const source = read(file);
   if (!source) return new Set();
-  const region = componentRegion(source, componentName);
+  const clean = stripComments(source);
+  const region = componentRegion(clean, componentName);
   if (!region) return new Set();
 
   const tokens = new Set<string>();
+  const add = (text: string) => {
+    for (const token of text.split(/\s+/)) if (token) tokens.add(token);
+  };
+
   for (const match of region.matchAll(/className=\{?`([^`]*)`\}?/g)) {
-    for (const token of match[1]!.split(/\s+/)) if (token) tokens.add(token);
+    add(match[1]!.replace(/\$\{[^}]*\}/g, " "));
   }
-  for (const match of region.matchAll(/className="([^"]*)"/g)) {
-    for (const token of match[1]!.split(/\s+/)) if (token) tokens.add(token);
+  for (const match of region.matchAll(/className="([^"]*)"/g)) add(match[1]!);
+
+  // A local variable that holds the classes: `const surface = variant === "glass" ? "liquid-glass" : …`.
+  // The interpolation itself was dropped above, so the classes it stands for
+  // are read here. The names a variant is compared against are not classes,
+  // so the strings on the right of a comparison are left out.
+  for (const match of region.matchAll(/const ([A-Za-z_]\w*)\s*=\s*([^;]+);/g)) {
+    const name = match[1]!;
+    const value = match[2]!;
+    if (!region.includes("${" + name + "}")) continue;
+    for (const literal of value.matchAll(/"([^"]*)"/g)) {
+      const before = value.slice(0, literal.index).trimEnd();
+      if (before.endsWith("==") || before.endsWith("!=")) continue;
+      add(literal[1]!);
+    }
   }
+
+  for (const match of clean.matchAll(/^const ([A-Za-z_]\w*)\s*:\s*Record<[^=]*?>\s*=\s*\{([\s\S]*?)\n\};/gm)) {
+    const name = match[1]!;
+    const body = match[2]!;
+    if (!new RegExp(`\\b${name}\\b`).test(region)) continue;
+    for (const value of body.matchAll(/"([^"]*)"/g)) add(value[1]!);
+  }
+
   return tokens;
 }

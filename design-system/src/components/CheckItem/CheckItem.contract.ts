@@ -106,11 +106,12 @@ export const CheckItemContract = defineContract({
     exportName: "CheckItem",
     differences: [
       "Accepts className and native <li> attributes; the app's copy takes children only.",
-      "Wraps children in a single span, so mixed inline content stays one flex item; the app's copy lays each child out as its own flex item.",
+      "Wraps children in a single `min-w-0` span, so mixed inline content stays one flex item and can shrink; the app's copy lays each child out as its own flex item.",
     ],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    { version: "1.0.2", changes: ["The contract now names the class name of the difference: the system wraps the children in a min-w-0 span."] },
     { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a native checkbox, an ordered list, a table, a plain list — because the system has no component for them."] },
     { version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
 });

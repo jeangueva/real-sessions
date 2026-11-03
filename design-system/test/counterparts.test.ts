@@ -30,23 +30,105 @@ import { classTokens, componentRegion, counterpartProp, declaredProps } from "./
  *     the same holds in the other direction: either the contract declares it
  *     or the difference says so. A capability that grew in the product and
  *     stayed out of the contract is a promise nobody made and nobody keeps.
- *   - When the two render differently — a different size, weight, case or
- *     colour — the contract has to say so too. Two components can share a
- *     name and an API and still be different components, and that is exactly
- *     the kind of difference a reader of the contract cannot see.
+ *   - When the two render differently — a padding, a radius, a colour, a
+ *     shadow, a press — the contract has to say so too. Two components can
+ *     share a name and an API and still be different components, and that is
+ *     exactly the kind of difference a reader of the contract cannot see.
+ *     The whole vocabulary of class names is compared, not only the type: a
+ *     contract that says "the app's copy is this component" has to mean it.
  */
 
 const ROOT = path.resolve(__dirname, "..");
 const WEB_SRC = path.resolve(ROOT, "../web/src");
 
 /**
- * The class names that say how a thing looks: its size, weight, case and
- * colour. Arbitrary values are left out — `text-[1.5rem]` says nothing about
- * the scale the component is on — and so are the decorative ones (shadows,
- * rings, paddings), which components may disagree about without becoming
- * different components.
+ * The whole class vocabulary is compared, not only the type: a padding, a
+ * radius, a colour, a shadow, a press — a difference the reader of the
+ * contract cannot see, and the contract that says "the app's copy is this
+ * component" has to mean it.
+ *
+ * Naming one class name is not enough. A contract that explains the press
+ * but says nothing about the fill has not explained the difference, so the
+ * explanation has to cover every *aspect* of it: the fill, the ink, the
+ * type, the shape, the shadow, the space, the layout — and every state the
+ * difference is in (the hover, the press, the disabled one).
  */
-const TYPOGRAPHY = /^(?:text|font)-[a-z][a-z0-9-]*$|^(?:uppercase|lowercase|italic|tabular-nums)$/;
+
+/** What a class name is about. The utility's first word, grouped. */
+const ASPECT: Record<string, string> = {
+  bg: "fill",
+  from: "fill",
+  via: "fill",
+  to: "fill",
+  fill: "fill",
+  stroke: "fill",
+  divide: "fill",
+  outline: "fill",
+  decoration: "fill",
+  font: "type",
+  leading: "type",
+  tracking: "type",
+  uppercase: "type",
+  lowercase: "type",
+  italic: "type",
+  rounded: "shape",
+  ring: "shape",
+  border: "shape",
+  shadow: "shadow",
+  p: "space",
+  px: "space",
+  py: "space",
+  pt: "space",
+  pr: "space",
+  pb: "space",
+  pl: "space",
+  m: "space",
+  mx: "space",
+  my: "space",
+  gap: "space",
+  space: "space",
+  w: "size",
+  h: "size",
+  min: "size",
+  max: "size",
+  flex: "layout",
+  grid: "layout",
+  items: "layout",
+  justify: "layout",
+  inline: "layout",
+  block: "layout",
+  order: "layout",
+  opacity: "opacity",
+  transition: "motion",
+  duration: "motion",
+  ease: "motion",
+  animate: "motion",
+  translate: "transform",
+  scale: "transform",
+  rotate: "transform",
+};
+
+/** The sizes the type scale names, so a size is not read as a colour. */
+const TYPE_SIZES = new Set([
+  "xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl",
+  "title", "display", "headline",
+]);
+
+/** What a class name is about, so a contract can explain the difference. */
+function aspectOf(token: string): string {
+  const parts = token.split(":");
+  // A state is an aspect of its own: the hover, the press, the disabled one.
+  if (parts.length > 1) return parts[0]!;
+  const utility = parts[0]!;
+  if (utility.startsWith("text-")) {
+    const rest = utility.slice(5);
+    if (TYPE_SIZES.has(rest)) return "type";
+    if (["balance", "pretty", "nowrap", "ellipsis", "wrap"].includes(rest)) return "wrap";
+    return "ink";
+  }
+  const head = utility.split("-")[0]!;
+  return ASPECT[head] ?? head;
+}
 
 describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name, entry) => {
   const { contract } = entry;
@@ -110,15 +192,33 @@ describe.each(catalog.map((entry) => [entry.name, entry] as const))("%s", (name,
       if (!source || !region || !counterpart) return;
       const mine = classTokens(path.join(ROOT, contract.source), name);
       const theirs = classTokens(path.join(WEB_SRC, counterpart.file), counterpart.exportName);
-      const onlyMine = [...mine].filter((t) => TYPOGRAPHY.test(t) && !theirs.has(t));
-      const onlyTheirs = [...theirs].filter((t) => TYPOGRAPHY.test(t) && !mine.has(t));
+      const onlyMine = [...mine].filter((t) => !theirs.has(t)).sort();
+      const onlyTheirs = [...theirs].filter((t) => !mine.has(t)).sort();
       if (!onlyMine.length && !onlyTheirs.length) return;
 
+      // The whole vocabulary, not just the type: a padding, a radius or a
+      // colour that one side has and the other does not is a difference the
+      // reader of the contract cannot see, and the contract that says "the
+      // app's copy is this component" has to mean it.
       const differences = counterpart.differences.join(" ").toLowerCase();
-      const named = [...onlyMine, ...onlyTheirs].some((t) => differences.includes(t.toLowerCase()));
+      const differing = [...onlyMine, ...onlyTheirs];
+      const named = (tokens: string[]) => tokens.some((t) => differences.includes(t.toLowerCase()));
+
+      // Every aspect of the difference has to be explained: a contract that
+      // explains the press but says nothing about the fill has not explained
+      // the difference.
+      const aspects = new Map<string, string[]>();
+      for (const token of differing) {
+        const aspect = aspectOf(token);
+        aspects.set(aspect, [...(aspects.get(aspect) ?? []), token]);
+      }
+      const unexplained = [...aspects.entries()]
+        .filter(([, tokens]) => !named(tokens))
+        .map(([aspect, tokens]) => `${aspect} (${tokens.join(", ")})`);
+
       expect(
-        named,
-        `${name}: the two render differently and the contract says nothing about it. The system uses [${onlyMine.join(", ") || "—"}] where the product's copy uses [${onlyTheirs.join(", ") || "—"}]. Write it down in appCounterpart.differences, naming one of them.`,
+        unexplained.length === 0,
+        `${name}: the two render differently and the contract does not explain the ${unexplained.join("; ")}. The system uses [${onlyMine.join(", ") || "—"}] where the product's copy uses [${onlyTheirs.join(", ") || "—"}]. Write it down in appCounterpart.differences, naming a class name for each aspect.`,
       ).toBe(true);
     },
   );

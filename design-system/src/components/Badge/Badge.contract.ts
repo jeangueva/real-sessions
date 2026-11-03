@@ -125,12 +125,13 @@ export const BadgeContract = defineContract({
     exportName: "Badge",
     differences: [
       "Accepts className and native span attributes (role, id, data-*); the app's copy takes children and tone only.",
-      "The live dot animates only under motion-safe:; the app's copy relies on the global reduced-motion stylesheet to stop it.",
-      "The live dot is shrink-0, so it keeps its size when the label wraps.",
+      "The live dot animates only under `motion-safe:animate-live`; the app's copy writes `animate-live` and relies on the global reduced-motion stylesheet to stop it.",
+      "The live dot is `shrink-0`, so it keeps its size when the label wraps; the app's copy does not hold its size.",
     ],
   },
-  version: "1.0.1",
+  version: "1.0.2",
   changelog: [
+    { version: "1.0.2", changes: ["The contract now names the class names of the difference: the system's dot animates under motion-safe and the product's copy writes the plain animation."] },
     { version: "1.0.1", changes: ["Nothing changes for a screen: the alternatives are named in plain words now — a radio group, a Meter, a sentence that names what is loading — because the system has no component for them."] },
     { version: "1.0.0", changes: ["First documented version, extracted from the product."] }],
 });
