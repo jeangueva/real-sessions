@@ -42,7 +42,7 @@ const ICONS = `<svg width="0" height="0" style="position:absolute" aria-hidden="
 </svg>`;
 
 /** The product mark, also served as this service's favicon. */
-export const MARK = `<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#5856D6"/><path d="M36 27C50 25 56 39 48 48C48 41 44 38 36 38Z" fill="#EF9F27"/><path d="M20 21C19 13 23 8 30 7C27 11 28 15 32 18Z" fill="#fff"/><circle cx="28" cy="34" r="17" fill="#fff"/><circle cx="33" cy="29" r="3.6" fill="#26215C"/></svg>`;
+export const MARK = `<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#F6B733"/><path d="M36 27C50 25 56 39 48 48C48 41 44 38 36 38Z" fill="#D9481C"/><path d="M20 21C19 13 23 8 30 7C27 11 28 15 32 18Z" fill="#fff"/><circle cx="28" cy="34" r="17" fill="#fff"/><circle cx="33" cy="29" r="3.6" fill="#2E2D2A"/></svg>`;
 
 const icon = (name: string) => `<svg class="i" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 
@@ -60,7 +60,7 @@ function head(): string {
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><title>Mockio · Admin</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="stylesheet" href="/styles.css"></head>`;
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2"><link rel="stylesheet" href="/styles.css"></head>`;
 }
 
 export function renderApp(payload: unknown, viewer: string): string {
