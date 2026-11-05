@@ -137,10 +137,10 @@ services:
         sync: false
 
       # Voluntary support (Ko-fi): an https:// page such as
-      # https://ko-fi.com/<your-page>. Unset, the support panel says the link
+      # https://ko-fi.com/mockio. Unset, the support panel says the link
       # is not set up and no button is shown. It never unlocks anything.
       - key: REALSESSIONS_SUPPORT_URL
-        sync: false
+        value: https://ko-fi.com/mockio
 
       # "Continue with Google". Unset, the button is not shown and email
       # sign-in is the only way in.
