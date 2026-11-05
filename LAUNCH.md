@@ -1,7 +1,8 @@
 # Checklist de lanzamiento
 
 Lo que hay que configurar y comprobar para que Mockio funcione con usuarios
-reales. Todo se configura en **Render → servicio `real-sessions` →
+reales. Mockio es 100% gratuito: no vende planes ni packs, y el apoyo es
+voluntario, por Ko-fi. Todo se configura en **Render → servicio `real-sessions` →
 Environment**; los detalles técnicos están en [DEPLOY.md](DEPLOY.md).
 
 Después de cada cambio de variables, Render vuelve a desplegar. En **Logs**,
@@ -19,7 +20,7 @@ correspondiente.
 
 ## 1. Imprescindible
 
-Sin esto, el producto no funciona o no cobra.
+Sin esto, el producto no funciona.
 
 - [ ] **`OPENROUTER_API_KEY`** — el jurado, el entrevistador y los
   informes.
@@ -47,17 +48,15 @@ Sin esto, el producto no funciona o no cobra.
     apunta a la misma base y le escribiría a clientes reales.
   - Comprobar: con una fecha de sustentación guardada, a las 07:00 (hora de
     Lima) llega el correo de la cuenta regresiva.
-- [ ] **Mercado Pago** — los cobros en Perú.
-  - Dónde: [Mercado Pago Developers](https://www.mercadopago.com.pe/developers)
-    → Tus integraciones → tu aplicación → **Credenciales de producción**.
-  - `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_PUBLIC_KEY`.
-  - `MERCADOPAGO_MODE=live`. Con `test` no se cobra de verdad, y sin valor
-    el checkout no abre.
-  - Webhooks → URL `https://TU-DOMINIO/api/billing/webhook`, eventos de
-    pagos y suscripciones. Copia la clave secreta en
-    `MERCADOPAGO_WEBHOOK_SECRET`.
-  - Comprobar: compra el pack más barato con tu tarjeta (ver la prueba de
-    humo, abajo).
+- [ ] **`REALSESSIONS_SUPPORT_URL=https://ko-fi.com/mockio`** — el botón
+  "Abrir página de apoyo" del panel de apoyo voluntario.
+  - Va en los dos servicios, `real-sessions` y `mockio-admin`.
+  - En Ko-fi: PayPal conectado (Settings → Payments) y, para aportes
+    mensuales, un nivel en Memberships sin beneficios dentro de Mockio:
+    apoyar nunca desbloquea nada.
+  - Sin ella, el panel dice que el enlace no está configurado y no muestra
+    botón. Todo lo demás sigue funcionando.
+  - Comprobar: el botón abre ko-fi.com/mockio (ver la prueba de humo).
 - [ ] **`DEEPGRAM_API_KEY`** — la voz natural del jurado y la
   transcripción en vivo.
   - Dónde: [console.deepgram.com](https://console.deepgram.com) → API Keys.
@@ -73,14 +72,19 @@ Sin esto, el producto no funciona o no cobra.
 
 Cada una se apaga sola si falta, sin romper nada.
 
-- [ ] **Paddle** — cobrar fuera de Perú en la moneda de cada país, con
-  Paddle como vendedor registrado. Sin esto, todos pagan con Mercado Pago
-  en soles.
-  - Variables: `PADDLE_ENV` (`sandbox` o `production`), `PADDLE_API_KEY`,
-    `PADDLE_CLIENT_TOKEN`, `PADDLE_WEBHOOK_SECRET`, `PADDLE_PRICE_MONTHLY`,
-    `PADDLE_PRICE_YEARLY`.
-  - Webhook: `https://TU-DOMINIO/api/billing/paddle/webhook`.
-  - Pasos completos en `.env.example`.
+- [ ] **Mercado Pago y Paddle, solo si hay suscripciones antiguas** — ya no
+  se vende nada, pero quien pagó antes de que Mockio fuera gratuito debe
+  poder ver y cancelar su suscripción desde Ajustes, y los webhooks deben
+  seguir registrando renovaciones y cancelaciones.
+  - Si nunca hubo suscriptores, no hace falta ninguna de estas variables.
+  - Mercado Pago: `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_PUBLIC_KEY`,
+    `MERCADOPAGO_MODE=live` y `MERCADOPAGO_WEBHOOK_SECRET`; webhook en
+    `https://TU-DOMINIO/api/billing/webhook`.
+  - Paddle: `PADDLE_ENV`, `PADDLE_API_KEY`, `PADDLE_CLIENT_TOKEN`,
+    `PADDLE_WEBHOOK_SECRET`, `PADDLE_PRICE_MONTHLY`, `PADDLE_PRICE_YEARLY`;
+    webhook en `https://TU-DOMINIO/api/billing/paddle/webhook`.
+  - Comprobar: con una cuenta que tenga suscripción, Ajustes → Facturación
+    la muestra y el botón "Cancel existing subscription" funciona.
 - [ ] **`GOOGLE_CLIENT_ID`** — el botón "Continuar con Google".
   - Dónde: Google Cloud Console → APIs y servicios → Credenciales → ID de
     cliente OAuth (aplicación web).
@@ -96,7 +100,9 @@ Cada una se apaga sola si falta, sin romper nada.
   puede entrar), `ADMIN_DATABASE_URL`, `ADMIN_REDIS_URL` y las mismas
   `RESEND_API_KEY` / `EMAIL_FROM`.
 - [ ] **`AFFILIATE_MIN_PAYOUT`** — el mínimo para pagar a afiliados
-  (S/ 50 si no se pone). Debe ser el mismo valor en los dos servicios.
+  (S/ 50 si no se pone). Debe ser el mismo valor en los dos servicios. Ya no
+  se generan comisiones nuevas; solo aplica a las que quedaron de compras
+  anteriores.
 - [ ] **TURN** (`CALL_TURN_URL`, `CALL_TURN_USERNAME`,
   `CALL_TURN_CREDENTIAL`) — solo si en la prueba grupal las cámaras no se
   conectan. Servicios con plan gratuito: Metered, Twilio, Cloudflare.
@@ -109,10 +115,11 @@ Hazla en producción, con tu dominio, antes de anunciar.
   pide "olvidé mi contraseña" para ver que también llega.
 - [ ] **Ensayo gratis**: sube una tesis en PDF, espera el diagnóstico y haz
   el ensayo express hasta ver el acta con la nota.
-- [ ] **Compra**: compra el pack más barato con tu tarjeta.
-  - Debe activarse solo: aparecen los ensayos del pack.
-  - Luego pide el reembolso a Mercado Pago (o desde su panel) dentro de
-    los 7 días.
+- [ ] **Apoyo**: en la landing y en Ajustes → Facturación, el panel "Apoyo
+  voluntario" muestra el botón "Abrir página de apoyo".
+  - El botón abre ko-fi.com/mockio.
+  - Haz un aporte de US$1 y confirma que llega a tu PayPal.
+  - Ninguna función cambia por haber apoyado.
 - [ ] **Sustentación grupal**: con un compañero, cada uno en su
   dispositivo.
   - Desde Chrome en el celular del compañero: invita, entra, se ven y se
@@ -121,7 +128,7 @@ Hazla en producción, con tu dominio, antes de anunciar.
 - [ ] **Celular**: repite el ensayo gratis desde un celular, para revisar
   que todo cabe en pantalla.
 - [ ] **Legal**: abre `/terms` y `/privacy` y revisa que no quede ningún
-  aviso de borrador.
+  aviso de borrador, y que el apoyo diga Ko-fi y PayPal.
 
 ## 4. Fuera del código
 
@@ -131,4 +138,6 @@ Hazla en producción, con tu dominio, antes de anunciar.
   - Inscripción de bancos de datos personales ante la autoridad.
 - [ ] El correo `hello@getmockio.com` existe y alguien lo lee: es el de
   reembolsos y consultas que citan los Términos.
-- [ ] Libro de reclamaciones virtual, exigido en Perú para vender en línea.
+- [ ] Libro de reclamaciones virtual: exigido en Perú para quien vende en
+  línea. Mockio ya no vende nada; que el abogado confirme si igual hace
+  falta (por ejemplo, mientras haya suscripciones antiguas activas).

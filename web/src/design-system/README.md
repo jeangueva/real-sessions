@@ -28,7 +28,7 @@ a first-time visitor has to look past.
 | `surface-base` | `#FFFFFF` | `#000000` | Page |
 | `surface-raised`, `surface-card` | `#FFFFFF` | `#161618`, `#1C1C1E` | Cards |
 | `surface-deep` | `#F5F5F7` | `#0C0C0D` | App shell, alternating landing sections |
-| `accent` | `#5856D6` | `#5E5CE6` (text `#8C89FF`) | The way forward |
+| `accent` | `#F6B733` (text `#8A5C00`, ink `#2E2D2A`) | `#F6B733` (text `#FBD06A`) | The way forward |
 | `grow` | `#34C759` (text `#1E7B34`) | `#30D158` | What improved |
 | `step` | `#FF9F0A` (text `#B25000`) | `#FF9F0A` | What to work on next |
 
