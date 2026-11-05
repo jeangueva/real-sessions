@@ -12,11 +12,13 @@ colors:
   deep-dark: "#0C0C0D"
   page-light: "#FFFFFF"
   deep-light: "#F5F5F7"
-  accent-dark: "#5E5CE6"
-  accent-text-dark: "#8C89FF"
-  accent-soft-dark: "#1E1E3E"
-  accent-light: "#5856D6"
-  accent-soft-light: "#EEEEFC"
+  accent-dark: "#F6B733"
+  accent-text-dark: "#FBD06A"
+  accent-soft-dark: "#3E2F0E"
+  accent-light: "#F6B733"
+  accent-text-light: "#8A5C00"
+  accent-soft-light: "#FBE8BA"
+  accent-ink: "#2E2D2A"
   grow-dark: "#30D158"
   grow-light: "#34C759"
   grow-text-light: "#1E7B34"
@@ -76,7 +78,7 @@ spacing:
 components:
   button-primary:
     backgroundColor: "{colors.accent-light}"
-    textColor: "{colors.page-light}"
+    textColor: "{colors.accent-ink}"
     rounded: "{rounded.pill}"
     padding: "10px 20px"
   button-neutral:
@@ -115,7 +117,7 @@ components:
 **Creative North Star: "The Quiet Rehearsal Room"**
 
 A room with the lights on where a nervous student practises out loud. The
-interface is Apple's system type and one indigo accent over Airbnb's calm
+interface is Apple's system type and one mustard accent over Airbnb's calm
 surfaces: white (or true black) ground, near-black (or off-white) ink, soft
 shadowed cards with generous radii, pill controls. Nothing decorative stands
 between the student and the sentence they need to read.
@@ -138,9 +140,12 @@ tokens and primitives at lower volume, restrained motion.
 Restrained: neutrals do almost all the work; colour only ever means something.
 
 ### Primary
-- **Rehearsal Indigo** (`accent`): the single way forward on a screen. Solid
-  buttons, the current nav item, selection rings, the progress fill. Text uses
-  `accent-text`, which is lighter on dark so it clears 4.5:1.
+- **Rehearsal Mustard** (`accent`, `#F6B733`): the single way forward on a
+  screen. Solid buttons, the current nav item, selection rings, the progress
+  fill. It is a fill, never text: on a light ground it reads under 2:1. Text
+  in the accent uses `accent-text` (`#8A5C00` on light, `#FBD06A` on dark),
+  which clears 4.5:1, and the ink on a mustard fill is the dark `accent-ink`
+  (`#2E2D2A`), not white.
 
 ### Secondary
 - **Got Better Green** (`grow`): something improved. Chips, trend deltas,
@@ -234,7 +239,7 @@ Soft and consistent: `rounded-full` for every button and chip, `rounded-card`
 
 ### Buttons (`Action`, the only button)
 - **Shape:** pill.
-- **Solid:** accent fill, white ink, a darker pressed edge it sinks into on
+- **Solid:** accent fill, dark `accent-ink`, a darker pressed edge it sinks into on
   press. One per view; `withArrow` marks the primary path, once per screen.
 - **Neutral:** ink pill on paper. **Quiet:** hairline pill beside a primary.
   **Glass:** over video only. **Ghost:** tertiary text button.

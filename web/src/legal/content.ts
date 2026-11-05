@@ -85,7 +85,7 @@ export function isDraft(): boolean {
 }
 
 /** Last substantive change. Update it when the text changes, not on deploy. */
-export const UPDATED = "2026-11-02";
+export const UPDATED = "2026-11-05";
 
 export interface LegalSection {
   heading: string;
@@ -140,7 +140,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Portfolio links you enter. We store them as text and do not visit them.",
             "Your XP, level and badges.",
             "If you turn your camera on during a session, a few small still frames are sent to the AI provider to read your camera presence — eye contact, posture, framing. The frames are not stored; only that reading is kept with the session.",
-            "Subscription status, if you pay. Card details never reach us — see Payments.",
+            "If you paid for a subscription before Mockio became free, its status, so you can see and cancel it. Card details never reached us.",
           ],
           "If you ask for a rehearsal to be filmed, the film is saved only in your own browser, on your device. It never reaches us, and clearing the browser's data deletes it.",
         ],
@@ -163,10 +163,10 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — speech. It receives your microphone audio to transcribe, and the interviewer's text to speak aloud.",
             "Your browser — speech, when Deepgram is not in use. The browser's own speech recognition then handles your microphone, which in Chrome means Google receives the audio, and some of the voices that read the interviewer aloud are Google's too. Firefox cannot do this at all, and typing always works instead.",
             "Resend — email delivery. It receives your address and the contents of account emails.",
-            "PostHog — product analytics, on servers in the United States. It receives which screens are opened, a handful of events we name ourselves (an account was created, an interview or rehearsal was started and finished, a purchase began), and heatmaps: where on a page people click and how far they scroll, as positions, never the text under them. When you are signed in these are tied to an internal account number, never your email. It never receives your answers, your transcript, your CV or your thesis, there is no session recording, and no cookie is set — the anonymous identifier is discarded when you close the tab. To opt out, turn on \"Do Not Track\" in your browser: PostHog then receives nothing.",
+            "PostHog — product analytics, on servers in the United States. It receives which screens are opened, a handful of events we name ourselves (an account was created, an interview or rehearsal was started and finished), and heatmaps: where on a page people click and how far they scroll, as positions, never the text under them. When you are signed in these are tied to an internal account number, never your email. It never receives your answers, your transcript, your CV or your thesis, there is no session recording, and no cookie is set — the anonymous identifier is discarded when you close the tab. To opt out, turn on \"Do Not Track\" in your browser: PostHog then receives nothing.",
             "Google Cloud — speech in Brazilian Portuguese. When a rehearsal is in Portuguese, the jury's lines are sent to Google to be read aloud. It receives that text only, never your voice or your thesis.",
-            "Mercado Pago — payments, if you subscribe. The card form now sits on our own page, but the card itself is not: Mercado Pago's script sends it straight from your browser to them and returns a single-use token, which is the only thing our servers ever receive. We hold a subscription status and nothing more.",
-            "Paddle — payments outside Peru. Paddle is the seller of record: it receives your card and billing details directly, handles the taxes, and tells us only whether the payment went through.",
+            "Ko-fi and PayPal — voluntary support. If you choose to support Mockio, you pay on our Ko-fi page (ko-fi.com/mockio), and PayPal processes the payment, each under its own privacy policy. Your card and payment details go to them, never to us. Ko-fi shows us what it shows any creator: the name and message you leave there and your email address. We do not link a contribution to your Mockio account and do not use that email for marketing.",
+            "Mercado Pago and Paddle — only for subscriptions bought before Mockio became free. They keep handling the renewals and cancellations of those subscriptions and tell us only their status. Nothing new is charged through them.",
           ],
           "We do not sell your data, and we do not share it with anyone not on this list.",
         ],
@@ -249,7 +249,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Los enlaces de portfolio que ingreses. Los guardamos como texto y no los visitamos.",
             "Tu XP, nivel e insignias.",
             "Si enciendes la cámara durante una sesión, unas pocas imágenes fijas pequeñas se envían al proveedor de IA para leer tu presencia en cámara: contacto visual, postura, encuadre. Las imágenes no se guardan; solo se guarda esa lectura con la sesión.",
-            "El estado de tu suscripción, si pagas. Los datos de tu tarjeta nunca llegan a nosotros: ver Pagos.",
+            "Si pagaste una suscripción antes de que Mockio fuera gratuito, su estado, para que puedas verla y cancelarla. Los datos de tu tarjeta nunca llegaron a nosotros.",
           ],
           "Si pides grabar un ensayo, la grabación se guarda solo en tu propio navegador, en tu dispositivo. Nunca nos llega, y borrar los datos del navegador la elimina.",
         ],
@@ -272,10 +272,10 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — voz. Recibe el audio de tu micrófono para transcribirlo, y el texto del entrevistador para decirlo en voz alta.",
             "Tu navegador — voz, cuando no se usa Deepgram. En ese caso el reconocimiento de voz del propio navegador procesa tu micrófono: en Chrome eso significa que Google recibe el audio, y algunas de las voces que leen al entrevistador también son de Google. Firefox no puede hacerlo, y escribir siempre funciona.",
             "Resend — envío de correo. Recibe tu dirección y el contenido de los mails de cuenta.",
-            "PostHog — analítica de producto, en servidores de Estados Unidos. Recibe qué pantallas se abren, un puñado de eventos que nombramos nosotros (se creó una cuenta, se empezó y terminó una entrevista o un ensayo, empezó una compra) y mapas de calor: en qué parte de la página se hace clic y hasta dónde se baja, como posiciones, nunca el texto que hay debajo. Si iniciaste sesión, esto se asocia a un número interno de cuenta, nunca a tu correo. Nunca recibe tus respuestas, tu transcripción, tu CV ni tu tesis, no graba la sesión y no deja ninguna cookie: el identificador anónimo se descarta al cerrar la pestaña. Para excluirte, activa \"No rastrear\" (Do Not Track) en tu navegador: PostHog entonces no recibe nada.",
+            "PostHog — analítica de producto, en servidores de Estados Unidos. Recibe qué pantallas se abren, un puñado de eventos que nombramos nosotros (se creó una cuenta, se empezó y terminó una entrevista o un ensayo) y mapas de calor: en qué parte de la página se hace clic y hasta dónde se baja, como posiciones, nunca el texto que hay debajo. Si iniciaste sesión, esto se asocia a un número interno de cuenta, nunca a tu correo. Nunca recibe tus respuestas, tu transcripción, tu CV ni tu tesis, no graba la sesión y no deja ninguna cookie: el identificador anónimo se descarta al cerrar la pestaña. Para excluirte, activa \"No rastrear\" (Do Not Track) en tu navegador: PostHog entonces no recibe nada.",
             "Google Cloud — voz en portugués de Brasil. Cuando un ensayo es en portugués, las frases del jurado se envían a Google para leerlas en voz alta. Recibe solo ese texto, nunca tu voz ni tu tesis.",
-            "Mercado Pago — pagos, si te suscribes. El formulario de tarjeta ahora está en nuestra propia página, pero la tarjeta no: el script de Mercado Pago la manda directo de tu navegador a ellos y devuelve un token de un solo uso, que es lo único que llega a nuestros servidores. Nosotros guardamos un estado de suscripción y nada más.",
-            "Paddle — pagos fuera de Perú. Paddle es el vendedor registrado: recibe directamente tu tarjeta y tus datos de facturación, se encarga de los impuestos, y a nosotros solo nos dice si el pago salió bien.",
+            "Ko-fi y PayPal — apoyo voluntario. Si decides apoyar a Mockio, pagas en nuestra página de Ko-fi (ko-fi.com/mockio) y PayPal procesa el pago, cada uno según su propia política de privacidad. Tu tarjeta y tus datos de pago van a ellos, nunca a nosotros. Ko-fi nos muestra lo mismo que a cualquier creador: el nombre y el mensaje que dejes allí y tu correo. No vinculamos un aporte con tu cuenta de Mockio ni usamos ese correo para publicidad.",
+            "Mercado Pago y Paddle — solo para las suscripciones compradas antes de que Mockio fuera gratuito. Siguen gestionando las renovaciones y cancelaciones de esas suscripciones y a nosotros solo nos informan su estado. Ya no se cobra nada nuevo a través de ellos.",
           ],
           "No vendemos tus datos, y no los compartimos con nadie fuera de esta lista.",
         ],
@@ -358,7 +358,7 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Os links de portfólio que você inserir. Guardamos como texto e não os visitamos.",
             "Seu XP, nível e selos.",
             "Se você ligar a câmera durante uma sessão, algumas imagens fixas pequenas são enviadas ao provedor de IA para ler sua presença na câmera: contato visual, postura, enquadramento. As imagens não são guardadas; só essa leitura fica com a sessão.",
-            "O status da assinatura, se você pagar. Os dados do cartão nunca chegam até nós — ver Pagamentos.",
+            "Se você pagou uma assinatura antes de o Mockio ser gratuito, o status dela, para que você possa vê-la e cancelá-la. Os dados do cartão nunca chegaram até nós.",
           ],
           "Se você pedir para gravar um ensaio, a gravação fica apenas no seu próprio navegador, no seu dispositivo. Ela nunca chega até nós, e apagar os dados do navegador a elimina.",
         ],
@@ -381,10 +381,10 @@ const PRIVACY: Record<Locale, LegalDocument> = {
             "Deepgram — voz. Recebe o áudio do seu microfone para transcrever, e o texto do entrevistador para falar em voz alta.",
             "Seu navegador — voz, quando o Deepgram não está em uso. Nesse caso o reconhecimento de voz do próprio navegador processa o seu microfone: no Chrome isso significa que o Google recebe o áudio, e algumas das vozes que leem o entrevistador também são do Google. O Firefox não consegue fazer isso, e digitar sempre funciona.",
             "Resend — envio de e-mail. Recebe seu endereço e o conteúdo dos e-mails da conta.",
-            "PostHog — análise de produto, em servidores nos Estados Unidos. Recebe quais telas são abertas, alguns eventos que nomeamos (uma conta foi criada, uma entrevista ou ensaio começou e terminou, uma compra começou) e mapas de calor: onde na página as pessoas clicam e até onde rolam, como posições, nunca o texto embaixo. Se você entrou na conta, isso fica associado a um número interno, nunca ao seu e-mail. Nunca recebe suas respostas, sua transcrição, seu currículo nem seu trabalho, não grava a sessão e não deixa nenhum cookie: o identificador anônimo é descartado ao fechar a aba. Para sair, ative \"Não rastrear\" (Do Not Track) no seu navegador: o PostHog então não recebe nada.",
+            "PostHog — análise de produto, em servidores nos Estados Unidos. Recebe quais telas são abertas, alguns eventos que nomeamos (uma conta foi criada, uma entrevista ou ensaio começou e terminou) e mapas de calor: onde na página as pessoas clicam e até onde rolam, como posições, nunca o texto embaixo. Se você entrou na conta, isso fica associado a um número interno, nunca ao seu e-mail. Nunca recebe suas respostas, sua transcrição, seu currículo nem seu trabalho, não grava a sessão e não deixa nenhum cookie: o identificador anônimo é descartado ao fechar a aba. Para sair, ative \"Não rastrear\" (Do Not Track) no seu navegador: o PostHog então não recebe nada.",
             "Google Cloud — voz em português do Brasil. Quando um ensaio é em português, as falas da banca são enviadas ao Google para serem lidas em voz alta. Ele recebe só esse texto, nunca a sua voz nem o seu trabalho.",
-            "Mercado Pago — pagamentos, se você assinar. O formulário de cartão agora fica na nossa própria página, mas o cartão não: o script do Mercado Pago o envia direto do seu navegador para eles e devolve um token de uso único, que é a única coisa que chega aos nossos servidores. Guardamos um status de assinatura e nada mais.",
-            "Paddle — pagamentos fora do Peru. A Paddle é a vendedora registrada: recebe diretamente seu cartão e seus dados de cobrança, cuida dos impostos e só nos diz se o pagamento deu certo.",
+            "Ko-fi e PayPal — apoio voluntário. Se você decidir apoiar o Mockio, paga na nossa página do Ko-fi (ko-fi.com/mockio) e o PayPal processa o pagamento, cada um segundo sua própria política de privacidade. Seu cartão e seus dados de pagamento vão para eles, nunca para nós. O Ko-fi nos mostra o mesmo que a qualquer criador: o nome e a mensagem que você deixar lá e o seu e-mail. Não vinculamos um apoio à sua conta do Mockio nem usamos esse e-mail para publicidade.",
+            "Mercado Pago e Paddle — só para as assinaturas compradas antes de o Mockio ser gratuito. Eles continuam cuidando das renovações e cancelamentos dessas assinaturas e só nos informam o status. Nada novo é cobrado por meio deles.",
           ],
           "Não vendemos seus dados, e não os compartilhamos com ninguém fora desta lista.",
         ],
@@ -504,10 +504,9 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Optional support and previous purchases",
         body: [
-          "When enabled, optional support is collected on Ko-fi through its payment providers. You choose the final amount and whether it is a one-time or monthly payment there. We never see or store your card details. Monthly support is recurring until cancelled with the provider; deleting a Mockio account does not cancel an independent Ko-fi payment.",
-          "New paid plans and defence packs are no longer sold. Previous Mercado Pago or Paddle subscriptions are not automatically cancelled or converted to donations by this change. Manage or cancel them from Settings. Previous purchase terms and applicable refund rights continue to apply.",
-          "Support does not unlock features or guarantee an outcome. Contact hello@getmockio.com about support refunds or a previous purchase.",
-          "If a pack or pass did not help you, ask within 7 days of purchase at hello@getmockio.com and we refund it, no questions asked. This does not limit any right the consumer law of your country gives you.",
+          "Optional support is collected on our Ko-fi page (ko-fi.com/mockio), and PayPal processes the payment. You choose the final amount there and whether it is a one-time or a monthly contribution. We never see or store your card details. Monthly support renews until you cancel it on Ko-fi or PayPal; deleting your Mockio account does not cancel it.",
+          "Support does not unlock features or guarantee an outcome. Write to hello@getmockio.com about the refund of a contribution.",
+          "Mockio no longer sells plans or any other paid access. Subscriptions bought before, through Mercado Pago or Paddle, are not cancelled or turned into donations by this change: you can see and cancel them from Settings, and the refund rights of that purchase still apply. This does not limit any right the consumer law of your country gives you.",
           "Previous access grants remain in your account history but are no longer needed to unlock features.",
         ],
       },
@@ -542,11 +541,9 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Affiliates and advisors",
         body: [
-          "Advisors and affiliates who recommend Mockio earn a commission on purchases by the students they referred. It does not change the student's price, and they only see a student's progress if the student chooses to share it.",
+          "Advisors and affiliates can recommend Mockio to their students, and they only see a student's progress if the student chooses to share it. Mockio is free and sells nothing, so recommending it earns no commission.",
           [
-            "A commission becomes payable 7 days after the purchase, once it can no longer be refunded.",
-            "Payable commissions are paid monthly, by the 10th, once they reach the minimum shown in your affiliate panel.",
-            "We may void commissions on purchases that were refunded or charged back, that are fraudulent, or that you made yourself or through accounts you control. We tell you when we do.",
+            "Commissions earned on purchases made before Mockio became free are still paid: monthly, by the 10th, once they reach the minimum shown in your affiliate panel. We may void one if that purchase was refunded or charged back, was fraudulent, or was made by you or through accounts you control, and we tell you when we do.",
             "Affiliates may not present themselves as Mockio, promise results, or advertise with misleading claims.",
           ],
           "Affiliates are independent. Nothing in the programme makes them our employees, agents or partners, and they are responsible for their own taxes.",
@@ -658,10 +655,9 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Apoyo opcional y compras anteriores",
         body: [
-          "Cuando esté habilitado, el apoyo opcional se cobra en Ko-fi mediante sus proveedores de pago. Allí eliges el monto final y si es un aporte único o mensual. Nunca vemos ni guardamos los datos de tu tarjeta. El apoyo mensual se renueva hasta que lo canceles con el proveedor; eliminar tu cuenta de Mockio no cancela un pago independiente de Ko-fi.",
-          "Ya no se venden nuevos planes ni packs de sustentación. Este cambio no cancela automáticamente las suscripciones anteriores de Mercado Pago o Paddle ni las convierte en donaciones. Puedes gestionarlas o cancelarlas desde Ajustes. Se mantienen las condiciones de las compras anteriores y los derechos de reembolso aplicables.",
-          "Apoyar no desbloquea funciones ni garantiza resultados. Escríbenos a hello@getmockio.com por reembolsos de aportes o compras anteriores.",
-          "Si un pack o pase no te sirvió, pídelo dentro de los 7 días de la compra a hello@getmockio.com y te devolvemos el dinero, sin preguntas. Esto no limita ningún derecho que te dé la ley de protección al consumidor de tu país.",
+          "El apoyo opcional se cobra en nuestra página de Ko-fi (ko-fi.com/mockio) y PayPal procesa el pago. Allí eliges el monto final y si es un aporte único o mensual. Nunca vemos ni guardamos los datos de tu tarjeta. El apoyo mensual se renueva hasta que lo canceles en Ko-fi o PayPal; eliminar tu cuenta de Mockio no lo cancela.",
+          "Apoyar no desbloquea funciones ni garantiza resultados. Escríbenos a hello@getmockio.com si quieres el reembolso de un aporte.",
+          "Mockio ya no vende planes ni ningún otro acceso pagado. Este cambio no cancela las suscripciones compradas antes por Mercado Pago o Paddle ni las convierte en donaciones: puedes verlas y cancelarlas desde Ajustes, y se mantienen los derechos de reembolso de esa compra. Esto no limita ningún derecho que te dé la ley de protección al consumidor de tu país.",
           "Los accesos concedidos anteriormente permanecen en el historial de tu cuenta, pero ya no son necesarios para desbloquear funciones.",
         ],
       },
@@ -696,11 +692,9 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Afiliados y asesores",
         body: [
-          "Los asesores y afiliados que recomiendan Mockio ganan una comisión por las compras de los alumnos que refirieron. No cambia el precio del alumno, y solo ven su avance si el alumno elige compartirlo.",
+          "Los asesores y afiliados pueden recomendar Mockio a sus alumnos, y solo ven el avance de un alumno si este elige compartirlo. Mockio es gratuito y no vende nada, así que recomendarlo no genera comisión.",
           [
-            "Una comisión se vuelve pagable 7 días después de la compra, cuando ya no puede reembolsarse.",
-            "Las comisiones pagables se pagan cada mes, hasta el día 10, cuando alcanzan el mínimo que muestra tu panel de afiliado.",
-            "Podemos anular comisiones de compras reembolsadas o desconocidas, fraudulentas, o hechas por ti mismo o desde cuentas que controlas. Te avisamos cuando lo hacemos.",
+            "Las comisiones ganadas por compras hechas antes de que Mockio fuera gratuito se siguen pagando: cada mes, hasta el día 10, cuando alcanzan el mínimo que muestra tu panel de afiliado. Podemos anular una si esa compra fue reembolsada o desconocida, fue fraudulenta, o la hiciste tú mismo o desde cuentas que controlas, y te avisamos cuando lo hacemos.",
             "Los afiliados no pueden presentarse como Mockio, prometer resultados ni anunciar con afirmaciones engañosas.",
           ],
           "Los afiliados son independientes. Nada del programa los convierte en nuestros empleados, agentes ni socios, y son responsables de sus propios impuestos.",
@@ -812,10 +806,9 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Apoio opcional e compras anteriores",
         body: [
-          "Quando habilitado, o apoio opcional é recebido no Ko-fi por seus provedores de pagamento. Lá você escolhe o valor final e se o pagamento é único ou mensal. Nunca vemos nem guardamos os dados do seu cartão. O apoio mensal se renova até ser cancelado no provedor; excluir a conta do Mockio não cancela um pagamento independente no Ko-fi.",
-          "Novos planos pagos e pacotes de defesa não são mais vendidos. Esta mudança não cancela automaticamente assinaturas anteriores do Mercado Pago ou Paddle nem as converte em doações. Gerencie ou cancele em Configurações. As condições das compras anteriores e os direitos de reembolso aplicáveis continuam válidos.",
-          "Apoiar não desbloqueia recursos nem garante resultados. Fale com hello@getmockio.com sobre reembolsos de apoio ou compras anteriores.",
-          "Se um pacote ou passe não serviu para você, peça em até 7 dias da compra em hello@getmockio.com e devolvemos o dinheiro, sem perguntas. Isso não limita nenhum direito que a lei de defesa do consumidor do seu país lhe dá.",
+          "O apoio opcional é recebido na nossa página do Ko-fi (ko-fi.com/mockio) e o PayPal processa o pagamento. Lá você escolhe o valor final e se o apoio é único ou mensal. Nunca vemos nem guardamos os dados do seu cartão. O apoio mensal se renova até você cancelá-lo no Ko-fi ou no PayPal; excluir sua conta do Mockio não o cancela.",
+          "Apoiar não desbloqueia recursos nem garante resultados. Escreva para hello@getmockio.com se quiser o reembolso de um apoio.",
+          "O Mockio não vende mais planos nem nenhum outro acesso pago. Esta mudança não cancela as assinaturas compradas antes pelo Mercado Pago ou pela Paddle nem as converte em doações: você pode vê-las e cancelá-las em Configurações, e os direitos de reembolso dessa compra continuam valendo. Isso não limita nenhum direito que a lei de defesa do consumidor do seu país lhe dá.",
           "Os acessos concedidos anteriormente continuam no histórico da conta, mas não são mais necessários para desbloquear recursos.",
         ],
       },
@@ -850,11 +843,9 @@ const TERMS: Record<Locale, LegalDocument> = {
       {
         heading: "Afiliados e orientadores",
         body: [
-          "Orientadores e afiliados que recomendam o Mockio ganham uma comissão pelas compras dos alunos que indicaram. Isso não muda o preço do aluno, e eles só veem o progresso dele se o aluno escolher compartilhar.",
+          "Orientadores e afiliados podem recomendar o Mockio aos seus alunos, e só veem o progresso de um aluno se ele escolher compartilhar. O Mockio é gratuito e não vende nada, então recomendá-lo não gera comissão.",
           [
-            "Uma comissão se torna pagável 7 dias depois da compra, quando já não pode ser reembolsada.",
-            "As comissões pagáveis são pagas todo mês, até o dia 10, quando atingem o mínimo mostrado no seu painel de afiliado.",
-            "Podemos anular comissões de compras reembolsadas ou contestadas, fraudulentas, ou feitas por você mesmo ou por contas que você controla. Avisamos quando fizermos isso.",
+            "As comissões ganhas por compras feitas antes de o Mockio ser gratuito continuam sendo pagas: todo mês, até o dia 10, quando atingem o mínimo mostrado no seu painel de afiliado. Podemos anular uma se essa compra foi reembolsada ou contestada, foi fraudulenta, ou foi feita por você mesmo ou por contas que você controla, e avisamos quando fizermos isso.",
             "Afiliados não podem se apresentar como o Mockio, prometer resultados nem anunciar com afirmações enganosas.",
           ],
           "Os afiliados são independentes. Nada no programa os torna nossos empregados, agentes ou sócios, e eles são responsáveis pelos próprios impostos.",
