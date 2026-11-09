@@ -39,6 +39,9 @@ export function CustomScenario() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const initial = (params.get("q") ?? "").slice(0, 300);
+  // The workspace it was asked from keeps the rehearsal in that world.
+  const askedDomain = params.get("domain");
+  const domain = askedDomain === "education" || askedDomain === "professional" ? askedDomain : undefined;
   const [request, setRequest] = useState(initial);
   const [draft, setDraft] = useState<CustomScenarioDraft | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,7 +56,7 @@ export function CustomScenario() {
       const res = await fetch("/api/training/custom/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request: text.trim(), language }),
+        body: JSON.stringify({ request: text.trim(), language, ...(domain ? { domain } : {}) }),
       });
       const body = (await res.json().catch(() => ({}))) as { scenario?: CustomScenarioDraft; error?: string };
       if (!res.ok || !body.scenario) throw new Error(body.error || copy.failed);
@@ -144,7 +147,7 @@ export function CustomScenario() {
             {field("role", copy.fRole)}
             {field("brief", copy.fBrief, 4)}
             {field("goal", copy.fGoal, 2)}
-            <fieldset>
+            {!domain && (<fieldset>
               <legend className="mb-2 text-sm font-medium text-cream-bright">{copy.domain}</legend>
               <div className="flex gap-2">
                 {(["education", "professional"] as const).map((domain) => (
@@ -159,7 +162,7 @@ export function CustomScenario() {
                   </button>
                 ))}
               </div>
-            </fieldset>
+            </fieldset>)}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Action
                 type="button"

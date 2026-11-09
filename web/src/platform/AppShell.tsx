@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import { ScreenBoundary } from "./ScreenBoundary";
 import { WorkspaceNav } from "./WorkspaceNav";
 import { OmniSearch } from "./OmniSearch";
-import { useHomeCatalogue } from "./useHomeCatalogue";
+import { indexFor, useHomeCatalogue } from "./useHomeCatalogue";
 import {
   Home,
   MessagesSquare,
@@ -270,7 +270,7 @@ export function AppShell() {
           along the bottom, and the sections' tabs sat on top of them and over
           the defence clock. Leaving goes through the call's red button. */}
       {!inCall && <MobileNav entries={entries} space={space} />}
-      {searching && <SearchDialog onClose={() => setSearching(false)} />}
+      {searching && <SearchDialog space={space} onClose={() => setSearching(false)} />}
     </div>
   );
 }
@@ -539,9 +539,10 @@ function Menu({
  * The search, from anywhere: the same field as on the home screen, in a
  * dialog over the current page. The catalogue is fetched when it opens.
  */
-function SearchDialog({ onClose }: { onClose: () => void }) {
+function SearchDialog({ space, onClose }: { space: Space; onClose: () => void }) {
   const copy = useShellCopy();
   const catalogue = useHomeCatalogue();
+  const items = indexFor(catalogue.index, space);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -561,8 +562,9 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
     >
       <div className="w-full max-w-2xl">
         <OmniSearch
-          items={catalogue.index}
-          suggested={catalogue.index.filter((item) => item.kind === "scenario").slice(0, 4)}
+          items={items}
+          suggested={items.filter((item) => item.kind === "scenario").slice(0, 4)}
+          space={space}
           autoFocus
           onDone={onClose}
         />

@@ -3,7 +3,7 @@ import { fetchCatalogue } from "@/lib/api";
 import type { CatalogueCompany, Role } from "@/lib/api";
 import { useLocale, useT } from "@/hooks/useLocale";
 import { useThesisT } from "@/lib/thesis-copy";
-import { thesisPath } from "@/lib/spaces";
+import { thesisPath, type Space } from "@/lib/spaces";
 import type { SearchItem } from "@/lib/search";
 import { CASE_ES, CASE_FR, CASE_PT, SCENARIO_ES, SCENARIO_FR, SCENARIO_PT } from "@/lib/training-copy";
 import type { ScenarioItem } from "./TrainingConversations";
@@ -99,20 +99,20 @@ export function useHomeCatalogue(): HomeCatalogue {
     }));
 
     const sections: SearchItem[] = [
-      { id: "s-rehearse", title: tt("tabRehearse"), to: thesisPath("ensayar"), keywords: "tesis sustentacion jurado thesis defense defesa" },
-      { id: "s-diagnosis", title: tt("tabDiagnosis"), to: thesisPath("diagnostico"), keywords: "tesis thesis diagnostico" },
-      { id: "s-study", title: tt("tabStudy"), to: thesisPath("repaso"), keywords: "tesis repaso estudio flashcards" },
-      { id: "s-slides", title: tt("tabSlides"), to: thesisPath("diapositivas"), keywords: "tesis slides diapositivas presentacion" },
-      { id: "s-observations", title: tt("tabObservations"), to: thesisPath("observaciones"), keywords: "tesis observaciones jurado correcciones" },
-      { id: "s-academic", title: t("nav.academicScenarios"), to: "/app/training/education", keywords: "examen oral asesor grupo" },
-      { id: "s-conversations", title: t("nav.conversations"), to: "/app/training/professional", keywords: "conversaciones dificiles negociar feedback limites" },
-      { id: "s-intuition", title: t("nav.intuition"), to: "/app/intuition", keywords: "producto diseno casos criterio" },
-      { id: "s-interviews", title: t("nav.interviews"), to: "/app/practice", keywords: "entrevista trabajo empleo interview" },
-      { id: "s-progress", title: t("nav.progress"), to: "/app/progress", keywords: "progreso historial resultados" },
-      { id: "s-applications", title: t("nav.applications"), to: "/app/applications", keywords: "postulaciones empleos aplicaciones" },
-      { id: "s-profile", title: t("nav.context"), to: "/app/profile", keywords: "cv curriculum perfil contexto" },
+      { id: "s-rehearse", space: "defense", title: tt("tabRehearse"), to: thesisPath("ensayar"), keywords: "tesis sustentacion jurado thesis defense defesa" },
+      { id: "s-diagnosis", space: "defense", title: tt("tabDiagnosis"), to: thesisPath("diagnostico"), keywords: "tesis thesis diagnostico" },
+      { id: "s-study", space: "defense", title: tt("tabStudy"), to: thesisPath("repaso"), keywords: "tesis repaso estudio flashcards" },
+      { id: "s-slides", space: "defense", title: tt("tabSlides"), to: thesisPath("diapositivas"), keywords: "tesis slides diapositivas presentacion" },
+      { id: "s-observations", space: "defense", title: tt("tabObservations"), to: thesisPath("observaciones"), keywords: "tesis observaciones jurado correcciones" },
+      { id: "s-academic", space: "defense", title: t("nav.academicScenarios"), to: "/app/training/education", keywords: "examen oral asesor grupo" },
+      { id: "s-conversations", space: "career", title: t("nav.conversations"), to: "/app/training/professional", keywords: "conversaciones dificiles negociar feedback limites" },
+      { id: "s-intuition", space: "career", title: t("nav.intuition"), to: "/app/intuition", keywords: "producto diseno casos criterio" },
+      { id: "s-interviews", space: "career", title: t("nav.interviews"), to: "/app/practice", keywords: "entrevista trabajo empleo interview" },
+      { id: "s-progress", space: "career", title: t("nav.progress"), to: "/app/progress", keywords: "progreso historial resultados" },
+      { id: "s-applications", space: "career", title: t("nav.applications"), to: "/app/applications", keywords: "postulaciones empleos aplicaciones" },
+      { id: "s-profile", space: "career", title: t("nav.context"), to: "/app/profile", keywords: "cv curriculum perfil contexto" },
       { id: "s-settings", title: t("nav.settings"), to: "/app/settings", keywords: "ajustes cuenta idioma configuracion" },
-    ].map((entry) => ({ ...entry, kind: "section" as const, subtitle: kinds.section }));
+    ].map((entry) => ({ ...entry, kind: "section" as const, subtitle: kinds.section } as SearchItem));
 
     const index: SearchItem[] = [
       ...sections,
@@ -122,6 +122,7 @@ export function useHomeCatalogue(): HomeCatalogue {
         title: item.title,
         subtitle: item.category,
         keywords: `${item.role} ${item.brief}`,
+        space: item.domain === "education" ? ("defense" as const) : ("career" as const),
         to: `/app/training/${item.domain}?id=${encodeURIComponent(item.id)}`,
       })),
       ...cases.map((item) => ({
@@ -130,6 +131,7 @@ export function useHomeCatalogue(): HomeCatalogue {
         title: item.title,
         subtitle: `${t("nav.intuition")} · ${item.category}`,
         keywords: item.prompt,
+        space: "career" as const,
         to: `/app/intuition?id=${encodeURIComponent(item.id)}`,
       })),
       ...companies.map((company) => ({
@@ -138,6 +140,7 @@ export function useHomeCatalogue(): HomeCatalogue {
         title: company.name,
         subtitle: kinds.interview,
         keywords: company.description,
+        space: "career" as const,
         to: "/app/practice",
         state: { company: company.name },
       })),
@@ -147,6 +150,7 @@ export function useHomeCatalogue(): HomeCatalogue {
         title: role.label,
         subtitle: kinds.interview,
         keywords: role.focus,
+        space: "career" as const,
         to: "/app/practice",
         state: { role: role.label },
       })),
@@ -162,4 +166,13 @@ export function useHomeCatalogue(): HomeCatalogue {
       kindLabel: (kind) => kinds[kind],
     };
   }, [raw, companies, roles, loaded, lang, t, tt]);
+}
+
+/**
+ * The index for one workspace: Education searches only the academic world,
+ * Professional only the working one. Screens both share, like settings, are
+ * in both.
+ */
+export function indexFor(index: SearchItem[], space: Space): SearchItem[] {
+  return index.filter((item) => !item.space || item.space === space);
 }

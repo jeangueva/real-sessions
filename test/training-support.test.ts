@@ -148,6 +148,30 @@ describe("training and support HTTP routes", () => {
     expect(api.provider.prompts.at(-1)).toContain("Una gerente de área con poco tiempo");
   });
 
+  it("keeps a described scenario in the workspace it was asked from", async () => {
+    await api.authenticate();
+    api.provider.reply(
+      JSON.stringify({
+        allowed: true,
+        scenario: {
+          domain: "professional",
+          title: "Pedir más tiempo",
+          role: "Un asesor exigente con poco tiempo",
+          brief: "Faltan seis semanas para la entrega y el capítulo 3 no está listo.",
+          goal: "Acordar una nueva fecha realista para el capítulo 3.",
+        },
+      }),
+    );
+    const res = await api.call(
+      "/api/training/custom/draft",
+      post({ request: "pedirle a mi asesor más tiempo", language: "es", domain: "education" }),
+    );
+    expect(res.status).toBe(200);
+    const { scenario } = (await res.json()) as { scenario: { domain: string } };
+    expect(scenario.domain).toBe("education");
+    expect(api.provider.prompts.at(-1)).toContain('"education"');
+  });
+
   it("explains when a described scenario cannot be rehearsed", async () => {
     await api.authenticate();
     api.provider.reply(JSON.stringify({ allowed: false, reason: "Harassment." }));
