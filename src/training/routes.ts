@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { ModelProvider } from '../providers/index.js';
 import { RULES } from '../rate-limit.js';
 import { answerConversation, conversationFeedback, startConversation, TrainingError } from './conversation.js';
+import { draftCustomScenario } from './custom.js';
 import { CONVERSATION_SCENARIOS, CULTURE_CONTEXTS } from './scenarios.js';
 import { INTUITION_CASES, publicIntuitionCases } from './intuition-cases.js';
 
@@ -24,7 +25,7 @@ export async function trainingRoute(req: IncomingMessage, res: ServerResponse, p
   if (req.method === 'GET' && path === '/api/training/catalogue') {
     json(res, 200, { scenarios: CONVERSATION_SCENARIOS, cultures: CULTURE_CONTEXTS, intuition: publicIntuitionCases() }); return;
   }
-  const paths = ['/api/training/conversations', '/api/training/conversations/answer', '/api/training/conversations/feedback', '/api/training/intuition/reveal'];
+  const paths = ['/api/training/conversations', '/api/training/conversations/answer', '/api/training/conversations/feedback', '/api/training/intuition/reveal', '/api/training/custom/draft'];
   if (!paths.includes(path) || req.method !== 'POST') { json(res, 404, { error: 'Training route not found.' }); return; }
   const rule = path.endsWith('/feedback') ? RULES.evaluation : path.endsWith('/answer') ? RULES.answer : RULES.startSession;
   // Shared budget across training routes, also bounded per IP to deter identity rotation.
@@ -32,6 +33,9 @@ export async function trainingRoute(req: IncomingMessage, res: ServerResponse, p
   try {
     let body: unknown;
     try { body = await readJson(req); } catch { throw new TrainingError(400, 'Send a valid JSON body under 64 KB.'); }
+    if (path === '/api/training/custom/draft') {
+      json(res, 200, { scenario: await draftCustomScenario(body, provider) }); return;
+    }
     if (path === '/api/training/conversations') {
       json(res, 201, await startConversation(owner, body, provider)); return;
     }

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ScreenBoundary } from "./ScreenBoundary";
 import { WorkspaceNav } from "./WorkspaceNav";
+import { OmniSearch } from "./OmniSearch";
+import { useHomeCatalogue } from "./useHomeCatalogue";
 import {
   Home,
   MessagesSquare,
@@ -19,15 +20,17 @@ import {
   Presentation,
   Route,
   Settings,
+  Search,
   ShieldCheck,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { fetchPlan, fetchPreferences, fetchSession, linkAdvisor, signOut } from "@/lib/api";
 import type { Session } from "@/lib/api";
-import { useT } from "@/hooks/useLocale";
+import { useLocale, useT } from "@/hooks/useLocale";
 import { useThesisT } from "@/lib/thesis-copy";
-import { Mark, PremiumMark, Wordmark } from "@/design-system";
+import { Mark, Wordmark } from "@/design-system";
 import ShinyText from "@/components/bits/ShinyText";
 import { useTokenColor } from "@/hooks/useTokenColor";
 import {
@@ -44,9 +47,11 @@ import {
  *
  * Education and Professional have equal entry points and contextual navigation.
  *
- * Three layouts, not one squeezed three ways. Below `md` the sections are a
- * bottom bar and the account is the avatar in the top bar. At `md` the rail is
- * icons, and at `lg` it opens into labels.
+ * One bar across the top, a streaming app's way, and the whole width below it
+ * for the content. At `lg` the open workspace's sections are words in the bar;
+ * between `md` and `lg` they fold into one "Browse" menu; below `md` they are a
+ * bar along the bottom. The search (also Ctrl+K), the workspace switch and the
+ * account menu sit on the right at every width.
  */
 
 type Icon = typeof Play;
@@ -152,13 +157,9 @@ export function AppShell() {
    */
   const [reviewer, setReviewer] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  /**
-   * Whether the CV screen is reachable on this plan. The padlock says so
-   * before the click, the way the locked fields in the setup bar already do.
-   */
-  const [locked, setLocked] = useState<string[]>([]);
   /** The name from Settings → Account, shown instead of the email. */
   const [name, setName] = useState("");
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     fetchPreferences()
@@ -175,10 +176,23 @@ export function AppShell() {
       .then((result) => {
         setIsPremium(result.plan === "premium");
         setReviewer(result.reviewer);
-        setLocked(result.capabilities.candidateProfile ? [] : ["/app/profile"]);
       })
       .catch(() => setReviewer(false));
   }, []);
+
+  // Ctrl+K / ⌘K opens the search from anywhere, the way it does in most apps
+  // people already use. Not during a call, where typing is answering.
+  useEffect(() => {
+    if (inCall) return;
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearching(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [inCall]);
 
   useEffect(() => {
     // The gate. Every screen below this needs an account — there is no
@@ -223,75 +237,32 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-deep">
-      <TopBar space={space} isPremium={isPremium} who={who} email={session.email} />
+      <TopBar
+        space={space}
+        entries={entries}
+        account={account}
+        isPremium={isPremium}
+        who={who}
+        email={session.email}
+        onSearch={() => setSearching(true)}
+      />
 
-      <div className="flex min-w-0 flex-1">
-        {/* Apple's sidebar: on the shell's own grey, a hairline where it meets
-            the content. It holds only the open workspace's sections, so it
-            changes when the tab above it does. */}
-        <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-[4.5rem] shrink-0 flex-col items-center gap-2 border-r border-line py-5 md:flex lg:w-60 lg:items-stretch lg:px-3">
-          <p className="hidden px-3 pb-1.5 text-xs font-semibold text-cream-faint lg:block">
-            {space === "defense" ? t("nav.education") : t("nav.spaceCareer")}
-          </p>
-          {/* Keyed by space so the new list arrives as a list, not as the old
-              one's rows relabelled in place. */}
-          <motion.nav
-            key={space}
-            aria-label={t("nav.sections")}
-            className="flex flex-col gap-0.5"
-            initial={{ opacity: 0, transform: "translateX(-4px)" }}
-            animate={{ opacity: 1, transform: "translateX(0px)", transitionEnd: { transform: "none" } }}
-            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+      {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is
+          fixed and would otherwise sit on top of the last element. */}
+      <div className={`flex min-w-0 flex-1 flex-col md:pb-0 ${inCall ? "" : "pb-[calc(5rem+env(safe-area-inset-bottom,0px))]"}`}>
+        {/* No transition between screens: switching sections happens dozens
+            of times a session, and an exit that never finishes (a tab in
+            the background, a quick second click) once left the content
+            area empty. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <ScreenBoundary
+            resetKey={location.pathname}
+            title={t("screen.failedTitle")}
+            body={t("screen.failedBody")}
+            action={t("screen.reload")}
           >
-            {entries.map(({ to, label, icon, end, tour }) => (
-              <RailLink
-                key={to}
-                to={to}
-                end={end}
-                label={label}
-                icon={icon}
-                tour={tour}
-                locked={locked.includes(to) ? t("nav.onPaidPlan") : undefined}
-              />
-            ))}
-          </motion.nav>
-
-          <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-4">
-            <nav aria-label={t("nav.you")} className="flex flex-col gap-0.5">
-              {account.map(({ to, label, icon }) => (
-                <RailLink key={to} to={to} end={false} label={label} icon={icon} quiet />
-              ))}
-            </nav>
-            <button
-              onClick={() => {
-                void signOut().then(() => window.location.assign("/"));
-              }}
-              title={t("nav.signOut")}
-              className="focus-ring flex items-center gap-3 rounded-[0.625rem] px-3 py-2 text-sm text-cream-dim transition-[background-color,color,transform] duration-150 ease-press hover:bg-surface-lift hover:text-cream-bright active:scale-[0.98]"
-            >
-              <LogIn className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
-              <span className="hidden lg:inline">{t("nav.signOut")}</span>
-            </button>
-          </div>
-        </aside>
-
-        {/* `pb-20 md:pb-0` reserves the height of the mobile bar, which is
-            fixed and would otherwise sit on top of the last element. */}
-        <div className={`flex min-w-0 flex-1 flex-col md:pb-0 ${inCall ? "" : "pb-[calc(5rem+env(safe-area-inset-bottom,0px))]"}`}>
-          {/* No transition between screens: switching sections happens dozens
-              of times a session, and an exit that never finishes (a tab in
-              the background, a quick second click) once left the content
-              area empty under a working sidebar. */}
-          <div className="flex min-w-0 flex-1 flex-col">
-            <ScreenBoundary
-              resetKey={location.pathname}
-              title={t("screen.failedTitle")}
-              body={t("screen.failedBody")}
-              action={t("screen.reload")}
-            >
-              <Outlet />
-            </ScreenBoundary>
-          </div>
+            <Outlet />
+          </ScreenBoundary>
         </div>
       </div>
 
@@ -299,137 +270,317 @@ export function AppShell() {
           along the bottom, and the sections' tabs sat on top of them and over
           the defence clock. Leaving goes through the call's red button. */}
       {!inCall && <MobileNav entries={entries} space={space} />}
+      {searching && <SearchDialog onClose={() => setSearching(false)} />}
     </div>
   );
 }
 
+interface AccountLink {
+  to: string;
+  label: string;
+  icon: Icon;
+}
+
 /**
- * The bar across the top: the mark, the two workspaces, the person.
+ * The bar across the top, Netflix's way: the mark, the open workspace's
+ * sections as plain text links, and on the right the search, the workspace
+ * switch and the person.
  *
- * The workspaces are underlined tabs rather than pills — the same reading as
- * a bank's Personas / Empresas — and the underline slides between them on a
- * spring with no bounce, so the eye follows the switch instead of finding it
- * again. On a phone the same two tabs sit in the middle and the avatar is the
- * way to the account.
+ * The sections are words, not tabs or pills: the current one is bright and
+ * bold, the rest dim, and nothing else marks them — the content under the bar
+ * is what should hold the eye. At `lg` every main section is a link and the
+ * rest sit under "More"; between `md` and `lg` all of them fold into one
+ * "Browse" menu. On a phone the sections are the bar along the bottom.
  */
 function TopBar({
   space,
+  entries,
+  account,
   isPremium,
   who,
   email,
+  onSearch,
 }: {
   space: Space;
+  entries: Entry[];
+  account: AccountLink[];
   isPremium: boolean;
   who: string;
   email: string | null;
+  onSearch: () => void;
 }) {
   const t = useT();
+  const copy = useShellCopy();
   const initial = (who.trim()[0] ?? "·").toUpperCase();
+  const main = entries.filter((entry) => !entry.wide);
+  const more = entries.filter((entry) => entry.wide);
   return (
     <header className="nav-lifted sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
-      <div className="flex h-16 items-center gap-3 px-3 sm:px-5 lg:gap-8 lg:px-6">
+      <div className="flex h-16 items-center gap-3 px-3 sm:px-5 lg:gap-6 lg:px-10">
         <Link to={SPACE_HOME[space]} className="focus-ring flex shrink-0 items-center gap-2.5 rounded-[0.6rem]" aria-label="Mockio">
           <Mark size={30} className="rounded-[0.55rem] shadow-card" />
-          <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright lg:inline-flex" />
+          <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright xl:inline-flex" />
         </Link>
 
-        <WorkspaceNav space={space} />
+        {/* lg and up: the sections as words. */}
+        <nav aria-label={t("nav.sections")} className="hidden min-w-0 items-center gap-1 lg:flex">
+          {main.map((entry) => (
+            <TopLink key={entry.to} entry={entry} />
+          ))}
+          {more.length > 0 && (
+            <Menu label={copy.more} items={more.map(toMenuItem)} />
+          )}
+        </nav>
 
-        <div className="flex shrink-0 items-center gap-3">
+        {/* md to lg: one menu holding every section. */}
+        <div className="hidden md:block lg:hidden">
+          <Menu label={copy.browse} items={entries.map(toMenuItem)} />
+        </div>
+
+        <div className="ml-auto flex min-w-0 shrink items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={onSearch}
+            aria-label={copy.search}
+            title={`${copy.search} (Ctrl+K)`}
+            data-tour="search-all"
+            className="focus-ring grid h-10 w-10 shrink-0 place-items-center rounded-full text-cream-bright transition-colors hover:bg-surface-lift"
+          >
+            <Search className="h-5 w-5" aria-hidden />
+          </button>
+
+          <div className="flex min-w-0">
+            <WorkspaceNav space={space} />
+          </div>
+
           {isPremium && (
-            <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text sm:inline-flex">
-              {/* A slow light across it, every few seconds: the one place the
-                  paid plan says so, without a badge that shouts. */}
+            <span className="hidden rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text xl:inline-flex">
               <PremiumShine />
             </span>
           )}
-          {/* A name, when there is one. An address cut to "ana.quispe@unmsm.e…"
-              said less than the avatar beside it, which carries it as a title. */}
-          {!who.includes("@") && (
-            <span className="hidden max-w-[12rem] truncate text-sm font-medium text-cream-dim lg:block" title={email ?? undefined}>
-              {who}
-            </span>
-          )}
-          <NavLink
-            to="/app/settings"
-            aria-label={t("nav.settings")}
-            title={email ?? undefined}
-            className={({ isActive }) =>
-              `focus-ring relative grid h-9 w-9 place-items-center rounded-full text-sm font-semibold transition-[box-shadow,transform] duration-150 ease-press active:scale-[0.94] ${
-                isActive ? "bg-accent text-accent-ink" : "bg-surface-card text-cream-bright shadow-card hover:shadow-lift"
-              }`
+
+          <Menu
+            label={t("nav.settings")}
+            align="right"
+            header={who || email || undefined}
+            trigger={
+              <span
+                title={email ?? undefined}
+                className="relative grid h-9 w-9 place-items-center rounded-full bg-surface-card text-sm font-semibold text-cream-bright shadow-card"
+              >
+                {initial}
+                {isPremium && (
+                  <span aria-hidden className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface-deep bg-accent" />
+                )}
+              </span>
             }
-          >
-            {initial}
-            {isPremium && (
-              <span aria-hidden className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface-deep bg-accent sm:hidden" />
-            )}
-          </NavLink>
+            items={[
+              ...account.map(({ to, label, icon }) => ({ to, label, icon })),
+              {
+                label: t("nav.signOut"),
+                icon: LogIn,
+                onSelect: () => {
+                  void signOut().then(() => window.location.assign("/"));
+                },
+              },
+            ]}
+          />
         </div>
       </div>
     </header>
   );
 }
 
-/**
- * One entry in the rail.
- *
- * The workspace's sections carry weight: the active one lifts to a card with
- * the accent's ink on its icon. Account entries are `quiet` — same shape, no
- * colour — because they are places you visit, not places you work.
- */
-function RailLink({
-  to,
-  end,
-  label,
-  icon: Icon,
-  tour,
-  quiet = false,
-  locked,
-}: {
-  to: string;
-  end: boolean;
-  label: string;
-  icon: Icon;
-  tour?: string;
-  quiet?: boolean;
-  locked?: string;
-}) {
+function toMenuItem(entry: Entry): MenuItem {
+  return { to: entry.to, label: entry.label, icon: entry.icon, end: entry.end, tour: entry.tour };
+}
+
+/** One section in the top bar: bright and bold when open, dim otherwise. */
+function TopLink({ entry }: { entry: Entry }) {
   return (
     <NavLink
-      to={to}
-      end={end}
-      title={label}
-      // The tour points at the path; marking every item keeps that selector
-      // honest if the list is ever reordered.
-      data-tour={tour ?? to.split("/").pop()}
+      to={entry.to}
+      end={entry.end}
+      data-tour={entry.tour}
       className={({ isActive }) =>
-        `focus-ring group/rail flex items-center gap-3 rounded-[0.625rem] px-3 text-sm transition-[background-color,color,box-shadow,transform] duration-200 ease-press active:scale-[0.98] ${
-          quiet ? "py-2" : "py-2.5 font-medium"
-        } ${
+        `focus-ring whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-150 ${
           isActive
-            ? "bg-surface-card text-cream-bright shadow-card"
-            : "text-cream-dim hover:bg-surface-lift hover:text-cream-bright"
+            ? "bg-surface-card font-semibold text-cream-bright shadow-card"
+            : "font-medium text-cream-dim hover:text-cream-bright"
         }`
       }
     >
-      {({ isActive }) => (
-        <>
-          <Icon
-            className={`${quiet ? "h-4 w-4" : "h-[1.125rem] w-[1.125rem]"} shrink-0 ${
-              isActive && !quiet ? "text-accent-text" : ""
-            }`}
-            aria-hidden
-          />
-          {/* Two lines rather than one ellipsis. "Escenarios académicos" is
-              the longest label in the rail and a truncated word tells the
-              reader nothing about a screen they may not recognise. */}
-          <span className="hidden leading-snug lg:inline">{label}</span>
-          {locked && <PremiumMark label={locked} className="ml-auto hidden lg:inline-grid" />}
-        </>
-      )}
+      {entry.label}
     </NavLink>
   );
+}
+
+interface MenuItem {
+  label: string;
+  icon: Icon;
+  to?: string;
+  end?: boolean;
+  tour?: string;
+  onSelect?: () => void;
+}
+
+/**
+ * A small disclosure menu: a button, and under it a list of links.
+ *
+ * Closes on a choice, on Escape (returning focus to the button) and on a click
+ * anywhere else. The items are ordinary links, so the browser's own keyboard
+ * handling — Tab, Enter, opening in a new tab — keeps working.
+ */
+function Menu({
+  label,
+  items,
+  trigger,
+  header,
+  align = "left",
+}: {
+  label: string;
+  items: MenuItem[];
+  trigger?: ReactNode;
+  header?: string;
+  align?: "left" | "right";
+}) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const id = useId();
+  const location = useLocation();
+
+  useEffect(() => setOpen(false), [location.pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (event: PointerEvent) => {
+      if (!box.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        button.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const row =
+    "focus-ring flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-cream-dim transition-colors hover:bg-surface-lift hover:text-cream-bright";
+
+  return (
+    <div ref={box} className="relative shrink-0">
+      <button
+        ref={button}
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-controls={id}
+        aria-label={trigger ? label : undefined}
+        onClick={() => setOpen((value) => !value)}
+        className={`focus-ring flex items-center gap-1 rounded-full ${trigger ? "" : "px-3 py-2 text-sm font-medium text-cream-dim hover:text-cream-bright"}`}
+      >
+        {trigger ?? label}
+        <ChevronDown className={`h-4 w-4 text-cream-dim transition-transform duration-150 ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div
+          id={id}
+          className={`absolute top-full z-50 mt-2 w-64 rounded-2xl bg-surface-card p-2 shadow-float ring-1 ring-[color:var(--line)] ${
+            align === "right" ? "right-0" : "left-0"
+          }`}
+        >
+          {header && (
+            <p className="truncate border-b border-line px-3 pb-2 pt-1 text-xs font-medium text-cream-faint">{header}</p>
+          )}
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {items.map(({ label: itemLabel, icon: ItemIcon, to, end, tour, onSelect }) => (
+              <li key={to ?? itemLabel}>
+                {to ? (
+                  <NavLink
+                    to={to}
+                    end={end}
+                    data-tour={tour}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) => `${row} ${isActive ? "bg-surface-lift font-semibold text-cream-bright" : ""}`}
+                  >
+                    <ItemIcon className="h-4 w-4 shrink-0" aria-hidden />
+                    {itemLabel}
+                  </NavLink>
+                ) : (
+                  <button
+                    type="button"
+                    className={row}
+                    onClick={() => {
+                      setOpen(false);
+                      onSelect?.();
+                    }}
+                  >
+                    <ItemIcon className="h-4 w-4 shrink-0" aria-hidden />
+                    {itemLabel}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The search, from anywhere: the same field as on the home screen, in a
+ * dialog over the current page. The catalogue is fetched when it opens.
+ */
+function SearchDialog({ onClose }: { onClose: () => void }) {
+  const copy = useShellCopy();
+  const catalogue = useHomeCatalogue();
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={copy.search}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 pt-[12vh] backdrop-blur-sm"
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="w-full max-w-2xl">
+        <OmniSearch
+          items={catalogue.index}
+          suggested={catalogue.index.filter((item) => item.kind === "scenario").slice(0, 4)}
+          autoFocus
+          onDone={onClose}
+        />
+      </div>
+    </div>
+  );
+}
+
+const SHELL_COPY = {
+  es: { more: "Más", browse: "Explorar", search: "Buscar" },
+  en: { more: "More", browse: "Browse", search: "Search" },
+  pt: { more: "Mais", browse: "Explorar", search: "Buscar" },
+  fr: { more: "Plus", browse: "Parcourir", search: "Rechercher" },
+};
+
+function useShellCopy() {
+  const { locale } = useLocale();
+  return SHELL_COPY[locale as keyof typeof SHELL_COPY] ?? SHELL_COPY.en;
 }
 
 /**
@@ -457,9 +608,6 @@ function MobileNav({ entries, space }: { entries: Entry[]; space: Space }) {
             <NavLink
               to={to}
               end={end}
-              // The rail is still in the DOM at this width, collapsed to a
-              // zero-sized box. Marking this one too means the tour has a
-              // real target to point at rather than the rail's empty rect.
               data-tour={tour}
               className={({ isActive }) => tab(isActive)}
             >

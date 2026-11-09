@@ -44,6 +44,7 @@ function ThesisMoved() {
 
 const Thesis = lazy(() => import("@/platform/Thesis").then((m) => ({ default: m.Thesis })));
 const TrainingConversations = lazy(() => import("@/platform/TrainingConversations").then((m) => ({ default: m.TrainingConversations })));
+const CustomScenario = lazy(() => import("@/platform/CustomScenario").then((m) => ({ default: m.CustomScenario })));
 const IntuitionTrainer = lazy(() => import("@/platform/IntuitionTrainer").then((m) => ({ default: m.IntuitionTrainer })));
 const InterviewDetail = lazy(() => import("@/platform/InterviewDetail").then((m) => ({ default: m.InterviewDetail })));
 /**
@@ -155,6 +156,7 @@ export function App() {
           <Route index element={<Suspense fallback={null}><Thesis /></Suspense>} />
           <Route path="education" element={<WorkspaceHome space="defense" />} />
           <Route path="professional" element={<WorkspaceHome space="career" />} />
+          <Route path="training/custom" element={<Suspense fallback={null}><CustomScenario /></Suspense>} />
           <Route path="training/education" element={<Suspense fallback={null}><TrainingConversations domain="education" /></Suspense>} />
           <Route path="training/professional" element={<Suspense fallback={null}><TrainingConversations domain="professional" /></Suspense>} />
           <Route path="intuition" element={<Suspense fallback={null}><IntuitionTrainer /></Suspense>} />
