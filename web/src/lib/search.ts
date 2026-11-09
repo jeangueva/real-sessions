@@ -27,6 +27,8 @@ export interface SearchItem {
   to: string;
   /** Router state for the destination, such as the company to interview for. */
   state?: Record<string, string>;
+  /** The workspace it belongs to; absent for screens both share. */
+  space?: "defense" | "career";
 }
 
 /** Lowercase, without accents, so "Diagnóstico" and "diagnostico" are one word. */
@@ -85,8 +87,15 @@ export function searchItems(items: SearchItem[], query: string, limit = 7): Sear
     .map((entry) => entry.item);
 }
 
-/** Where the "make one for me" option goes with what was typed. */
-export function customPath(query: string): string {
+/**
+ * Where the "make one for you" option goes with what was typed. The workspace
+ * it was asked from decides whether the rehearsal is academic or professional.
+ */
+export function customPath(query: string, space?: "defense" | "career"): string {
+  const params = new URLSearchParams();
   const text = query.trim();
-  return text ? `/app/training/custom?q=${encodeURIComponent(text)}` : "/app/training/custom";
+  if (text) params.set("q", text);
+  if (space) params.set("domain", space === "defense" ? "education" : "professional");
+  const search = params.toString().replace(/\+/g, "%20");
+  return search ? `/app/training/custom?${search}` : "/app/training/custom";
 }

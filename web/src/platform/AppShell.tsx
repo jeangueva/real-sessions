@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import { ScreenBoundary } from "./ScreenBoundary";
 import { WorkspaceNav } from "./WorkspaceNav";
 import { OmniSearch } from "./OmniSearch";
-import { useHomeCatalogue } from "./useHomeCatalogue";
+import { indexFor, useHomeCatalogue } from "./useHomeCatalogue";
 import {
   Home,
   MessagesSquare,
@@ -48,10 +48,11 @@ import {
  * Education and Professional have equal entry points and contextual navigation.
  *
  * One bar across the top, a streaming app's way, and the whole width below it
- * for the content. At `lg` the open workspace's sections are words in the bar;
- * between `md` and `lg` they fold into one "Browse" menu; below `md` they are a
- * bar along the bottom. The search (also Ctrl+K), the workspace switch and the
- * account menu sit on the right at every width.
+ * for the content. From `md` the open workspace's three to five sections are
+ * words in the bar; below `md` they are a bar along the bottom. A section that
+ * groups several screens (the thesis, the interview side) shows them as tabs
+ * under the bar once inside. The search (also Ctrl+K), the workspace switch
+ * and the account menu sit on the right at every width.
  */
 
 type Icon = typeof Play;
@@ -64,35 +65,81 @@ interface Entry {
   end: boolean;
   /** For the tour, which points at entries by name. */
   tour: string;
-  /** In the rail only: the phone's tab bar has room for five. */
-  wide?: boolean;
+  /**
+   * The screens under this entry. A group is one word in the bar; its screens
+   * are the tabs under the bar when one of them is open.
+   */
+  children?: Entry[];
+  /** Other paths that count as inside this entry, such as a live interview. */
+  also?: string[];
 }
 
-/** Each workspace's sections, in the order they are worked through. */
+const GROUP_COPY = {
+  es: { thesis: "Mi tesis", practise: "Practicar" },
+  en: { thesis: "My thesis", practise: "Practise" },
+  pt: { thesis: "Meu trabalho", practise: "Praticar" },
+  fr: { thesis: "Mon mémoire", practise: "S'entraîner" },
+};
+
+/**
+ * Each workspace's sections, in the order they are worked through.
+ *
+ * Few words in the bar, on purpose: a student days from their defence should
+ * not read eight links to find one. Everything about the thesis is one entry,
+ * "My thesis", and everything about getting hired is one, "Interviews"; their
+ * screens are tabs once inside.
+ */
 function useSpaceEntries(space: Space): Entry[] {
   const t = useT();
   const tt = useThesisT();
+  const { locale } = useLocale();
+  const g = GROUP_COPY[locale as keyof typeof GROUP_COPY] ?? GROUP_COPY.en;
   if (space === "defense") {
     return [
       { to: SPACE_HOME.defense, label: t("nav.home"), short: t("nav.home"), icon: Home, end: true, tour: "education" },
+      {
+        to: thesisPath("ensayar"), label: g.thesis, short: g.thesis, icon: Mic, end: true, tour: "thesis",
+        children: [
+          { to: thesisPath("ensayar"), label: tt("tabRehearse"), short: tt("shortRehearse"), icon: Mic, end: true, tour: "ensayar" },
+          { to: thesisPath("diagnostico"), label: tt("tabDiagnosis"), short: tt("shortDiagnosis"), icon: FileSearch, end: false, tour: "diagnostico" },
+          { to: thesisPath("repaso"), label: tt("tabStudy"), short: tt("shortStudy"), icon: BookOpenCheck, end: false, tour: "repaso" },
+          { to: thesisPath("diapositivas"), label: tt("tabSlides"), short: tt("shortSlides"), icon: Presentation, end: false, tour: "diapositivas" },
+          { to: thesisPath("observaciones"), label: tt("tabObservations"), short: tt("shortObservations"), icon: ClipboardCheck, end: false, tour: "observaciones" },
+          { to: thesisPath("mas"), label: tt("railMore"), short: tt("shortMore"), icon: Sparkles, end: false, tour: "mas" },
+        ],
+        also: ["/app/thesis"],
+      },
       { to: "/app/training/education", label: t("nav.academicScenarios"), short: t("nav.scenariosShort"), icon: GraduationCap, end: false, tour: "academic" },
-      { to: thesisPath("ensayar"), label: tt("tabRehearse"), short: tt("shortRehearse"), icon: Mic, end: true, tour: "ensayar" },
-      { to: thesisPath("diagnostico"), label: tt("tabDiagnosis"), short: tt("shortDiagnosis"), icon: FileSearch, end: false, tour: "diagnostico" },
-      { to: thesisPath("repaso"), label: tt("tabStudy"), short: tt("shortStudy"), icon: BookOpenCheck, end: false, tour: "repaso", wide: true },
-      { to: thesisPath("diapositivas"), label: tt("tabSlides"), short: tt("shortSlides"), icon: Presentation, end: false, tour: "diapositivas", wide: true },
-      { to: thesisPath("observaciones"), label: tt("tabObservations"), short: tt("shortObservations"), icon: ClipboardCheck, end: false, tour: "observaciones", wide: true },
-      { to: thesisPath("mas"), label: tt("railMore"), short: tt("shortMore"), icon: Sparkles, end: false, tour: "mas" },
     ];
   }
   return [
     { to: SPACE_HOME.career, label: t("nav.home"), short: t("nav.home"), icon: Home, end: true, tour: "professional" },
+    {
+      to: "/app/practice", label: t("nav.interviews"), short: t("nav.interviewsShort"), icon: Play, end: false, tour: "interviews",
+      children: [
+        { to: "/app/practice", label: g.practise, short: g.practise, icon: Play, end: false, tour: "practice" },
+        { to: "/app/applications", label: t("nav.applications"), short: t("nav.applicationsShort"), icon: Briefcase, end: false, tour: "applications" },
+        { to: "/app/profile", label: t("nav.context"), short: t("nav.contextShort"), icon: FileUser, end: false, tour: "profile" },
+      ],
+      also: ["/app/session", "/app/feedback", "/app/interviews"],
+    },
     { to: "/app/training/professional", label: t("nav.conversations"), short: t("nav.conversationsShort"), icon: MessagesSquare, end: false, tour: "conversations" },
     { to: "/app/intuition", label: t("nav.intuition"), short: t("nav.intuition"), icon: Compass, end: false, tour: "intuition" },
-    { to: "/app/practice", label: t("nav.interviews"), short: t("nav.interviewsShort"), icon: Play, end: false, tour: "practice" },
     { to: "/app/progress", label: t("nav.progress"), short: t("nav.progressShort"), icon: Route, end: false, tour: "progress" },
-    { to: "/app/applications", label: t("nav.applications"), short: t("nav.applicationsShort"), icon: Briefcase, end: false, tour: "applications", wide: true },
-    { to: "/app/profile", label: t("nav.context"), short: t("nav.contextShort"), icon: FileUser, end: false, tour: "profile", wide: true },
   ];
+}
+
+/** Whether a path is this entry's screen, or one of its group's. */
+function entryActive(entry: Entry, pathname: string): boolean {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  const own = (to: string, end: boolean) => (end ? path === to : path === to || path.startsWith(`${to}/`));
+  if (entry.children) {
+    return (
+      entry.children.some((child) => own(child.to, child.end)) ||
+      (entry.also ?? []).some((prefix) => own(prefix, false))
+    );
+  }
+  return own(entry.to, entry.end);
 }
 
 /**
@@ -255,6 +302,9 @@ export function AppShell() {
             the background, a quick second click) once left the content
             area empty. */}
         <div className="flex min-w-0 flex-1 flex-col">
+          {/* Outside the boundary: a screen that fails keeps its tabs, so
+              the way to its siblings is still there. */}
+          {!inCall && <SubNav entries={entries} />}
           <ScreenBoundary
             resetKey={location.pathname}
             title={t("screen.failedTitle")}
@@ -270,7 +320,7 @@ export function AppShell() {
           along the bottom, and the sections' tabs sat on top of them and over
           the defence clock. Leaving goes through the call's red button. */}
       {!inCall && <MobileNav entries={entries} space={space} />}
-      {searching && <SearchDialog onClose={() => setSearching(false)} />}
+      {searching && <SearchDialog space={space} onClose={() => setSearching(false)} />}
     </div>
   );
 }
@@ -283,14 +333,9 @@ interface AccountLink {
 
 /**
  * The bar across the top, Netflix's way: the mark, the open workspace's
- * sections as plain text links, and on the right the search, the workspace
- * switch and the person.
- *
- * The sections are words, not tabs or pills: the current one is bright and
- * bold, the rest dim, and nothing else marks them — the content under the bar
- * is what should hold the eye. At `lg` every main section is a link and the
- * rest sit under "More"; between `md` and `lg` all of them fold into one
- * "Browse" menu. On a phone the sections are the bar along the bottom.
+ * sections as plain words, and on the right the search, the workspace switch
+ * and the person. The current section is bright and bold, the rest dim, and
+ * nothing else marks them — the content under the bar should hold the eye.
  */
 function TopBar({
   space,
@@ -312,8 +357,6 @@ function TopBar({
   const t = useT();
   const copy = useShellCopy();
   const initial = (who.trim()[0] ?? "·").toUpperCase();
-  const main = entries.filter((entry) => !entry.wide);
-  const more = entries.filter((entry) => entry.wide);
   return (
     <header className="nav-lifted sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
       <div className="flex h-16 items-center gap-3 px-3 sm:px-5 lg:gap-6 lg:px-10">
@@ -322,20 +365,12 @@ function TopBar({
           <Wordmark mark={false} className="hidden text-lg font-semibold text-cream-bright xl:inline-flex" />
         </Link>
 
-        {/* lg and up: the sections as words. */}
-        <nav aria-label={t("nav.sections")} className="hidden min-w-0 items-center gap-1 lg:flex">
-          {main.map((entry) => (
+        {/* md and up: the sections as words. Few enough to fit. */}
+        <nav aria-label={t("nav.sections")} className="hidden min-w-0 items-center gap-1 md:flex">
+          {entries.map((entry) => (
             <TopLink key={entry.to} entry={entry} />
           ))}
-          {more.length > 0 && (
-            <Menu label={copy.more} items={more.map(toMenuItem)} />
-          )}
         </nav>
-
-        {/* md to lg: one menu holding every section. */}
-        <div className="hidden md:block lg:hidden">
-          <Menu label={copy.browse} items={entries.map(toMenuItem)} />
-        </div>
 
         <div className="ml-auto flex min-w-0 shrink items-center gap-2 sm:gap-3">
           <button
@@ -391,27 +426,60 @@ function TopBar({
   );
 }
 
-function toMenuItem(entry: Entry): MenuItem {
-  return { to: entry.to, label: entry.label, icon: entry.icon, end: entry.end, tour: entry.tour };
-}
-
 /** One section in the top bar: bright and bold when open, dim otherwise. */
 function TopLink({ entry }: { entry: Entry }) {
+  const { pathname } = useLocation();
+  const active = entryActive(entry, pathname);
   return (
-    <NavLink
+    <Link
       to={entry.to}
-      end={entry.end}
       data-tour={entry.tour}
-      className={({ isActive }) =>
-        `focus-ring whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-150 ${
-          isActive
-            ? "bg-surface-card font-semibold text-cream-bright shadow-card"
-            : "font-medium text-cream-dim hover:text-cream-bright"
-        }`
-      }
+      aria-current={active ? "page" : undefined}
+      className={`focus-ring whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-150 ${
+        active
+          ? "bg-surface-card font-semibold text-cream-bright shadow-card"
+          : "font-medium text-cream-dim hover:text-cream-bright"
+      }`}
     >
       {entry.label}
-    </NavLink>
+    </Link>
+  );
+}
+
+/**
+ * The open group's screens, as tabs under the bar: the thesis's six, or the
+ * interview side's three. Shown only inside a group, so the bar stays short
+ * and nobody meets these until they need them. Scrolls sideways on a phone.
+ */
+function SubNav({ entries }: { entries: Entry[] }) {
+  const { pathname } = useLocation();
+  const group = entries.find((entry) => entry.children && entryActive(entry, pathname));
+  if (!group?.children) return null;
+  return (
+    <nav aria-label={group.label} className="mx-auto w-full max-w-[110rem] px-4 pt-4 sm:px-6 lg:px-10">
+      <ul className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {group.children.map((child) => {
+          const Icon = child.icon;
+          return (
+            <li key={child.to} className="shrink-0">
+              <NavLink
+                to={child.to}
+                end={child.end}
+                data-tour={child.tour}
+                className={({ isActive }) =>
+                  `focus-ring inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-medium shadow-card transition-colors ${
+                    isActive ? "bg-cream-bright text-surface-base" : "bg-surface-card text-cream-dim hover:text-cream-bright"
+                  }`
+                }
+              >
+                <Icon className="h-4 w-4" aria-hidden />
+                {child.label}
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
 
@@ -539,9 +607,10 @@ function Menu({
  * The search, from anywhere: the same field as on the home screen, in a
  * dialog over the current page. The catalogue is fetched when it opens.
  */
-function SearchDialog({ onClose }: { onClose: () => void }) {
+function SearchDialog({ space, onClose }: { space: Space; onClose: () => void }) {
   const copy = useShellCopy();
   const catalogue = useHomeCatalogue();
+  const items = indexFor(catalogue.index, space);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -561,8 +630,9 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
     >
       <div className="w-full max-w-2xl">
         <OmniSearch
-          items={catalogue.index}
-          suggested={catalogue.index.filter((item) => item.kind === "scenario").slice(0, 4)}
+          items={items}
+          suggested={items.filter((item) => item.kind === "scenario").slice(0, 4)}
+          space={space}
           autoFocus
           onDone={onClose}
         />
@@ -572,10 +642,10 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
 }
 
 const SHELL_COPY = {
-  es: { more: "Más", browse: "Explorar", search: "Buscar" },
-  en: { more: "More", browse: "Browse", search: "Search" },
-  pt: { more: "Mais", browse: "Explorar", search: "Buscar" },
-  fr: { more: "Plus", browse: "Parcourir", search: "Rechercher" },
+  es: { search: "Buscar" },
+  en: { search: "Search" },
+  pt: { search: "Buscar" },
+  fr: { search: "Rechercher" },
 };
 
 function useShellCopy() {
@@ -586,11 +656,12 @@ function useShellCopy() {
 /**
  * Bottom bar, below `md` only: the open workspace's sections.
  *
- * The account moved to the avatar in the top bar, so every slot here is a
- * place to work — five for the thesis, four for the career side.
+ * The same sections as the top bar: three in Education, five in Professional.
+ * The account is the avatar in the top bar.
  */
 function MobileNav({ entries, space }: { entries: Entry[]; space: Space }) {
   const t = useT();
+  const { pathname } = useLocation();
   const tab = (active: boolean) =>
     `focus-ring flex h-16 flex-col items-center justify-center gap-1 px-0.5 text-xs font-medium transition-[color,transform] duration-150 ease-press active:scale-[0.94] ${
       active ? "text-accent-text" : "text-cream-faint"
@@ -603,19 +674,23 @@ function MobileNav({ entries, space }: { entries: Entry[]; space: Space }) {
       className="nav-lifted fixed inset-x-0 bottom-0 z-30 !border-b-0 border-t border-line pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul key={space} className="mx-auto flex max-w-md items-stretch justify-around">
-        {entries.filter((entry) => !entry.wide).map(({ to, short, icon: EntryIcon, end, tour }) => (
-          <li key={to} className="min-w-0 flex-1">
-            <NavLink
-              to={to}
-              end={end}
-              data-tour={tour}
-              className={({ isActive }) => tab(isActive)}
-            >
-              <EntryIcon className="h-5 w-5" aria-hidden />
-              <span className="max-w-full truncate">{short}</span>
-            </NavLink>
-          </li>
-        ))}
+        {entries.map((entry) => {
+          const EntryIcon = entry.icon;
+          const active = entryActive(entry, pathname);
+          return (
+            <li key={entry.to} className="min-w-0 flex-1">
+              <Link
+                to={entry.to}
+                data-tour={entry.tour}
+                aria-current={active ? "page" : undefined}
+                className={tab(active)}
+              >
+                <EntryIcon className="h-5 w-5" aria-hidden />
+                <span className="max-w-full truncate">{entry.short}</span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

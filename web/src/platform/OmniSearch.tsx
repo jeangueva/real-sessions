@@ -40,12 +40,15 @@ export function OmniSearch({
   items,
   suggested = [],
   autoFocus = false,
+  space,
   onDone,
 }: {
   items: SearchItem[];
   /** Shown before anything is typed. */
   suggested?: SearchItem[];
   autoFocus?: boolean;
+  /** The workspace it searches from: a rehearsal made here belongs to it. */
+  space?: "defense" | "career";
   /** Called after an option is opened, e.g. to close a dialog around it. */
   onDone?: () => void;
 }) {
@@ -84,7 +87,7 @@ export function OmniSearch({
   const choose = (index: number) => {
     const item = matches[index];
     if (item) navigate(item.to, item.state ? { state: item.state } : undefined);
-    else navigate(customPath(query));
+    else navigate(customPath(query, space));
     setOpen(false);
     onDone?.();
   };
