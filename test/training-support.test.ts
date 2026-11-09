@@ -103,6 +103,75 @@ describe("training and support HTTP routes", () => {
     expect(fbBody.feedback.strengths).toHaveLength(1);
   });
 
+  it("drafts a scenario from the learner's own words and rehearses the confirmed version", async () => {
+    await api.authenticate();
+    api.provider.reply(
+      JSON.stringify({
+        allowed: true,
+        scenario: {
+          domain: "professional",
+          title: "Pedir un aumento",
+          role: "Una jefa que valora tu trabajo pero tiene el presupuesto cerrado",
+          brief: "Llevas dos años en el puesto y asumiste más responsabilidades. Tu jefa dice que el presupuesto ya está aprobado.",
+          goal: "Presentar evidencia concreta y acordar una fecha para revisar el salario.",
+        },
+      }),
+    );
+    const drafted = await api.call(
+      "/api/training/custom/draft",
+      post({ request: "pedirle un aumento a mi jefa", language: "es" }),
+    );
+    expect(drafted.status).toBe(200);
+    const { scenario } = (await drafted.json()) as { scenario: { title: string; role: string } };
+    expect(scenario.title).toBe("Pedir un aumento");
+
+    // The learner edits the draft before rehearsing it; the edit is what the
+    // partner plays.
+    const confirmed = { ...scenario, role: "Una gerente de área con poco tiempo" };
+    api.provider.reply("Tengo cinco minutos, ¿de qué querías hablar?");
+    const started = await api.call(
+      "/api/training/conversations",
+      post({ custom: confirmed, culture: "latam", language: "es" }),
+    );
+    expect(started.status).toBe(201);
+    const state = (await started.json()) as { token: string; messages: unknown[] };
+    expect(state.messages).toHaveLength(1);
+    expect(api.provider.prompts.at(-1)).toContain("Una gerente de área con poco tiempo");
+    expect(api.provider.prompts.at(-1)).toContain("written by the learner");
+
+    api.provider.reply("¿Y qué evidencia tienes?");
+    const answered = await api.call(
+      "/api/training/conversations/answer",
+      post({ token: state.token, answer: "Quiero hablar de mi salario." }),
+    );
+    expect(answered.status).toBe(200);
+    expect(api.provider.prompts.at(-1)).toContain("Una gerente de área con poco tiempo");
+  });
+
+  it("explains when a described scenario cannot be rehearsed", async () => {
+    await api.authenticate();
+    api.provider.reply(JSON.stringify({ allowed: false, reason: "Harassment." }));
+    const res = await api.call(
+      "/api/training/custom/draft",
+      post({ request: "asustar a mi vecino para que se mude", language: "es" }),
+    );
+    expect(res.status).toBe(422);
+    expect(((await res.json()) as { error: string }).error).toContain("no se puede ensayar");
+  });
+
+  it("refuses a rehearsal that names both a catalogue scenario and a custom one", async () => {
+    await api.authenticate();
+    const res = await api.call(
+      "/api/training/conversations",
+      post({
+        scenarioId: "founder-no",
+        custom: { domain: "professional", title: "Otro", role: "Alguien distinto", brief: "Una situación cualquiera.", goal: "Un objetivo cualquiera." },
+        language: "es",
+      }),
+    );
+    expect(res.status).toBe(400);
+  });
+
   it("reveals the historical outcome after committing a product/design intuition judgment", async () => {
     await api.authenticate();
     const res = await api.call(

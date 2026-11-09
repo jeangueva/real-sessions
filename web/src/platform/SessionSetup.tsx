@@ -229,6 +229,12 @@ export function SessionSetup() {
     | { applicationId?: string; company?: string; role?: string; repeatId?: string }
     | null;
   useEffect(() => {
+    // From the home search: a company or a role chosen there, nothing else.
+    if (!arrived?.applicationId && !arrived?.repeatId) {
+      if (arrived?.company) setCompany(arrived.company);
+      if (arrived?.role) setRole(arrived.role);
+      return;
+    }
     if (!arrived?.applicationId || !arrived.company || !arrived.role) return;
     setApplication({
       id: arrived.applicationId,
