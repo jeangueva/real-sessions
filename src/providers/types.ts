@@ -17,6 +17,11 @@ export interface ProviderUsage {
   outputTokens: number;
   cacheReadTokens: number;
   cacheCreationTokens: number;
+  /**
+   * What the call cost in dollars, when the vendor says so. OpenRouter does,
+   * per call; the others leave it absent and the call is counted unpriced.
+   */
+  costUsd?: number;
 }
 
 export const ZERO_USAGE: ProviderUsage = {

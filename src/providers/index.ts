@@ -2,6 +2,7 @@ import type { ModelProvider } from "./types.js";
 import { AnthropicProvider } from "./anthropic.js";
 import { GeminiProvider } from "./gemini.js";
 import { OpenAICompatibleProvider } from "./openai-compatible.js";
+import { meterProvider } from "../usage.js";
 
 export type { ModelProvider } from "./types.js";
 export type {
@@ -63,7 +64,8 @@ export function resolveProvider(model: string): ModelProvider {
   const vendor = vendorFor(model);
   let provider = cache.get(vendor);
   if (!provider) {
-    provider = createProvider(vendor);
+    // Metered here, once, so every call any module makes is in the cost report.
+    provider = meterProvider(createProvider(vendor));
     cache.set(vendor, provider);
   }
   return provider;

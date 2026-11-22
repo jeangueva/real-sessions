@@ -223,6 +223,8 @@ export interface Raw {
   audit: AuditRow[];
   /** Absent on fixtures written before the thesis product existed. */
   defense?: DefenseSummary;
+  /** Absent on fixtures written before costs were measured. */
+  aiCosts?: AiCostSummary;
 }
 
 export interface UnfinishedRow {
@@ -304,6 +306,7 @@ export interface Summary {
   interviewsByDay: DayCount[];
   users: UserRow[];
   defense: DefenseSummary;
+  aiCosts: AiCostSummary;
 }
 
 /** Statuses the providers use for a subscription that is currently paid for. */
@@ -398,6 +401,7 @@ export function summarise(raw: Raw, now = new Date()): Summary {
   const total = raw.accounts.length;
   return {
     defense: raw.defense ?? EMPTY_DEFENSE,
+    aiCosts: raw.aiCosts ?? EMPTY_AI_COSTS,
     generatedAt: now.toISOString(),
     accounts: {
       total,
@@ -549,5 +553,179 @@ export async function load(pool: Pool, redis: RedisClientType): Promise<Raw> {
       detail: (row.detail as Record<string, unknown>) ?? {},
     })),
     defense: await loadDefense(pool, accounts).catch(() => EMPTY_DEFENSE),
+    aiCosts: await loadAiCosts(pool, accounts),
+  };
+}
+
+/**
+ * What the AI costs, from `ai_usage` (src/usage.ts), over the last 30 days.
+ *
+ * The question it answers is the one a price is set from: what does one
+ * rehearsal cost, and what does one active person cost in a month. Rehearsal
+ * costs are the model calls only — voice is not tied to a session yet — so
+ * voice is shown on its own and inside the per-person figure, which counts
+ * everything an account caused.
+ */
+export interface AiCostSummary {
+  /** False when the table is missing or the admin role cannot read it. */
+  available: boolean;
+  reason: string | null;
+  days: number;
+  total: { cost: number; calls: number; unpriced: number; voice: number };
+  byFeature: { feature: string; cost: number; calls: number; owners: number; sessions: number; unpriced: number }[];
+  perSession: { feature: string; sessions: number; avg: number; p50: number; p90: number; max: number }[];
+  perOwner: { owners: number; avg: number; p50: number; p90: number; top: { owner: string; cost: number }[] };
+  byModel: { kind: string; model: string; cost: number; calls: number; inputTokens: number; outputTokens: number; estimated: boolean }[];
+  daily: { day: string; cost: number }[];
+}
+
+export const EMPTY_AI_COSTS: AiCostSummary = {
+  available: false,
+  reason: null,
+  days: 30,
+  total: { cost: 0, calls: 0, unpriced: 0, voice: 0 },
+  byFeature: [],
+  perSession: [],
+  perOwner: { owners: 0, avg: 0, p50: 0, p90: 0, top: [] },
+  byModel: [],
+  daily: [],
+};
+
+/** The value at a percentile of an ascending list; 0 for an empty one. */
+export function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1));
+  return sorted[index]!;
+}
+
+async function loadAiCosts(pool: Pool, accounts: AccountRow[]): Promise<AiCostSummary> {
+  const window = `at >= now() - interval '30 days'`;
+  try {
+    const [features, sessions, owners, models, daily] = await Promise.all([
+      pool.query(
+        `SELECT feature, count(*)::int AS calls,
+                count(*) FILTER (WHERE cost_usd IS NULL)::int AS unpriced,
+                COALESCE(sum(cost_usd), 0)::float AS cost,
+                count(DISTINCT owner_id)::int AS owners,
+                count(DISTINCT session_id)::int AS sessions
+           FROM ai_usage WHERE ${window} GROUP BY feature ORDER BY cost DESC`,
+      ),
+      pool.query(
+        `SELECT max(feature) AS feature, COALESCE(sum(cost_usd), 0)::float AS cost
+           FROM ai_usage WHERE ${window} AND session_id IS NOT NULL GROUP BY session_id`,
+      ),
+      pool.query(
+        `SELECT owner_id, COALESCE(sum(cost_usd), 0)::float AS cost
+           FROM ai_usage WHERE ${window} AND owner_id IS NOT NULL GROUP BY owner_id`,
+      ),
+      pool.query(
+        `SELECT kind, COALESCE(model, '—') AS model, count(*)::int AS calls,
+                COALESCE(sum(cost_usd), 0)::float AS cost,
+                COALESCE(sum(input_tokens), 0)::bigint AS input_tokens,
+                COALESCE(sum(output_tokens), 0)::bigint AS output_tokens,
+                bool_or(estimated) AS estimated
+           FROM ai_usage WHERE ${window} GROUP BY kind, model ORDER BY cost DESC LIMIT 20`,
+      ),
+      pool.query(
+        `SELECT to_char(date_trunc('day', at), 'YYYY-MM-DD') AS day, COALESCE(sum(cost_usd), 0)::float AS cost
+           FROM ai_usage WHERE ${window} GROUP BY 1 ORDER BY 1`,
+      ),
+    ]);
+    return summariseAiCosts(
+      {
+        features: features.rows,
+        sessions: sessions.rows,
+        owners: owners.rows,
+        models: models.rows,
+        daily: daily.rows,
+      },
+      accounts,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      ...EMPTY_AI_COSTS,
+      reason: /permission denied/i.test(message)
+        ? "El rol del admin no puede leer ai_usage: GRANT SELECT ON ai_usage TO mockio_admin;"
+        : /does not exist/i.test(message)
+          ? "La tabla ai_usage aún no existe: aparece cuando el producto despliegue esta versión."
+          : `No se pudo leer ai_usage: ${message}`,
+    };
+  }
+}
+
+/** Pure, so the arithmetic can be tested against hand-made rows. */
+export function summariseAiCosts(
+  rows: {
+    features: Record<string, unknown>[];
+    sessions: Record<string, unknown>[];
+    owners: Record<string, unknown>[];
+    models: Record<string, unknown>[];
+    daily: Record<string, unknown>[];
+  },
+  accounts: AccountRow[],
+): AiCostSummary {
+  const num = (value: unknown) => Number(value ?? 0) || 0;
+  const byFeature = rows.features.map((row) => ({
+    feature: String(row.feature),
+    cost: num(row.cost),
+    calls: num(row.calls),
+    owners: num(row.owners),
+    sessions: num(row.sessions),
+    unpriced: num(row.unpriced),
+  }));
+  const grouped = new Map<string, number[]>();
+  for (const row of rows.sessions) {
+    const feature = String(row.feature);
+    grouped.set(feature, [...(grouped.get(feature) ?? []), num(row.cost)]);
+  }
+  const perSession = [...grouped.entries()]
+    .map(([feature, costs]) => {
+      const sorted = [...costs].sort((a, b) => a - b);
+      return {
+        feature,
+        sessions: sorted.length,
+        avg: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
+        p50: percentile(sorted, 50),
+        p90: percentile(sorted, 90),
+        max: sorted[sorted.length - 1] ?? 0,
+      };
+    })
+    .sort((a, b) => b.avg - a.avg);
+  const emails = new Map(accounts.map((account) => [account.id, account.email]));
+  const ownerCosts = rows.owners
+    .map((row) => ({ owner: String(row.owner_id), cost: num(row.cost) }))
+    .sort((a, b) => b.cost - a.cost);
+  const sortedOwners = ownerCosts.map((row) => row.cost).sort((a, b) => a - b);
+  const models = rows.models.map((row) => ({
+    kind: String(row.kind),
+    model: String(row.model),
+    cost: num(row.cost),
+    calls: num(row.calls),
+    inputTokens: num(row.input_tokens),
+    outputTokens: num(row.output_tokens),
+    estimated: Boolean(row.estimated),
+  }));
+  return {
+    available: true,
+    reason: null,
+    days: 30,
+    total: {
+      cost: byFeature.reduce((sum, row) => sum + row.cost, 0),
+      calls: byFeature.reduce((sum, row) => sum + row.calls, 0),
+      unpriced: byFeature.reduce((sum, row) => sum + row.unpriced, 0),
+      voice: models.filter((row) => row.kind !== "llm").reduce((sum, row) => sum + row.cost, 0),
+    },
+    byFeature,
+    perSession,
+    perOwner: {
+      owners: ownerCosts.length,
+      avg: ownerCosts.length ? sortedOwners.reduce((sum, value) => sum + value, 0) / ownerCosts.length : 0,
+      p50: percentile(sortedOwners, 50),
+      p90: percentile(sortedOwners, 90),
+      top: ownerCosts.slice(0, 10).map((row) => ({ owner: emails.get(row.owner) ?? row.owner, cost: row.cost })),
+    },
+    byModel: models,
+    daily: rows.daily.map((row) => ({ day: String(row.day), cost: num(row.cost) })),
   };
 }

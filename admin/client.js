@@ -20,7 +20,7 @@
    * Navigation: one section at a time, by hash. Switching is instant —
    * it happens dozens of times a session.
    * ------------------------------------------------------------------- */
-  const SECTIONS = ["resumen", "usuarios", "abandono", "cupones", "sustentacion", "recomendaciones", "actividad"];
+  const SECTIONS = ["resumen", "usuarios", "abandono", "cupones", "sustentacion", "costos", "recomendaciones", "actividad"];
   function show() {
     const id = SECTIONS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "resumen";
     for (const section of $$("[data-section]")) section.hidden = section.dataset.section !== id;
@@ -577,6 +577,73 @@
           )
           .join("")
       : `<p class="empty">Nada urgente con los datos de hoy.</p>`;
+  /** Dollars, with enough decimals for a cent-sized call to read as one. */
+  const usd = (n) => `US$ ${Number(n) < 1 ? Number(n).toFixed(4) : Number(n).toFixed(2)}`;
+  const FEATURE_NAME = {
+    defense: "Ensayo de sustentación",
+    interview: "Entrevista",
+    conversation: "Conversación difícil",
+    intuition: "Caso de intuición",
+    "custom-draft": "Crear a tu medida",
+    "thesis-analysis": "Análisis de tesis",
+    voice: "Voz (habla)",
+    background: "Sin atribuir",
+  };
+  const featureName = (id) => FEATURE_NAME[id] ?? id.replace(/^thesis-/, "Tesis · ");
+
+  function renderCosts() {
+    const c = data.summary.aiCosts;
+    const notice = $("#costs-notice");
+    if (!c || !c.available) {
+      notice.hidden = false;
+      notice.textContent = (c && c.reason) || "Todavía no hay datos de costos.";
+      $("#costs-kpis").innerHTML = "";
+      for (const id of ["#costs-sessions", "#costs-features", "#costs-models", "#costs-owners"]) $(id).innerHTML = "";
+      return;
+    }
+    notice.hidden = c.total.unpriced === 0;
+    notice.textContent = `${fmt(c.total.unpriced)} llamadas sin precio reportado (modelos fuera de OpenRouter): no están en los totales.`;
+    const defense = c.perSession.find((row) => row.feature === "defense");
+    $("#costs-kpis").innerHTML = [
+      card("Costo total · 30 días", usd(c.total.cost), `${fmt(c.total.calls)} llamadas`),
+      card("Por ensayo de tesis", defense ? usd(defense.avg) : "—", defense ? `P90 ${usd(defense.p90)} · ${fmt(defense.sessions)} ensayos` : "sin ensayos aún"),
+      card("Por persona activa", usd(c.perOwner.avg), `P90 ${usd(c.perOwner.p90)} · ${fmt(c.perOwner.owners)} personas`),
+      card("Voz (estimado)", usd(c.total.voice), "transcripción y habla"),
+    ].join("");
+    const empty = (cols, text) => `<tr><td colspan="${cols}" class="dim">${text}</td></tr>`;
+    $("#costs-sessions").innerHTML = c.perSession.length
+      ? c.perSession
+          .map(
+            (row) => `<tr><td data-label="Tipo">${esc(featureName(row.feature))}</td>
+<td data-label="Sesiones" class="r">${fmt(row.sessions)}</td><td data-label="Promedio" class="r">${usd(row.avg)}</td>
+<td data-label="Mediana" class="r">${usd(row.p50)}</td><td data-label="P90" class="r">${usd(row.p90)}</td><td data-label="Máximo" class="r">${usd(row.max)}</td></tr>`,
+          )
+          .join("")
+      : empty(6, "Sin ensayos medidos todavía.");
+    $("#costs-features").innerHTML = c.byFeature.length
+      ? c.byFeature
+          .map(
+            (row) => `<tr><td data-label="Función">${esc(featureName(row.feature))}</td><td data-label="Costo" class="r">${usd(row.cost)}</td>
+<td data-label="Llamadas" class="r">${fmt(row.calls)}</td><td data-label="Personas" class="r">${fmt(row.owners)}</td><td data-label="Sin precio" class="r">${fmt(row.unpriced)}</td></tr>`,
+          )
+          .join("")
+      : empty(5, "Sin uso todavía.");
+    $("#costs-models").innerHTML = c.byModel.length
+      ? c.byModel
+          .map(
+            (row) => `<tr><td data-label="Modelo">${esc(row.model)}${row.kind === "stt" ? " · transcripción" : row.kind === "tts" ? " · habla" : ""}${row.estimated ? ' <span class="dim small">(estimado)</span>' : ""}</td>
+<td data-label="Costo" class="r">${usd(row.cost)}</td><td data-label="Llamadas" class="r">${fmt(row.calls)}</td>
+<td data-label="Tokens entrada" class="r">${row.kind === "llm" ? fmt(row.inputTokens) : "—"}</td><td data-label="Tokens salida" class="r">${row.kind === "llm" ? fmt(row.outputTokens) : "—"}</td></tr>`,
+          )
+          .join("")
+      : empty(5, "Sin uso todavía.");
+    $("#costs-owners").innerHTML = c.perOwner.top.length
+      ? c.perOwner.top
+          .map((row) => `<tr><td data-label="Cuenta">${esc(row.owner)}</td><td data-label="Costo en 30 días" class="r">${usd(row.cost)}</td></tr>`)
+          .join("")
+      : empty(2, "Sin uso todavía.");
+  }
+
   function renderInsights() {
     $("#rules").innerHTML = insightHtml(data.insights);
     const high = data.insights.filter((i) => i.severity === "high").length;
@@ -714,6 +781,7 @@
     renderUsers();
     renderCoupons();
     renderDefense();
+    renderCosts();
     renderInsights();
     renderAudit();
     $("#updated").textContent = `Actualizado ${new Date(data.summary.generatedAt).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`;

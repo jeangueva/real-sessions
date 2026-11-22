@@ -27,6 +27,7 @@ once.
    GRANT CONNECT ON DATABASE <database> TO mockio_admin;
    GRANT USAGE ON SCHEMA public TO mockio_admin;
    GRANT SELECT ON sessions, turns, entitlements, subscriptions, promo_codes, admin_audit TO mockio_admin;
+   GRANT SELECT ON ai_usage TO mockio_admin;
    GRANT INSERT, UPDATE ON entitlements, promo_codes TO mockio_admin;
    GRANT INSERT ON admin_audit TO mockio_admin;
    GRANT USAGE ON SEQUENCE entitlements_id_seq, admin_audit_id_seq TO mockio_admin;
