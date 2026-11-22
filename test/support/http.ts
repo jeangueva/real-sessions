@@ -37,6 +37,7 @@ import { issueToken } from "../../src/auth.js";
 import { MemoryRateLimiter } from "../../src/rate-limit.js";
 import type { EmailMessage, EmailSender } from "../../src/email.js";
 import type { ModelProvider } from "../../src/providers/index.js";
+import { MemoryUsageStore } from "../../src/usage.js";
 import { SAMPLE_EVALUATION } from "../fixtures.js";import { createLtiStore, type LtiStore } from "../../src/lti.js";
 import type { JsonWebKey } from "node:crypto";
 
@@ -46,6 +47,8 @@ const USAGE = {
   outputTokens: 0,
   cacheReadTokens: 0,
   cacheCreationTokens: 0,
+  // What OpenRouter would bill, so the cost report has a number to sum.
+  costUsd: 0.001,
 };
 const LATENCY = { totalMs: 1, ttftMs: 1 };
 
@@ -128,6 +131,8 @@ export function createStubMailer(): StubMailer {
 export interface Harness {
   url: string;
   provider: StubProvider;
+  /** Every AI call and voice use the routes recorded, for the cost report. */
+  usage: MemoryUsageStore;
   /**
    * Makes every progress read and write throw, standing in for a database
    * that has gone away mid-request.
@@ -185,6 +190,7 @@ export interface Harness {
 
 export async function startHarness(): Promise<Harness> {
   const provider = createStubProvider();
+  const usage = new MemoryUsageStore();
   const mailer = createStubMailer();
   const contributions = createContributionStore(null);
   const plans = createEntitlementStore(null);
@@ -220,6 +226,7 @@ export async function startHarness(): Promise<Harness> {
     mailer,
     limiter: new MemoryRateLimiter(),
     provider,
+    usage,
     lti,
     ltiJwks: async (url: string) => ltiKeys.get(url) ?? { keys: [] },
     /**
@@ -305,6 +312,7 @@ export async function startHarness(): Promise<Harness> {
   return {
     url,
     provider,
+    usage,
     mailer,
     contributions,
     plans,

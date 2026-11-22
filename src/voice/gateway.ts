@@ -11,6 +11,7 @@
  * with a reason the client can show, and the client falls back to typing. It
  * never throws into the HTTP server or takes the process down.
  */
+import { recordTranscription } from "../usage.js";
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import type { IncomingMessage } from "node:http";
 import type { Server } from "node:http";
@@ -139,10 +140,14 @@ export function attachVoiceGateway(server: Server, deps: GatewayDeps): WebSocket
     let upstream: DeepgramSocket | null = null;
     let idleTimer: NodeJS.Timeout | null = null;
     let closed = false;
+    // Deepgram bills streaming by the length of the stream, so the cost of
+    // a microphone is the time it was open.
+    let openedAt: number | null = null;
 
     const shutdown = (code?: number, reason?: string) => {
       if (closed) return;
       closed = true;
+      if (openedAt !== null) recordTranscription((Date.now() - openedAt) / 1000, identity);
       if (idleTimer) clearTimeout(idleTimer);
       upstream?.close();
       const remaining = (openPerIdentity.get(identity) ?? 1) - 1;
@@ -187,6 +192,7 @@ export function attachVoiceGateway(server: Server, deps: GatewayDeps): WebSocket
       return;
     }
 
+    openedAt = Date.now();
     touch();
     say({ type: "ready" });
 

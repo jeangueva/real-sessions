@@ -34,6 +34,7 @@ const ICONS = `<svg width="0" height="0" style="position:absolute" aria-hidden="
 <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 7l4 4 5-6 5 6 4-4-2 11H5z"/></symbol>
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a2.5 2 0 0 0-2.5-1.5c-1.4 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.2 0 1.1-1.1 1.9-2.5 1.9a2.6 2 0 0 1-2.5-1.5M12 6.5v1.5M12 16v1.5"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
 <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
@@ -52,6 +53,7 @@ const NAV: [string, string, string][] = [
   ["abandono", "funnel", "Embudo y abandono"],
   ["cupones", "ticket", "Cupones"],
   ["sustentacion", "crown", "Sustentación"],
+  ["costos", "coin", "Costos de IA"],
   ["recomendaciones", "spark", "Recomendaciones"],
   ["actividad", "list", "Actividad"],
 ];
@@ -144,6 +146,20 @@ export function renderApp(payload: unknown, viewer: string): string {
         <div class="page-head"><h2 class="small dim">Afiliados y asesores</h2>
           <button class="btn" id="void-commission" type="button">Anular comisión</button></div>
         <div class="table-wrap cards"><table><thead><tr><th>Asesor</th><th>Código</th><th class="r">Vinculados</th><th class="r">Comparten</th><th class="r">Ventas</th><th class="r">Por pagar</th><th class="r">Pagado</th><th></th></tr></thead><tbody id="advisors-body"></tbody></table></div>
+      </section>
+
+      <section data-section="costos" hidden>
+        <div class="page-head"><div><h1>Costos de IA</h1><p class="dim small">Lo que cuesta la IA en los últimos 30 días: por función, por ensayo y por persona activa. Modelos: costo real de OpenRouter. Voz: estimado con las tarifas configuradas.</p></div></div>
+        <p class="dim small" id="costs-notice" hidden></p>
+        <div class="grid" id="costs-kpis"></div>
+        <h2 class="small dim">Costo por ensayo (solo modelos, sin voz)</h2>
+        <div class="table-wrap cards"><table><thead><tr><th>Tipo</th><th class="r">Sesiones</th><th class="r">Promedio</th><th class="r">Mediana</th><th class="r">P90</th><th class="r">Máximo</th></tr></thead><tbody id="costs-sessions"></tbody></table></div>
+        <h2 class="small dim">Por función</h2>
+        <div class="table-wrap cards"><table><thead><tr><th>Función</th><th class="r">Costo</th><th class="r">Llamadas</th><th class="r">Personas</th><th class="r">Sin precio</th></tr></thead><tbody id="costs-features"></tbody></table></div>
+        <h2 class="small dim">Por modelo o proveedor de voz</h2>
+        <div class="table-wrap cards"><table><thead><tr><th>Modelo</th><th class="r">Costo</th><th class="r">Llamadas</th><th class="r">Tokens entrada</th><th class="r">Tokens salida</th></tr></thead><tbody id="costs-models"></tbody></table></div>
+        <h2 class="small dim">Quién más gasta</h2>
+        <div class="table-wrap cards"><table><thead><tr><th>Cuenta</th><th class="r">Costo en 30 días</th></tr></thead><tbody id="costs-owners"></tbody></table></div>
       </section>
 
       <section data-section="recomendaciones" hidden>

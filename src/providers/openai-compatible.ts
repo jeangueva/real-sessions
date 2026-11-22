@@ -42,7 +42,10 @@ export interface OpenAICompatibleConfig {
 function readUsage(usage: OpenAI.CompletionUsage | undefined): ProviderUsage {
   if (!usage) return { ...ZERO_USAGE };
   const cached = usage.prompt_tokens_details?.cached_tokens ?? 0;
+  // OpenRouter's usage accounting adds the call's price in dollars.
+  const cost = (usage as { cost?: unknown }).cost;
   return {
+    ...(typeof cost === "number" && Number.isFinite(cost) ? { costUsd: cost } : {}),
     // prompt_tokens includes cached tokens; split them so cost math is right.
     inputTokens: Math.max((usage.prompt_tokens ?? 0) - cached, 0),
     outputTokens: usage.completion_tokens ?? 0,
@@ -116,6 +119,9 @@ export class OpenAICompatibleProvider implements ModelProvider {
   ): Record<string, unknown> {
     if (!this.supportsModelFallback) return {};
     return {
+      // Usage accounting: the response carries what the call cost, so the
+      // cost report reads the bill instead of guessing it from a price list.
+      usage: { include: true },
       ...(fallbacks && fallbacks.length > 0 ? { models: [model, ...fallbacks] } : {}),
       ...(latencyFirst ? { provider: { sort: "latency" } } : {}),
     };

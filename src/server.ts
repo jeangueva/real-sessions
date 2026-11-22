@@ -226,6 +226,17 @@ import {
   type LtiStore,
 } from "./lti.js";
 import { createB2bLeadStore, readLead, type B2bLeadStore } from "./b2b.js";
+import {
+  createUsageStore,
+  featureFor,
+  meterProvider,
+  MemoryUsageStore,
+  recordSpeech,
+  runWithUsage,
+  setUsageStore,
+  tagUsage,
+  type UsageStore,
+} from "./usage.js";
 import { CallRoomError, CallRooms, iceServers } from "./call-rooms.js";
 import { payoutSummary, readPayout } from "./advisors.js";
 import { createHmac as hmacFor, randomBytes as randomFor, timingSafeEqual as sameBytes } from "node:crypto";
@@ -675,6 +686,8 @@ export interface ServerDependencies {
   mailer: EmailSender;
   limiter: RateLimiter;
   provider?: ModelProvider;
+  /** Where the cost of each AI call is written; in memory when absent. */
+  usage?: UsageStore;
   /**
    * How a Google token is checked, injected like every other collaborator.
    *
@@ -716,7 +729,9 @@ export function configure(deps: ServerDependencies): void {
   ACCOUNTS = deps.accounts;
   MAILER = deps.mailer;
   LIMITER = deps.limiter;
-  PROVIDER = deps.provider;
+  // Metered so an injected provider (the tests') is in the cost report too.
+  PROVIDER = deps.provider ? meterProvider(deps.provider) : undefined;
+  setUsageStore(deps.usage ?? new MemoryUsageStore());
   VERIFY_GOOGLE = deps.verifyGoogle ?? verifyGoogleIdToken;
   VERIFY_GOOGLE_ACCESS = deps.verifyGoogleAccess ?? verifyGoogleAccessToken;
 }
@@ -2751,6 +2766,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
   // Everything past this point is authenticated.
   const identity = priorIdentity;
+  if (identity) tagUsage({ ownerId: identity.id });
   if (!identity) {
     return json(res, 401, {
       error: "Not authenticated.",
@@ -3314,6 +3330,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (azure) {
       try {
         const audio = await synthesizeAzure(text, azure);
+        recordSpeech("azure", text.length);
         res.writeHead(200, {
           "Content-Type": SPEECH_MIME,
           "Content-Length": String(audio.byteLength),
@@ -3334,6 +3351,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (google) {
       try {
         const audio = await synthesizeGoogle(text, google);
+        recordSpeech("google", text.length);
         res.writeHead(200, {
           "Content-Type": SPEECH_MIME,
           "Content-Length": String(audio.byteLength),
@@ -3354,6 +3372,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     try {
       const audio = await synthesize(text, voice);
+      recordSpeech("deepgram", text.length);
       res.writeHead(200, {
         "Content-Type": SPEECH_MIME,
         "Content-Length": String(audio.byteLength),
@@ -4487,6 +4506,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
       ...(PROVIDER ? { provider: PROVIDER } : {}),
     });
     const sessionId = randomUUID();
+    tagUsage({ sessionId, feature: defense ? "defense" : "interview" });
 
     // The durable row is written before the first turn is generated, because
     // every later turn write references it. An abandoned interview leaves a
@@ -4589,6 +4609,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (await limited(res, `answer:${identity.id}`, RULES.answer)) return;
     const sessionId = answerMatch[1]!;
     const stored = await STORE.get(sessionId);
+    if (stored) tagUsage({ sessionId, feature: stored.snapshot.defense ? "defense" : "interview" });
     // A session owned by someone else is reported as missing, not forbidden —
     // "forbidden" would confirm the id exists.
     if (!stored || stored.ownerId !== identity.id) {
@@ -4664,6 +4685,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "POST" && coachMatch) {
     if (await limited(res, `coach:${identity.id}`, RULES.coach)) return;
     const stored = await STORE.get(coachMatch[1]!);
+    if (stored) tagUsage({ sessionId: coachMatch[1]!, feature: stored.snapshot.defense ? "defense" : "interview" });
     if (!stored || stored.ownerId !== identity.id) {
       return json(res, 404, { error: "That interview is no longer open. Start a new one.", code: "sessionGone" });
     }
@@ -4712,6 +4734,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "POST" && evalMatch) {
     if (await limited(res, `eval:${identity.id}`, RULES.evaluation)) return;
     const stored = await STORE.get(evalMatch[1]!);
+    if (stored) tagUsage({ sessionId: evalMatch[1]!, feature: stored.snapshot.defense ? "defense" : "interview" });
     if (!stored || stored.ownerId !== identity.id) {
       return json(res, 404, { error: "That interview is no longer open. Start a new one.", code: "sessionGone" });
     }
@@ -5074,7 +5097,10 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
 export const server = createServer((req, res) => {
   securityHeaders(res);
-  void route(req, res).catch((error: unknown) => {
+  // Every AI call this request causes is attributed to its feature; the
+  // route adds the account and the session as it learns them.
+  const usagePath = new URL(req.url ?? "/", "http://localhost").pathname;
+  void runWithUsage({ feature: featureFor(usagePath) }, () => route(req, res)).catch((error: unknown) => {
     // Once a stream is open the status line is already sent; the only way to
     // report a failure is as an event on the open stream.
     if (res.headersSent) {
@@ -5163,6 +5189,7 @@ configure({
   institutions: createInstitutionStore(db),
   lti: createLtiStore(db),
   leads: createB2bLeadStore(db),
+  usage: createUsageStore(db),
   presence: createPresenceStore(db),
   contributions: createContributionStore(db),
   subscriptions: createSubscriptionStore(db),

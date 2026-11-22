@@ -603,3 +603,26 @@ ALTER TABLE advisor_commissions ADD COLUMN IF NOT EXISTS void_reason TEXT;
 -- family id from src/careers-pe.ts, which seats the discipline's jury. Null
 -- follows the cover.
 ALTER TABLE theses ADD COLUMN IF NOT EXISTS career_override TEXT;
+
+-- What the AI costs, one row per model call or voice use (see src/usage.ts).
+-- cost_usd is the vendor's own figure for model calls on OpenRouter, null when
+-- no price was reported, and an estimate from configured rates for voice
+-- (estimated = true). Attributed to the account, the feature and, for a
+-- rehearsal, its session, so a rehearsal's whole cost is one sum.
+CREATE TABLE IF NOT EXISTS ai_usage (
+  id                BIGSERIAL PRIMARY KEY,
+  at                TIMESTAMPTZ NOT NULL DEFAULT now(),
+  kind              TEXT NOT NULL,
+  feature           TEXT NOT NULL,
+  owner_id          TEXT,
+  session_id        TEXT,
+  model             TEXT,
+  input_tokens      INTEGER NOT NULL DEFAULT 0,
+  output_tokens     INTEGER NOT NULL DEFAULT 0,
+  cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+  units             INTEGER NOT NULL DEFAULT 0,
+  cost_usd          NUMERIC(12, 6),
+  estimated         BOOLEAN NOT NULL DEFAULT false
+);
+CREATE INDEX IF NOT EXISTS ai_usage_at_idx ON ai_usage (at);
+CREATE INDEX IF NOT EXISTS ai_usage_session_idx ON ai_usage (session_id) WHERE session_id IS NOT NULL;
